@@ -72,13 +72,4 @@ public interface BaseService<E extends Base, D, ID extends Serializable> {
     * @throws Exception si ocurre un error al eliminar el dato
     */
    boolean delete(ID id) throws Exception;
-
-   /**
-    * Realiza una búsqueda personalizada de DTOs según criterios especificados.
-    *
-    * @param criterios una lista de criterios de búsqueda
-    * @return una lista de DTOs que cumplen con los criterios
-    * @throws Exception si ocurre un error al realizar la búsqueda
-    */
-   List<D> buscar(List<Map<String, String>> criterios) throws Exception;
 }

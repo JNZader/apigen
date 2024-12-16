@@ -105,17 +105,4 @@ public abstract class BaseControllerImpl<E extends Base, D extends BaseDTO, S ex
       boolean deleted = servicio.delete(id);
       return deleted ? new ResponseEntity<>(HttpStatus.NO_CONTENT) : new ResponseEntity<>(HttpStatus.NOT_FOUND);
    }
-
-   /**
-    * Busca entidades basadas en criterios especificados.
-    *
-    * @param criterios una lista de criterios de búsqueda en forma de mapa
-    * @return una respuesta que contiene una lista de DTOs que cumplen los criterios.
-    */
-   @Override
-   @GetMapping("/buscar")
-   public ResponseEntity<List<D>> buscar(@RequestBody List<Map<String, String>> criterios) {
-      List<D> resultados = servicio.buscar(criterios);
-      return new ResponseEntity<>(resultados, HttpStatus.OK);
-   }
 }

@@ -67,12 +67,4 @@ public interface BaseController<E extends Base, D, ID extends Serializable> {
     * @return una respuesta que indica el resultado de la operación.
     */
    public ResponseEntity<?> delete(@PathVariable ID id);
-
-   /**
-    * Busca entidades basadas en criterios especificados.
-    *
-    * @param criterios una lista de criterios de búsqueda en forma de mapa
-    * @return una respuesta que contiene una lista de entidades que cumplen los criterios.
-    */
-   public ResponseEntity<List<D>> buscar(@RequestBody List<Map<String, String>> criterios);
 }
