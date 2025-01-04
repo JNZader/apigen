@@ -1,5 +1,6 @@
 package com.example.api.services;
 
+import com.example.api.dto.BaseDTO;
 import com.example.api.entities.Base;
 import com.example.api.mappers.GenericMapper;
 import com.example.api.repositories.BaseRepository;
@@ -34,20 +35,48 @@ import java.util.Map;
  */
 public abstract class BaseServiceImpl<E extends Base, D, ID extends Serializable> implements BaseService<E, D, ID> {
 
+   /**
+    * La lista de repositorios utilizados para realizar operaciones CRUD.
+    */
+   protected final List<BaseRepository<?, ID>> repositories;
+
+   /**
+    * La lista de mappers utilizados para convertir entre entidades y DTO.
+    */
+   protected final List<GenericMapper<? extends Base, ? extends BaseDTO>> mapperGen;
+
+   /**
+    * El repositorio base utilizado para realizar operaciones CRUD.
+    */
    protected final BaseRepository<E, ID> baseRepository;
+
+   /**
+    * El mapeador que convierte entre entidades y DTOs.
+    */
    protected final GenericMapper<E, D> mapper;
+
+   /**
+    * El EntityManager para realizar operaciones de persistencia.
+    */
    private final EntityManager entityManager;
 
    /**
     * Constructor que inicializa el repositorio base, el mapeador y el EntityManager.
     *
+    * @param repositories   la lista de repositorios utilizados para realizar operaciones CRUD
+    * @param mapperGen      la lista de mappers utilizados para convertir entre entidades y DTOs
     * @param baseRepository el repositorio base utilizado para realizar operaciones CRUD
     * @param mapper         el mapeador que convierte entre entidades y DTOs
     * @param entityManager  el EntityManager para realizar operaciones de persistencia
     */
    @Autowired
-   protected BaseServiceImpl(BaseRepository<E, ID> baseRepository, GenericMapper<E, D> mapper,
+   protected BaseServiceImpl(List<BaseRepository<?, ID>> repositories,
+                             List<GenericMapper<? extends Base, ? extends BaseDTO>> mapperGen,
+                             BaseRepository<E, ID> baseRepository,
+                             GenericMapper<E, D> mapper,
                              EntityManager entityManager) {
+      this.repositories = repositories;
+      this.mapperGen = mapperGen;
       this.baseRepository = baseRepository;
       this.mapper = mapper;
       this.entityManager = entityManager;
@@ -63,13 +92,15 @@ public abstract class BaseServiceImpl<E extends Base, D, ID extends Serializable
    @Transactional(readOnly = true)
    public List<D> findAll() {
       try {
+         // Utiliza el repositorio base para obtener todas las entidades
          List<E> entities = baseRepository.findAll();
+         // Convierte las entidades en una lista de DTOs utilizando el mapeador
          return mapper.toDTOList(entities);
       } catch (Exception e) {
+         // Lanza una excepción de operación fallida si ocurre un error
          throw new OperationFailedException("Error al obtener la lista de entidades");
       }
    }
-
 
    /**
     * Recupera una página de entidades de la base de datos y las convierte en una página de DTOs.
@@ -82,13 +113,15 @@ public abstract class BaseServiceImpl<E extends Base, D, ID extends Serializable
    @Transactional(readOnly = true)
    public Page<D> findAll(Pageable pageable) {
       try {
+         // Utiliza el repositorio base para obtener una página de entidades
          Page<E> entitiesPage = baseRepository.findAll(pageable);
+         // Convierte la página de entidades en una página de DTOs utilizando el mapeador
          return entitiesPage.map(mapper::toDTO);
       } catch (Exception e) {
+         // Lanza una excepción de operación fallida si ocurre un error
          throw new OperationFailedException("Error al obtener la lista de entidades");
       }
    }
-
 
    /**
     * Recupera una entidad de la base de datos por su identificador y la convierte en un DTO.
@@ -102,14 +135,16 @@ public abstract class BaseServiceImpl<E extends Base, D, ID extends Serializable
    @Transactional(readOnly = true)
    public D findById(ID id) {
       try {
+         // Utiliza el repositorio base para obtener la entidad por su identificador
          E entity = baseRepository.findById(id)
                  .orElseThrow(() -> new ResourceNotFoundException("Entidad no encontrada"));
+         // Convierte la entidad en un DTO utilizando el mapeador
          return mapper.toDTO(entity);
       } catch (Exception e) {
+         // Lanza una excepción de operación fallida si ocurre un error
          throw new OperationFailedException("Error al buscar la entidad");
       }
    }
-
 
    /**
     * Guarda una nueva entidad en la base de datos a partir del DTO proporcionado.
@@ -122,14 +157,17 @@ public abstract class BaseServiceImpl<E extends Base, D, ID extends Serializable
    @Transactional
    public D save(D dto) {
       try {
+         // Convierte el DTO en una entidad utilizando el mapeador
          E entity = mapper.toEntity(dto);
+         // Utiliza el repositorio base para guardar la entidad
          E savedEntity = baseRepository.save(entity);
+         // Convierte la entidad guardada en un DTO utilizando el mapeador
          return mapper.toDTO(savedEntity);
       } catch (Exception e) {
+         // Lanza una excepción de operación fallida si ocurre un error
          throw new OperationFailedException("Error al guardar la entidad");
       }
    }
-
 
    /**
     * Actualiza una entidad existente en la base de datos con los datos del DTO proporcionado.
@@ -144,20 +182,27 @@ public abstract class BaseServiceImpl<E extends Base, D, ID extends Serializable
    @Transactional
    public D update(ID id, D dto) {
       try {
+         // Verifica si la entidad existe en la base de datos
          if (!baseRepository.existsById(id)) {
+            // Lanza una excepción de recurso no encontrado si la entidad no existe
             throw new ResourceNotFoundException("Entidad no encontrada para actualizar");
          }
+         // Utiliza el repositorio base para obtener la entidad por su identificador
          E existingEntity = baseRepository.findById(id)
                  .orElseThrow(() -> new ResourceNotFoundException("Entidad no encontrada"));
+         // Convierte el DTO en una entidad utilizando el mapeador
          E updatedEntity = mapper.toEntity(dto);
-         updatedEntity.setId(existingEntity.getId()); // Mantener el ID existente
+         // Mantén el ID existente de la entidad
+         updatedEntity.setId(existingEntity.getId());
+         // Utiliza el repositorio base para guardar la entidad actualizada
          updatedEntity = baseRepository.save(updatedEntity);
+         // Convierte la entidad actualizada en un DTO utilizando el mapeador
          return mapper.toDTO(updatedEntity);
       } catch (Exception e) {
+         // Lanza una excepción de operación fallida si ocurre un error
          throw new OperationFailedException("Error al actualizar la entidad");
       }
    }
-
 
    /**
     * Elimina una entidad de la base de datos identificada por el ID proporcionado.
@@ -171,13 +216,52 @@ public abstract class BaseServiceImpl<E extends Base, D, ID extends Serializable
    @Transactional
    public boolean delete(ID id) {
       try {
+         // Verifica si la entidad existe en la base de datos
          if (!baseRepository.existsById(id)) {
+            // Lanza una excepción de recurso no encontrado si la entidad no existe
             throw new ResourceNotFoundException("Entidad no encontrada para eliminar");
          }
+         // Utiliza el repositorio base para eliminar la entidad
          baseRepository.deleteById(id);
+         // Regresa true si la entidad se eliminó con éxito
          return true;
       } catch (Exception e) {
+         // Lanza una excepción de operación fallida si ocurre un error
          throw new OperationFailedException("Error al eliminar la entidad");
       }
    }
+
+   /**
+    * Obtiene un repositorio específico de una entidad.
+    *
+    * @param clazz el tipo de repositorio a obtener
+    * @return el repositorio específico de la entidad
+    * @throws ResourceNotFoundException si el repositorio no se encuentra
+    */
+   public <T extends BaseRepository<?, Long>> T getRepository(Class<T> clazz) {
+      return getRepositoryImpl(clazz);
+   }
+
+   @SuppressWarnings("unchecked")
+   private <T extends BaseRepository<?, Long>> T getRepositoryImpl(Class<T> clazz) {
+      // Utiliza el método `stream` para obtener un flujo de repositorios
+      return (T) repositories.stream()
+              .filter(clazz::isInstance)
+              .findFirst()
+              .orElseThrow(() -> new ResourceNotFoundException("Repositorio no encontrado"));
+   }
+
+   /**
+    * Obtiene el mapper específico para convertir entre una entidad y su correspondiente DTO
+    */
+   @SuppressWarnings("unchecked")
+   protected <T extends Base, U extends BaseDTO> GenericMapper<T, U> getMapper(Class<T> entityClass, Class<U> dtoClass) {
+      return (GenericMapper<T, U>) mapperGen.stream()
+              .filter(mapper
+                      ->mapper.getEntityClass().equals(entityClass)
+                      &&mapper.getDtoClass().equals(dtoClass))
+              .findFirst()
+              .orElseThrow(()->new ResourceNotFoundException("Mapper no encontrado para "+entityClass.getSimpleName()));
+   }
+
 }

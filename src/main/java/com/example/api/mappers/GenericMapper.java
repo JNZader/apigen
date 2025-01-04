@@ -1,5 +1,7 @@
 package com.example.api.mappers;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.modelmapper.ModelMapper;
 
 import java.util.List;
@@ -12,6 +14,8 @@ import java.util.stream.Collectors;
  * @param <E> el tipo de la entidad
  * @param <D> el tipo del DTO
  */
+@Getter
+@Setter
 public class GenericMapper<E, D> {
 
    private final Class<E> entityClass;
