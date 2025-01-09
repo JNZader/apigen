@@ -5,12 +5,13 @@ package com.example.api.utils;
  */
 public class DuplicateResourceException extends RuntimeException {
 
-   /**
-    * Crea una nueva instancia de DuplicateResourceException con un mensaje específico.
-    *
-    * @param message el mensaje que describe la excepción
-    */
-   public DuplicateResourceException(String message) {
-      super(message); // Llama al constructor de la clase padre (RuntimeException) con el mensaje
-   }
+    /**
+     * Crea una nueva instancia de DuplicateResourceException con un mensaje
+     * específico.
+     *
+     * @param message el mensaje que describe la excepción
+     */
+    public DuplicateResourceException(String message) {
+        super(message); // Llama al constructor de la clase padre (RuntimeException) con el mensaje
+    }
 }

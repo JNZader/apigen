@@ -7,13 +7,13 @@ package com.example.api.utils;
  */
 public class UnauthorizedActionException extends RuntimeException {
 
-   /**
-    * Constructor que crea una nueva instancia de UnauthorizedActionException.
-    *
-    * @param message Mensaje que describe el motivo de la excepción. Este mensaje
-    *                se pasará a la clase base RuntimeException.
-    */
-   public UnauthorizedActionException(String message) {
-      super(message); // Llama al constructor de la clase base con el mensaje proporcionado.
-   }
+    /**
+     * Constructor que crea una nueva instancia de UnauthorizedActionException.
+     *
+     * @param message Mensaje que describe el motivo de la excepción. Este
+     * mensaje se pasará a la clase base RuntimeException.
+     */
+    public UnauthorizedActionException(String message) {
+        super(message); // Llama al constructor de la clase base con el mensaje proporcionado.
+    }
 }
