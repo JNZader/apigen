@@ -15,6 +15,9 @@ logs/
 ### Claude ###
 .claude/
 CLAUDE.md
+
+### Project Management ###
+ROADMAP.md
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
