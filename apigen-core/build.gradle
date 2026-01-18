@@ -1,0 +1,156 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.jnzader'
+version = '1.0.0-SNAPSHOT'
+description = 'APiGen Core - Base classes for REST APIs with CRUD, auditing, caching'
+
+// Centralized versions - Updated January 2026
+ext {
+    mapstructVersion = '1.6.3'
+    caffeineVersion = '3.2.3'
+    resilience4jVersion = '2.3.0'
+    springdocVersion = '3.0.1'              // Updated: Spring Boot 4 support
+    micrometerTracingVersion = '1.6.0'
+    opentelemetryVersion = '1.53.0'
+    logstashEncoderVersion = '9.0'
+    lombokMapstructBindingVersion = '0.2.0'
+    testcontainersVersion = '1.20.4'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+    withSourcesJar()
+    withJavadocJar()
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencyManagement {
+    imports {
+        mavenBom 'org.springframework.boot:spring-boot-dependencies:4.0.0'
+    }
+}
+
+dependencies {
+    // Spring Boot Starters (exposed to consumers via 'api')
+    api 'org.springframework.boot:spring-boot-starter-web'
+    api 'org.springframework.boot:spring-boot-starter-data-jpa'
+    api 'org.springframework.boot:spring-boot-autoconfigure'
+    api 'org.springframework.boot:spring-boot-starter-validation'
+    api 'org.springframework.boot:spring-boot-starter-cache'
+    api 'org.springframework.boot:spring-boot-starter-hateoas'
+    api 'org.springframework.boot:spring-boot-starter-actuator'
+    api 'org.springframework.boot:spring-boot-starter-aspectj'
+
+    // Hibernate Envers for auditing
+    api 'org.hibernate.orm:hibernate-envers'
+
+    // Caching
+    api "com.github.ben-manes.caffeine:caffeine:${caffeineVersion}"
+
+    // Mapping
+    api "org.mapstruct:mapstruct:${mapstructVersion}"
+
+    // Resilience4j
+    api "io.github.resilience4j:resilience4j-spring-boot3:${resilience4jVersion}"
+    api "io.github.resilience4j:resilience4j-circuitbreaker:${resilience4jVersion}"
+    api "io.github.resilience4j:resilience4j-ratelimiter:${resilience4jVersion}"
+    api "io.github.resilience4j:resilience4j-retry:${resilience4jVersion}"
+    api "io.github.resilience4j:resilience4j-micrometer:${resilience4jVersion}"
+
+    // Observability
+    implementation "io.micrometer:micrometer-tracing-bridge-otel:${micrometerTracingVersion}"
+    implementation "io.opentelemetry:opentelemetry-exporter-otlp:${opentelemetryVersion}"
+    implementation "net.logstash.logback:logstash-logback-encoder:${logstashEncoderVersion}"
+    runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+
+    // API Documentation
+    api "org.springdoc:springdoc-openapi-starter-webmvc-ui:${springdocVersion}"
+
+    // Content Negotiation - XML support
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml'
+
+    // Spring Security (optional - for AuditorAware and RevisionListener)
+    compileOnly 'org.springframework.boot:spring-boot-starter-security'
+
+    // Lombok (compile-only, consumers need their own)
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+    annotationProcessor "org.projectlombok:lombok-mapstruct-binding:${lombokMapstructBindingVersion}"
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
+    // Testing
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-webmvc-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-security'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation "org.testcontainers:postgresql:${testcontainersVersion}"
+    testImplementation "org.testcontainers:junit-jupiter:${testcontainersVersion}"
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testRuntimeOnly 'org.postgresql:postgresql'
+    testRuntimeOnly 'com.h2database:h2'
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+    testAnnotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+}
+
+// Java compiler configuration
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs += [
+        '-parameters',  // Required for Spring to resolve parameter names via reflection
+        '-Amapstruct.defaultComponentModel=spring',
+        '-Amapstruct.unmappedTargetPolicy=IGNORE'
+    ]
+}
+
+test {
+    useJUnitPlatform()
+}
+
+// Don't fail on javadoc warnings/errors
+javadoc {
+    options.addStringOption('Xdoclint:none', '-quiet')
+    failOnError = false
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+
+            pom {
+                name = 'APiGen Core'
+                description = project.description
+                url = 'https://github.com/jnzader/apigen'
+
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://opensource.org/licenses/MIT'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = 'jnzader'
+                        name = 'JN Zader'
+                    }
+                }
+            }
+        }
+    }
+
+    repositories {
+        mavenLocal()
+    }
+}

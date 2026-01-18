@@ -1,0 +1,23 @@
+# Production profile configuration
+server:
+  port: ${PORT:8081}
+
+spring:
+  application:
+    name: apigen-server
+
+# CORS configuration - set via environment variable
+cors:
+  allowed-origins: ${CORS_ORIGINS:*}
+
+# Logging - less verbose in production
+logging:
+  level:
+    com.jnzader.apigen: INFO
+    org.springframework.web: WARN
+    org.springframework.boot: WARN
+
+# File upload limits
+spring.servlet.multipart:
+  max-file-size: 10MB
+  max-request-size: 10MB

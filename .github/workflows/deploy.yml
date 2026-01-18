@@ -1,0 +1,233 @@
+# ==========================================
+# APiGen - Deployment Workflow (CD)
+# ==========================================
+# Despliega la aplicación a diferentes entornos
+#
+# Triggers:
+# - Workflow dispatch manual
+# - Después de Docker Build exitoso en main
+# - Release publicado
+# ==========================================
+
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      version:
+        description: 'Version/tag to deploy (default: latest)'
+        required: false
+        default: 'latest'
+
+  workflow_run:
+    workflows: ["Docker Build & Publish"]
+    types: [completed]
+    branches: [main]
+
+  release:
+    types: [published]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # ==========================================
+  # Determine deployment parameters
+  # ==========================================
+  prepare:
+    name: Prepare Deployment
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.set-env.outputs.environment }}
+      version: ${{ steps.set-env.outputs.version }}
+      should_deploy: ${{ steps.set-env.outputs.should_deploy }}
+
+    steps:
+      - name: Determine environment and version
+        id: set-env
+        run: |
+          # Default values
+          ENVIRONMENT="staging"
+          VERSION="latest"
+          SHOULD_DEPLOY="true"
+
+          # Manual dispatch
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            ENVIRONMENT="${{ github.event.inputs.environment }}"
+            VERSION="${{ github.event.inputs.version }}"
+          fi
+
+          # Release event -> production
+          if [ "${{ github.event_name }}" == "release" ]; then
+            ENVIRONMENT="production"
+            VERSION="${{ github.event.release.tag_name }}"
+          fi
+
+          # Workflow run (after Docker build)
+          if [ "${{ github.event_name }}" == "workflow_run" ]; then
+            if [ "${{ github.event.workflow_run.conclusion }}" != "success" ]; then
+              SHOULD_DEPLOY="false"
+            fi
+          fi
+
+          echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "should_deploy=$SHOULD_DEPLOY" >> $GITHUB_OUTPUT
+
+          echo "Deployment: $ENVIRONMENT with version $VERSION"
+
+  # ==========================================
+  # Deploy to Staging
+  # ==========================================
+  deploy-staging:
+    name: Deploy to Staging
+    needs: prepare
+    if: needs.prepare.outputs.should_deploy == 'true' && needs.prepare.outputs.environment == 'staging'
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://staging.api.example.com
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log deployment info
+        run: |
+          echo "Deploying to STAGING"
+          echo "Version: ${{ needs.prepare.outputs.version }}"
+          echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.prepare.outputs.version }}"
+
+      # ==========================================
+      # Option 1: Docker Compose deployment
+      # ==========================================
+      # - name: Deploy with Docker Compose
+      #   uses: appleboy/ssh-action@v1.0.0
+      #   with:
+      #     host: ${{ secrets.STAGING_HOST }}
+      #     username: ${{ secrets.STAGING_USER }}
+      #     key: ${{ secrets.STAGING_SSH_KEY }}
+      #     script: |
+      #       cd /opt/apigen
+      #       docker compose pull
+      #       docker compose up -d --force-recreate
+      #       docker compose ps
+
+      # ==========================================
+      # Option 2: Kubernetes deployment
+      # ==========================================
+      # - name: Set up kubectl
+      #   uses: azure/setup-kubectl@v3
+      #
+      # - name: Configure kubectl
+      #   run: |
+      #     echo "${{ secrets.KUBE_CONFIG_STAGING }}" | base64 -d > kubeconfig
+      #     export KUBECONFIG=kubeconfig
+      #
+      # - name: Deploy to Kubernetes
+      #   run: |
+      #     kubectl set image deployment/apigen \
+      #       apigen=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.prepare.outputs.version }} \
+      #       -n staging
+      #     kubectl rollout status deployment/apigen -n staging --timeout=300s
+
+      - name: Deployment placeholder
+        run: |
+          echo "================================================"
+          echo "STAGING DEPLOYMENT"
+          echo "================================================"
+          echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.prepare.outputs.version }}"
+          echo ""
+          echo "To enable actual deployment, uncomment one of the"
+          echo "deployment options above and configure secrets:"
+          echo "- STAGING_HOST, STAGING_USER, STAGING_SSH_KEY (Docker Compose)"
+          echo "- KUBE_CONFIG_STAGING (Kubernetes)"
+          echo "================================================"
+
+  # ==========================================
+  # Deploy to Production
+  # ==========================================
+  deploy-production:
+    name: Deploy to Production
+    needs: prepare
+    if: needs.prepare.outputs.should_deploy == 'true' && needs.prepare.outputs.environment == 'production'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://api.example.com
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log deployment info
+        run: |
+          echo "Deploying to PRODUCTION"
+          echo "Version: ${{ needs.prepare.outputs.version }}"
+          echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.prepare.outputs.version }}"
+
+      - name: Deployment placeholder
+        run: |
+          echo "================================================"
+          echo "PRODUCTION DEPLOYMENT"
+          echo "================================================"
+          echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.prepare.outputs.version }}"
+          echo ""
+          echo "To enable actual deployment, configure secrets:"
+          echo "- PRODUCTION_HOST, PRODUCTION_USER, PRODUCTION_SSH_KEY (Docker Compose)"
+          echo "- KUBE_CONFIG_PRODUCTION (Kubernetes)"
+          echo "================================================"
+
+  # ==========================================
+  # Post-deployment verification
+  # ==========================================
+  verify:
+    name: Verify Deployment
+    needs: [prepare, deploy-staging, deploy-production]
+    if: always() && (needs.deploy-staging.result == 'success' || needs.deploy-production.result == 'success')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Wait for application startup
+        run: sleep 30
+
+      - name: Health check
+        run: |
+          ENVIRONMENT="${{ needs.prepare.outputs.environment }}"
+
+          if [ "$ENVIRONMENT" == "staging" ]; then
+            HEALTH_URL="${{ vars.STAGING_HEALTH_URL || 'https://staging.api.example.com/actuator/health' }}"
+          else
+            HEALTH_URL="${{ vars.PRODUCTION_HEALTH_URL || 'https://api.example.com/actuator/health' }}"
+          fi
+
+          echo "Checking health at: $HEALTH_URL"
+          # Uncomment when URLs are configured:
+          # curl -f "$HEALTH_URL" || exit 1
+
+      - name: Smoke tests
+        run: |
+          echo "Running smoke tests..."
+          # Add smoke tests here
+          # curl -f "https://api.example.com/v3/api-docs" || exit 1
+
+      - name: Notify success
+        if: success()
+        run: |
+          echo "Deployment verified successfully!"
+          # Add notification (Slack, Teams, etc.)
+
+      - name: Notify failure
+        if: failure()
+        run: |
+          echo "Deployment verification failed!"
+          # Add notification and potential rollback

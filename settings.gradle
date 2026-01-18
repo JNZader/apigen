@@ -1,0 +1,14 @@
+rootProject.name = 'apigen'
+
+// Multi-module project structure
+include 'apigen-bom'
+include 'apigen-core'
+include 'apigen-security'
+include 'apigen-codegen'
+include 'apigen-server'
+include 'apigen-example'
+
+// Configure each subproject
+rootProject.children.each { project ->
+    project.buildFileName = 'build.gradle'
+}

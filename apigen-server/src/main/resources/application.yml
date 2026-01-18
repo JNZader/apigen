@@ -1,0 +1,17 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: apigen-server
+
+# Logging
+logging:
+  level:
+    com.jnzader.apigen: DEBUG
+    org.springframework.web: INFO
+
+# File upload limits
+spring.servlet.multipart:
+  max-file-size: 10MB
+  max-request-size: 10MB

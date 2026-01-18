@@ -1,0 +1,111 @@
+plugins {
+    id 'java'
+    id 'jacoco'
+    id 'org.sonarqube' version '6.3.1.5724'
+}
+
+// SonarQube configuration
+sonar {
+    properties {
+        property "sonar.sourceEncoding", "UTF-8"
+        property "sonar.java.source", "25"
+    }
+}
+
+group = 'com.jnzader'
+version = '1.0.0-SNAPSHOT'
+description = 'APiGen - Generic REST API template with CRUD, auditing, caching, and security'
+
+// Common configuration for all Java subprojects
+subprojects {
+    // Skip BOM module for Java config (it uses java-platform)
+    if (name != 'apigen-bom') {
+        apply plugin: 'java'
+        apply plugin: 'jacoco'
+
+        java {
+            toolchain {
+                languageVersion = JavaLanguageVersion.of(25)
+            }
+        }
+
+        repositories {
+            mavenCentral()
+        }
+
+        // Common test configuration
+        test {
+            useJUnitPlatform()
+            testLogging {
+                events "passed", "skipped", "failed"
+                showStandardStreams = false
+                exceptionFormat = 'full'
+            }
+        }
+
+        // JaCoCo configuration
+        jacoco {
+            toolVersion = "0.8.14"
+        }
+
+        jacocoTestReport {
+            dependsOn test
+            reports {
+                xml.required = true
+                html.required = true
+            }
+        }
+    }
+}
+
+// Aggregate task to publish all modules (except example which is an application, not a library)
+tasks.register('publishAll') {
+    group = 'publishing'
+    description = 'Publishes all modules to Maven Local'
+
+    dependsOn subprojects.findAll { it.name != 'apigen-example' }.collect { "${it.path}:publishToMavenLocal" }
+
+    doLast {
+        println "\n=========================================="
+        println "All modules published to Maven Local!"
+        println "=========================================="
+        println "Published artifacts:"
+        println "  - com.jnzader:apigen-bom:${version}"
+        println "  - com.jnzader:apigen-core:${version}"
+        println "  - com.jnzader:apigen-security:${version}"
+        println "  - com.jnzader:apigen-codegen:${version}"
+        println ""
+        println "Usage in other projects:"
+        println "  implementation platform('com.jnzader:apigen-bom:${version}')"
+        println "  implementation 'com.jnzader:apigen-core'"
+        println "  implementation 'com.jnzader:apigen-security' // optional"
+        println "=========================================="
+    }
+}
+
+// Aggregate task to build all modules
+tasks.register('buildAll') {
+    group = 'build'
+    description = 'Builds all modules'
+    dependsOn subprojects.collect { "${it.path}:build" }
+}
+
+// Aggregate task for all tests
+tasks.register('testAll') {
+    group = 'verification'
+    description = 'Runs tests in all modules'
+    dependsOn subprojects.findAll { it.name != 'apigen-bom' }.collect { "${it.path}:test" }
+}
+
+// Clean all
+tasks.register('cleanAll') {
+    group = 'build'
+    description = 'Cleans all modules'
+    dependsOn subprojects.collect { "${it.path}:clean" }
+}
+
+// Wrapper task
+wrapper {
+    gradleVersion = '8.12'
+    distributionType = Wrapper.DistributionType.ALL
+}

@@ -1,0 +1,82 @@
+package com.jnzader.apigen.server.service.generator.util;
+
+/**
+ * Utility methods for string transformations.
+ */
+public final class StringTransformationUtil {
+
+    private StringTransformationUtil() {
+        // Utility class
+    }
+
+    /**
+     * Capitalizes the first letter of a string.
+     *
+     * @param str the string to capitalize
+     * @return the capitalized string
+     */
+    public static String capitalize(String str) {
+        if (str == null || str.isEmpty()) return str;
+        return Character.toUpperCase(str.charAt(0)) + str.substring(1);
+    }
+
+    /**
+     * Converts snake_case to camelCase.
+     *
+     * @param snake the snake_case string
+     * @return the camelCase string
+     */
+    public static String toCamelCase(String snake) {
+        StringBuilder result = new StringBuilder();
+        boolean capitalizeNext = false;
+        boolean firstChar = true;
+        for (char c : snake.toLowerCase().toCharArray()) {
+            if (c == '_') {
+                capitalizeNext = !firstChar; // Only capitalize after underscore if not at start
+            } else {
+                result.append(capitalizeNext ? Character.toUpperCase(c) : c);
+                capitalizeNext = false;
+                firstChar = false;
+            }
+        }
+        return result.toString();
+    }
+
+    /**
+     * Converts kebab-case to PascalCase.
+     *
+     * @param kebab the kebab-case string
+     * @return the PascalCase string
+     */
+    public static String toPascalCase(String kebab) {
+        StringBuilder result = new StringBuilder();
+        boolean capitalizeNext = true;
+
+        for (char c : kebab.toCharArray()) {
+            if (c == '-') {
+                capitalizeNext = true;
+            } else if (capitalizeNext) {
+                result.append(Character.toUpperCase(c));
+                capitalizeNext = false;
+            } else {
+                result.append(c);
+            }
+        }
+
+        return result.toString();
+    }
+
+    /**
+     * Escapes a string for use as a JSON string value.
+     *
+     * @param s the string to escape
+     * @return the escaped JSON string (including surrounding quotes)
+     */
+    public static String escapeJsonString(String s) {
+        return "\"" + s.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t") + "\"";
+    }
+}

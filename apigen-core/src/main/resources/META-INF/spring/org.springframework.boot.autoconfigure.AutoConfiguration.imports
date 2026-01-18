@@ -1,0 +1,2 @@
+com.jnzader.apigen.core.autoconfigure.ApigenCoreAutoConfiguration
+com.jnzader.apigen.core.autoconfigure.ApigenJpaAutoConfiguration

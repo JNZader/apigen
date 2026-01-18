@@ -1,0 +1,279 @@
+# ==========================================
+# APiGen - Prometheus Alerting Rules
+# ==========================================
+# Alertas para monitoreo de la aplicación
+# ==========================================
+
+groups:
+  # ==========================================
+  # Application Health Alerts
+  # ==========================================
+  - name: apigen_application
+    interval: 30s
+    rules:
+      - alert: ApplicationDown
+        expr: up{job="apigen"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "APiGen application is down"
+          description: "APiGen instance {{ $labels.instance }} has been down for more than 1 minute."
+
+      - alert: HighErrorRate
+        expr: |
+          (
+            sum(rate(http_server_requests_seconds_count{job="apigen", status=~"5.."}[5m]))
+            /
+            sum(rate(http_server_requests_seconds_count{job="apigen"}[5m]))
+          ) * 100 > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value | printf \"%.2f\" }}% (threshold: 5%)"
+
+      - alert: CriticalErrorRate
+        expr: |
+          (
+            sum(rate(http_server_requests_seconds_count{job="apigen", status=~"5.."}[5m]))
+            /
+            sum(rate(http_server_requests_seconds_count{job="apigen"}[5m]))
+          ) * 100 > 10
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical error rate detected"
+          description: "Error rate is {{ $value | printf \"%.2f\" }}% (threshold: 10%)"
+
+  # ==========================================
+  # Latency Alerts
+  # ==========================================
+  - name: apigen_latency
+    interval: 30s
+    rules:
+      - alert: HighLatencyP95
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_server_requests_seconds_bucket{job="apigen"}[5m])) by (le)
+          ) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High P95 latency detected"
+          description: "P95 latency is {{ $value | printf \"%.2f\" }}s (threshold: 1s)"
+
+      - alert: HighLatencyP99
+        expr: |
+          histogram_quantile(0.99,
+            sum(rate(http_server_requests_seconds_bucket{job="apigen"}[5m])) by (le)
+          ) > 3
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical P99 latency detected"
+          description: "P99 latency is {{ $value | printf \"%.2f\" }}s (threshold: 3s)"
+
+      - alert: SlowEndpoint
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_server_requests_seconds_bucket{job="apigen"}[5m])) by (le, uri)
+          ) > 2
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow endpoint detected"
+          description: "Endpoint {{ $labels.uri }} has P95 latency of {{ $value | printf \"%.2f\" }}s"
+
+  # ==========================================
+  # JVM Alerts
+  # ==========================================
+  - name: apigen_jvm
+    interval: 30s
+    rules:
+      - alert: HighMemoryUsage
+        expr: |
+          (jvm_memory_used_bytes{job="apigen", area="heap"}
+           / jvm_memory_max_bytes{job="apigen", area="heap"}) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High JVM heap memory usage"
+          description: "Heap memory usage is {{ $value | printf \"%.2f\" }}% (threshold: 85%)"
+
+      - alert: CriticalMemoryUsage
+        expr: |
+          (jvm_memory_used_bytes{job="apigen", area="heap"}
+           / jvm_memory_max_bytes{job="apigen", area="heap"}) * 100 > 95
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical JVM heap memory usage"
+          description: "Heap memory usage is {{ $value | printf \"%.2f\" }}% (threshold: 95%)"
+
+      - alert: HighGCTime
+        expr: |
+          rate(jvm_gc_pause_seconds_sum{job="apigen"}[5m])
+          / rate(jvm_gc_pause_seconds_count{job="apigen"}[5m]) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High GC pause time"
+          description: "Average GC pause time is {{ $value | printf \"%.2f\" }}s"
+
+      - alert: TooManyThreads
+        expr: jvm_threads_live_threads{job="apigen"} > 500
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Too many JVM threads"
+          description: "Thread count is {{ $value }} (threshold: 500)"
+
+  # ==========================================
+  # Database Connection Pool Alerts
+  # ==========================================
+  - name: apigen_database
+    interval: 30s
+    rules:
+      - alert: DatabaseConnectionPoolExhaustion
+        expr: |
+          (hikaricp_connections_active{job="apigen"}
+           / hikaricp_connections_max{job="apigen"}) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Database connection pool nearly exhausted"
+          description: "Connection pool usage is {{ $value | printf \"%.2f\" }}% (threshold: 80%)"
+
+      - alert: DatabaseConnectionPoolCritical
+        expr: |
+          (hikaricp_connections_active{job="apigen"}
+           / hikaricp_connections_max{job="apigen"}) * 100 > 95
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Database connection pool critical"
+          description: "Connection pool usage is {{ $value | printf \"%.2f\" }}% (threshold: 95%)"
+
+      - alert: DatabaseConnectionTimeout
+        expr: |
+          rate(hikaricp_connections_timeout_total{job="apigen"}[5m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Database connection timeouts detected"
+          description: "Connection timeout rate: {{ $value | printf \"%.2f\" }}/s"
+
+      - alert: SlowDatabaseQueries
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(jdbc_query_seconds_bucket{job="apigen"}[5m])) by (le)
+          ) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow database queries detected"
+          description: "P95 query time is {{ $value | printf \"%.2f\" }}s (threshold: 1s)"
+
+  # ==========================================
+  # Cache Alerts
+  # ==========================================
+  - name: apigen_cache
+    interval: 30s
+    rules:
+      - alert: LowCacheHitRate
+        expr: |
+          (
+            sum(rate(cache_gets_hit_total{job="apigen"}[5m]))
+            /
+            (sum(rate(cache_gets_hit_total{job="apigen"}[5m])) + sum(rate(cache_gets_miss_total{job="apigen"}[5m])))
+          ) * 100 < 50
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low cache hit rate"
+          description: "Cache hit rate is {{ $value | printf \"%.2f\" }}% (threshold: 50%)"
+
+      - alert: CacheEvictionHigh
+        expr: rate(cache_evictions_total{job="apigen"}[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High cache eviction rate"
+          description: "Cache eviction rate is {{ $value | printf \"%.2f\" }}/s"
+
+  # ==========================================
+  # Resilience4j Alerts
+  # ==========================================
+  - name: apigen_resilience
+    interval: 30s
+    rules:
+      - alert: CircuitBreakerOpen
+        expr: resilience4j_circuitbreaker_state{job="apigen", state="open"} == 1
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Circuit breaker is open"
+          description: "Circuit breaker {{ $labels.name }} is in OPEN state"
+
+      - alert: CircuitBreakerHalfOpen
+        expr: resilience4j_circuitbreaker_state{job="apigen", state="half_open"} == 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Circuit breaker is half-open"
+          description: "Circuit breaker {{ $labels.name }} has been in HALF_OPEN state for 5 minutes"
+
+      - alert: HighRateLimitRejections
+        expr: rate(resilience4j_ratelimiter_available_permissions{job="apigen"}[5m]) < 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Rate limiter near capacity"
+          description: "Rate limiter {{ $labels.name }} has few available permits"
+
+  # ==========================================
+  # Business Metrics Alerts (customize as needed)
+  # ==========================================
+  - name: apigen_business
+    interval: 60s
+    rules:
+      - alert: NoRequestsReceived
+        expr: |
+          sum(rate(http_server_requests_seconds_count{job="apigen"}[5m])) == 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "No requests received"
+          description: "APiGen has not received any requests in the last 10 minutes"
+
+      - alert: UnusualTrafficSpike
+        expr: |
+          sum(rate(http_server_requests_seconds_count{job="apigen"}[5m]))
+          >
+          sum(rate(http_server_requests_seconds_count{job="apigen"}[1h] offset 1d)) * 3
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Unusual traffic spike detected"
+          description: "Current traffic is 3x higher than same time yesterday"

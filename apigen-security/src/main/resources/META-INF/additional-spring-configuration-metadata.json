@@ -1,0 +1,99 @@
+{
+  "groups": [
+    {
+      "name": "apigen.security",
+      "description": "APiGen Security configuration properties."
+    },
+    {
+      "name": "apigen.security.jwt",
+      "description": "JWT authentication configuration."
+    },
+    {
+      "name": "apigen.security.oauth2",
+      "description": "OAuth2 Resource Server configuration for external Identity Providers."
+    }
+  ],
+  "properties": [
+    {
+      "name": "apigen.security.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable or disable security. When false, all endpoints are public.",
+      "defaultValue": false
+    },
+    {
+      "name": "apigen.security.mode",
+      "type": "java.lang.String",
+      "description": "Authentication mode: 'jwt' for built-in JWT, 'oauth2' for external IdP.",
+      "defaultValue": "jwt"
+    },
+    {
+      "name": "apigen.security.jwt.secret",
+      "type": "java.lang.String",
+      "description": "Secret key for JWT signing (minimum 256 bits for HS256). REQUIRED when mode=jwt."
+    },
+    {
+      "name": "apigen.security.jwt.expiration-minutes",
+      "type": "java.lang.Integer",
+      "description": "Access token expiration time in minutes.",
+      "defaultValue": 15
+    },
+    {
+      "name": "apigen.security.jwt.refresh-expiration-minutes",
+      "type": "java.lang.Integer",
+      "description": "Refresh token expiration time in minutes.",
+      "defaultValue": 10080
+    },
+    {
+      "name": "apigen.security.jwt.issuer",
+      "type": "java.lang.String",
+      "description": "JWT issuer claim value.",
+      "defaultValue": "apigen"
+    },
+    {
+      "name": "apigen.security.oauth2.issuer-uri",
+      "type": "java.lang.String",
+      "description": "OAuth2 issuer URI for token validation (Auth0, Keycloak, Azure AD, etc.)."
+    },
+    {
+      "name": "apigen.security.oauth2.audience",
+      "type": "java.lang.String",
+      "description": "Expected audience claim in OAuth2 tokens."
+    },
+    {
+      "name": "apigen.security.oauth2.roles-claim",
+      "type": "java.lang.String",
+      "description": "JWT claim containing roles/permissions.",
+      "defaultValue": "permissions"
+    },
+    {
+      "name": "apigen.security.oauth2.role-prefix",
+      "type": "java.lang.String",
+      "description": "Prefix to add to extracted roles.",
+      "defaultValue": "ROLE_"
+    },
+    {
+      "name": "apigen.security.oauth2.username-claim",
+      "type": "java.lang.String",
+      "description": "JWT claim to use as username.",
+      "defaultValue": "sub"
+    }
+  ],
+  "hints": [
+    {
+      "name": "apigen.security.mode",
+      "values": [
+        { "value": "jwt", "description": "Built-in JWT authentication with HS256 signing" },
+        { "value": "oauth2", "description": "OAuth2 Resource Server mode for external Identity Providers" }
+      ]
+    },
+    {
+      "name": "apigen.security.oauth2.roles-claim",
+      "values": [
+        { "value": "permissions", "description": "Auth0 permissions claim" },
+        { "value": "roles", "description": "Azure AD roles claim" },
+        { "value": "realm_access.roles", "description": "Keycloak realm roles" },
+        { "value": "resource_access.{client}.roles", "description": "Keycloak client roles" }
+      ]
+    }
+  ]
+}

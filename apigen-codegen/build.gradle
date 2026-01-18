@@ -1,0 +1,91 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+group = 'com.jnzader'
+version = '1.0.0-SNAPSHOT'
+description = 'APiGen CodeGen - Code generation utilities for entities, services, and controllers'
+
+// Centralized versions - Updated January 2026
+ext {
+    jsqlparserVersion = '5.3'      // Latest: supports JDK 17+
+    lombokVersion = '1.18.42'      // Latest: supports Java 25
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+    withSourcesJar()
+    withJavadocJar()
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // SQL Parser for code generation from SQL schema
+    api "com.github.jsqlparser:jsqlparser:${jsqlparserVersion}"
+
+    // Logging
+    implementation 'org.slf4j:slf4j-api:2.0.16'
+    runtimeOnly 'ch.qos.logback:logback-classic:1.5.16'
+
+    // Lombok
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+    // Testing
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'org.assertj:assertj-core:3.27.3'
+    testImplementation 'org.mockito:mockito-core:5.15.2'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.15.2'
+    testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+}
+
+test {
+    useJUnitPlatform()
+}
+
+// Don't fail on javadoc warnings/errors
+javadoc {
+    options.addStringOption('Xdoclint:none', '-quiet')
+    failOnError = false
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+
+            pom {
+                name = 'APiGen CodeGen'
+                description = project.description
+                url = 'https://github.com/jnzader/apigen'
+
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://opensource.org/licenses/MIT'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = 'jnzader'
+                        name = 'JN Zader'
+                    }
+                }
+            }
+        }
+    }
+
+    repositories {
+        mavenLocal()
+    }
+}

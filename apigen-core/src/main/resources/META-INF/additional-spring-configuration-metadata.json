@@ -1,0 +1,133 @@
+{
+  "groups": [
+    {
+      "name": "apigen.core",
+      "description": "APiGen Core auto-configuration properties."
+    },
+    {
+      "name": "app",
+      "description": "Application configuration properties for APiGen Core."
+    },
+    {
+      "name": "app.api",
+      "description": "API versioning configuration."
+    },
+    {
+      "name": "app.cache",
+      "description": "Cache configuration for entities, lists, and counts."
+    },
+    {
+      "name": "app.cors",
+      "description": "CORS (Cross-Origin Resource Sharing) configuration."
+    },
+    {
+      "name": "app.metrics",
+      "description": "Metrics and observability configuration."
+    },
+    {
+      "name": "app.rate-limit",
+      "description": "Rate limiting configuration."
+    }
+  ],
+  "properties": [
+    {
+      "name": "apigen.core.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable or disable APiGen Core auto-configuration.",
+      "defaultValue": true
+    },
+    {
+      "name": "app.api.version",
+      "type": "java.lang.String",
+      "description": "API version string (e.g., 'v1', 'v2').",
+      "defaultValue": "v1"
+    },
+    {
+      "name": "app.api.base-path",
+      "type": "java.lang.String",
+      "description": "Base path for all API endpoints.",
+      "defaultValue": "/api"
+    },
+    {
+      "name": "app.cache.entities.max-size",
+      "type": "java.lang.Long",
+      "description": "Maximum number of entities to cache.",
+      "defaultValue": 1000
+    },
+    {
+      "name": "app.cache.entities.expire-after-write",
+      "type": "java.time.Duration",
+      "description": "Time after which cached entities expire.",
+      "defaultValue": "10m"
+    },
+    {
+      "name": "app.cache.lists.max-size",
+      "type": "java.lang.Long",
+      "description": "Maximum number of list results to cache.",
+      "defaultValue": 100
+    },
+    {
+      "name": "app.cache.lists.expire-after-write",
+      "type": "java.time.Duration",
+      "description": "Time after which cached lists expire.",
+      "defaultValue": "5m"
+    },
+    {
+      "name": "app.cors.allowed-origins",
+      "type": "java.util.List<java.lang.String>",
+      "description": "List of allowed origins for CORS.",
+      "defaultValue": ["http://localhost:3000"]
+    },
+    {
+      "name": "app.cors.allowed-methods",
+      "type": "java.util.List<java.lang.String>",
+      "description": "List of allowed HTTP methods for CORS.",
+      "defaultValue": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    },
+    {
+      "name": "app.cors.allow-credentials",
+      "type": "java.lang.Boolean",
+      "description": "Whether to allow credentials in CORS requests.",
+      "defaultValue": false
+    },
+    {
+      "name": "app.cors.max-age",
+      "type": "java.lang.Long",
+      "description": "Max age in seconds for CORS preflight cache.",
+      "defaultValue": 3600
+    },
+    {
+      "name": "app.metrics.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable or disable custom metrics collection.",
+      "defaultValue": true
+    },
+    {
+      "name": "app.metrics.slow-threshold-ms",
+      "type": "java.lang.Long",
+      "description": "Threshold in milliseconds for slow request logging.",
+      "defaultValue": 500
+    },
+    {
+      "name": "app.rate-limit.max-requests",
+      "type": "java.lang.Integer",
+      "description": "Maximum number of requests per window.",
+      "defaultValue": 100
+    },
+    {
+      "name": "app.rate-limit.window-seconds",
+      "type": "java.lang.Integer",
+      "description": "Time window in seconds for rate limiting.",
+      "defaultValue": 60
+    }
+  ],
+  "hints": [
+    {
+      "name": "app.api.version",
+      "values": [
+        { "value": "v1", "description": "Version 1 of the API" },
+        { "value": "v2", "description": "Version 2 of the API" }
+      ]
+    }
+  ]
+}

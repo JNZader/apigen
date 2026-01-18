@@ -1,0 +1,102 @@
+# ==========================================
+# Perfil de desarrollo
+# ==========================================
+#
+# Variables de entorno soportadas (con valores por defecto):
+#   DB_URL      - URL de la base de datos (default: jdbc:postgresql://localhost:5432/apigen_dev)
+#   DB_USERNAME - Usuario de la base de datos (default: apigen_user)
+#   DB_PASSWORD - Password de la base de datos (default: apigen_password)
+#
+# Ejemplo de uso:
+#   export DB_URL=jdbc:postgresql://myserver:5432/mydb
+#   export DB_USERNAME=myuser
+#   export DB_PASSWORD=mypassword
+# ==========================================
+
+# Seguridad deshabilitada para agilizar el desarrollo local
+apigen:
+  security:
+    enabled: false
+
+spring:
+  # Base de datos PostgreSQL (desarrollo)
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/apigen_dev}
+    username: ${DB_USERNAME:apigen_user}
+    password: ${DB_PASSWORD:apigen_password}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      # Pool optimizado para Virtual Threads (Java 21+)
+      # Virtual threads permiten más conexiones concurrentes sin bloquear OS threads
+      maximum-pool-size: 50
+      minimum-idle: 10
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
+      # Nombre del pool para métricas
+      pool-name: APiGen-HikariPool-Dev
+
+  # JPA / Hibernate
+  jpa:
+    hibernate:
+      ddl-auto: update # Permite a Hibernate actualizar el esquema automáticamente
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+        # Estadísticas de Hibernate (útil para debugging)
+        generate_statistics: true
+        # Batch processing para operaciones masivas
+        jdbc:
+          batch_size: 50
+          batch_versioned_data: true
+        order_inserts: true
+        order_updates: true
+    open-in-view: false # Deshabilitado para evitar problemas de lazy loading
+
+  # Flyway migrations
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+# Actuator endpoints (más permisivo en desarrollo)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,caches,env,beans,mappings
+  endpoint:
+    health:
+      show-details: always
+    caches:
+      enabled: true
+  # Endpoint para el colector OpenTelemetry local
+  otlp:
+    tracing:
+      endpoint: http://localhost:4318/v1/traces
+
+# CORS más permisivo para desarrollo
+app:
+  cors:
+    allowed-origins: http://localhost:3000,http://localhost:4200,http://localhost:8080,http://127.0.0.1:3000
+    allow-credentials: true
+
+# Logging más detallado en desarrollo
+logging:
+  level:
+    root: INFO
+    com.jnzader.apigen: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.cache: DEBUG
+
+# DevTools
+spring.devtools:
+  restart:
+    enabled: true
+  livereload:
+    enabled: true

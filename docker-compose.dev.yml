@@ -1,0 +1,78 @@
+# ==========================================
+# APiGen - Docker Compose (Development)
+# ==========================================
+# Solo dependencias para desarrollo local
+# La aplicación se ejecuta desde el IDE o Gradle
+#
+# Uso:
+#   docker compose -f docker-compose.dev.yml up -d    # Iniciar
+#   docker compose -f docker-compose.dev.yml down     # Detener
+#   docker compose -f docker-compose.dev.yml down -v  # Detener + borrar datos
+#
+# Luego ejecutar la app:
+#   ./gradlew bootRun
+# ==========================================
+
+services:
+  # ------------------------------
+  # PostgreSQL Database
+  # ------------------------------
+  postgres:
+    image: postgres:17-alpine
+    container_name: apigen-dev-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: apigen_dev
+      POSTGRES_USER: apigen_user
+      POSTGRES_PASSWORD: apigen_password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres-dev-data:/var/lib/postgresql/data
+    networks:
+      - apigen-dev-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U apigen_user -d apigen_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ------------------------------
+  # pgAdmin (opcional)
+  # ------------------------------
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: apigen-dev-pgadmin
+    restart: unless-stopped
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@apigen.local
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    volumes:
+      - pgadmin-dev-data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - apigen-dev-network
+    profiles:
+      - tools
+
+# ------------------------------
+# Networks
+# ------------------------------
+networks:
+  apigen-dev-network:
+    driver: bridge
+    name: apigen-dev-network
+
+# ------------------------------
+# Volumes
+# ------------------------------
+volumes:
+  postgres-dev-data:
+    name: apigen-dev-postgres-data
+  pgadmin-dev-data:
+    name: apigen-dev-pgadmin-data

@@ -1,0 +1,158 @@
+# ==========================================
+# APiGen - CI Pipeline (Multi-Module)
+# ==========================================
+# Build and test pipeline for APiGen library modules
+#
+# Modules:
+# - apigen-core: Core functionality (CRUD, HATEOAS, caching)
+# - apigen-security: JWT authentication and rate limiting
+# - apigen-codegen: Code generation from SQL/commands
+# - apigen-bom: Bill of Materials for dependency management
+# - apigen-example: Example application demonstrating usage
+#
+# Features:
+# - Multi-module Gradle build
+# - Tests unitarios y de integración (con H2/Testcontainers)
+# - Cache de dependencias Gradle
+# - Artifact publishing for all modules
+# ==========================================
+
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  JAVA_VERSION: '25'
+  GRADLE_OPTS: '-Dorg.gradle.daemon=false -Dorg.gradle.parallel=true'
+
+jobs:
+  # ------------------------------
+  # Build and Test All Modules
+  # ------------------------------
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: apigen_test
+          POSTGRES_USER: apigen_user
+          POSTGRES_PASSWORD: apigen_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build all modules
+        run: ./gradlew build -x test --no-daemon
+
+      - name: Run all tests
+        run: ./gradlew test --no-daemon
+        env:
+          DB_URL: jdbc:postgresql://localhost:5432/apigen_test
+          DB_USERNAME: apigen_user
+          DB_PASSWORD: apigen_password
+          SPRING_PROFILES_ACTIVE: test
+
+      - name: Upload test results (apigen-core)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-core
+          path: apigen-core/build/reports/tests/
+          retention-days: 7
+
+      - name: Upload test results (apigen-security)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-security
+          path: apigen-security/build/reports/tests/
+          retention-days: 7
+
+      - name: Upload library artifacts
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: apigen-libraries
+          path: |
+            apigen-core/build/libs/*.jar
+            apigen-security/build/libs/*.jar
+            apigen-codegen/build/libs/*.jar
+          retention-days: 7
+
+  # ------------------------------
+  # Code Quality (opcional)
+  # ------------------------------
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: true
+
+      - name: Run architecture tests
+        run: ./gradlew test --tests "*ArchitectureTest*" --no-daemon
+        continue-on-error: true
+
+  # ------------------------------
+  # Security Scan (opcional)
+  # ------------------------------
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'  # No fallar el build, solo reportar

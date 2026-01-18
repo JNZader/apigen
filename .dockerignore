@@ -1,0 +1,70 @@
+# ==========================================
+# APiGen - Docker Ignore
+# ==========================================
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+.project
+.classpath
+.settings/
+
+# Build outputs
+build/
+out/
+target/
+bin/
+
+# Gradle
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Documentation (no necesaria en imagen)
+docs/
+*.md
+!README.md
+
+# Docker files (evitar recursión)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Tests (no necesarios en imagen de producción)
+src/test/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+Jenkinsfile
+
+# Local environment
+.env
+.env.*
+*.local
+
+# Generated SDKs
+build/generated-sdks/
+
+# Editor configs
+.editorconfig

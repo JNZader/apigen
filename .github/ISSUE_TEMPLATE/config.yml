@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://github.com/jnzader/apigen#readme
+    about: Check the README for usage documentation
+  - name: Discussions
+    url: https://github.com/jnzader/apigen/discussions
+    about: Ask questions and share ideas

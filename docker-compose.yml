@@ -1,0 +1,188 @@
+# ==========================================
+# APiGen - Docker Compose (Full Stack)
+# ==========================================
+# Incluye: App + PostgreSQL + pgAdmin + Prometheus + Grafana
+#
+# Uso:
+#   docker compose up -d              # Iniciar todo
+#   docker compose up -d --build      # Rebuild y iniciar
+#   docker compose logs -f apigen     # Ver logs de la app
+#   docker compose down               # Detener todo
+#   docker compose down -v            # Detener y eliminar volúmenes
+# ==========================================
+
+services:
+  # ------------------------------
+  # APiGen Application
+  # ------------------------------
+  apigen:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: apigen:latest
+    container_name: apigen-app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:postgresql://postgres:5432/apigen
+      DB_USERNAME: apigen_user
+      DB_PASSWORD: apigen_password
+      LOG_PATH: /app/logs
+      # Tracing (opcional - Jaeger/OTLP)
+      # OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
+    volumes:
+      - apigen-logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - apigen-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ------------------------------
+  # PostgreSQL Database
+  # ------------------------------
+  postgres:
+    image: postgres:17-alpine
+    container_name: apigen-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: apigen
+      POSTGRES_USER: apigen_user
+      POSTGRES_PASSWORD: apigen_password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - apigen-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U apigen_user -d apigen"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ------------------------------
+  # pgAdmin (Database Management)
+  # ------------------------------
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: apigen-pgadmin
+    restart: unless-stopped
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@apigen.local
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - apigen-network
+    profiles:
+      - tools
+
+  # ------------------------------
+  # Prometheus (Metrics)
+  # ------------------------------
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: apigen-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+    networks:
+      - apigen-network
+    profiles:
+      - monitoring
+
+  # ------------------------------
+  # Grafana (Dashboards)
+  # ------------------------------
+  grafana:
+    image: grafana/grafana:latest
+    container_name: apigen-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin123
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+    networks:
+      - apigen-network
+    profiles:
+      - monitoring
+
+  # ------------------------------
+  # PostgreSQL Backup (Automated)
+  # ------------------------------
+  backup:
+    image: prodrigestivill/postgres-backup-local:17
+    container_name: apigen-backup
+    restart: unless-stopped
+    volumes:
+      - ./backups:/backups
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: apigen
+      POSTGRES_USER: apigen_user
+      POSTGRES_PASSWORD: apigen_password
+      SCHEDULE: "@daily"
+      BACKUP_KEEP_DAYS: 7
+      BACKUP_KEEP_WEEKS: 4
+      BACKUP_KEEP_MONTHS: 6
+      HEALTHCHECK_PORT: 8080
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - apigen-network
+    profiles:
+      - backup
+
+# ------------------------------
+# Networks
+# ------------------------------
+networks:
+  apigen-network:
+    driver: bridge
+    name: apigen-network
+
+# ------------------------------
+# Volumes
+# ------------------------------
+volumes:
+  postgres-data:
+    name: apigen-postgres-data
+  pgadmin-data:
+    name: apigen-pgadmin-data
+  prometheus-data:
+    name: apigen-prometheus-data
+  grafana-data:
+    name: apigen-grafana-data
+  apigen-logs:
+    name: apigen-logs
