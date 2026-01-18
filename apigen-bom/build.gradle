@@ -34,7 +34,7 @@ dependencies {
         api 'io.github.resilience4j:resilience4j-ratelimiter:2.3.0'
         api 'io.github.resilience4j:resilience4j-retry:2.3.0'
         api 'io.github.resilience4j:resilience4j-micrometer:2.3.0'
-        api 'io.micrometer:micrometer-tracing-bridge-otel:1.6.0'
+        api 'io.micrometer:micrometer-tracing-bridge-otel:1.6.2'
         api 'io.opentelemetry:opentelemetry-exporter-otlp:1.53.0'
         api 'net.logstash.logback:logstash-logback-encoder:9.0'
         api 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0'

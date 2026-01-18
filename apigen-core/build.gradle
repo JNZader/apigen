@@ -14,7 +14,7 @@ ext {
     caffeineVersion = '3.2.3'
     resilience4jVersion = '2.3.0'
     springdocVersion = '3.0.1'              // Updated: Spring Boot 4 support
-    micrometerTracingVersion = '1.6.0'
+    micrometerTracingVersion = '1.6.2'
     opentelemetryVersion = '1.53.0'
     logstashEncoderVersion = '9.0'
     lombokMapstructBindingVersion = '0.2.0'
