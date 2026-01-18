@@ -42,8 +42,8 @@ dependencies {
         api 'com.tngtech.archunit:archunit-junit5:1.4.1'
         api 'org.awaitility:awaitility:4.3.0'
         api 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
-        api 'org.testcontainers:testcontainers-junit-jupiter:2.0.2'
-        api 'org.testcontainers:testcontainers-postgresql:2.0.2'
+        api 'org.testcontainers:testcontainers-junit-jupiter:2.0.3'
+        api 'org.testcontainers:testcontainers-postgresql:2.0.3'
     }
 }
 
