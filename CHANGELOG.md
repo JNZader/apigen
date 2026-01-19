@@ -60,11 +60,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated .gitignore to exclude logs, .env, and .claude files
 - Optimized Docker CI (single platform for main, multi-platform for releases)
 - Converted image name to lowercase for registry compatibility
+- Updated OpenTelemetry from 1.53.0 to 1.58.0
+- Updated JSQLParser from 5.0 to 5.3
 
 ### Security
 - Added X-RateLimit-* headers for API throttling visibility
 - Added Retry-After header on 429 responses
 - Stricter rate limits on authentication endpoints (10 req/min vs 100 req/s)
+- Fixed CVE-2020-8908, CVE-2023-2976: Upgraded Guava from 30.1-jre to 33.5.0-jre (insecure temp directory)
+- Fixed Docker image CVEs: Added `apk upgrade` for libpng, libtasn1, BusyBox vulnerabilities
 
 ---
 
