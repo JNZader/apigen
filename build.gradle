@@ -4,6 +4,7 @@ plugins {
     id 'org.sonarqube' version '7.2.2.6593'
     id 'com.diffplug.spotless' version '8.1.0'
     id 'net.ltgt.errorprone' version '4.4.0' apply false
+    id 'info.solidsoft.pitest' version '1.19.0-rc.2' apply false
 }
 
 // SonarQube configuration
@@ -118,6 +119,65 @@ subprojects {
 
         // Run coverage verification on check
         check.dependsOn jacocoTestCoverageVerification
+
+        // PIT Mutation Testing configuration
+        apply plugin: 'info.solidsoft.pitest'
+
+        pitest {
+            // Use JUnit 5 plugin
+            junit5PluginVersion = '1.2.1'
+            pitestVersion = '1.22.0'
+
+            // Target classes to mutate (main source) - use explicit package pattern
+            targetClasses = ["com.jnzader.apigen.**"]
+
+            // Target tests - use explicit package pattern
+            targetTests = ["com.jnzader.apigen.**"]
+
+            // Output formats
+            outputFormats = ['XML', 'HTML']
+
+            // Mutation threshold - fail if mutation coverage is below this
+            mutationThreshold = 40
+
+            // Coverage threshold
+            coverageThreshold = 50
+
+            // Threads for parallel execution
+            threads = 4
+
+            // Timeout multiplier for mutants
+            timeoutConstInMillis = 10000
+
+            // Exclude generated code and configurations
+            excludedClasses = [
+                '*Config',
+                '*Configuration',
+                '*Properties',
+                '*DTO',
+                '*Exception',
+                '*Application',
+                '*Mapper',
+                '*MapperImpl'
+            ]
+
+            // Verbose output
+            verbose = false
+
+            // Timestamped reports disabled for cleaner output
+            timestampedReports = false
+
+            // Skip failing tests (needed for cross-module test dependencies)
+            skipFailingTests = true
+
+            // Use classpath file to avoid Windows command line length issues
+            useClasspathFile = true
+        }
+
+        // JUnit Platform Launcher required for PIT with JUnit 5
+        dependencies {
+            testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+        }
     }
 }
 
@@ -186,6 +246,13 @@ tasks.register('coverageAll') {
     group = 'verification'
     description = 'Generates coverage reports for all modules'
     dependsOn subprojects.findAll { it.name != 'apigen-bom' }.collect { "${it.path}:jacocoTestReport" }
+}
+
+// Aggregate task for mutation testing
+tasks.register('pitestAll') {
+    group = 'verification'
+    description = 'Runs mutation testing (PIT) on all modules'
+    dependsOn subprojects.findAll { it.name != 'apigen-bom' && it.name != 'apigen-example' }.collect { "${it.path}:pitest" }
 }
 
 // Wrapper task
