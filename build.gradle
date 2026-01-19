@@ -2,6 +2,8 @@ plugins {
     id 'java'
     id 'jacoco'
     id 'org.sonarqube' version '6.3.1.5724'
+    id 'com.diffplug.spotless' version '7.0.2'
+    id 'net.ltgt.errorprone' version '4.1.0' apply false
 }
 
 // SonarQube configuration
@@ -22,6 +24,8 @@ subprojects {
     if (name != 'apigen-bom') {
         apply plugin: 'java'
         apply plugin: 'jacoco'
+        apply plugin: 'com.diffplug.spotless'
+        apply plugin: 'net.ltgt.errorprone'
 
         java {
             toolchain {
@@ -33,6 +37,36 @@ subprojects {
             mavenCentral()
         }
 
+        dependencies {
+            // Errorprone for static analysis
+            errorprone 'com.google.errorprone:error_prone_core:2.36.0'
+        }
+
+        // Spotless configuration for code formatting
+        spotless {
+            java {
+                target 'src/**/*.java'
+                removeUnusedImports()
+                trimTrailingWhitespace()
+                endWithNewline()
+                importOrder('java', 'javax', 'jakarta', 'org', 'com', '')
+                // Google Java Format
+                googleJavaFormat('1.25.2').aosp().reflowLongStrings()
+            }
+        }
+
+        // Errorprone configuration
+        tasks.withType(JavaCompile).configureEach {
+            options.errorprone {
+                // Disable checks that are too strict for this project
+                disable('MissingSummary')
+                disable('InlineMeSuggester')
+                disable('WildcardImport')
+            }
+            // Don't fail build on errorprone warnings, just report
+            options.errorprone.allErrorsAsWarnings = true
+        }
+
         // Common test configuration
         test {
             useJUnitPlatform()
@@ -41,6 +75,7 @@ subprojects {
                 showStandardStreams = false
                 exceptionFormat = 'full'
             }
+            finalizedBy jacocoTestReport
         }
 
         // JaCoCo configuration
@@ -55,6 +90,34 @@ subprojects {
                 html.required = true
             }
         }
+
+        // JaCoCo verification with minimum coverage threshold
+        jacocoTestCoverageVerification {
+            dependsOn jacocoTestReport
+            violationRules {
+                rule {
+                    limit {
+                        minimum = 0.60 // Start with 60%, increase gradually to 80%
+                    }
+                }
+                rule {
+                    element = 'CLASS'
+                    excludes = [
+                        '*.config.*',
+                        '*.autoconfigure.*',
+                        '*Application',
+                        '*DTO',
+                        '*Exception'
+                    ]
+                    limit {
+                        minimum = 0.70
+                    }
+                }
+            }
+        }
+
+        // Run coverage verification on check
+        check.dependsOn jacocoTestCoverageVerification
     }
 }
 
@@ -104,8 +167,29 @@ tasks.register('cleanAll') {
     dependsOn subprojects.collect { "${it.path}:clean" }
 }
 
+// Aggregate task for spotless check
+tasks.register('spotlessCheckAll') {
+    group = 'verification'
+    description = 'Checks formatting in all modules'
+    dependsOn subprojects.findAll { it.name != 'apigen-bom' }.collect { "${it.path}:spotlessCheck" }
+}
+
+// Aggregate task for spotless apply
+tasks.register('spotlessApplyAll') {
+    group = 'verification'
+    description = 'Applies formatting to all modules'
+    dependsOn subprojects.findAll { it.name != 'apigen-bom' }.collect { "${it.path}:spotlessApply" }
+}
+
+// Aggregate task for coverage verification
+tasks.register('coverageAll') {
+    group = 'verification'
+    description = 'Generates coverage reports for all modules'
+    dependsOn subprojects.findAll { it.name != 'apigen-bom' }.collect { "${it.path}:jacocoTestReport" }
+}
+
 // Wrapper task
 wrapper {
-    gradleVersion = '8.12'
+    gradleVersion = '9.3.0'
     distributionType = Wrapper.DistributionType.ALL
 }
