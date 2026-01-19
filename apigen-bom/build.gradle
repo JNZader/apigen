@@ -34,16 +34,16 @@ dependencies {
         api 'io.github.resilience4j:resilience4j-ratelimiter:2.3.0'
         api 'io.github.resilience4j:resilience4j-retry:2.3.0'
         api 'io.github.resilience4j:resilience4j-micrometer:2.3.0'
-        api 'io.micrometer:micrometer-tracing-bridge-otel:1.6.0'
+        api 'io.micrometer:micrometer-tracing-bridge-otel:1.6.2'
         api 'io.opentelemetry:opentelemetry-exporter-otlp:1.53.0'
         api 'net.logstash.logback:logstash-logback-encoder:9.0'
-        api 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0'
+        api 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1'
         api 'com.github.jsqlparser:jsqlparser:5.0'
         api 'com.tngtech.archunit:archunit-junit5:1.4.1'
         api 'org.awaitility:awaitility:4.3.0'
         api 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
-        api 'org.testcontainers:testcontainers-junit-jupiter:2.0.2'
-        api 'org.testcontainers:testcontainers-postgresql:2.0.2'
+        api 'org.testcontainers:testcontainers-junit-jupiter:2.0.3'
+        api 'org.testcontainers:testcontainers-postgresql:2.0.3'
     }
 }
 
