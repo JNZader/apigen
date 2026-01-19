@@ -28,6 +28,8 @@ Esta guía documenta **todas las características** disponibles en APiGen, indep
 22. [Internacionalización (i18n)](#22-internacionalización-i18n)
 23. [Webhooks](#23-webhooks)
 24. [Bulk Import/Export](#24-bulk-importexport)
+25. [API Versioning](#25-api-versioning)
+26. [Multi-tenancy](#26-multi-tenancy)
 
 ---
 
@@ -1895,6 +1897,391 @@ El módulo usa:
 
 ---
 
+## 25. API Versioning
+
+Sistema completo de versionado de API con múltiples estrategias de resolución y soporte RFC 8594 para deprecación.
+
+### Estrategias de Versionado
+
+| Estrategia | Ejemplo | Header/Parámetro |
+|------------|---------|------------------|
+| HEADER | `X-Api-Version: 2` | `X-Api-Version` |
+| PATH | `/api/v2/products` | Path prefix |
+| QUERY_PARAM | `/api/products?version=2` | `version` |
+| MEDIA_TYPE | `Accept: application/vnd.api.v2+json` | `Accept` |
+
+### Configuración
+
+```yaml
+apigen:
+  versioning:
+    enabled: true
+    default-version: "1"
+    strategies:
+      - HEADER
+      - PATH
+    version-header: "X-Api-Version"
+    version-param: "version"
+    path-prefix: "v"
+```
+
+### Anotaciones
+
+```java
+@RestController
+@RequestMapping("/api/products")
+@ApiVersion("2")  // Versión del controller
+public class ProductControllerV2 {
+
+    @GetMapping
+    @ApiVersion("2.1")  // Override a nivel de método
+    public List<ProductDTO> getAll() {
+        return productService.findAll();
+    }
+
+    @GetMapping("/{id}")
+    @DeprecatedVersion(
+        since = "2024-01-01",
+        sunset = "2025-01-01",
+        successor = "3",
+        message = "Use v3 for improved performance",
+        migrationGuide = "https://docs.example.com/migration/v2-to-v3"
+    )
+    public ProductDTO getById(@PathVariable Long id) {
+        return productService.findById(id);
+    }
+}
+```
+
+### Headers de Respuesta (RFC 8594)
+
+Para endpoints deprecados, el sistema agrega automáticamente:
+
+```
+X-API-Version: 2
+Deprecation: Mon, 1 Jan 2024 00:00:00 GMT
+Sunset: Wed, 1 Jan 2025 00:00:00 GMT
+Link: </api/v3/products>; rel="successor-version"
+```
+
+### VersionContext
+
+Acceder a la versión actual en cualquier punto del código:
+
+```java
+@Service
+public class ProductService {
+
+    public List<ProductDTO> findAll() {
+        String version = VersionContext.getVersion();
+
+        if (VersionContext.isAtLeast("2")) {
+            // Lógica para v2+
+            return findAllV2();
+        }
+
+        // Lógica legacy
+        return findAllV1();
+    }
+}
+```
+
+### Métodos de Comparación
+
+```java
+// Versión actual
+String version = VersionContext.getVersion();      // "2.1"
+String versionOrDefault = VersionContext.getVersionOrDefault("1");
+
+// Comparaciones
+boolean atLeast = VersionContext.isAtLeast("2");   // true si >= 2
+boolean atMost = VersionContext.isAtMost("3");     // true si <= 3
+boolean between = VersionContext.isBetween("2", "3"); // true si 2 <= v <= 3
+
+// Ejecución con versión específica
+VersionContext.withVersion("3", () -> {
+    // Código ejecutado con versión 3
+});
+
+String result = VersionContext.withVersion("2", () -> {
+    return "Resultado con v2";
+});
+```
+
+### ApiVersionResolver
+
+Configuración programática del resolver:
+
+```java
+@Bean
+public ApiVersionResolver apiVersionResolver() {
+    return ApiVersionResolver.builder()
+        .strategies(VersioningStrategy.HEADER, VersioningStrategy.PATH)
+        .defaultVersion("1")
+        .versionHeader("X-Api-Version")
+        .versionParam("version")
+        .pathPrefix("v")
+        .mediaTypePrefix("application/vnd.myapi.v")
+        .build();
+}
+```
+
+---
+
+## 26. Multi-tenancy
+
+Soporte nativo para aplicaciones SaaS multi-tenant con aislamiento de datos por tenant.
+
+### Estrategias de Resolución
+
+| Estrategia | Ejemplo | Descripción |
+|------------|---------|-------------|
+| HEADER | `X-Tenant-ID: acme-corp` | Tenant en header HTTP |
+| SUBDOMAIN | `acme.myapp.com` | Tenant en subdominio |
+| PATH | `/tenants/acme/products` | Tenant en URL path |
+| JWT_CLAIM | `tenant_id` claim | Tenant en token JWT |
+
+### Configuración
+
+```yaml
+apigen:
+  multitenancy:
+    enabled: true
+    required: true          # Rechazar requests sin tenant
+    strategies:
+      - HEADER
+      - SUBDOMAIN
+    tenant-header: "X-Tenant-ID"
+    path-prefix: "tenants"
+    default-tenant: "default"
+    excluded-paths:
+      - /actuator/**
+      - /health
+      - /swagger-ui/**
+```
+
+### TenantContext
+
+Acceder al tenant actual en cualquier punto del código:
+
+```java
+@Service
+public class ProductService {
+
+    public List<Product> findAll() {
+        String tenantId = TenantContext.getTenantId();
+        // null si no hay tenant
+
+        String required = TenantContext.requireTenantId();
+        // Lanza IllegalStateException si no hay tenant
+
+        String withDefault = TenantContext.getTenantIdOrDefault("default");
+        // Retorna default si no hay tenant
+
+        if (TenantContext.hasTenant()) {
+            // Hay un tenant activo
+        }
+
+        if (TenantContext.isTenant("acme-corp")) {
+            // Es el tenant específico
+        }
+
+        return productRepository.findByTenantId(tenantId);
+    }
+}
+```
+
+### Ejecutar con Tenant Específico
+
+```java
+// Con Runnable
+TenantContext.withTenant("acme-corp", () -> {
+    // Código ejecutado con tenant acme-corp
+    productService.processAll();
+});
+
+// Con Supplier
+String result = TenantContext.withTenant("acme-corp", () -> {
+    return productService.getStats();
+});
+
+// El tenant anterior se restaura automáticamente
+```
+
+### Entidades Multi-tenant
+
+Implementar `TenantAware` para entidades con datos por tenant:
+
+```java
+@Entity
+@Table(name = "products")
+@EntityListeners(TenantEntityListener.class)
+public class Product extends Base implements TenantAware {
+
+    @Column(name = "tenant_id", nullable = false, length = 50)
+    private String tenantId;
+
+    // ... otros campos
+
+    @Override
+    public String getTenantId() {
+        return tenantId;
+    }
+
+    @Override
+    public void setTenantId(String tenantId) {
+        this.tenantId = tenantId;
+    }
+}
+```
+
+### TenantEntityListener
+
+El listener automáticamente:
+
+1. **@PrePersist**: Asigna el tenant del contexto a entidades nuevas
+2. **@PreUpdate**: Valida que el tenant del contexto coincida con el de la entidad
+
+```java
+// Aplicar a una entidad específica
+@Entity
+@EntityListeners(TenantEntityListener.class)
+public class Product extends Base implements TenantAware {
+    // ...
+}
+
+// O aplicar globalmente via orm.xml
+<entity-listeners>
+    <entity-listener class="com.jnzader.apigen.core.infrastructure.multitenancy.TenantEntityListener"/>
+</entity-listeners>
+```
+
+### Validación de Tenant
+
+El `TenantResolver` valida automáticamente los tenant IDs:
+
+- Mínimo 2 caracteres
+- Solo letras, números y guiones
+- No puede empezar ni terminar con guión
+- Subdominio reservados excluidos (www, api, admin, etc.)
+
+```java
+TenantResolver resolver = TenantResolver.builder().build();
+
+resolver.isValidTenantId("acme-corp");    // true
+resolver.isValidTenantId("tenant123");    // true
+resolver.isValidTenantId("a");            // false - muy corto
+resolver.isValidTenantId("-invalid");     // false - empieza con guión
+resolver.isValidTenantId("www");          // false - reservado
+```
+
+### TenantResolver Programático
+
+```java
+@Bean
+public TenantResolver tenantResolver() {
+    return TenantResolver.builder()
+        .strategies(
+            TenantResolutionStrategy.HEADER,
+            TenantResolutionStrategy.SUBDOMAIN
+        )
+        .tenantHeader("X-Tenant-ID")
+        .pathPrefix("tenants")
+        .defaultTenant("default")
+        .build();
+}
+```
+
+### Resolver por Estrategia Específica
+
+```java
+TenantResolver resolver = TenantResolver.builder()
+    .strategies(TenantResolutionStrategy.HEADER, TenantResolutionStrategy.SUBDOMAIN)
+    .build();
+
+// Resolver usando todas las estrategias configuradas (en orden)
+String tenant = resolver.resolve(request);
+
+// Resolver usando una estrategia específica
+Optional<String> headerTenant = resolver.resolveByStrategy(
+    request,
+    TenantResolutionStrategy.HEADER
+);
+
+Optional<String> subdomainTenant = resolver.resolveByStrategy(
+    request,
+    TenantResolutionStrategy.SUBDOMAIN
+);
+```
+
+### TenantFilter
+
+El filtro servlet maneja automáticamente:
+
+1. Resolución del tenant desde request
+2. Validación del tenant ID
+3. Establecimiento del TenantContext
+4. Response header con tenant actual
+5. Limpieza del contexto después del request
+
+```java
+// Paths excluidos del filtro
+TenantFilter filter = new TenantFilter(
+    resolver,
+    true,  // required
+    Set.of("/actuator/**", "/health", "/swagger-ui/**")
+);
+```
+
+### Respuestas de Error
+
+**Tenant requerido pero no encontrado (400):**
+```json
+{
+  "type": "https://api.example.com/problems/tenant-required",
+  "title": "Tenant Required",
+  "status": 400,
+  "detail": "A valid tenant identifier is required for this request"
+}
+```
+
+**Tenant inválido (400):**
+```json
+{
+  "type": "https://api.example.com/problems/invalid-tenant",
+  "title": "Invalid Tenant",
+  "status": 400,
+  "detail": "The provided tenant identifier is invalid"
+}
+```
+
+### Thread Isolation
+
+`TenantContext` usa `InheritableThreadLocal`, permitiendo que:
+
+- Los threads hijos hereden el tenant del padre
+- Cada thread puede sobrescribir su tenant independientemente
+- Los cambios en threads hijos no afectan al padre
+
+```java
+TenantContext.setTenantId("parent-tenant");
+
+Thread child = new Thread(() -> {
+    // Hereda "parent-tenant"
+    String inherited = TenantContext.getTenantId();
+
+    // Puede sobrescribir
+    TenantContext.setTenantId("child-tenant");
+
+    // child-tenant solo visible en este thread
+});
+child.start();
+
+// Main thread sigue con "parent-tenant"
+```
+
+---
+
 ## Resumen de Características por Módulo
 
 | Característica | apigen-core | apigen-security |
@@ -1924,6 +2311,8 @@ El módulo usa:
 | i18n | ✅ | - |
 | Webhooks | ✅ | - |
 | Bulk Import/Export | ✅ | - |
+| API Versioning | ✅ | - |
+| Multi-tenancy | ✅ | - |
 
 ---
 

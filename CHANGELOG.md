@@ -99,6 +99,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `BulkAutoConfiguration` for Spring Boot auto-configuration (`apigen.bulk.enabled=true`)
   - Comprehensive test suite (26 tests) covering import, export, configurations
 
+#### Fase 7: Arquitectura Avanzada (Partial)
+- **API Versioning (7.6)**: Complete API versioning infrastructure
+  - `@ApiVersion` annotation for marking API versions on controllers/methods
+  - `@DeprecatedVersion` annotation with RFC 8594 support (since, sunset, successor, migrationGuide)
+  - `VersioningStrategy` enum: PATH, HEADER, QUERY_PARAM, MEDIA_TYPE
+  - `ApiVersionResolver` with builder pattern for configuring resolution strategies
+  - `ApiVersionInterceptor` for automatic deprecation headers (Deprecation, Sunset, Link)
+  - `VersionContext` thread-local holder for current API version with comparison utilities
+  - `ApiVersionAutoConfiguration` for Spring Boot (`apigen.versioning.enabled=true`)
+  - Comprehensive test suite (45 tests) covering all resolution strategies and deprecation headers
+- **Multi-tenancy (7.1)**: Native SaaS multi-tenancy support
+  - `TenantContext` using InheritableThreadLocal for tenant propagation
+  - `TenantResolver` with multiple resolution strategies (HEADER, SUBDOMAIN, PATH, JWT_CLAIM)
+  - `TenantResolutionStrategy` enum for configurable tenant identification
+  - `TenantFilter` servlet filter with excluded paths support and tenant validation
+  - `TenantAware` interface for tenant-aware entities
+  - `TenantEntityListener` JPA listener for automatic tenant assignment on @PrePersist/@PreUpdate
+  - `TenantMismatchException` for cross-tenant access attempts
+  - `TenantAutoConfiguration` for Spring Boot (`apigen.multitenancy.enabled=true`)
+  - Tenant ID validation with configurable patterns
+  - Custom header name support (default: X-Tenant-ID)
+  - Comprehensive test suite covering all resolution strategies and filter behavior
+
 ### Changed
 - Updated .gitignore to exclude logs, .env, and .claude files
 - Optimized Docker CI (single platform for main, multi-platform for releases)
