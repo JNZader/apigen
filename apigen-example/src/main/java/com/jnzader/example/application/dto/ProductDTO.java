@@ -1,6 +1,7 @@
 package com.jnzader.example.application.dto;
 
 import com.jnzader.apigen.core.application.dto.BaseDTO;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -12,14 +13,33 @@ import java.math.BigDecimal;
  * <p>Implements {@link BaseDTO} which requires id() and activo() methods. Using Java records for
  * immutability and automatic equals/hashCode/toString.
  */
+@Schema(description = "Producto del catálogo")
 public record ProductDTO(
+        @Schema(description = "ID único del producto", example = "1", accessMode = Schema.AccessMode.READ_ONLY)
         Long id,
+
+        @Schema(description = "Estado activo del producto", example = "true", defaultValue = "true")
         Boolean activo,
-        @NotBlank(message = "Product name is required") String name,
+
+        @Schema(description = "Nombre del producto", example = "MacBook Pro 16\"", requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotBlank(message = "Product name is required")
+        String name,
+
+        @Schema(description = "Descripción detallada del producto", example = "Laptop profesional con chip M3 Pro, 18GB RAM, 512GB SSD")
         String description,
-        @Positive(message = "Price must be positive") BigDecimal price,
-        @PositiveOrZero(message = "Stock cannot be negative") Integer stock,
+
+        @Schema(description = "Precio unitario", example = "2499.99", minimum = "0.01", requiredMode = Schema.RequiredMode.REQUIRED)
+        @Positive(message = "Price must be positive")
+        BigDecimal price,
+
+        @Schema(description = "Cantidad en stock", example = "50", minimum = "0")
+        @PositiveOrZero(message = "Stock cannot be negative")
+        Integer stock,
+
+        @Schema(description = "Categoría del producto", example = "Electronics")
         String category,
+
+        @Schema(description = "Código SKU único", example = "MBP-16-M3-512")
         String sku)
         implements BaseDTO {
 
