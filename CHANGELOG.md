@@ -34,6 +34,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Mutation threshold 40%, coverage threshold 50%
 - `pitestAll` aggregate task for all modules
 - Results: core 68%, security 60%, codegen 67% mutation coverage
+- JMH benchmark infrastructure with plugin v0.7.3
+- ResultBenchmark demonstrating ~1M+ ops/ms for core operations
+- `jmhAll` aggregate task for all modules
 
 ### Changed
 - Updated .gitignore to exclude logs, .env, and .claude files
