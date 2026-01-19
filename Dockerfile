@@ -27,17 +27,30 @@ COPY gradlew build.gradle settings.gradle ./
 # Dar permisos de ejecución a gradlew
 RUN chmod +x gradlew
 
+# Copiar build.gradle de cada módulo (para cache de dependencias)
+COPY apigen-bom/build.gradle apigen-bom/
+COPY apigen-core/build.gradle apigen-core/
+COPY apigen-security/build.gradle apigen-security/
+COPY apigen-codegen/build.gradle apigen-codegen/
+COPY apigen-server/build.gradle apigen-server/
+COPY apigen-example/build.gradle apigen-example/
+
 # Descargar dependencias (cacheado si no cambian)
 RUN ./gradlew dependencies --no-daemon
 
-# Copiar código fuente
-COPY src/ src/
+# Copiar código fuente de todos los módulos
+COPY apigen-bom/ apigen-bom/
+COPY apigen-core/ apigen-core/
+COPY apigen-security/ apigen-security/
+COPY apigen-codegen/ apigen-codegen/
+COPY apigen-server/ apigen-server/
+COPY apigen-example/ apigen-example/
 
-# Build de la aplicación (sin tests para velocidad)
-RUN ./gradlew bootJar --no-daemon -x test
+# Build de la aplicación example (sin tests para velocidad)
+RUN ./gradlew :apigen-example:bootJar --no-daemon -x test
 
 # Extraer layers del JAR para optimizar la imagen final
-RUN java -Djarmode=layertools -jar build/libs/*.jar extract --destination extracted
+RUN java -Djarmode=layertools -jar apigen-example/build/libs/*.jar extract --destination extracted
 
 # ------------------------------
 # Stage 2: Runtime
