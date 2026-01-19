@@ -121,6 +121,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Tenant ID validation with configurable patterns
   - Custom header name support (default: X-Tenant-ID)
   - Comprehensive test suite covering all resolution strategies and filter behavior
+- **Event Sourcing (7.2)**: Event sourcing infrastructure for aggregates
+  - `DomainEvent` interface for all domain events with metadata support
+  - `StoredEvent` JPA entity for persisting events with indexes
+  - `EventStore` interface for append-only event storage with optimistic concurrency
+  - `JpaEventStore` JPA implementation with Spring event publishing
+  - `Snapshot` JPA entity for aggregate state snapshots
+  - `EventSourcedAggregate` base class for event-sourced aggregates
+  - `AggregateRepository` for loading/saving aggregates with snapshot support
+  - `EventSerializer` JSON serializer with Jackson and Java Time support
+  - `ConcurrencyException` for optimistic locking conflicts
+  - `EventSourcingAutoConfiguration` for Spring Boot (`apigen.eventsourcing.enabled=true`)
+  - Comprehensive test suite (37 tests) covering serialization, aggregates, and event store
 
 ### Changed
 - Updated .gitignore to exclude logs, .env, and .claude files

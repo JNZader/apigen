@@ -30,6 +30,7 @@ Esta guía documenta **todas las características** disponibles en APiGen, indep
 24. [Bulk Import/Export](#24-bulk-importexport)
 25. [API Versioning](#25-api-versioning)
 26. [Multi-tenancy](#26-multi-tenancy)
+27. [Event Sourcing](#27-event-sourcing)
 
 ---
 
@@ -2282,6 +2283,340 @@ child.start();
 
 ---
 
+## 27. Event Sourcing
+
+Infraestructura de Event Sourcing para persistir cambios de estado como eventos inmutables.
+
+### Conceptos Clave
+
+| Concepto | Descripción |
+|----------|-------------|
+| **Aggregate** | Entidad raíz que encapsula estado y reglas de negocio |
+| **Domain Event** | Hecho inmutable que representa un cambio de estado |
+| **Event Store** | Almacenamiento append-only de eventos |
+| **Snapshot** | Estado serializado para optimizar reconstrucción |
+
+### Configuración
+
+```yaml
+apigen:
+  eventsourcing:
+    enabled: true
+```
+
+### Definir Eventos de Dominio
+
+```java
+public record ProductCreatedEvent(
+    String aggregateId,
+    String name,
+    BigDecimal price,
+    Instant occurredAt
+) implements DomainEvent {
+
+    @Override
+    public String getAggregateId() {
+        return aggregateId;
+    }
+
+    @Override
+    public String getEventType() {
+        return "ProductCreated";
+    }
+
+    @Override
+    public Instant getOccurredAt() {
+        return occurredAt;
+    }
+}
+
+public record ProductPriceChangedEvent(
+    String aggregateId,
+    BigDecimal oldPrice,
+    BigDecimal newPrice,
+    Instant occurredAt
+) implements DomainEvent {
+    // ... similar implementation
+}
+```
+
+### Crear Aggregates Event-Sourced
+
+```java
+public class Product extends EventSourcedAggregate {
+    private String name;
+    private BigDecimal price;
+    private boolean active;
+
+    // Comando: valida y emite evento
+    public void create(String id, String name, BigDecimal price) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Name is required");
+        }
+        if (price == null || price.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Price must be positive");
+        }
+        raiseEvent(new ProductCreatedEvent(id, name, price, Instant.now()));
+    }
+
+    // Comando: cambiar precio
+    public void changePrice(BigDecimal newPrice) {
+        if (!active) {
+            throw new IllegalStateException("Cannot change price of inactive product");
+        }
+        raiseEvent(new ProductPriceChangedEvent(getId(), price, newPrice, Instant.now()));
+    }
+
+    // Handler: aplica cambios de estado
+    @Override
+    protected void apply(DomainEvent event) {
+        switch (event) {
+            case ProductCreatedEvent e -> {
+                setId(e.aggregateId());
+                this.name = e.name();
+                this.price = e.price();
+                this.active = true;
+            }
+            case ProductPriceChangedEvent e -> {
+                this.price = e.newPrice();
+            }
+            default -> {}
+        }
+    }
+
+    // Getters
+    public String getName() { return name; }
+    public BigDecimal getPrice() { return price; }
+    public boolean isActive() { return active; }
+}
+```
+
+### Usar el Repository de Aggregates
+
+```java
+@Service
+public class ProductService {
+
+    private final AggregateRepository<Product> repository;
+
+    public ProductService(EventStore eventStore, EventSerializer serializer) {
+        this.repository = new AggregateRepository<>(
+            eventStore,
+            serializer,
+            "Product",
+            Product::new
+        );
+    }
+
+    public void createProduct(String id, String name, BigDecimal price) {
+        Product product = new Product();
+        product.create(id, name, price);
+        repository.save(product);
+    }
+
+    public void updatePrice(String id, BigDecimal newPrice) {
+        Product product = repository.findById(id)
+            .orElseThrow(() -> new NotFoundException("Product not found"));
+
+        product.changePrice(newPrice);
+        repository.save(product);
+    }
+
+    public Product getProduct(String id) {
+        return repository.findById(id)
+            .orElseThrow(() -> new NotFoundException("Product not found"));
+    }
+}
+```
+
+### EventStore API
+
+```java
+// Append events con control de concurrencia optimista
+eventStore.append(aggregateId, "Product", events, expectedVersion);
+
+// Obtener todos los eventos
+List<StoredEvent> events = eventStore.getEvents(aggregateId);
+
+// Obtener eventos desde una versión
+List<StoredEvent> newEvents = eventStore.getEventsFrom(aggregateId, 5);
+
+// Verificar versión actual
+long version = eventStore.getCurrentVersion(aggregateId);
+
+// Verificar existencia
+boolean exists = eventStore.exists(aggregateId);
+```
+
+### Manejo de Concurrencia
+
+El event store usa optimistic locking para prevenir conflictos:
+
+```java
+try {
+    eventStore.append(aggregateId, "Product", events, expectedVersion);
+} catch (ConcurrencyException e) {
+    // Otra transacción modificó el aggregate
+    log.warn("Conflict: expected v{} but found v{}",
+        e.getExpectedVersion(),
+        e.getActualVersion());
+
+    // Opciones:
+    // 1. Recargar y reintentar
+    // 2. Notificar al usuario
+    // 3. Merge de cambios
+}
+```
+
+### Snapshots
+
+Para aggregates con muchos eventos, usa snapshots:
+
+```java
+// Repository con snapshots cada 100 eventos
+AggregateRepository<Product> repository = new AggregateRepository<>(
+    eventStore,
+    serializer,
+    "Product",
+    Product::new,
+    100  // snapshot frequency
+);
+
+// Implementar en el aggregate
+public class Product extends EventSourcedAggregate {
+
+    @Override
+    public Object createSnapshot() {
+        return new ProductSnapshot(getId(), name, price, active);
+    }
+
+    @Override
+    public void restoreFromSnapshot(Object snapshot) {
+        if (snapshot instanceof ProductSnapshot s) {
+            setId(s.id());
+            this.name = s.name();
+            this.price = s.price();
+            this.active = s.active();
+        }
+    }
+
+    record ProductSnapshot(String id, String name, BigDecimal price, boolean active) {}
+}
+```
+
+### EventSerializer
+
+Serialización de eventos a JSON:
+
+```java
+EventSerializer serializer = new EventSerializer();
+
+// Registrar tipos de eventos
+serializer.registerEventType("ProductCreated", ProductCreatedEvent.class);
+serializer.registerEventType("ProductPriceChanged", ProductPriceChangedEvent.class);
+
+// Serializar
+String json = serializer.serialize(event);
+
+// Deserializar por tipo
+DomainEvent event = serializer.deserialize(json, "ProductCreated");
+
+// Deserializar a clase específica
+ProductCreatedEvent event = serializer.deserialize(json, ProductCreatedEvent.class);
+```
+
+### Escuchar Eventos
+
+El JpaEventStore publica eventos a Spring:
+
+```java
+@Component
+public class ProductEventListener {
+
+    @EventListener
+    public void onProductEvent(JpaEventStore.StoredEventWrapper wrapper) {
+        StoredEvent stored = wrapper.storedEvent();
+        DomainEvent event = wrapper.domainEvent();
+
+        log.info("Event stored: {} v{} for {}",
+            stored.getEventType(),
+            stored.getVersion(),
+            stored.getAggregateId());
+
+        // Actualizar proyecciones, enviar notificaciones, etc.
+    }
+}
+```
+
+### Proyecciones (Read Models)
+
+Crea modelos de lectura optimizados:
+
+```java
+@Component
+public class ProductReadModelProjection {
+
+    private final ProductReadRepository readRepository;
+
+    @EventListener
+    public void on(JpaEventStore.StoredEventWrapper wrapper) {
+        DomainEvent event = wrapper.domainEvent();
+
+        if (event instanceof ProductCreatedEvent e) {
+            ProductReadModel model = new ProductReadModel(
+                e.aggregateId(),
+                e.name(),
+                e.price(),
+                true
+            );
+            readRepository.save(model);
+        }
+
+        if (event instanceof ProductPriceChangedEvent e) {
+            readRepository.updatePrice(e.aggregateId(), e.newPrice());
+        }
+    }
+}
+```
+
+### Entidades JPA
+
+El módulo incluye entidades JPA para persistencia:
+
+**event_store table:**
+```sql
+CREATE TABLE event_store (
+    event_id VARCHAR(36) PRIMARY KEY,
+    aggregate_id VARCHAR(100) NOT NULL,
+    aggregate_type VARCHAR(100) NOT NULL,
+    event_type VARCHAR(100) NOT NULL,
+    version BIGINT NOT NULL,
+    payload TEXT NOT NULL,
+    metadata TEXT,
+    occurred_at TIMESTAMP NOT NULL,
+    stored_at TIMESTAMP NOT NULL
+);
+
+CREATE INDEX idx_event_aggregate ON event_store(aggregate_id, version);
+CREATE INDEX idx_event_type ON event_store(event_type);
+```
+
+**event_snapshots table:**
+```sql
+CREATE TABLE event_snapshots (
+    snapshot_id VARCHAR(36) PRIMARY KEY,
+    aggregate_id VARCHAR(100) NOT NULL,
+    aggregate_type VARCHAR(100) NOT NULL,
+    version BIGINT NOT NULL,
+    state TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL
+);
+
+CREATE INDEX idx_snapshot_aggregate ON event_snapshots(aggregate_id, version DESC);
+```
+
+---
+
 ## Resumen de Características por Módulo
 
 | Característica | apigen-core | apigen-security |
@@ -2313,6 +2648,7 @@ child.start();
 | Bulk Import/Export | ✅ | - |
 | API Versioning | ✅ | - |
 | Multi-tenancy | ✅ | - |
+| Event Sourcing | ✅ | - |
 
 ---
 
