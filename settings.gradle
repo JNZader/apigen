@@ -8,6 +8,7 @@ include 'apigen-codegen'
 include 'apigen-server'
 include 'apigen-example'
 include 'apigen-graphql'
+include 'apigen-grpc'
 
 // Configure each subproject
 rootProject.children.each { project ->

@@ -148,6 +148,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `GraphQLAutoConfiguration` for Spring Boot (`apigen.graphql.enabled=true`)
   - GraphQL Java 22.3 and Java DataLoader 3.4.0 integration
   - Comprehensive test suite covering schema building, execution, errors, and data loading
+- **gRPC Module (7.4)**: New `apigen-grpc` module for inter-service communication
+  - `GrpcServer` wrapper with fluent builder API for server lifecycle management
+  - `GrpcChannelFactory` for creating and managing client channels with caching
+  - `LoggingServerInterceptor` / `LoggingClientInterceptor` for call logging with timing
+  - `ExceptionHandlingInterceptor` mapping exceptions to gRPC status codes
+  - `AuthenticationServerInterceptor` for token-based authentication with excluded methods
+  - `AuthenticationClientInterceptor` for adding Bearer tokens to outgoing requests
+  - `HealthServiceManager` for aggregating health checks from multiple components
+  - `HealthCheck` interface with Result record for health status reporting
+  - Proto definitions: common.proto (Timestamp, PageRequest, OperationResult, ErrorDetail, EntityId, AuditInfo)
+  - Proto definitions: health.proto (HealthService with Check and Watch RPCs)
+  - `GrpcAutoConfiguration` for Spring Boot (`apigen.grpc.enabled=true`)
+  - gRPC Java 1.72.0, Protobuf 4.31.1, gRPC Spring Boot Starter 3.1.0.RELEASE
+  - Comprehensive test suite (37 tests) covering server, client, interceptors, and health checks
 
 ### Changed
 - Updated .gitignore to exclude logs, .env, and .claude files

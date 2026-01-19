@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+package apigen.v1;
+
+option java_package = "com.jnzader.apigen.grpc.proto";
+option java_outer_classname = "CommonProto";
+option java_multiple_files = true;
+
+// Common timestamp representation
+message Timestamp {
+  int64 seconds = 1;
+  int32 nanos = 2;
+}
+
+// Pagination request
+message PageRequest {
+  int32 page = 1;
+  int32 size = 2;
+  string sort_by = 3;
+  bool descending = 4;
+}
+
+// Pagination response metadata
+message PageMetadata {
+  int32 page = 1;
+  int32 size = 2;
+  int64 total_elements = 3;
+  int32 total_pages = 4;
+  bool has_next = 5;
+  bool has_previous = 6;
+}
+
+// Generic result wrapper for operations
+message OperationResult {
+  bool success = 1;
+  string message = 2;
+  string error_code = 3;
+  map<string, string> metadata = 4;
+}
+
+// Error details following RFC 7807 style
+message ErrorDetail {
+  string type = 1;
+  string title = 2;
+  int32 status = 3;
+  string detail = 4;
+  string instance = 5;
+  map<string, string> extensions = 6;
+}
+
+// Field validation error
+message FieldError {
+  string field = 1;
+  string message = 2;
+  string rejected_value = 3;
+}
+
+// Validation errors collection
+message ValidationErrors {
+  repeated FieldError errors = 1;
+}
+
+// Entity identifier
+message EntityId {
+  oneof id_type {
+    int64 long_id = 1;
+    string string_id = 2;
+    string uuid = 3;
+  }
+}
+
+// Audit information
+message AuditInfo {
+  string created_by = 1;
+  Timestamp created_at = 2;
+  string updated_by = 3;
+  Timestamp updated_at = 4;
+  int64 version = 5;
+}
