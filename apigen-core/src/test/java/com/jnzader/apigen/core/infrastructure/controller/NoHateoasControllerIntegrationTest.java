@@ -1,18 +1,23 @@
 package com.jnzader.apigen.core.infrastructure.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jnzader.apigen.core.config.TestSecurityConfig;
-import com.jnzader.apigen.core.infrastructure.config.JpaConfig;
 import com.jnzader.apigen.core.fixtures.TestEntity;
 import com.jnzader.apigen.core.fixtures.TestEntityDTO;
 import com.jnzader.apigen.core.fixtures.TestEntityRepository;
+import com.jnzader.apigen.core.infrastructure.config.JpaConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -20,14 +25,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 /**
- * Integration tests for BaseControllerImpl WITHOUT HATEOAS.
- * Tests sparse fieldsets, content-based responses, and non-HATEOAS behavior.
+ * Integration tests for BaseControllerImpl WITHOUT HATEOAS. Tests sparse fieldsets, content-based
+ * responses, and non-HATEOAS behavior.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -39,13 +39,11 @@ class NoHateoasControllerIntegrationTest {
 
     private static final String BASE_URL = "/test-entities-no-hateoas";
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Autowired
-    private TestEntityRepository testEntityRepository;
+    @Autowired private TestEntityRepository testEntityRepository;
 
     private TestEntity savedEntity;
 
@@ -65,10 +63,10 @@ class NoHateoasControllerIntegrationTest {
         @Test
         @DisplayName("should return content array instead of _embedded")
         void shouldReturnContentArrayInsteadOfEmbedded() throws Exception {
-            MvcResult result = mockMvc.perform(get(BASE_URL)
-                            .accept(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isOk())
-                    .andReturn();
+            MvcResult result =
+                    mockMvc.perform(get(BASE_URL).accept(MediaType.APPLICATION_JSON))
+                            .andExpect(status().isOk())
+                            .andReturn();
 
             String responseBody = result.getResponse().getContentAsString();
             // Without HATEOAS, response uses "content" not "_embedded"
@@ -81,8 +79,7 @@ class NoHateoasControllerIntegrationTest {
         @Test
         @DisplayName("should return paginated list with content array")
         void shouldReturnPaginatedListWithContentArray() throws Exception {
-            mockMvc.perform(get(BASE_URL)
-                            .accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(get(BASE_URL).accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content", hasSize(greaterThanOrEqualTo(1))))
                     .andExpect(header().exists("X-Total-Count"));
@@ -91,17 +88,17 @@ class NoHateoasControllerIntegrationTest {
         @Test
         @DisplayName("should support sparse fieldsets on collection")
         void shouldSupportSparseFieldsetsOnCollection() throws Exception {
-            MvcResult result = mockMvc.perform(get(BASE_URL)
-                            .param("fields", "id,name")
-                            .accept(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isOk())
-                    .andReturn();
+            MvcResult result =
+                    mockMvc.perform(
+                                    get(BASE_URL)
+                                            .param("fields", "id,name")
+                                            .accept(MediaType.APPLICATION_JSON))
+                            .andExpect(status().isOk())
+                            .andReturn();
 
             String responseBody = result.getResponse().getContentAsString();
             // Should contain requested fields
-            assertThat(responseBody)
-                    .contains("\"id\"")
-                    .contains("\"name\"");
+            assertThat(responseBody).contains("\"id\"").contains("\"name\"");
         }
     }
 
@@ -112,10 +109,12 @@ class NoHateoasControllerIntegrationTest {
         @Test
         @DisplayName("should return entity without HATEOAS links")
         void shouldReturnEntityWithoutHateoasLinks() throws Exception {
-            MvcResult result = mockMvc.perform(get(BASE_URL + "/{id}", savedEntity.getId())
-                            .accept(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isOk())
-                    .andReturn();
+            MvcResult result =
+                    mockMvc.perform(
+                                    get(BASE_URL + "/{id}", savedEntity.getId())
+                                            .accept(MediaType.APPLICATION_JSON))
+                            .andExpect(status().isOk())
+                            .andReturn();
 
             String responseBody = result.getResponse().getContentAsString();
             // Without HATEOAS, no _links in response
@@ -127,40 +126,39 @@ class NoHateoasControllerIntegrationTest {
         @Test
         @DisplayName("should support sparse fieldsets on single resource")
         void shouldSupportSparseFieldsetsOnSingleResource() throws Exception {
-            MvcResult result = mockMvc.perform(get(BASE_URL + "/{id}", savedEntity.getId())
-                            .param("fields", "id,name")
-                            .accept(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isOk())
-                    .andReturn();
+            MvcResult result =
+                    mockMvc.perform(
+                                    get(BASE_URL + "/{id}", savedEntity.getId())
+                                            .param("fields", "id,name")
+                                            .accept(MediaType.APPLICATION_JSON))
+                            .andExpect(status().isOk())
+                            .andReturn();
 
             String responseBody = result.getResponse().getContentAsString();
             // Should contain only requested fields plus id
-            assertThat(responseBody)
-                    .contains("\"id\"")
-                    .contains("\"name\"");
+            assertThat(responseBody).contains("\"id\"").contains("\"name\"");
         }
 
         @Test
         @DisplayName("should filter fields correctly with sparse fieldsets")
         void shouldFilterFieldsCorrectlyWithSparseFieldsets() throws Exception {
-            MvcResult result = mockMvc.perform(get(BASE_URL + "/{id}", savedEntity.getId())
-                            .param("fields", "name")
-                            .accept(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isOk())
-                    .andReturn();
+            MvcResult result =
+                    mockMvc.perform(
+                                    get(BASE_URL + "/{id}", savedEntity.getId())
+                                            .param("fields", "name")
+                                            .accept(MediaType.APPLICATION_JSON))
+                            .andExpect(status().isOk())
+                            .andReturn();
 
             String responseBody = result.getResponse().getContentAsString();
             // Should always include id and the requested field
-            assertThat(responseBody)
-                    .contains("\"id\"")
-                    .contains("\"name\"");
+            assertThat(responseBody).contains("\"id\"").contains("\"name\"");
         }
 
         @Test
         @DisplayName("should return 404 for non-existent ID")
         void shouldReturn404ForNonExistentId() throws Exception {
-            mockMvc.perform(get(BASE_URL + "/{id}", 99999L)
-                            .accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(get(BASE_URL + "/{id}", 99999L).accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isNotFound());
         }
     }
@@ -174,12 +172,14 @@ class NoHateoasControllerIntegrationTest {
         void shouldCreateEntityWithoutHateoasLinks() throws Exception {
             TestEntityDTO newDto = TestEntityDTO.of(null, true, "New NoHateoas Entity");
 
-            MvcResult result = mockMvc.perform(post(BASE_URL)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(newDto)))
-                    .andExpect(status().isCreated())
-                    .andExpect(header().exists("Location"))
-                    .andReturn();
+            MvcResult result =
+                    mockMvc.perform(
+                                    post(BASE_URL)
+                                            .contentType(MediaType.APPLICATION_JSON)
+                                            .content(objectMapper.writeValueAsString(newDto)))
+                            .andExpect(status().isCreated())
+                            .andExpect(header().exists("Location"))
+                            .andReturn();
 
             String responseBody = result.getResponse().getContentAsString();
             assertThat(responseBody)
@@ -195,13 +195,16 @@ class NoHateoasControllerIntegrationTest {
         @Test
         @DisplayName("should update entity without HATEOAS links in response")
         void shouldUpdateEntityWithoutHateoasLinks() throws Exception {
-            TestEntityDTO updateDto = TestEntityDTO.of(savedEntity.getId(), true, "Updated NoHateoas");
+            TestEntityDTO updateDto =
+                    TestEntityDTO.of(savedEntity.getId(), true, "Updated NoHateoas");
 
-            MvcResult result = mockMvc.perform(put(BASE_URL + "/{id}", savedEntity.getId())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(updateDto)))
-                    .andExpect(status().isOk())
-                    .andReturn();
+            MvcResult result =
+                    mockMvc.perform(
+                                    put(BASE_URL + "/{id}", savedEntity.getId())
+                                            .contentType(MediaType.APPLICATION_JSON)
+                                            .content(objectMapper.writeValueAsString(updateDto)))
+                            .andExpect(status().isOk())
+                            .andReturn();
 
             String responseBody = result.getResponse().getContentAsString();
             assertThat(responseBody)
@@ -219,11 +222,13 @@ class NoHateoasControllerIntegrationTest {
         void shouldPartiallyUpdateEntityWithoutHateoasLinks() throws Exception {
             TestEntityDTO patchDto = TestEntityDTO.of(null, null, "Patched NoHateoas");
 
-            MvcResult result = mockMvc.perform(patch(BASE_URL + "/{id}", savedEntity.getId())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(patchDto)))
-                    .andExpect(status().isOk())
-                    .andReturn();
+            MvcResult result =
+                    mockMvc.perform(
+                                    patch(BASE_URL + "/{id}", savedEntity.getId())
+                                            .contentType(MediaType.APPLICATION_JSON)
+                                            .content(objectMapper.writeValueAsString(patchDto)))
+                            .andExpect(status().isOk())
+                            .andReturn();
 
             String responseBody = result.getResponse().getContentAsString();
             assertThat(responseBody)
@@ -246,8 +251,9 @@ class NoHateoasControllerIntegrationTest {
         @Test
         @DisplayName("should hard delete entity with permanent=true")
         void shouldHardDeleteEntityWhenPermanent() throws Exception {
-            mockMvc.perform(delete(BASE_URL + "/{id}", savedEntity.getId())
-                            .param("permanent", "true"))
+            mockMvc.perform(
+                            delete(BASE_URL + "/{id}", savedEntity.getId())
+                                    .param("permanent", "true"))
                     .andExpect(status().isNoContent());
         }
     }
@@ -264,14 +270,13 @@ class NoHateoasControllerIntegrationTest {
                     .andExpect(status().isNoContent());
 
             // Then restore
-            MvcResult result = mockMvc.perform(post(BASE_URL + "/{id}/restore", savedEntity.getId()))
-                    .andExpect(status().isOk())
-                    .andReturn();
+            MvcResult result =
+                    mockMvc.perform(post(BASE_URL + "/{id}/restore", savedEntity.getId()))
+                            .andExpect(status().isOk())
+                            .andReturn();
 
             String responseBody = result.getResponse().getContentAsString();
-            assertThat(responseBody)
-                    .contains("\"activo\":true")
-                    .doesNotContain("\"_links\"");
+            assertThat(responseBody).contains("\"activo\":true").doesNotContain("\"_links\"");
         }
     }
 
@@ -302,8 +307,7 @@ class NoHateoasControllerIntegrationTest {
         @Test
         @DisplayName("should return 404 when entity does not exist")
         void shouldReturn404WhenEntityDoesNotExist() throws Exception {
-            mockMvc.perform(head(BASE_URL + "/{id}", 99999L))
-                    .andExpect(status().isNotFound());
+            mockMvc.perform(head(BASE_URL + "/{id}", 99999L)).andExpect(status().isNotFound());
         }
     }
 }

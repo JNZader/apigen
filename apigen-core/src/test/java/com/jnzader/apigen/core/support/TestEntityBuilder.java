@@ -3,8 +3,8 @@ package com.jnzader.apigen.core.support;
 import com.jnzader.apigen.core.fixtures.TestEntity;
 
 /**
- * Builder for creating TestEntity instances in tests.
- * Uses the fluent builder pattern for easy test data creation.
+ * Builder for creating TestEntity instances in tests. Uses the fluent builder pattern for easy test
+ * data creation.
  */
 public class TestEntityBuilder {
 
@@ -18,8 +18,7 @@ public class TestEntityBuilder {
     private String creadoPor = "test-user";
     private Boolean estado = true;
 
-    private TestEntityBuilder() {
-    }
+    private TestEntityBuilder() {}
 
     public static TestEntityBuilder aTestEntity() {
         return new TestEntityBuilder();

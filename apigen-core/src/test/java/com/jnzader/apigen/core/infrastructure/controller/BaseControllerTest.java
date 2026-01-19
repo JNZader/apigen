@@ -1,38 +1,5 @@
 package com.jnzader.apigen.core.infrastructure.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jnzader.apigen.core.fixtures.TestEntity;
-import com.jnzader.apigen.core.fixtures.TestEntityDTO;
-import com.jnzader.apigen.core.fixtures.TestEntityControllerImpl;
-import com.jnzader.apigen.core.fixtures.TestEntityMapperAdapter;
-import com.jnzader.apigen.core.fixtures.TestEntityResourceAssembler;
-import com.jnzader.apigen.core.fixtures.TestEntityService;
-import com.jnzader.apigen.core.support.TestEntityBuilder;
-import com.jnzader.apigen.core.domain.exception.ResourceNotFoundException;
-import com.jnzader.apigen.core.application.util.Result;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-import com.jnzader.apigen.core.fixtures.MockJwtService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.PagedModel;
-import org.springframework.http.MediaType;
-import io.micrometer.core.instrument.MeterRegistry;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
-
-import java.util.List;
-
 import static com.jnzader.apigen.core.support.TestConstants.*;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -43,17 +10,45 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jnzader.apigen.core.application.util.Result;
+import com.jnzader.apigen.core.domain.exception.ResourceNotFoundException;
+import com.jnzader.apigen.core.fixtures.MockJwtService;
+import com.jnzader.apigen.core.fixtures.TestEntity;
+import com.jnzader.apigen.core.fixtures.TestEntityControllerImpl;
+import com.jnzader.apigen.core.fixtures.TestEntityDTO;
+import com.jnzader.apigen.core.fixtures.TestEntityMapperAdapter;
+import com.jnzader.apigen.core.fixtures.TestEntityResourceAssembler;
+import com.jnzader.apigen.core.fixtures.TestEntityService;
+import com.jnzader.apigen.core.support.TestEntityBuilder;
+import io.micrometer.core.instrument.MeterRegistry;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
+import org.springframework.http.MediaType;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+
 /**
  * Tests de controlador usando @WebMvcTest.
- * <p>
- * Estos tests verifican:
- * - Mappings HTTP correctos
- * - Serialización/deserialización JSON
- * - Códigos de respuesta HTTP
- * - Validación de entrada
- * - Manejo de errores
- * <p>
- * Usa MockMvc para tests rápidos sin levantar el servidor completo.
+ *
+ * <p>Estos tests verifican: - Mappings HTTP correctos - Serialización/deserialización JSON -
+ * Códigos de respuesta HTTP - Validación de entrada - Manejo de errores
+ *
+ * <p>Usa MockMvc para tests rápidos sin levantar el servidor completo.
  */
 @WebMvcTest(controllers = TestEntityControllerImpl.class)
 @ActiveProfiles("test")
@@ -61,30 +56,24 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Tag("security")
 class BaseControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
-    // ObjectMapper creado manualmente ya que @AutoConfigureJson no funciona en Spring Boot 4.x con @WebMvcTest
+    // ObjectMapper creado manualmente ya que @AutoConfigureJson no funciona en Spring Boot 4.x con
+    // @WebMvcTest
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @MockitoBean
-    private TestEntityService testEntityService;
+    @MockitoBean private TestEntityService testEntityService;
 
-    @MockitoBean
-    private TestEntityMapperAdapter testEntityMapper;
+    @MockitoBean private TestEntityMapperAdapter testEntityMapper;
 
-    @MockitoBean
-    private TestEntityResourceAssembler testEntityResourceAssembler;
+    @MockitoBean private TestEntityResourceAssembler testEntityResourceAssembler;
 
     // Mocks necesarios para la configuración de seguridad
-    @MockitoBean
-    private MockJwtService jwtService;
+    @MockitoBean private MockJwtService jwtService;
 
-    @MockitoBean
-    private UserDetailsService userDetailsService;
+    @MockitoBean private UserDetailsService userDetailsService;
 
-    @MockitoBean
-    private MeterRegistry meterRegistry;
+    @MockitoBean private MeterRegistry meterRegistry;
 
     private TestEntity testEntity;
     private TestEntityDTO testEntityDTO;
@@ -92,23 +81,26 @@ class BaseControllerTest {
     @BeforeEach
     void setUp() {
         TestEntityBuilder.resetIdCounter();
-        testEntity = TestEntityBuilder.aTestEntityWithId()
-                .withName(VALID_NAME)
-                .build();
+        testEntity = TestEntityBuilder.aTestEntityWithId().withName(VALID_NAME).build();
         testEntityDTO = TestEntityDTO.of(testEntity.getId(), true, VALID_NAME);
 
         // Default HATEOAS assembler stubbing
         given(testEntityResourceAssembler.toModel(any(TestEntityDTO.class)))
                 .willAnswer(invocation -> EntityModel.of(invocation.getArgument(0)));
         given(testEntityResourceAssembler.toPagedModel(any()))
-                .willAnswer(invocation -> {
-                    org.springframework.data.domain.Page<TestEntityDTO> page = invocation.getArgument(0);
-                    java.util.List<EntityModel<TestEntityDTO>> content = page.getContent().stream()
-                            .map(EntityModel::of)
-                            .toList();
-                    return PagedModel.of(content,
-                            new PagedModel.PageMetadata(page.getSize(), page.getNumber(), page.getTotalElements()));
-                });
+                .willAnswer(
+                        invocation -> {
+                            org.springframework.data.domain.Page<TestEntityDTO> page =
+                                    invocation.getArgument(0);
+                            java.util.List<EntityModel<TestEntityDTO>> content =
+                                    page.getContent().stream().map(EntityModel::of).toList();
+                            return PagedModel.of(
+                                    content,
+                                    new PagedModel.PageMetadata(
+                                            page.getSize(),
+                                            page.getNumber(),
+                                            page.getTotalElements()));
+                        });
     }
 
     // ==================== GET Tests ====================
@@ -123,18 +115,23 @@ class BaseControllerTest {
         void shouldReturnListOfEntities() throws Exception {
             // Given - El controlador llama a findAll(Specification, Pageable)
             Page<TestEntity> page = new PageImpl<>(List.of(testEntity), PageRequest.of(0, 20), 1);
-            given(testEntityService.findAll(any(org.springframework.data.jpa.domain.Specification.class), any(org.springframework.data.domain.Pageable.class)))
+            given(
+                            testEntityService.findAll(
+                                    any(org.springframework.data.jpa.domain.Specification.class),
+                                    any(org.springframework.data.domain.Pageable.class)))
                     .willReturn(Result.success(page));
             given(testEntityMapper.toDTO(testEntity)).willReturn(testEntityDTO);
 
             // When/Then - HATEOAS response format uses _embedded
-            mockMvc.perform(get("/test-entities")
-                            .accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(get("/test-entities").accept(MediaType.APPLICATION_JSON))
                     .andDo(print())
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$._embedded.testEntityDTOList", hasSize(1)))
-                    .andExpect(jsonPath("$._embedded.testEntityDTOList[0].id", is(testEntity.getId().intValue())))
+                    .andExpect(
+                            jsonPath(
+                                    "$._embedded.testEntityDTOList[0].id",
+                                    is(testEntity.getId().intValue())))
                     .andExpect(jsonPath("$._embedded.testEntityDTOList[0].name", is(VALID_NAME)));
         }
 
@@ -144,12 +141,14 @@ class BaseControllerTest {
         void shouldReturnEmptyListWhenNoEntities() throws Exception {
             // Given - El controlador llama a findAll(Specification, Pageable)
             Page<TestEntity> emptyPage = new PageImpl<>(List.of(), PageRequest.of(0, 20), 0);
-            given(testEntityService.findAll(any(org.springframework.data.jpa.domain.Specification.class), any(org.springframework.data.domain.Pageable.class)))
+            given(
+                            testEntityService.findAll(
+                                    any(org.springframework.data.jpa.domain.Specification.class),
+                                    any(org.springframework.data.domain.Pageable.class)))
                     .willReturn(Result.success(emptyPage));
 
             // When/Then - HATEOAS doesn't include _embedded when empty
-            mockMvc.perform(get("/test-entities")
-                            .accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(get("/test-entities").accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$._embedded").doesNotExist());
         }
@@ -165,15 +164,19 @@ class BaseControllerTest {
         void shouldReturnPaginatedResults() throws Exception {
             // Given - El endpoint principal / soporta paginación
             Page<TestEntity> page = new PageImpl<>(List.of(testEntity), PageRequest.of(0, 10), 1);
-            given(testEntityService.findAll(any(org.springframework.data.jpa.domain.Specification.class), any(org.springframework.data.domain.Pageable.class)))
+            given(
+                            testEntityService.findAll(
+                                    any(org.springframework.data.jpa.domain.Specification.class),
+                                    any(org.springframework.data.domain.Pageable.class)))
                     .willReturn(Result.success(page));
             given(testEntityMapper.toDTO(testEntity)).willReturn(testEntityDTO);
 
             // When/Then - HATEOAS format
-            mockMvc.perform(get("/test-entities")
-                            .param("page", "0")
-                            .param("size", "10")
-                            .accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(
+                            get("/test-entities")
+                                    .param("page", "0")
+                                    .param("size", "10")
+                                    .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$._embedded.testEntityDTOList", hasSize(1)))
                     .andExpect(jsonPath("$.page.totalElements", is(1)));
@@ -193,8 +196,7 @@ class BaseControllerTest {
             given(testEntityMapper.toDTO(testEntity)).willReturn(testEntityDTO);
 
             // When/Then
-            mockMvc.perform(get("/test-entities/{id}", VALID_ID)
-                            .accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(get("/test-entities/{id}", VALID_ID).accept(MediaType.APPLICATION_JSON))
                     .andDo(print())
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.id", is(VALID_ID.intValue())))
@@ -210,8 +212,9 @@ class BaseControllerTest {
                     .willReturn(Result.failure(new ResourceNotFoundException("Not found")));
 
             // When/Then
-            mockMvc.perform(get("/test-entities/{id}", INVALID_ID)
-                            .accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(
+                            get("/test-entities/{id}", INVALID_ID)
+                                    .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isNotFound());
         }
     }
@@ -229,14 +232,16 @@ class BaseControllerTest {
             // Given
             TestEntityDTO newDto = TestEntityDTO.of(null, true, VALID_NAME);
             given(testEntityMapper.toEntity(any(TestEntityDTO.class))).willReturn(testEntity);
-            given(testEntityService.save(any(TestEntity.class))).willReturn(Result.success(testEntity));
+            given(testEntityService.save(any(TestEntity.class)))
+                    .willReturn(Result.success(testEntity));
             given(testEntityMapper.toDTO(testEntity)).willReturn(testEntityDTO);
 
             // When/Then
-            mockMvc.perform(post("/test-entities")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(newDto)))
+            mockMvc.perform(
+                            post("/test-entities")
+                                    .with(csrf())
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(newDto)))
                     .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.id", notNullValue()))
                     .andExpect(jsonPath("$.name", is(VALID_NAME)));
@@ -250,10 +255,11 @@ class BaseControllerTest {
             TestEntityDTO invalidDto = TestEntityDTO.of(null, true, null);
 
             // When/Then - Validation should fail
-            mockMvc.perform(post("/test-entities")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(invalidDto)))
+            mockMvc.perform(
+                            post("/test-entities")
+                                    .with(csrf())
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(invalidDto)))
                     .andExpect(status().isBadRequest());
         }
     }
@@ -270,19 +276,19 @@ class BaseControllerTest {
         void shouldUpdateEntityAndReturn200() throws Exception {
             // Given
             TestEntityDTO updatedDto = TestEntityDTO.of(VALID_ID, true, UPDATED_NAME);
-            TestEntity updatedEntity = TestEntityBuilder.aTestEntityWithId()
-                    .withName(UPDATED_NAME)
-                    .build();
+            TestEntity updatedEntity =
+                    TestEntityBuilder.aTestEntityWithId().withName(UPDATED_NAME).build();
             given(testEntityMapper.toEntity(any(TestEntityDTO.class))).willReturn(updatedEntity);
             given(testEntityService.update(eq(VALID_ID), any(TestEntity.class)))
                     .willReturn(Result.success(updatedEntity));
             given(testEntityMapper.toDTO(updatedEntity)).willReturn(updatedDto);
 
             // When/Then
-            mockMvc.perform(put("/test-entities/{id}", VALID_ID)
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(updatedDto)))
+            mockMvc.perform(
+                            put("/test-entities/{id}", VALID_ID)
+                                    .with(csrf())
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(updatedDto)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.name", is(UPDATED_NAME)));
         }
@@ -298,10 +304,11 @@ class BaseControllerTest {
                     .willReturn(Result.failure(new ResourceNotFoundException("Not found")));
 
             // When/Then
-            mockMvc.perform(put("/test-entities/{id}", INVALID_ID)
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(dto)))
+            mockMvc.perform(
+                            put("/test-entities/{id}", INVALID_ID)
+                                    .with(csrf())
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(dto)))
                     .andExpect(status().isNotFound());
         }
     }
@@ -320,8 +327,7 @@ class BaseControllerTest {
             given(testEntityService.softDelete(VALID_ID)).willReturn(Result.success(null));
 
             // When/Then
-            mockMvc.perform(delete("/test-entities/{id}", VALID_ID)
-                            .with(csrf()))
+            mockMvc.perform(delete("/test-entities/{id}", VALID_ID).with(csrf()))
                     .andExpect(status().isNoContent());
         }
 
@@ -334,8 +340,7 @@ class BaseControllerTest {
                     .willReturn(Result.failure(new ResourceNotFoundException("Not found")));
 
             // When/Then
-            mockMvc.perform(delete("/test-entities/{id}", INVALID_ID)
-                            .with(csrf()))
+            mockMvc.perform(delete("/test-entities/{id}", INVALID_ID).with(csrf()))
                     .andExpect(status().isNotFound());
         }
     }
@@ -355,8 +360,7 @@ class BaseControllerTest {
             given(testEntityMapper.toDTO(testEntity)).willReturn(testEntityDTO);
 
             // When/Then
-            mockMvc.perform(post("/test-entities/{id}/restore", VALID_ID)
-                            .with(csrf()))
+            mockMvc.perform(post("/test-entities/{id}/restore", VALID_ID).with(csrf()))
                     .andExpect(status().isOk());
         }
 
@@ -369,8 +373,7 @@ class BaseControllerTest {
                     .willReturn(Result.failure(new ResourceNotFoundException("Not found")));
 
             // When/Then
-            mockMvc.perform(post("/test-entities/{id}/restore", INVALID_ID)
-                            .with(csrf()))
+            mockMvc.perform(post("/test-entities/{id}/restore", INVALID_ID).with(csrf()))
                     .andExpect(status().isNotFound());
         }
     }
@@ -420,8 +423,7 @@ class BaseControllerTest {
             given(testEntityService.existsById(VALID_ID)).willReturn(Result.success(true));
 
             // When/Then
-            mockMvc.perform(head("/test-entities/{id}", VALID_ID))
-                    .andExpect(status().isOk());
+            mockMvc.perform(head("/test-entities/{id}", VALID_ID)).andExpect(status().isOk());
         }
 
         @Test
@@ -450,14 +452,17 @@ class BaseControllerTest {
             // Given
             TestEntityDTO patchDto = TestEntityDTO.of(null, null, UPDATED_NAME);
             given(testEntityService.findById(VALID_ID)).willReturn(Result.success(testEntity));
-            given(testEntityService.save(any(TestEntity.class))).willReturn(Result.success(testEntity));
-            given(testEntityMapper.toDTO(testEntity)).willReturn(TestEntityDTO.of(VALID_ID, true, UPDATED_NAME));
+            given(testEntityService.save(any(TestEntity.class)))
+                    .willReturn(Result.success(testEntity));
+            given(testEntityMapper.toDTO(testEntity))
+                    .willReturn(TestEntityDTO.of(VALID_ID, true, UPDATED_NAME));
 
             // When/Then
-            mockMvc.perform(patch("/test-entities/{id}", VALID_ID)
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(patchDto)))
+            mockMvc.perform(
+                            patch("/test-entities/{id}", VALID_ID)
+                                    .with(csrf())
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(patchDto)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.name", is(UPDATED_NAME)));
         }
@@ -472,10 +477,11 @@ class BaseControllerTest {
                     .willReturn(Result.failure(new ResourceNotFoundException("Not found")));
 
             // When/Then
-            mockMvc.perform(patch("/test-entities/{id}", INVALID_ID)
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(patchDto)))
+            mockMvc.perform(
+                            patch("/test-entities/{id}", INVALID_ID)
+                                    .with(csrf())
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(patchDto)))
                     .andExpect(status().isNotFound());
         }
     }
@@ -494,9 +500,10 @@ class BaseControllerTest {
             given(testEntityService.hardDelete(VALID_ID)).willReturn(Result.success(null));
 
             // When/Then
-            mockMvc.perform(delete("/test-entities/{id}", VALID_ID)
-                            .param("permanent", "true")
-                            .with(csrf()))
+            mockMvc.perform(
+                            delete("/test-entities/{id}", VALID_ID)
+                                    .param("permanent", "true")
+                                    .with(csrf()))
                     .andExpect(status().isNoContent());
         }
 
@@ -509,9 +516,10 @@ class BaseControllerTest {
                     .willReturn(Result.failure(new ResourceNotFoundException("Not found")));
 
             // When/Then
-            mockMvc.perform(delete("/test-entities/{id}", INVALID_ID)
-                            .param("permanent", "true")
-                            .with(csrf()))
+            mockMvc.perform(
+                            delete("/test-entities/{id}", INVALID_ID)
+                                    .param("permanent", "true")
+                                    .with(csrf()))
                     .andExpect(status().isNotFound());
         }
     }
@@ -528,14 +536,18 @@ class BaseControllerTest {
         void shouldSupportSortParameter() throws Exception {
             // Given
             Page<TestEntity> page = new PageImpl<>(List.of(testEntity), PageRequest.of(0, 20), 1);
-            given(testEntityService.findAll(any(org.springframework.data.jpa.domain.Specification.class), any(org.springframework.data.domain.Pageable.class)))
+            given(
+                            testEntityService.findAll(
+                                    any(org.springframework.data.jpa.domain.Specification.class),
+                                    any(org.springframework.data.domain.Pageable.class)))
                     .willReturn(Result.success(page));
             given(testEntityMapper.toDTO(testEntity)).willReturn(testEntityDTO);
 
             // When/Then - HATEOAS format
-            mockMvc.perform(get("/test-entities")
-                            .param("sort", "name,asc")
-                            .accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(
+                            get("/test-entities")
+                                    .param("sort", "name,asc")
+                                    .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$._embedded.testEntityDTOList", hasSize(1)));
         }
@@ -546,15 +558,19 @@ class BaseControllerTest {
         void shouldSupportMultipleSortParameters() throws Exception {
             // Given
             Page<TestEntity> page = new PageImpl<>(List.of(testEntity), PageRequest.of(0, 20), 1);
-            given(testEntityService.findAll(any(org.springframework.data.jpa.domain.Specification.class), any(org.springframework.data.domain.Pageable.class)))
+            given(
+                            testEntityService.findAll(
+                                    any(org.springframework.data.jpa.domain.Specification.class),
+                                    any(org.springframework.data.domain.Pageable.class)))
                     .willReturn(Result.success(page));
             given(testEntityMapper.toDTO(testEntity)).willReturn(testEntityDTO);
 
             // When/Then
-            mockMvc.perform(get("/test-entities")
-                            .param("sort", "name,asc")
-                            .param("sort", "id,desc")
-                            .accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(
+                            get("/test-entities")
+                                    .param("sort", "name,asc")
+                                    .param("sort", "id,desc")
+                                    .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk());
         }
     }
@@ -571,14 +587,18 @@ class BaseControllerTest {
         void shouldSupportFilterParameter() throws Exception {
             // Given
             Page<TestEntity> page = new PageImpl<>(List.of(testEntity), PageRequest.of(0, 20), 1);
-            given(testEntityService.findAll(any(org.springframework.data.jpa.domain.Specification.class), any(org.springframework.data.domain.Pageable.class)))
+            given(
+                            testEntityService.findAll(
+                                    any(org.springframework.data.jpa.domain.Specification.class),
+                                    any(org.springframework.data.domain.Pageable.class)))
                     .willReturn(Result.success(page));
             given(testEntityMapper.toDTO(testEntity)).willReturn(testEntityDTO);
 
             // When/Then - HATEOAS format
-            mockMvc.perform(get("/test-entities")
-                            .param("filter", "name:like:Test")
-                            .accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(
+                            get("/test-entities")
+                                    .param("filter", "name:like:Test")
+                                    .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$._embedded.testEntityDTOList", hasSize(1)));
         }
@@ -589,14 +609,18 @@ class BaseControllerTest {
         void shouldSupportFieldsParameter() throws Exception {
             // Given
             Page<TestEntity> page = new PageImpl<>(List.of(testEntity), PageRequest.of(0, 20), 1);
-            given(testEntityService.findAll(any(org.springframework.data.jpa.domain.Specification.class), any(org.springframework.data.domain.Pageable.class)))
+            given(
+                            testEntityService.findAll(
+                                    any(org.springframework.data.jpa.domain.Specification.class),
+                                    any(org.springframework.data.domain.Pageable.class)))
                     .willReturn(Result.success(page));
             given(testEntityMapper.toDTO(testEntity)).willReturn(testEntityDTO);
 
             // When/Then
-            mockMvc.perform(get("/test-entities")
-                            .param("fields", "id,name")
-                            .accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(
+                            get("/test-entities")
+                                    .param("fields", "id,name")
+                                    .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk());
         }
     }
@@ -612,9 +636,10 @@ class BaseControllerTest {
         @DisplayName("should return 400 for negative page number")
         void shouldReturn400ForNegativePageNumber() throws Exception {
             // When/Then
-            mockMvc.perform(get("/test-entities")
-                            .param("page", "-1")
-                            .accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(
+                            get("/test-entities")
+                                    .param("page", "-1")
+                                    .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());
         }
 
@@ -623,9 +648,10 @@ class BaseControllerTest {
         @DisplayName("should return 400 for zero size")
         void shouldReturn400ForZeroSize() throws Exception {
             // When/Then
-            mockMvc.perform(get("/test-entities")
-                            .param("size", "0")
-                            .accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(
+                            get("/test-entities")
+                                    .param("size", "0")
+                                    .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());
         }
 
@@ -634,9 +660,10 @@ class BaseControllerTest {
         @DisplayName("should return 400 for negative size")
         void shouldReturn400ForNegativeSize() throws Exception {
             // When/Then
-            mockMvc.perform(get("/test-entities")
-                            .param("size", "-5")
-                            .accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(
+                            get("/test-entities")
+                                    .param("size", "-5")
+                                    .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());
         }
 
@@ -645,9 +672,10 @@ class BaseControllerTest {
         @DisplayName("should return 400 for non-numeric page")
         void shouldReturn400ForNonNumericPage() throws Exception {
             // When/Then
-            mockMvc.perform(get("/test-entities")
-                            .param("page", "abc")
-                            .accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(
+                            get("/test-entities")
+                                    .param("page", "abc")
+                                    .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());
         }
 
@@ -656,9 +684,10 @@ class BaseControllerTest {
         @DisplayName("should return 400 for non-numeric size")
         void shouldReturn400ForNonNumericSize() throws Exception {
             // When/Then
-            mockMvc.perform(get("/test-entities")
-                            .param("size", "xyz")
-                            .accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(
+                            get("/test-entities")
+                                    .param("size", "xyz")
+                                    .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());
         }
     }
@@ -678,8 +707,7 @@ class BaseControllerTest {
             given(testEntityMapper.toDTO(testEntity)).willReturn(testEntityDTO);
 
             // When/Then
-            mockMvc.perform(get("/test-entities/{id}", VALID_ID)
-                            .accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(get("/test-entities/{id}", VALID_ID).accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(header().exists("ETag"));
         }
@@ -693,16 +721,19 @@ class BaseControllerTest {
             given(testEntityMapper.toDTO(testEntity)).willReturn(testEntityDTO);
 
             // First request to get ETag
-            String etag = mockMvc.perform(get("/test-entities/{id}", VALID_ID)
-                            .accept(MediaType.APPLICATION_JSON))
-                    .andReturn()
-                    .getResponse()
-                    .getHeader("ETag");
+            String etag =
+                    mockMvc.perform(
+                                    get("/test-entities/{id}", VALID_ID)
+                                            .accept(MediaType.APPLICATION_JSON))
+                            .andReturn()
+                            .getResponse()
+                            .getHeader("ETag");
 
             // When/Then - Second request with If-None-Match
-            mockMvc.perform(get("/test-entities/{id}", VALID_ID)
-                            .header("If-None-Match", etag)
-                            .accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(
+                            get("/test-entities/{id}", VALID_ID)
+                                    .header("If-None-Match", etag)
+                                    .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isNotModified());
         }
     }
@@ -721,10 +752,11 @@ class BaseControllerTest {
             TestEntityDTO mismatchedDto = TestEntityDTO.of(999L, true, UPDATED_NAME);
 
             // When/Then
-            mockMvc.perform(put("/test-entities/{id}", VALID_ID)
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(mismatchedDto)))
+            mockMvc.perform(
+                            put("/test-entities/{id}", VALID_ID)
+                                    .with(csrf())
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(mismatchedDto)))
                     .andExpect(status().isBadRequest());
         }
 
@@ -734,19 +766,20 @@ class BaseControllerTest {
         void shouldAcceptWhenDtoIdIsNull() throws Exception {
             // Given - DTO with null ID is acceptable
             TestEntityDTO dtoWithNullId = TestEntityDTO.of(null, true, UPDATED_NAME);
-            TestEntity updatedEntity = TestEntityBuilder.aTestEntityWithId()
-                    .withName(UPDATED_NAME)
-                    .build();
+            TestEntity updatedEntity =
+                    TestEntityBuilder.aTestEntityWithId().withName(UPDATED_NAME).build();
             given(testEntityMapper.toEntity(any(TestEntityDTO.class))).willReturn(updatedEntity);
             given(testEntityService.update(eq(VALID_ID), any(TestEntity.class)))
                     .willReturn(Result.success(updatedEntity));
-            given(testEntityMapper.toDTO(updatedEntity)).willReturn(TestEntityDTO.of(VALID_ID, true, UPDATED_NAME));
+            given(testEntityMapper.toDTO(updatedEntity))
+                    .willReturn(TestEntityDTO.of(VALID_ID, true, UPDATED_NAME));
 
             // When/Then
-            mockMvc.perform(put("/test-entities/{id}", VALID_ID)
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(dtoWithNullId)))
+            mockMvc.perform(
+                            put("/test-entities/{id}", VALID_ID)
+                                    .with(csrf())
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(dtoWithNullId)))
                     .andExpect(status().isOk());
         }
     }
@@ -767,11 +800,12 @@ class BaseControllerTest {
             TestEntityDTO updateDto = TestEntityDTO.of(VALID_ID, true, UPDATED_NAME);
 
             // When/Then - Using mismatched ETag
-            mockMvc.perform(put("/test-entities/{id}", VALID_ID)
-                            .with(csrf())
-                            .header("If-Match", "\"wrong-etag\"")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(updateDto)))
+            mockMvc.perform(
+                            put("/test-entities/{id}", VALID_ID)
+                                    .with(csrf())
+                                    .header("If-Match", "\"wrong-etag\"")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(updateDto)))
                     .andExpect(status().isPreconditionFailed());
         }
 
@@ -785,11 +819,12 @@ class BaseControllerTest {
             TestEntityDTO patchDto = TestEntityDTO.of(null, null, UPDATED_NAME);
 
             // When/Then - Using mismatched ETag
-            mockMvc.perform(patch("/test-entities/{id}", VALID_ID)
-                            .with(csrf())
-                            .header("If-Match", "\"wrong-etag\"")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(patchDto)))
+            mockMvc.perform(
+                            patch("/test-entities/{id}", VALID_ID)
+                                    .with(csrf())
+                                    .header("If-Match", "\"wrong-etag\"")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(patchDto)))
                     .andExpect(status().isPreconditionFailed());
         }
     }
@@ -809,9 +844,10 @@ class BaseControllerTest {
             given(testEntityMapper.toDTO(testEntity)).willReturn(testEntityDTO);
 
             // When/Then
-            mockMvc.perform(get("/test-entities/{id}", VALID_ID)
-                            .param("fields", "id,name")
-                            .accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(
+                            get("/test-entities/{id}", VALID_ID)
+                                    .param("fields", "id,name")
+                                    .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk());
         }
     }
@@ -827,11 +863,11 @@ class BaseControllerTest {
         @DisplayName("should return 500 when count fails")
         void shouldReturn500WhenCountFails() throws Exception {
             // Given
-            given(testEntityService.count()).willReturn(Result.failure(new RuntimeException("DB error")));
+            given(testEntityService.count())
+                    .willReturn(Result.failure(new RuntimeException("DB error")));
 
             // When/Then
-            mockMvc.perform(head("/test-entities"))
-                    .andExpect(status().isInternalServerError());
+            mockMvc.perform(head("/test-entities")).andExpect(status().isInternalServerError());
         }
 
         @Test
@@ -856,8 +892,7 @@ class BaseControllerTest {
                     .willReturn(Result.failure(new RuntimeException("DB error")));
 
             // When/Then
-            mockMvc.perform(post("/test-entities/{id}/restore", VALID_ID)
-                            .with(csrf()))
+            mockMvc.perform(post("/test-entities/{id}/restore", VALID_ID).with(csrf()))
                     .andExpect(status().isInternalServerError());
         }
 
@@ -870,8 +905,7 @@ class BaseControllerTest {
                     .willReturn(Result.failure(new RuntimeException("Unexpected error")));
 
             // When/Then
-            mockMvc.perform(delete("/test-entities/{id}", VALID_ID)
-                            .with(csrf()))
+            mockMvc.perform(delete("/test-entities/{id}", VALID_ID).with(csrf()))
                     .andExpect(status().isInternalServerError());
         }
 
@@ -884,9 +918,10 @@ class BaseControllerTest {
                     .willReturn(Result.failure(new RuntimeException("Unexpected error")));
 
             // When/Then
-            mockMvc.perform(delete("/test-entities/{id}", VALID_ID)
-                            .param("permanent", "true")
-                            .with(csrf()))
+            mockMvc.perform(
+                            delete("/test-entities/{id}", VALID_ID)
+                                    .param("permanent", "true")
+                                    .with(csrf()))
                     .andExpect(status().isInternalServerError());
         }
     }
@@ -903,12 +938,14 @@ class BaseControllerTest {
         void shouldAllowAccessWithoutAuthentication() throws Exception {
             // Given - Configurar mock para la llamada que hará el controlador
             Page<TestEntity> emptyPage = new PageImpl<>(List.of(), PageRequest.of(0, 20), 0);
-            given(testEntityService.findAll(any(org.springframework.data.jpa.domain.Specification.class), any(org.springframework.data.domain.Pageable.class)))
+            given(
+                            testEntityService.findAll(
+                                    any(org.springframework.data.jpa.domain.Specification.class),
+                                    any(org.springframework.data.domain.Pageable.class)))
                     .willReturn(Result.success(emptyPage));
 
             // When/Then - Con seguridad deshabilitada, el acceso es permitido
-            mockMvc.perform(get("/test-entities"))
-                    .andExpect(status().isOk());
+            mockMvc.perform(get("/test-entities")).andExpect(status().isOk());
         }
     }
 }

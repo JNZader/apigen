@@ -1,12 +1,10 @@
 package com.jnzader.apigen.server.service.generator.util;
 
-import com.jnzader.apigen.codegen.model.SqlColumn;
-
 import static com.jnzader.apigen.server.service.generator.util.StringTransformationUtil.capitalize;
 
-/**
- * Generates sample data values for API testing files.
- */
+import com.jnzader.apigen.codegen.model.SqlColumn;
+
+/** Generates sample data values for API testing files. */
 public final class SampleDataGenerator {
 
     private SampleDataGenerator() {
@@ -26,7 +24,7 @@ public final class SampleDataGenerator {
     /**
      * Gets a sample value for a column based on its type with optional prefix.
      *
-     * @param col    the SQL column
+     * @param col the SQL column
      * @param prefix optional prefix for string values
      * @return a sample JSON value
      */

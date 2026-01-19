@@ -1,5 +1,7 @@
 package com.jnzader.apigen.server.service;
 
+import static com.jnzader.apigen.server.service.generator.util.StringTransformationUtil.toPascalCase;
+
 import com.jnzader.apigen.codegen.generator.CodeGenerator;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.parser.SqlSchemaParser;
@@ -7,21 +9,18 @@ import com.jnzader.apigen.server.dto.GenerateRequest;
 import com.jnzader.apigen.server.dto.GenerateResponse;
 import com.jnzader.apigen.server.service.generator.*;
 import com.jnzader.apigen.server.service.generator.util.FileArchiveService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.jnzader.apigen.server.service.generator.util.StringTransformationUtil.toPascalCase;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 /**
- * Facade service for generating Spring Boot projects from SQL schemas.
- * Delegates to specialized generators for each component.
+ * Facade service for generating Spring Boot projects from SQL schemas. Delegates to specialized
+ * generators for each component.
  */
 @Service
 @Slf4j
@@ -69,7 +68,8 @@ public class GeneratorService {
             log.info("Parsing SQL schema...");
             SqlSchema schema = schemaParser.parseString(sql);
 
-            log.info("Found {} tables, {} junction tables",
+            log.info(
+                    "Found {} tables, {} junction tables",
                     schema.getTables().size(),
                     schema.getJunctionTables().size());
 
@@ -98,9 +98,7 @@ public class GeneratorService {
         }
     }
 
-    /**
-     * Validates the generation request and returns any errors.
-     */
+    /** Validates the generation request and returns any errors. */
     public GenerateResponse validate(GenerateRequest request) {
         List<String> errors = new ArrayList<>();
 
@@ -118,10 +116,11 @@ public class GeneratorService {
                 return GenerateResponse.builder()
                         .success(true)
                         .message("SQL schema is valid")
-                        .stats(GenerateResponse.GenerationStats.builder()
-                                .tablesProcessed(schema.getTables().size())
-                                .entitiesGenerated(schema.getEntityTables().size())
-                                .build())
+                        .stats(
+                                GenerateResponse.GenerationStats.builder()
+                                        .tablesProcessed(schema.getTables().size())
+                                        .entitiesGenerated(schema.getEntityTables().size())
+                                        .build())
                         .build();
             }
 
@@ -132,10 +131,9 @@ public class GeneratorService {
         return GenerateResponse.error("Validation failed", errors);
     }
 
-    /**
-     * Generates additional project files using specialized generators.
-     */
-    private void generateProjectFiles(Path projectRoot, GenerateRequest request, SqlSchema schema) throws IOException {
+    /** Generates additional project files using specialized generators. */
+    private void generateProjectFiles(Path projectRoot, GenerateRequest request, SqlSchema schema)
+            throws IOException {
         GenerateRequest.ProjectConfig config = request.getProject();
 
         // build.gradle
@@ -153,19 +151,23 @@ public class GeneratorService {
         Files.writeString(resourcesDir.resolve("application.yml"), applicationYml);
 
         // application-docker.yml
-        String applicationDockerYml = applicationConfigGenerator.generateApplicationDockerYml(config);
+        String applicationDockerYml =
+                applicationConfigGenerator.generateApplicationDockerYml(config);
         Files.writeString(resourcesDir.resolve("application-docker.yml"), applicationDockerYml);
 
         // Main Application class
         String className = toPascalCase(config.getArtifactId()) + "Application";
         String mainClass = projectStructureGenerator.generateMainClass(config);
-        Path mainPackageDir = projectRoot.resolve("src/main/java")
-                .resolve(config.getBasePackage().replace('.', '/'));
+        Path mainPackageDir =
+                projectRoot
+                        .resolve("src/main/java")
+                        .resolve(config.getBasePackage().replace('.', '/'));
         Files.createDirectories(mainPackageDir);
         Files.writeString(mainPackageDir.resolve(className + ".java"), mainClass);
 
         // .gitignore
-        Files.writeString(projectRoot.resolve(".gitignore"), projectStructureGenerator.getGitignoreContent());
+        Files.writeString(
+                projectRoot.resolve(".gitignore"), projectStructureGenerator.getGitignoreContent());
 
         // README.md
         String readme = projectStructureGenerator.generateReadme(config);

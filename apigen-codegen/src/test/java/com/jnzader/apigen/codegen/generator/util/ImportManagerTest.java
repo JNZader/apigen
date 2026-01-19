@@ -1,5 +1,7 @@
 package com.jnzader.apigen.codegen.generator.util;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -7,8 +9,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("ImportManager Tests")
 class ImportManagerTest {
@@ -38,10 +38,8 @@ class ImportManagerTest {
             importManager.addImport("import java.util.List;");
             importManager.addImport("import java.util.Map;");
 
-            assertThat(importManager.getImports()).containsExactlyInAnyOrder(
-                    "import java.util.List;",
-                    "import java.util.Map;"
-            );
+            assertThat(importManager.getImports())
+                    .containsExactlyInAnyOrder("import java.util.List;", "import java.util.Map;");
         }
 
         @Test
@@ -88,13 +86,13 @@ class ImportManagerTest {
 
         @ParameterizedTest
         @CsvSource({
-                "BigDecimal, import java.math.BigDecimal;",
-                "LocalDate, import java.time.LocalDate;",
-                "LocalDateTime, import java.time.LocalDateTime;",
-                "LocalTime, import java.time.LocalTime;",
-                "Instant, import java.time.Instant;",
-                "Duration, import java.time.Duration;",
-                "UUID, import java.util.UUID;"
+            "BigDecimal, import java.math.BigDecimal;",
+            "LocalDate, import java.time.LocalDate;",
+            "LocalDateTime, import java.time.LocalDateTime;",
+            "LocalTime, import java.time.LocalTime;",
+            "Instant, import java.time.Instant;",
+            "Duration, import java.time.Duration;",
+            "UUID, import java.util.UUID;"
         })
         @DisplayName("Should add correct import for Java type")
         void shouldAddCorrectImportForJavaType(String javaType, String expectedImport) {
@@ -122,10 +120,7 @@ class ImportManagerTest {
         }
 
         private SqlColumn createColumn(String javaType) {
-            return SqlColumn.builder()
-                    .name("testColumn")
-                    .javaType(javaType)
-                    .build();
+            return SqlColumn.builder().name("testColumn").javaType(javaType).build();
         }
     }
 
@@ -138,13 +133,13 @@ class ImportManagerTest {
         void shouldAddAllEntityImports() {
             importManager.addEntityImports("com.example.core");
 
-            assertThat(importManager.getImports()).contains(
-                    "import com.example.core.domain.entity.Base;",
-                    "import jakarta.persistence.*;",
-                    "import jakarta.validation.constraints.*;",
-                    "import lombok.*;",
-                    "import org.hibernate.envers.Audited;"
-            );
+            assertThat(importManager.getImports())
+                    .contains(
+                            "import com.example.core.domain.entity.Base;",
+                            "import jakarta.persistence.*;",
+                            "import jakarta.validation.constraints.*;",
+                            "import lombok.*;",
+                            "import org.hibernate.envers.Audited;");
         }
     }
 
@@ -157,12 +152,12 @@ class ImportManagerTest {
         void shouldAddAllDtoImports() {
             importManager.addDTOImports("com.example.core");
 
-            assertThat(importManager.getImports()).contains(
-                    "import com.example.core.application.dto.BaseDTO;",
-                    "import com.example.core.application.validation.ValidationGroups;",
-                    "import jakarta.validation.constraints.*;",
-                    "import lombok.*;"
-            );
+            assertThat(importManager.getImports())
+                    .contains(
+                            "import com.example.core.application.dto.BaseDTO;",
+                            "import com.example.core.application.validation.ValidationGroups;",
+                            "import jakarta.validation.constraints.*;",
+                            "import lombok.*;");
         }
     }
 
@@ -206,10 +201,13 @@ class ImportManagerTest {
             String result = importManager.build();
 
             // TreeSet sorts alphabetically
-            assertThat(result).isEqualTo("""
-                    import java.util.ArrayList;
-                    import java.util.List;
-                    import java.util.Map;""");
+            assertThat(result)
+                    .isEqualTo(
+                            """
+                            import java.util.ArrayList;
+                            import java.util.List;
+                            import java.util.Map;\
+                            """);
         }
 
         @Test
@@ -227,12 +225,13 @@ class ImportManagerTest {
         @Test
         @DisplayName("Should support method chaining")
         void shouldSupportMethodChaining() {
-            String result = importManager
-                    .addImport("import java.util.List;")
-                    .addImportForClass("java.util.Map")
-                    .addListImport()
-                    .addArrayListImport()
-                    .build();
+            String result =
+                    importManager
+                            .addImport("import java.util.List;")
+                            .addImportForClass("java.util.Map")
+                            .addListImport()
+                            .addArrayListImport()
+                            .build();
 
             assertThat(result)
                     .contains("import java.util.List;")

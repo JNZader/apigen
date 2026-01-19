@@ -3,26 +3,31 @@ package com.jnzader.apigen.core.infrastructure.controller;
 import com.jnzader.apigen.core.application.dto.BaseDTO;
 import com.jnzader.apigen.core.application.dto.pagination.CursorPageRequest;
 import com.jnzader.apigen.core.application.dto.pagination.CursorPageResponse;
-import com.jnzader.apigen.core.domain.entity.Base;
-import com.jnzader.apigen.core.infrastructure.hateoas.BaseResourceAssembler;
 import com.jnzader.apigen.core.application.mapper.BaseMapper;
 import com.jnzader.apigen.core.application.service.BaseService;
-import com.jnzader.apigen.core.domain.specification.FilterSpecificationBuilder;
-import com.jnzader.apigen.core.infrastructure.util.ETagGenerator;
-import com.jnzader.apigen.core.infrastructure.util.FieldAccessorCache;
+import com.jnzader.apigen.core.domain.entity.Base;
 import com.jnzader.apigen.core.domain.exception.IdMismatchException;
 import com.jnzader.apigen.core.domain.exception.OperationFailedException;
 import com.jnzader.apigen.core.domain.exception.PreconditionFailedException;
-import org.springframework.data.jpa.domain.Specification;
+import com.jnzader.apigen.core.domain.specification.FilterSpecificationBuilder;
+import com.jnzader.apigen.core.infrastructure.hateoas.BaseResourceAssembler;
+import com.jnzader.apigen.core.infrastructure.util.ETagGenerator;
+import com.jnzader.apigen.core.infrastructure.util.FieldAccessorCache;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
+import java.io.Serializable;
+import java.net.URI;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpHeaders;
@@ -31,25 +36,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.io.Serializable;
-import java.net.URI;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.util.*;
-
 /**
  * Implementación base para controladores REST genéricos que gestionan operaciones CRUD.
- * <p>
- * Características RESTful implementadas:
- * - Location header en POST (201 Created)
- * - ETag para cache condicional (If-None-Match → 304)
- * - Concurrencia optimista (If-Match → 412)
- * - Validación de ID en PUT
- * - HATEOAS en respuestas
- * - Filtrado dinámico via query params
- * - Sparse fieldsets (selección de campos)
- * <p>
- * Documentación OpenAPI integrada.
+ *
+ * <p>Características RESTful implementadas: - Location header en POST (201 Created) - ETag para
+ * cache condicional (If-None-Match → 304) - Concurrencia optimista (If-Match → 412) - Validación de
+ * ID en PUT - HATEOAS en respuestas - Filtrado dinámico via query params - Sparse fieldsets
+ * (selección de campos)
+ *
+ * <p>Documentación OpenAPI integrada.
  *
  * @param <E> El tipo de la entidad que extiende {@link Base}.
  * @param <D> El tipo del DTO que extiende {@link BaseDTO}.
@@ -69,17 +64,14 @@ public abstract class BaseControllerImpl<E extends Base, D extends BaseDTO, I ex
             BaseService<E, I> baseService,
             BaseMapper<E, D> baseMapper,
             BaseResourceAssembler<D, I> resourceAssembler,
-            FilterSpecificationBuilder filterBuilder
-    ) {
+            FilterSpecificationBuilder filterBuilder) {
         this.baseService = baseService;
         this.baseMapper = baseMapper;
         this.resourceAssembler = resourceAssembler;
         this.filterBuilder = filterBuilder;
     }
 
-    /**
-     * Constructor para compatibilidad con código existente (sin HATEOAS ni filtros).
-     */
+    /** Constructor para compatibilidad con código existente (sin HATEOAS ni filtros). */
     protected BaseControllerImpl(BaseService<E, I> baseService, BaseMapper<E, D> baseMapper) {
         this.baseService = baseService;
         this.baseMapper = baseMapper;
@@ -87,23 +79,18 @@ public abstract class BaseControllerImpl<E extends Base, D extends BaseDTO, I ex
         this.filterBuilder = new FilterSpecificationBuilder();
     }
 
-    /**
-     * Constructor con HATEOAS pero sin filtros inyectados.
-     */
+    /** Constructor con HATEOAS pero sin filtros inyectados. */
     protected BaseControllerImpl(
             BaseService<E, I> baseService,
             BaseMapper<E, D> baseMapper,
-            BaseResourceAssembler<D, I> resourceAssembler
-    ) {
+            BaseResourceAssembler<D, I> resourceAssembler) {
         this.baseService = baseService;
         this.baseMapper = baseMapper;
         this.resourceAssembler = resourceAssembler;
         this.filterBuilder = new FilterSpecificationBuilder();
     }
 
-    /**
-     * Retorna el nombre del recurso para mensajes de log.
-     */
+    /** Retorna el nombre del recurso para mensajes de log. */
     protected String getResourceName() {
         return "Resource";
     }
@@ -111,8 +98,8 @@ public abstract class BaseControllerImpl<E extends Base, D extends BaseDTO, I ex
     // ==================== GET / - Listar ====================
 
     /**
-     * Retorna la clase de la entidad para el filtrado dinámico.
-     * Las subclases deben sobrescribir este método si quieren usar filtrado avanzado.
+     * Retorna la clase de la entidad para el filtrado dinámico. Las subclases deben sobrescribir
+     * este método si quieren usar filtrado avanzado.
      */
     @SuppressWarnings("unchecked")
     protected Class<E> getEntityClass() {
@@ -123,56 +110,61 @@ public abstract class BaseControllerImpl<E extends Base, D extends BaseDTO, I ex
     @GetMapping("")
     @Operation(
             summary = "Listar recursos",
-            description = """
-                Lista recursos con paginación, filtrado dinámico y selección de campos.
+            description =
+                    """
+                    Lista recursos con paginación, filtrado dinámico y selección de campos.
 
-                **Filtrado dinámico:** Use el parámetro `filter` con formato: `campo:operador:valor,campo2:op2:valor2`
+                    **Filtrado dinámico:** Use el parámetro `filter` con formato: `campo:operador:valor,campo2:op2:valor2`
 
-                **Operadores soportados:**
-                - `eq`: Igual (=)
-                - `neq`: No igual (!=)
-                - `like`: Contiene (LIKE %value%)
-                - `starts`: Empieza con
-                - `ends`: Termina con
-                - `gt/gte`: Mayor / Mayor o igual
-                - `lt/lte`: Menor / Menor o igual
-                - `in`: En lista (valores separados por ;)
-                - `between`: Entre dos valores (v1;v2)
-                - `null/notnull`: Es nulo / No es nulo
+                    **Operadores soportados:**
+                    - `eq`: Igual (=)
+                    - `neq`: No igual (!=)
+                    - `like`: Contiene (LIKE %value%)
+                    - `starts`: Empieza con
+                    - `ends`: Termina con
+                    - `gt/gte`: Mayor / Mayor o igual
+                    - `lt/lte`: Menor / Menor o igual
+                    - `in`: En lista (valores separados por ;)
+                    - `between`: Entre dos valores (v1;v2)
+                    - `null/notnull`: Es nulo / No es nulo
 
-                **Ejemplos:**
-                - `?filter=nombre:like:Juan`
-                - `?filter=edad:gte:18,estado:eq:true`
-                - `?filter=fechaCreacion:between:2024-01-01;2024-12-31`
-                """
-    )
+                    **Ejemplos:**
+                    - `?filter=nombre:like:Juan`
+                    - `?filter=edad:gte:18,estado:eq:true`
+                    - `?filter=fechaCreacion:between:2024-01-01;2024-12-31`
+                    """)
     @ApiResponse(
             responseCode = "200",
             description = "Lista obtenida exitosamente",
-            headers = @Header(name = "X-Total-Count", description = "Total de elementos")
-    )
+            headers = @Header(name = "X-Total-Count", description = "Total de elementos"))
     @ApiResponse(responseCode = "400", description = "Parámetros inválidos")
     @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     public ResponseEntity<?> findAll(
             @Parameter(description = "Filtros dinámicos en formato: campo:operador:valor")
-            @RequestParam(required = false) String filter,
+                    @RequestParam(required = false)
+                    String filter,
             @Parameter(description = "Filtros simples como query params (campo=valor)")
-            @RequestParam(required = false) Map<String, String> filters,
+                    @RequestParam(required = false)
+                    Map<String, String> filters,
             @Parameter(description = "Campos a incluir (sparse fieldsets)")
-            @RequestParam(required = false) Set<String> fields,
-            @Parameter(description = "Configuración de paginación")
-            Pageable pageable) {
+                    @RequestParam(required = false)
+                    Set<String> fields,
+            @Parameter(description = "Configuración de paginación") Pageable pageable) {
 
-        log.debug("GET {} - findAll filter={}, filters={}, fields={}, pageable={}",
-                getResourceName(), filter, filters, fields, pageable);
+        log.debug(
+                "GET {} - findAll filter={}, filters={}, fields={}, pageable={}",
+                getResourceName(),
+                filter,
+                filters,
+                fields,
+                pageable);
 
         validatePaginationParams(filters);
         Specification<E> spec = buildSpecification(filter, filters);
 
-        return baseService.findAll(spec, pageable).fold(
-                entitiesPage -> buildPageResponse(entitiesPage, fields),
-                this::handleFailure
-        );
+        return baseService
+                .findAll(spec, pageable)
+                .fold(entitiesPage -> buildPageResponse(entitiesPage, fields), this::handleFailure);
     }
 
     private void validatePaginationParams(Map<String, String> filters) {
@@ -243,19 +235,22 @@ public abstract class BaseControllerImpl<E extends Base, D extends BaseDTO, I ex
         return headers;
     }
 
-    private ResponseEntity<?> buildSparseFieldsetResponse(Page<D> dtoPage, Set<String> fields, HttpHeaders headers) {
-        List<Map<String, Object>> filtered = dtoPage.getContent().stream()
-                .map(dto -> filterFields(dto, fields))
-                .toList();
-        return ResponseEntity.ok().headers(headers).body(Map.of(
-                "content", filtered,
-                "page", Map.of(
-                        "number", dtoPage.getNumber(),
-                        "size", dtoPage.getSize(),
-                        "totalElements", dtoPage.getTotalElements(),
-                        "totalPages", dtoPage.getTotalPages()
-                )
-        ));
+    private ResponseEntity<?> buildSparseFieldsetResponse(
+            Page<D> dtoPage, Set<String> fields, HttpHeaders headers) {
+        List<Map<String, Object>> filtered =
+                dtoPage.getContent().stream().map(dto -> filterFields(dto, fields)).toList();
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(
+                        Map.of(
+                                "content",
+                                filtered,
+                                "page",
+                                Map.of(
+                                        "number", dtoPage.getNumber(),
+                                        "size", dtoPage.getSize(),
+                                        "totalElements", dtoPage.getTotalElements(),
+                                        "totalPages", dtoPage.getTotalPages())));
     }
 
     // ==================== HEAD / - Conteo ====================
@@ -264,28 +259,28 @@ public abstract class BaseControllerImpl<E extends Base, D extends BaseDTO, I ex
     @RequestMapping(method = RequestMethod.HEAD, value = "")
     @Operation(
             summary = "Obtener conteo",
-            description = "Retorna el conteo total en el header X-Total-Count"
-    )
+            description = "Retorna el conteo total en el header X-Total-Count")
     @ApiResponse(
             responseCode = "200",
             description = "Conteo obtenido",
-            headers = @Header(name = "X-Total-Count", description = "Total de elementos")
-    )
+            headers = @Header(name = "X-Total-Count", description = "Total de elementos"))
     public ResponseEntity<Void> count(
-            @Parameter(description = "Filtros para el conteo")
-            @RequestParam(required = false) Map<String, String> filters) {
+            @Parameter(description = "Filtros para el conteo") @RequestParam(required = false)
+                    Map<String, String> filters) {
 
         log.debug("HEAD {} - count", getResourceName());
 
-        return baseService.count().fold(
-                count -> ResponseEntity.ok()
-                        .header("X-Total-Count", String.valueOf(count))
-                        .build(),
-                error -> {
-                    handleFailure(error);
-                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-                }
-        );
+        return baseService
+                .count()
+                .fold(
+                        count ->
+                                ResponseEntity.ok()
+                                        .header("X-Total-Count", String.valueOf(count))
+                                        .build(),
+                        error -> {
+                            handleFailure(error);
+                            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+                        });
     }
 
     // ==================== GET /{id} - Obtener por ID ====================
@@ -294,64 +289,68 @@ public abstract class BaseControllerImpl<E extends Base, D extends BaseDTO, I ex
     @GetMapping("/{id}")
     @Operation(
             summary = "Obtener por ID",
-            description = "Obtiene un recurso por su ID. Soporta ETag para cache condicional."
-    )
+            description = "Obtiene un recurso por su ID. Soporta ETag para cache condicional.")
     @ApiResponse(
             responseCode = "200",
             description = "Recurso encontrado",
-            headers = @Header(name = "ETag", description = "Tag de versión para cache")
-    )
+            headers = @Header(name = "ETag", description = "Tag de versión para cache"))
     @ApiResponse(responseCode = "304", description = "No modificado (cache válido)")
     @ApiResponse(responseCode = "404", description = "Recurso no encontrado")
     public ResponseEntity<?> findById(
             @Parameter(description = "ID del recurso") @PathVariable I id,
-            @Parameter(description = "Campos a incluir")
-            @RequestParam(required = false) Set<String> fields,
+            @Parameter(description = "Campos a incluir") @RequestParam(required = false)
+                    Set<String> fields,
             @Parameter(description = "ETag para validación de cache")
-            @RequestHeader(value = "If-None-Match", required = false) String ifNoneMatch) {
+                    @RequestHeader(value = "If-None-Match", required = false)
+                    String ifNoneMatch) {
 
         log.debug("GET {} - findById: {}", getResourceName(), id);
 
-        return baseService.findById(id).fold(
-                entity -> {
-                    D dto = baseMapper.toDTO(entity);
-                    String etag = ETagGenerator.generate(dto);
+        return baseService
+                .findById(id)
+                .fold(
+                        entity -> {
+                            D dto = baseMapper.toDTO(entity);
+                            String etag = ETagGenerator.generate(dto);
 
-                    // Verificar cache condicional
-                    if (etag != null && ETagGenerator.matchesIfNoneMatch(etag, ifNoneMatch)) {
-                        log.debug("ETag match for {} {}, returning 304", getResourceName(), id);
-                        return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
-                                .eTag(etag)
-                                .build();
-                    }
+                            // Verificar cache condicional
+                            if (etag != null
+                                    && ETagGenerator.matchesIfNoneMatch(etag, ifNoneMatch)) {
+                                log.debug(
+                                        "ETag match for {} {}, returning 304",
+                                        getResourceName(),
+                                        id);
+                                return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
+                                        .eTag(etag)
+                                        .build();
+                            }
 
-                    // Construir respuesta
-                    ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.ok();
-                    if (etag != null) {
-                        responseBuilder.eTag(etag);
-                    }
+                            // Construir respuesta
+                            ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.ok();
+                            if (etag != null) {
+                                responseBuilder.eTag(etag);
+                            }
 
-                    // Agregar Last-Modified si la entidad tiene fecha de actualización
-                    if (entity.getFechaActualizacion() != null) {
-                        ZonedDateTime lastModified = entity.getFechaActualizacion()
-                                .atZone(ZoneOffset.UTC);
-                        responseBuilder.lastModified(lastModified);
-                    }
+                            // Agregar Last-Modified si la entidad tiene fecha de actualización
+                            if (entity.getFechaActualizacion() != null) {
+                                ZonedDateTime lastModified =
+                                        entity.getFechaActualizacion().atZone(ZoneOffset.UTC);
+                                responseBuilder.lastModified(lastModified);
+                            }
 
-                    // Aplicar HATEOAS si está disponible
-                    if (resourceAssembler != null) {
-                        return responseBuilder.body(resourceAssembler.toModel(dto));
-                    }
+                            // Aplicar HATEOAS si está disponible
+                            if (resourceAssembler != null) {
+                                return responseBuilder.body(resourceAssembler.toModel(dto));
+                            }
 
-                    // Aplicar sparse fieldsets
-                    if (fields != null && !fields.isEmpty()) {
-                        return responseBuilder.body(filterFields(dto, fields));
-                    }
+                            // Aplicar sparse fieldsets
+                            if (fields != null && !fields.isEmpty()) {
+                                return responseBuilder.body(filterFields(dto, fields));
+                            }
 
-                    return responseBuilder.body(dto);
-                },
-                this::handleFailure
-        );
+                            return responseBuilder.body(dto);
+                        },
+                        this::handleFailure);
     }
 
     // ==================== HEAD /{id} - Verificar existencia ====================
@@ -360,8 +359,7 @@ public abstract class BaseControllerImpl<E extends Base, D extends BaseDTO, I ex
     @RequestMapping(method = RequestMethod.HEAD, value = "/{id}")
     @Operation(
             summary = "Verificar existencia",
-            description = "Verifica si existe un recurso con el ID dado"
-    )
+            description = "Verifica si existe un recurso con el ID dado")
     @ApiResponse(responseCode = "200", description = "El recurso existe")
     @ApiResponse(responseCode = "404", description = "El recurso no existe")
     public ResponseEntity<Void> existsById(
@@ -369,15 +367,17 @@ public abstract class BaseControllerImpl<E extends Base, D extends BaseDTO, I ex
 
         log.debug("HEAD {} - existsById: {}", getResourceName(), id);
 
-        return baseService.existsById(id).fold(
-                exists -> Boolean.TRUE.equals(exists)
-                        ? ResponseEntity.ok().build()
-                        : ResponseEntity.notFound().build(),
-                error -> {
-                    handleFailure(error);
-                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-                }
-        );
+        return baseService
+                .existsById(id)
+                .fold(
+                        exists ->
+                                Boolean.TRUE.equals(exists)
+                                        ? ResponseEntity.ok().build()
+                                        : ResponseEntity.notFound().build(),
+                        error -> {
+                            handleFailure(error);
+                            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+                        });
     }
 
     // ==================== POST / - Crear ====================
@@ -386,55 +386,59 @@ public abstract class BaseControllerImpl<E extends Base, D extends BaseDTO, I ex
     @PostMapping("")
     @Operation(
             summary = "Crear recurso",
-            description = "Crea un nuevo recurso. Retorna Location header con URI del recurso creado."
-    )
+            description =
+                    "Crea un nuevo recurso. Retorna Location header con URI del recurso creado.")
     @ApiResponse(
             responseCode = "201",
             description = "Recurso creado exitosamente",
             headers = {
-                    @Header(name = "Location", description = "URI del recurso creado"),
-                    @Header(name = "ETag", description = "Tag de versión")
-            }
-    )
+                @Header(name = "Location", description = "URI del recurso creado"),
+                @Header(name = "ETag", description = "Tag de versión")
+            })
     @ApiResponse(responseCode = "400", description = "Datos inválidos")
     @ApiResponse(responseCode = "409", description = "Conflicto (recurso duplicado)")
     public ResponseEntity<?> save(
-            @Parameter(description = "Datos del nuevo recurso")
-            @Valid @RequestBody D dto) {
+            @Parameter(description = "Datos del nuevo recurso") @Valid @RequestBody D dto) {
 
         log.debug("POST {} - save", getResourceName());
 
         E entity = baseMapper.toEntity(dto);
-        return baseService.save(entity).fold(
-                savedEntity -> {
-                    D savedDto = baseMapper.toDTO(savedEntity);
+        return baseService
+                .save(entity)
+                .fold(
+                        savedEntity -> {
+                            D savedDto = baseMapper.toDTO(savedEntity);
 
-                    // Construir Location URI
-                    URI location = ServletUriComponentsBuilder
-                            .fromCurrentRequest()
-                            .path("/{id}")
-                            .buildAndExpand(savedEntity.getId())
-                            .toUri();
+                            // Construir Location URI
+                            URI location =
+                                    ServletUriComponentsBuilder.fromCurrentRequest()
+                                            .path("/{id}")
+                                            .buildAndExpand(savedEntity.getId())
+                                            .toUri();
 
-                    // Generar ETag
-                    String etag = ETagGenerator.generate(savedDto);
+                            // Generar ETag
+                            String etag = ETagGenerator.generate(savedDto);
 
-                    log.info("Creado {} con ID: {} en {}", getResourceName(), savedEntity.getId(), location);
+                            log.info(
+                                    "Creado {} con ID: {} en {}",
+                                    getResourceName(),
+                                    savedEntity.getId(),
+                                    location);
 
-                    ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.created(location);
-                    if (etag != null) {
-                        responseBuilder.eTag(etag);
-                    }
+                            ResponseEntity.BodyBuilder responseBuilder =
+                                    ResponseEntity.created(location);
+                            if (etag != null) {
+                                responseBuilder.eTag(etag);
+                            }
 
-                    // Aplicar HATEOAS
-                    if (resourceAssembler != null) {
-                        return responseBuilder.body(resourceAssembler.toModel(savedDto));
-                    }
+                            // Aplicar HATEOAS
+                            if (resourceAssembler != null) {
+                                return responseBuilder.body(resourceAssembler.toModel(savedDto));
+                            }
 
-                    return responseBuilder.body(savedDto);
-                },
-                this::handleFailure
-        );
+                            return responseBuilder.body(savedDto);
+                        },
+                        this::handleFailure);
     }
 
     // ==================== PUT /{id} - Actualizar completo ====================
@@ -443,13 +447,13 @@ public abstract class BaseControllerImpl<E extends Base, D extends BaseDTO, I ex
     @PutMapping("/{id}")
     @Operation(
             summary = "Actualizar recurso",
-            description = "Actualiza completamente un recurso. Valida ID y soporta concurrencia optimista con If-Match."
-    )
+            description =
+                    "Actualiza completamente un recurso. Valida ID y soporta concurrencia optimista"
+                            + " con If-Match.")
     @ApiResponse(
             responseCode = "200",
             description = "Recurso actualizado",
-            headers = @Header(name = "ETag", description = "Nuevo tag de versión")
-    )
+            headers = @Header(name = "ETag", description = "Nuevo tag de versión"))
     @ApiResponse(responseCode = "400", description = "ID no coincide o datos inválidos")
     @ApiResponse(responseCode = "404", description = "Recurso no encontrado")
     @ApiResponse(responseCode = "412", description = "Precondición fallida (ETag no coincide)")
@@ -457,7 +461,8 @@ public abstract class BaseControllerImpl<E extends Base, D extends BaseDTO, I ex
             @Parameter(description = "ID del recurso") @PathVariable I id,
             @Parameter(description = "Datos actualizados") @Valid @RequestBody D dto,
             @Parameter(description = "ETag para concurrencia optimista")
-            @RequestHeader(value = "If-Match", required = false) String ifMatch) {
+                    @RequestHeader(value = "If-Match", required = false)
+                    String ifMatch) {
 
         log.debug("PUT {} - update: {}", getResourceName(), id);
 
@@ -468,19 +473,21 @@ public abstract class BaseControllerImpl<E extends Base, D extends BaseDTO, I ex
 
         // Verificar concurrencia optimista si se proporciona If-Match
         if (ifMatch != null && !ifMatch.isBlank()) {
-            return baseService.findById(id).fold(
-                    existingEntity -> {
-                        D existingDto = baseMapper.toDTO(existingEntity);
-                        String currentEtag = ETagGenerator.generate(existingDto);
+            return baseService
+                    .findById(id)
+                    .fold(
+                            existingEntity -> {
+                                D existingDto = baseMapper.toDTO(existingEntity);
+                                String currentEtag = ETagGenerator.generate(existingDto);
 
-                        if (!ETagGenerator.matchesIfMatch(currentEtag, ifMatch)) {
-                            throw PreconditionFailedException.etagMismatch(currentEtag, ifMatch);
-                        }
+                                if (!ETagGenerator.matchesIfMatch(currentEtag, ifMatch)) {
+                                    throw PreconditionFailedException.etagMismatch(
+                                            currentEtag, ifMatch);
+                                }
 
-                        return performUpdate(id, dto);
-                    },
-                    this::handleFailure
-            );
+                                return performUpdate(id, dto);
+                            },
+                            this::handleFailure);
         }
 
         return performUpdate(id, dto);
@@ -488,26 +495,27 @@ public abstract class BaseControllerImpl<E extends Base, D extends BaseDTO, I ex
 
     private ResponseEntity<?> performUpdate(I id, D dto) {
         E entity = baseMapper.toEntity(dto);
-        return baseService.update(id, entity).fold(
-                updatedEntity -> {
-                    D updatedDto = baseMapper.toDTO(updatedEntity);
-                    String etag = ETagGenerator.generate(updatedDto);
+        return baseService
+                .update(id, entity)
+                .fold(
+                        updatedEntity -> {
+                            D updatedDto = baseMapper.toDTO(updatedEntity);
+                            String etag = ETagGenerator.generate(updatedDto);
 
-                    log.info("Actualizado {} con ID: {}", getResourceName(), id);
+                            log.info("Actualizado {} con ID: {}", getResourceName(), id);
 
-                    ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.ok();
-                    if (etag != null) {
-                        responseBuilder.eTag(etag);
-                    }
+                            ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.ok();
+                            if (etag != null) {
+                                responseBuilder.eTag(etag);
+                            }
 
-                    if (resourceAssembler != null) {
-                        return responseBuilder.body(resourceAssembler.toModel(updatedDto));
-                    }
+                            if (resourceAssembler != null) {
+                                return responseBuilder.body(resourceAssembler.toModel(updatedDto));
+                            }
 
-                    return responseBuilder.body(updatedDto);
-                },
-                this::handleFailure
-        );
+                            return responseBuilder.body(updatedDto);
+                        },
+                        this::handleFailure);
     }
 
     // ==================== PATCH /{id} - Actualizar parcial ====================
@@ -516,8 +524,7 @@ public abstract class BaseControllerImpl<E extends Base, D extends BaseDTO, I ex
     @PatchMapping("/{id}")
     @Operation(
             summary = "Actualización parcial",
-            description = "Actualiza parcialmente un recurso (solo campos proporcionados)"
-    )
+            description = "Actualiza parcialmente un recurso (solo campos proporcionados)")
     @ApiResponse(responseCode = "200", description = "Recurso actualizado")
     @ApiResponse(responseCode = "404", description = "Recurso no encontrado")
     @ApiResponse(responseCode = "412", description = "Precondición fallida")
@@ -525,48 +532,57 @@ public abstract class BaseControllerImpl<E extends Base, D extends BaseDTO, I ex
             @Parameter(description = "ID del recurso") @PathVariable I id,
             @Parameter(description = "Campos a actualizar") @RequestBody D dto,
             @Parameter(description = "ETag para concurrencia optimista")
-            @RequestHeader(value = "If-Match", required = false) String ifMatch) {
+                    @RequestHeader(value = "If-Match", required = false)
+                    String ifMatch) {
 
         log.debug("PATCH {} - partialUpdate: {}", getResourceName(), id);
 
-        return baseService.findById(id).fold(
-                existingEntity -> {
-                    // Verificar concurrencia optimista
-                    if (ifMatch != null && !ifMatch.isBlank()) {
-                        D existingDto = baseMapper.toDTO(existingEntity);
-                        String currentEtag = ETagGenerator.generate(existingDto);
+        return baseService
+                .findById(id)
+                .fold(
+                        existingEntity -> {
+                            // Verificar concurrencia optimista
+                            if (ifMatch != null && !ifMatch.isBlank()) {
+                                D existingDto = baseMapper.toDTO(existingEntity);
+                                String currentEtag = ETagGenerator.generate(existingDto);
 
-                        if (!ETagGenerator.matchesIfMatch(currentEtag, ifMatch)) {
-                            throw PreconditionFailedException.etagMismatch(currentEtag, ifMatch);
-                        }
-                    }
-
-                    // Actualizar solo campos no nulos
-                    baseMapper.updateEntityFromDTO(dto, existingEntity);
-
-                    return baseService.save(existingEntity).fold(
-                            updatedEntity -> {
-                                D updatedDto = baseMapper.toDTO(updatedEntity);
-                                String etag = ETagGenerator.generate(updatedDto);
-
-                                log.info("Actualizado parcialmente {} con ID: {}", getResourceName(), id);
-
-                                ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.ok();
-                                if (etag != null) {
-                                    responseBuilder.eTag(etag);
+                                if (!ETagGenerator.matchesIfMatch(currentEtag, ifMatch)) {
+                                    throw PreconditionFailedException.etagMismatch(
+                                            currentEtag, ifMatch);
                                 }
+                            }
 
-                                if (resourceAssembler != null) {
-                                    return responseBuilder.body(resourceAssembler.toModel(updatedDto));
-                                }
+                            // Actualizar solo campos no nulos
+                            baseMapper.updateEntityFromDTO(dto, existingEntity);
 
-                                return responseBuilder.body(updatedDto);
-                            },
-                            this::handleFailure
-                    );
-                },
-                this::handleFailure
-        );
+                            return baseService
+                                    .save(existingEntity)
+                                    .fold(
+                                            updatedEntity -> {
+                                                D updatedDto = baseMapper.toDTO(updatedEntity);
+                                                String etag = ETagGenerator.generate(updatedDto);
+
+                                                log.info(
+                                                        "Actualizado parcialmente {} con ID: {}",
+                                                        getResourceName(),
+                                                        id);
+
+                                                ResponseEntity.BodyBuilder responseBuilder =
+                                                        ResponseEntity.ok();
+                                                if (etag != null) {
+                                                    responseBuilder.eTag(etag);
+                                                }
+
+                                                if (resourceAssembler != null) {
+                                                    return responseBuilder.body(
+                                                            resourceAssembler.toModel(updatedDto));
+                                                }
+
+                                                return responseBuilder.body(updatedDto);
+                                            },
+                                            this::handleFailure);
+                        },
+                        this::handleFailure);
     }
 
     // ==================== DELETE /{id} - Eliminar ====================
@@ -575,68 +591,75 @@ public abstract class BaseControllerImpl<E extends Base, D extends BaseDTO, I ex
     @DeleteMapping("/{id}")
     @Operation(
             summary = "Eliminar recurso",
-            description = "Elimina un recurso. Por defecto soft delete, con ?permanent=true hard delete."
-    )
+            description =
+                    "Elimina un recurso. Por defecto soft delete, con ?permanent=true hard delete.")
     @ApiResponse(responseCode = "204", description = "Recurso eliminado")
     @ApiResponse(responseCode = "404", description = "Recurso no encontrado")
     public ResponseEntity<Void> delete(
             @Parameter(description = "ID del recurso") @PathVariable I id,
             @Parameter(description = "Eliminar permanentemente")
-            @RequestParam(required = false, defaultValue = "false") boolean permanent) {
+                    @RequestParam(required = false, defaultValue = "false")
+                    boolean permanent) {
 
         if (permanent) {
             log.warn("DELETE {} - hardDelete: {} - OPERACIÓN IRREVERSIBLE", getResourceName(), id);
-            return baseService.hardDelete(id).<ResponseEntity<Void>>fold(
-                    success -> {
-                        log.info("Eliminado permanentemente {} con ID: {}", getResourceName(), id);
-                        return ResponseEntity.noContent().build();
-                    },
-                    error -> {
-                        handleFailure(error);
-                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-                    }
-            );
+            return baseService
+                    .hardDelete(id)
+                    .<ResponseEntity<Void>>fold(
+                            success -> {
+                                log.info(
+                                        "Eliminado permanentemente {} con ID: {}",
+                                        getResourceName(),
+                                        id);
+                                return ResponseEntity.noContent().build();
+                            },
+                            error -> {
+                                handleFailure(error);
+                                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                        .build();
+                            });
         }
 
         log.debug("DELETE {} - softDelete: {}", getResourceName(), id);
-        return baseService.softDelete(id).<ResponseEntity<Void>>fold(
-                success -> {
-                    log.info("Eliminado lógicamente {} con ID: {}", getResourceName(), id);
-                    return ResponseEntity.noContent().build();
-                },
-                error -> {
-                    handleFailure(error);
-                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-                }
-        );
+        return baseService
+                .softDelete(id)
+                .<ResponseEntity<Void>>fold(
+                        success -> {
+                            log.info("Eliminado lógicamente {} con ID: {}", getResourceName(), id);
+                            return ResponseEntity.noContent().build();
+                        },
+                        error -> {
+                            handleFailure(error);
+                            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+                        });
     }
 
     @Override
     @PostMapping("/{id}/restore")
     @Operation(
             summary = "Restaurar recurso",
-            description = "Restaura un recurso previamente eliminado con soft delete."
-    )
+            description = "Restaura un recurso previamente eliminado con soft delete.")
     @ApiResponse(responseCode = "200", description = "Recurso restaurado")
     @ApiResponse(responseCode = "404", description = "Recurso no encontrado")
     public ResponseEntity<?> restore(
             @Parameter(description = "ID del recurso") @PathVariable I id) {
 
         log.debug("POST {} - restore: {}", getResourceName(), id);
-        return baseService.restore(id).fold(
-                entity -> {
-                    D dto = baseMapper.toDTO(entity);
-                    log.info("Restaurado {} con ID: {}", getResourceName(), id);
-                    if (resourceAssembler != null) {
-                        return ResponseEntity.ok(resourceAssembler.toModel(dto));
-                    }
-                    return ResponseEntity.ok(dto);
-                },
-                error -> {
-                    handleFailure(error);
-                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-                }
-        );
+        return baseService
+                .restore(id)
+                .fold(
+                        entity -> {
+                            D dto = baseMapper.toDTO(entity);
+                            log.info("Restaurado {} con ID: {}", getResourceName(), id);
+                            if (resourceAssembler != null) {
+                                return ResponseEntity.ok(resourceAssembler.toModel(dto));
+                            }
+                            return ResponseEntity.ok(dto);
+                        },
+                        error -> {
+                            handleFailure(error);
+                            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+                        });
     }
 
     // ==================== GET /cursor - Paginación por Cursor ====================
@@ -645,41 +668,51 @@ public abstract class BaseControllerImpl<E extends Base, D extends BaseDTO, I ex
     @GetMapping("/cursor")
     @Operation(
             summary = "Listar recursos con paginación por cursor",
-            description = """
-                Lista recursos usando paginación basada en cursor (keyset pagination).
+            description =
+                    """
+                    Lista recursos usando paginación basada en cursor (keyset pagination).
 
-                **Ventajas sobre offset:**
-                - Performance constante O(1) vs O(n) de offset
-                - Sin duplicados/omisiones al insertar/eliminar datos
-                - Ideal para scroll infinito y feeds
+                    **Ventajas sobre offset:**
+                    - Performance constante O(1) vs O(n) de offset
+                    - Sin duplicados/omisiones al insertar/eliminar datos
+                    - Ideal para scroll infinito y feeds
 
-                **Uso:**
-                1. Primera página: `GET /cursor?size=20`
-                2. Siguiente página: `GET /cursor?cursor={nextCursor}&size=20`
+                    **Uso:**
+                    1. Primera página: `GET /cursor?size=20`
+                    2. Siguiente página: `GET /cursor?cursor={nextCursor}&size=20`
 
-                **Respuesta incluye:**
-                - `content`: Lista de elementos
-                - `pageInfo.nextCursor`: Cursor para siguiente página (null si no hay más)
-                - `pageInfo.prevCursor`: Cursor para página anterior
-                - `pageInfo.hasNext`: Si hay más elementos
-                """
-    )
+                    **Respuesta incluye:**
+                    - `content`: Lista de elementos
+                    - `pageInfo.nextCursor`: Cursor para siguiente página (null si no hay más)
+                    - `pageInfo.prevCursor`: Cursor para página anterior
+                    - `pageInfo.hasNext`: Si hay más elementos
+                    """)
     @ApiResponse(responseCode = "200", description = "Lista obtenida exitosamente")
     @ApiResponse(responseCode = "400", description = "Cursor inválido o parámetros incorrectos")
     public ResponseEntity<?> findAllWithCursor(
             @Parameter(description = "Cursor de la página anterior (Base64)")
-            @RequestParam(required = false) String cursor,
+                    @RequestParam(required = false)
+                    String cursor,
             @Parameter(description = "Tamaño de página (1-100, default 20)")
-            @RequestParam(required = false, defaultValue = "20") int size,
+                    @RequestParam(required = false, defaultValue = "20")
+                    int size,
             @Parameter(description = "Campo de ordenamiento")
-            @RequestParam(required = false, defaultValue = "id") String sort,
+                    @RequestParam(required = false, defaultValue = "id")
+                    String sort,
             @Parameter(description = "Dirección de ordenamiento")
-            @RequestParam(required = false, defaultValue = "DESC") CursorPageRequest.SortDirection direction,
+                    @RequestParam(required = false, defaultValue = "DESC")
+                    CursorPageRequest.SortDirection direction,
             @Parameter(description = "Filtros dinámicos en formato campo:operador:valor")
-            @RequestParam(required = false) String filter) {
+                    @RequestParam(required = false)
+                    String filter) {
 
-        log.debug("GET {} - findAllWithCursor cursor={}, size={}, sort={}, direction={}",
-                getResourceName(), cursor, size, sort, direction);
+        log.debug(
+                "GET {} - findAllWithCursor cursor={}, size={}, sort={}, direction={}",
+                getResourceName(),
+                cursor,
+                size,
+                sort,
+                direction);
 
         CursorPageRequest request = new CursorPageRequest(cursor, size, sort, direction);
 
@@ -689,34 +722,38 @@ public abstract class BaseControllerImpl<E extends Base, D extends BaseDTO, I ex
             spec = filterBuilder.build(filter, getEntityClass());
         }
 
-        return baseService.findAllWithCursor(spec, request).fold(
-                cursorResponse -> {
-                    // Convertir entidades a DTOs
-                    CursorPageResponse<D> dtoResponse = CursorPageResponse.<D>builder()
-                            .content(cursorResponse.content().stream()
-                                    .map(baseMapper::toDTO)
-                                    .toList())
-                            .size(cursorResponse.pageInfo().size())
-                            .hasNext(cursorResponse.pageInfo().hasNext())
-                            .hasPrevious(cursorResponse.pageInfo().hasPrevious())
-                            .nextCursor(cursorResponse.pageInfo().nextCursor())
-                            .prevCursor(cursorResponse.pageInfo().prevCursor())
-                            .build();
+        return baseService
+                .findAllWithCursor(spec, request)
+                .fold(
+                        cursorResponse -> {
+                            // Convertir entidades a DTOs
+                            CursorPageResponse<D> dtoResponse =
+                                    CursorPageResponse.<D>builder()
+                                            .content(
+                                                    cursorResponse.content().stream()
+                                                            .map(baseMapper::toDTO)
+                                                            .toList())
+                                            .size(cursorResponse.pageInfo().size())
+                                            .hasNext(cursorResponse.pageInfo().hasNext())
+                                            .hasPrevious(cursorResponse.pageInfo().hasPrevious())
+                                            .nextCursor(cursorResponse.pageInfo().nextCursor())
+                                            .prevCursor(cursorResponse.pageInfo().prevCursor())
+                                            .build();
 
-                    return ResponseEntity.ok(dtoResponse);
-                },
-                this::handleFailure
-        );
+                            return ResponseEntity.ok(dtoResponse);
+                        },
+                        this::handleFailure);
     }
 
     // ==================== Métodos auxiliares ====================
 
-    /**
-     * Maneja errores delegando al GlobalExceptionHandler.
-     */
+    /** Maneja errores delegando al GlobalExceptionHandler. */
     @SuppressWarnings("java:S1452") // Wildcard necesario - método auxiliar genérico
     protected ResponseEntity<?> handleFailure(Exception error) {
-        log.debug("Delegando error de {} a GlobalExceptionHandler: {}", getResourceName(), error.getMessage());
+        log.debug(
+                "Delegando error de {} a GlobalExceptionHandler: {}",
+                getResourceName(),
+                error.getMessage());
 
         if (error instanceof RuntimeException runtimeEx) {
             throw runtimeEx;
@@ -726,12 +763,11 @@ public abstract class BaseControllerImpl<E extends Base, D extends BaseDTO, I ex
 
     /**
      * Filtra campos del DTO para sparse fieldsets.
-     * <p>
-     * Utiliza {@link FieldAccessorCache} para optimizar el acceso a campos
-     * mediante MethodHandles cacheados, evitando la sobrecarga de reflexión
-     * en cada llamada.
      *
-     * @param dto    El objeto DTO del cual extraer campos
+     * <p>Utiliza {@link FieldAccessorCache} para optimizar el acceso a campos mediante
+     * MethodHandles cacheados, evitando la sobrecarga de reflexión en cada llamada.
+     *
+     * @param dto El objeto DTO del cual extraer campos
      * @param fields Set de nombres de campos a incluir
      * @return Mapa ordenado con los valores de los campos solicitados
      */
@@ -739,9 +775,7 @@ public abstract class BaseControllerImpl<E extends Base, D extends BaseDTO, I ex
         return FieldAccessorCache.getFieldValues(dto, fields);
     }
 
-    /**
-     * Extrae el ID como Long para comparación.
-     */
+    /** Extrae el ID como Long para comparación. */
     protected Long extractIdAsLong(I id) {
         if (id instanceof Long longId) {
             return longId;

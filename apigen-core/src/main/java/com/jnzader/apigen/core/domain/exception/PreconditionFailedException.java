@@ -2,12 +2,11 @@ package com.jnzader.apigen.core.domain.exception;
 
 /**
  * Excepción lanzada cuando falla una precondición HTTP.
- * <p>
- * Utilizada principalmente para:
- * - ETag mismatch (If-Match header no coincide)
- * - Conflictos de concurrencia optimista
- * <p>
- * Resulta en HTTP 412 Precondition Failed.
+ *
+ * <p>Utilizada principalmente para: - ETag mismatch (If-Match header no coincide) - Conflictos de
+ * concurrencia optimista
+ *
+ * <p>Resulta en HTTP 412 Precondition Failed.
  */
 public class PreconditionFailedException extends RuntimeException {
 
@@ -26,13 +25,14 @@ public class PreconditionFailedException extends RuntimeException {
         this.providedEtag = providedEtag;
     }
 
-    public static PreconditionFailedException etagMismatch(String currentEtag, String providedEtag) {
+    public static PreconditionFailedException etagMismatch(
+            String currentEtag, String providedEtag) {
         return new PreconditionFailedException(
-                String.format("El recurso ha sido modificado. ETag actual: %s, ETag proporcionado: %s",
+                String.format(
+                        "El recurso ha sido modificado. ETag actual: %s, ETag proporcionado: %s",
                         currentEtag, providedEtag),
                 currentEtag,
-                providedEtag
-        );
+                providedEtag);
     }
 
     public String getCurrentEtag() {

@@ -1,15 +1,14 @@
 package com.jnzader.apigen.core.domain.entity;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.jnzader.apigen.core.domain.event.DomainEvent;
 import com.jnzader.apigen.core.domain.event.EntityCreatedEvent;
+import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-import java.time.LocalDateTime;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("Base Entity Tests")
 class BaseTest {
@@ -152,9 +151,7 @@ class BaseTest {
             var events = entity.getDomainEvents();
             var event = new EntityCreatedEvent<>(entity);
             org.junit.jupiter.api.Assertions.assertThrows(
-                UnsupportedOperationException.class,
-                () -> events.add(event)
-            );
+                    UnsupportedOperationException.class, () -> events.add(event));
         }
     }
 

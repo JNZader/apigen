@@ -1,8 +1,13 @@
 package com.jnzader.apigen.security.application.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import com.jnzader.apigen.security.domain.entity.TokenBlacklist;
 import com.jnzader.apigen.security.domain.entity.TokenBlacklist.BlacklistReason;
 import com.jnzader.apigen.security.domain.repository.TokenBlacklistRepository;
+import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -13,27 +18,16 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.Instant;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
-/**
- * Tests para TokenBlacklistService.
- */
+/** Tests para TokenBlacklistService. */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("TokenBlacklistService Tests")
 class TokenBlacklistServiceTest {
 
-    @Mock
-    private TokenBlacklistRepository repository;
+    @Mock private TokenBlacklistRepository repository;
 
-    @InjectMocks
-    private TokenBlacklistService service;
+    @InjectMocks private TokenBlacklistService service;
 
-    @Captor
-    private ArgumentCaptor<TokenBlacklist> blacklistCaptor;
+    @Captor private ArgumentCaptor<TokenBlacklist> blacklistCaptor;
 
     private static final String TOKEN_ID = "test-token-id-123";
     private static final String USERNAME = "testuser";
@@ -77,9 +71,11 @@ class TokenBlacklistServiceTest {
             when(repository.existsByTokenId(anyString())).thenReturn(false);
             when(repository.save(any(TokenBlacklist.class))).thenAnswer(i -> i.getArgument(0));
 
-            service.blacklistToken("token-1", USERNAME, EXPIRATION, BlacklistReason.PASSWORD_CHANGE);
+            service.blacklistToken(
+                    "token-1", USERNAME, EXPIRATION, BlacklistReason.PASSWORD_CHANGE);
             service.blacklistToken("token-2", USERNAME, EXPIRATION, BlacklistReason.ADMIN_REVOKE);
-            service.blacklistToken("token-3", USERNAME, EXPIRATION, BlacklistReason.SECURITY_BREACH);
+            service.blacklistToken(
+                    "token-3", USERNAME, EXPIRATION, BlacklistReason.SECURITY_BREACH);
 
             verify(repository, times(3)).save(blacklistCaptor.capture());
 
@@ -88,8 +84,7 @@ class TokenBlacklistServiceTest {
                     .containsExactly(
                             BlacklistReason.PASSWORD_CHANGE,
                             BlacklistReason.ADMIN_REVOKE,
-                            BlacklistReason.SECURITY_BREACH
-                    );
+                            BlacklistReason.SECURITY_BREACH);
         }
     }
 

@@ -1,5 +1,7 @@
 package com.jnzader.apigen.core.infrastructure.config;
 
+import static org.assertj.core.api.Assertions.*;
+
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
@@ -9,25 +11,19 @@ import io.github.resilience4j.ratelimiter.RateLimiterRegistry;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
 import io.github.resilience4j.retry.RetryRegistry;
+import java.time.Duration;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.time.Duration;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Supplier;
-
-import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests para patrones de resiliencia (Resilience4j).
- * <p>
- * Verifica:
- * - Circuit Breaker behavior
- * - Rate Limiter behavior
- * - Retry behavior
- * - Integration of patterns
+ *
+ * <p>Verifica: - Circuit Breaker behavior - Rate Limiter behavior - Retry behavior - Integration of
+ * patterns
  */
 @DisplayName("Resilience Patterns Tests")
 class ResilienceTest {
@@ -43,13 +39,14 @@ class ResilienceTest {
 
         @BeforeEach
         void setUp() {
-            CircuitBreakerConfig config = CircuitBreakerConfig.custom()
-                    .failureRateThreshold(50)
-                    .minimumNumberOfCalls(5)
-                    .slidingWindowSize(10)
-                    .waitDurationInOpenState(Duration.ofMillis(100))
-                    .permittedNumberOfCallsInHalfOpenState(2)
-                    .build();
+            CircuitBreakerConfig config =
+                    CircuitBreakerConfig.custom()
+                            .failureRateThreshold(50)
+                            .minimumNumberOfCalls(5)
+                            .slidingWindowSize(10)
+                            .waitDurationInOpenState(Duration.ofMillis(100))
+                            .permittedNumberOfCallsInHalfOpenState(2)
+                            .build();
 
             registry = CircuitBreakerRegistry.of(config);
             circuitBreaker = registry.circuitBreaker("test");
@@ -65,10 +62,12 @@ class ResilienceTest {
         @DisplayName("should open after failure threshold exceeded")
         void shouldOpenAfterFailureThresholdExceeded() {
             // Given - a supplier that always fails
-            Supplier<String> failingSupplier = CircuitBreaker.decorateSupplier(
-                    circuitBreaker,
-                    () -> { throw new RuntimeException("Failure"); }
-            );
+            Supplier<String> failingSupplier =
+                    CircuitBreaker.decorateSupplier(
+                            circuitBreaker,
+                            () -> {
+                                throw new RuntimeException("Failure");
+                            });
 
             // When - execute enough failures to trip the circuit
             for (int i = 0; i < 10; i++) {
@@ -87,10 +86,8 @@ class ResilienceTest {
         @DisplayName("should allow successful calls in CLOSED state")
         void shouldAllowSuccessfulCallsInClosedState() {
             // Given
-            Supplier<String> successSupplier = CircuitBreaker.decorateSupplier(
-                    circuitBreaker,
-                    () -> "success"
-            );
+            Supplier<String> successSupplier =
+                    CircuitBreaker.decorateSupplier(circuitBreaker, () -> "success");
 
             // When
             String result = successSupplier.get();
@@ -104,10 +101,8 @@ class ResilienceTest {
         @DisplayName("should record metrics correctly")
         void shouldRecordMetricsCorrectly() {
             // Given
-            Supplier<String> supplier = CircuitBreaker.decorateSupplier(
-                    circuitBreaker,
-                    () -> "success"
-            );
+            Supplier<String> supplier =
+                    CircuitBreaker.decorateSupplier(circuitBreaker, () -> "success");
 
             // When
             for (int i = 0; i < 5; i++) {
@@ -132,11 +127,12 @@ class ResilienceTest {
 
         @BeforeEach
         void setUp() {
-            RateLimiterConfig config = RateLimiterConfig.custom()
-                    .limitForPeriod(3)
-                    .limitRefreshPeriod(Duration.ofSeconds(1))
-                    .timeoutDuration(Duration.ofMillis(100))
-                    .build();
+            RateLimiterConfig config =
+                    RateLimiterConfig.custom()
+                            .limitForPeriod(3)
+                            .limitRefreshPeriod(Duration.ofSeconds(1))
+                            .timeoutDuration(Duration.ofMillis(100))
+                            .build();
 
             registry = RateLimiterRegistry.of(config);
             rateLimiter = registry.rateLimiter("test");
@@ -147,10 +143,8 @@ class ResilienceTest {
         void shouldAllowCallsWithinLimit() {
             // Given
             AtomicInteger counter = new AtomicInteger(0);
-            Runnable limitedRunnable = RateLimiter.decorateRunnable(
-                    rateLimiter,
-                    counter::incrementAndGet
-            );
+            Runnable limitedRunnable =
+                    RateLimiter.decorateRunnable(rateLimiter, counter::incrementAndGet);
 
             // When - execute within limit
             for (int i = 0; i < 3; i++) {
@@ -166,10 +160,8 @@ class ResilienceTest {
         void shouldBlockCallsExceedingLimit() {
             // Given
             AtomicInteger counter = new AtomicInteger(0);
-            Runnable limitedRunnable = RateLimiter.decorateRunnable(
-                    rateLimiter,
-                    counter::incrementAndGet
-            );
+            Runnable limitedRunnable =
+                    RateLimiter.decorateRunnable(rateLimiter, counter::incrementAndGet);
 
             // When - execute beyond limit
             int successCount = 0;
@@ -212,11 +204,12 @@ class ResilienceTest {
 
         @BeforeEach
         void setUp() {
-            RetryConfig config = RetryConfig.custom()
-                    .maxAttempts(3)
-                    .waitDuration(Duration.ofMillis(10))
-                    .retryExceptions(RuntimeException.class)
-                    .build();
+            RetryConfig config =
+                    RetryConfig.custom()
+                            .maxAttempts(3)
+                            .waitDuration(Duration.ofMillis(10))
+                            .retryExceptions(RuntimeException.class)
+                            .build();
 
             registry = RetryRegistry.of(config);
             retry = registry.retry("test");
@@ -227,10 +220,13 @@ class ResilienceTest {
         void shouldSucceedWithoutRetryOnFirstSuccess() {
             // Given
             AtomicInteger attempts = new AtomicInteger(0);
-            Supplier<String> supplier = Retry.decorateSupplier(retry, () -> {
-                attempts.incrementAndGet();
-                return "success";
-            });
+            Supplier<String> supplier =
+                    Retry.decorateSupplier(
+                            retry,
+                            () -> {
+                                attempts.incrementAndGet();
+                                return "success";
+                            });
 
             // When
             String result = supplier.get();
@@ -245,12 +241,15 @@ class ResilienceTest {
         void shouldRetryOnFailureAndSucceed() {
             // Given
             AtomicInteger attempts = new AtomicInteger(0);
-            Supplier<String> supplier = Retry.decorateSupplier(retry, () -> {
-                if (attempts.incrementAndGet() < 3) {
-                    throw new RuntimeException("Temporary failure");
-                }
-                return "success";
-            });
+            Supplier<String> supplier =
+                    Retry.decorateSupplier(
+                            retry,
+                            () -> {
+                                if (attempts.incrementAndGet() < 3) {
+                                    throw new RuntimeException("Temporary failure");
+                                }
+                                return "success";
+                            });
 
             // When
             String result = supplier.get();
@@ -265,10 +264,13 @@ class ResilienceTest {
         void shouldFailAfterMaxRetriesExhausted() {
             // Given
             AtomicInteger attempts = new AtomicInteger(0);
-            Supplier<String> supplier = Retry.decorateSupplier(retry, () -> {
-                attempts.incrementAndGet();
-                throw new RuntimeException("Permanent failure");
-            });
+            Supplier<String> supplier =
+                    Retry.decorateSupplier(
+                            retry,
+                            () -> {
+                                attempts.incrementAndGet();
+                                throw new RuntimeException("Permanent failure");
+                            });
 
             // When/Then
             assertThatThrownBy(supplier::get)
@@ -283,12 +285,15 @@ class ResilienceTest {
         void shouldRecordRetryMetrics() {
             // Given
             AtomicInteger attempts = new AtomicInteger(0);
-            Supplier<String> supplier = Retry.decorateSupplier(retry, () -> {
-                if (attempts.incrementAndGet() < 2) {
-                    throw new RuntimeException("Failure");
-                }
-                return "success";
-            });
+            Supplier<String> supplier =
+                    Retry.decorateSupplier(
+                            retry,
+                            () -> {
+                                if (attempts.incrementAndGet() < 2) {
+                                    throw new RuntimeException("Failure");
+                                }
+                                return "success";
+                            });
 
             // When
             supplier.get();
@@ -309,16 +314,15 @@ class ResilienceTest {
         @DisplayName("should combine CircuitBreaker and Retry")
         void shouldCombineCircuitBreakerAndRetry() {
             // Given
-            CircuitBreakerConfig cbConfig = CircuitBreakerConfig.custom()
-                    .failureRateThreshold(50)
-                    .minimumNumberOfCalls(5)
-                    .slidingWindowSize(10)
-                    .build();
+            CircuitBreakerConfig cbConfig =
+                    CircuitBreakerConfig.custom()
+                            .failureRateThreshold(50)
+                            .minimumNumberOfCalls(5)
+                            .slidingWindowSize(10)
+                            .build();
 
-            RetryConfig retryConfig = RetryConfig.custom()
-                    .maxAttempts(2)
-                    .waitDuration(Duration.ofMillis(10))
-                    .build();
+            RetryConfig retryConfig =
+                    RetryConfig.custom().maxAttempts(2).waitDuration(Duration.ofMillis(10)).build();
 
             CircuitBreaker cb = CircuitBreakerRegistry.of(cbConfig).circuitBreaker("combined");
             Retry retry = RetryRegistry.of(retryConfig).retry("combined");
@@ -326,13 +330,17 @@ class ResilienceTest {
             AtomicInteger attempts = new AtomicInteger(0);
 
             // Combine: Retry wraps CircuitBreaker
-            Supplier<String> supplier = Retry.decorateSupplier(retry,
-                    CircuitBreaker.decorateSupplier(cb, () -> {
-                        if (attempts.incrementAndGet() < 2) {
-                            throw new RuntimeException("Failure");
-                        }
-                        return "success";
-                    }));
+            Supplier<String> supplier =
+                    Retry.decorateSupplier(
+                            retry,
+                            CircuitBreaker.decorateSupplier(
+                                    cb,
+                                    () -> {
+                                        if (attempts.incrementAndGet() < 2) {
+                                            throw new RuntimeException("Failure");
+                                        }
+                                        return "success";
+                                    }));
 
             // When
             String result = supplier.get();
@@ -346,17 +354,19 @@ class ResilienceTest {
         @DisplayName("should combine RateLimiter and CircuitBreaker")
         void shouldCombineRateLimiterAndCircuitBreaker() {
             // Given
-            RateLimiterConfig rlConfig = RateLimiterConfig.custom()
-                    .limitForPeriod(10)
-                    .limitRefreshPeriod(Duration.ofSeconds(1))
-                    .timeoutDuration(Duration.ofMillis(100))
-                    .build();
+            RateLimiterConfig rlConfig =
+                    RateLimiterConfig.custom()
+                            .limitForPeriod(10)
+                            .limitRefreshPeriod(Duration.ofSeconds(1))
+                            .timeoutDuration(Duration.ofMillis(100))
+                            .build();
 
-            CircuitBreakerConfig cbConfig = CircuitBreakerConfig.custom()
-                    .failureRateThreshold(50)
-                    .minimumNumberOfCalls(3)
-                    .slidingWindowSize(5)
-                    .build();
+            CircuitBreakerConfig cbConfig =
+                    CircuitBreakerConfig.custom()
+                            .failureRateThreshold(50)
+                            .minimumNumberOfCalls(3)
+                            .slidingWindowSize(5)
+                            .build();
 
             RateLimiter rl = RateLimiterRegistry.of(rlConfig).rateLimiter("combined");
             CircuitBreaker cb = CircuitBreakerRegistry.of(cbConfig).circuitBreaker("combined");
@@ -364,8 +374,9 @@ class ResilienceTest {
             AtomicInteger counter = new AtomicInteger(0);
 
             // Combine: RateLimiter wraps CircuitBreaker
-            Supplier<Integer> supplier = RateLimiter.decorateSupplier(rl,
-                    CircuitBreaker.decorateSupplier(cb, counter::incrementAndGet));
+            Supplier<Integer> supplier =
+                    RateLimiter.decorateSupplier(
+                            rl, CircuitBreaker.decorateSupplier(cb, counter::incrementAndGet));
 
             // When
             for (int i = 0; i < 5; i++) {

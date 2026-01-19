@@ -1,15 +1,24 @@
 package com.jnzader.apigen.core.application.service;
 
+import static com.jnzader.apigen.core.support.TestConstants.*;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.*;
+
+import com.jnzader.apigen.core.application.util.Result;
+import com.jnzader.apigen.core.domain.entity.Base;
+import com.jnzader.apigen.core.domain.exception.ResourceNotFoundException;
+import com.jnzader.apigen.core.domain.specification.BaseSpecification;
 import com.jnzader.apigen.core.fixtures.TestEntity;
 import com.jnzader.apigen.core.fixtures.TestEntityRepository;
 import com.jnzader.apigen.core.fixtures.TestEntityServiceImpl;
-import com.jnzader.apigen.core.domain.entity.Base;
-import com.jnzader.apigen.core.domain.specification.BaseSpecification;
 import com.jnzader.apigen.core.support.TestEntityBuilder;
-import com.jnzader.apigen.core.domain.exception.ResourceNotFoundException;
-import com.jnzader.apigen.core.application.util.Result;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -21,74 +30,56 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.AuditorAware;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import static com.jnzader.apigen.core.support.TestConstants.*;
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.*;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * Tests unitarios para BaseServiceImpl.
- * <p>
- * Estos tests verifican la lógica de negocio del servicio base
- * usando mocks para las dependencias (repository, entityManager, eventPublisher).
- * <p>
- * Patrón de test: Given-When-Then (BDD)
+ *
+ * <p>Estos tests verifican la lógica de negocio del servicio base usando mocks para las
+ * dependencias (repository, entityManager, eventPublisher).
+ *
+ * <p>Patrón de test: Given-When-Then (BDD)
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("BaseServiceImpl Unit Tests")
 class BaseServiceImplTest {
 
-    @Mock
-    private TestEntityRepository repository;
+    @Mock private TestEntityRepository repository;
 
-    @Mock
-    private EntityManager entityManager;
+    @Mock private EntityManager entityManager;
 
-    @Mock
-    private ApplicationEventPublisher eventPublisher;
+    @Mock private ApplicationEventPublisher eventPublisher;
 
-    @Mock
-    private CacheEvictionService cacheEvictionService;
+    @Mock private CacheEvictionService cacheEvictionService;
 
-    @Mock
-    private AuditorAware<String> auditorAware;
+    @Mock private AuditorAware<String> auditorAware;
 
-    @Mock
-    private Query nativeQuery;
+    @Mock private Query nativeQuery;
 
     private TestEntityServiceImpl service;
 
-    @Captor
-    private ArgumentCaptor<TestEntity> entityCaptor;
+    @Captor private ArgumentCaptor<TestEntity> entityCaptor;
 
-    @Captor
-    private ArgumentCaptor<List<TestEntity>> entityListCaptor;
+    @Captor private ArgumentCaptor<List<TestEntity>> entityListCaptor;
 
     private TestEntity testEntity;
 
     @BeforeEach
     void setUp() {
         // Crear el servicio manualmente para tener control total de las dependencias
-        service = new TestEntityServiceImpl(repository, cacheEvictionService, eventPublisher, auditorAware);
+        service =
+                new TestEntityServiceImpl(
+                        repository, cacheEvictionService, eventPublisher, auditorAware);
         // Inyectar entityManager que usa @PersistenceContext
         ReflectionTestUtils.setField(service, "entityManager", entityManager);
 
         TestEntityBuilder.resetIdCounter();
-        testEntity = TestEntityBuilder.aTestEntityWithId()
-                .withName(VALID_NAME)
-                .build();
+        testEntity = TestEntityBuilder.aTestEntityWithId().withName(VALID_NAME).build();
     }
 
     // ==================== findById Tests ====================
@@ -124,8 +115,7 @@ class BaseServiceImplTest {
 
             // Then
             assertThat(result.isFailure()).isTrue();
-            assertThatThrownBy(result::orElseThrow)
-                    .isInstanceOf(ResourceNotFoundException.class);
+            assertThatThrownBy(result::orElseThrow).isInstanceOf(ResourceNotFoundException.class);
         }
     }
 
@@ -204,7 +194,8 @@ class BaseServiceImplTest {
             List<TestEntity> activeEntities = List.of(testEntity);
             Page<TestEntity> page = new PageImpl<>(activeEntities);
             given(repository.count(any(Specification.class))).willReturn(1L);
-            given(repository.findAll(any(Specification.class), any(Pageable.class))).willReturn(page);
+            given(repository.findAll(any(Specification.class), any(Pageable.class)))
+                    .willReturn(page);
 
             // When
             Result<List<TestEntity>, Exception> result = service.findAllActive();
@@ -225,12 +216,9 @@ class BaseServiceImplTest {
         @DisplayName("should save new entity and register created event")
         void shouldSaveNewEntityAndRegisterCreatedEvent() {
             // Given
-            TestEntity newEntity = TestEntityBuilder.aTestEntity()
-                    .withName("New Entity")
-                    .build();
-            TestEntity savedEntity = TestEntityBuilder.aTestEntityWithId()
-                    .withName("New Entity")
-                    .build();
+            TestEntity newEntity = TestEntityBuilder.aTestEntity().withName("New Entity").build();
+            TestEntity savedEntity =
+                    TestEntityBuilder.aTestEntityWithId().withName("New Entity").build();
             given(repository.save(any(TestEntity.class))).willReturn(savedEntity);
 
             // When
@@ -267,9 +255,8 @@ class BaseServiceImplTest {
         @DisplayName("should update entity when exists")
         void shouldUpdateEntityWhenExists() {
             // Given
-            TestEntity updatedEntity = TestEntityBuilder.aTestEntity()
-                    .withName(UPDATED_NAME)
-                    .build();
+            TestEntity updatedEntity =
+                    TestEntityBuilder.aTestEntity().withName(UPDATED_NAME).build();
             given(repository.findById(VALID_ID)).willReturn(Optional.of(testEntity));
             given(repository.save(any(TestEntity.class))).willAnswer(inv -> inv.getArgument(0));
 
@@ -344,9 +331,8 @@ class BaseServiceImplTest {
         @DisplayName("should restore soft deleted entity")
         void shouldRestoreSoftDeletedEntity() {
             // Given
-            TestEntity restoredEntity = TestEntityBuilder.aTestEntityWithId()
-                    .withName(VALID_NAME)
-                    .build();
+            TestEntity restoredEntity =
+                    TestEntityBuilder.aTestEntityWithId().withName(VALID_NAME).build();
             // restore() usa native SQL a través de EntityManager
             given(entityManager.createNativeQuery(anyString())).willReturn(nativeQuery);
             given(nativeQuery.setParameter(eq("id"), any())).willReturn(nativeQuery);
@@ -419,10 +405,10 @@ class BaseServiceImplTest {
         @DisplayName("should save all entities in batch")
         void shouldSaveAllEntitiesInBatch() {
             // Given
-            List<TestEntity> entities = List.of(
-                    TestEntityBuilder.aTestEntity().withName("Entity 1").build(),
-                    TestEntityBuilder.aTestEntity().withName("Entity 2").build()
-            );
+            List<TestEntity> entities =
+                    List.of(
+                            TestEntityBuilder.aTestEntity().withName("Entity 1").build(),
+                            TestEntityBuilder.aTestEntity().withName("Entity 2").build());
             given(repository.saveAll(anyList())).willReturn(entities);
             willDoNothing().given(entityManager).flush();
             willDoNothing().given(entityManager).clear();
@@ -693,9 +679,7 @@ class BaseServiceImplTest {
         @DisplayName("should partially update entity")
         void shouldPartiallyUpdateEntity() {
             // Given
-            TestEntity partialEntity = TestEntityBuilder.aTestEntity()
-                    .withName("New Name")
-                    .build();
+            TestEntity partialEntity = TestEntityBuilder.aTestEntity().withName("New Name").build();
             given(repository.findById(VALID_ID)).willReturn(Optional.of(testEntity));
             given(repository.save(any(TestEntity.class))).willAnswer(inv -> inv.getArgument(0));
 
@@ -864,7 +848,8 @@ class BaseServiceImplTest {
             List<TestEntity> entities = List.of(testEntity);
             Page<TestEntity> page = new PageImpl<>(entities);
             given(repository.count(any(Specification.class))).willReturn(600L);
-            given(repository.findAll(any(Specification.class), any(Pageable.class))).willReturn(page);
+            given(repository.findAll(any(Specification.class), any(Pageable.class)))
+                    .willReturn(page);
 
             // When
             Result<List<TestEntity>, Exception> result = service.findAllActive();

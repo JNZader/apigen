@@ -1,25 +1,24 @@
 package com.jnzader.apigen.core.application.dto;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.jnzader.apigen.core.application.validation.ValidationGroups;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Tests de validación para DTOs.
- * <p>
- * Verifica que las anotaciones de validación funcionan correctamente
- * para diferentes grupos de validación (Create, Update, PartialUpdate).
+ *
+ * <p>Verifica que las anotaciones de validación funcionan correctamente para diferentes grupos de
+ * validación (Create, Update, PartialUpdate).
  */
 @DisplayName("DTO Validation Tests")
 @Tag("integration")
@@ -33,15 +32,21 @@ class ValidationTest {
         validator = factory.getValidator();
     }
 
-    // DTO de prueba con anotaciones de validación (las anotaciones en interfaces NO se heredan a records)
+    // DTO de prueba con anotaciones de validación (las anotaciones en interfaces NO se heredan a
+    // records)
     record TestValidatedDTO(
-            @jakarta.validation.constraints.Null(groups = ValidationGroups.Create.class, message = "ID debe ser nulo al crear una nueva entidad")
-            @jakarta.validation.constraints.NotNull(groups = ValidationGroups.Update.class, message = "ID es requerido para actualizar")
-            @jakarta.validation.constraints.Positive(message = "ID debe ser un número positivo")
-            Long id,
+            @jakarta.validation.constraints.Null(
+                            groups = ValidationGroups.Create.class,
+                            message = "ID debe ser nulo al crear una nueva entidad")
+                    @jakarta.validation.constraints.NotNull(
+                            groups = ValidationGroups.Update.class,
+                            message = "ID es requerido para actualizar")
+                    @jakarta.validation.constraints.Positive(
+                            message = "ID debe ser un número positivo")
+                    Long id,
             Boolean activo,
-            String name
-    ) implements BaseDTOValidated {}
+            String name)
+            implements BaseDTOValidated {}
 
     // ==================== Create Validation Tests ====================
 
@@ -130,8 +135,7 @@ class ValidationTest {
             TestValidatedDTO dto = new TestValidatedDTO(-1L, true, "Test");
 
             // When - validate without groups to check @Positive
-            Set<ConstraintViolation<TestValidatedDTO>> violations =
-                    validator.validate(dto);
+            Set<ConstraintViolation<TestValidatedDTO>> violations = validator.validate(dto);
 
             // Then
             assertThat(violations)
@@ -146,8 +150,7 @@ class ValidationTest {
             TestValidatedDTO dto = new TestValidatedDTO(0L, true, "Test");
 
             // When
-            Set<ConstraintViolation<TestValidatedDTO>> violations =
-                    validator.validate(dto);
+            Set<ConstraintViolation<TestValidatedDTO>> violations = validator.validate(dto);
 
             // Then
             assertThat(violations)
@@ -209,34 +212,37 @@ class ValidationTest {
                 Long id,
                 Boolean activo,
                 @jakarta.validation.constraints.NotBlank(
-                        groups = {ValidationGroups.Create.class, ValidationGroups.Update.class},
-                        message = "Name is required"
-                )
-                @jakarta.validation.constraints.Size(
-                        min = 2, max = 100,
-                        message = "Name must be between 2 and 100 characters"
-                )
-                String name,
-
+                                groups = {
+                                    ValidationGroups.Create.class,
+                                    ValidationGroups.Update.class
+                                },
+                                message = "Name is required")
+                        @jakarta.validation.constraints.Size(
+                                min = 2,
+                                max = 100,
+                                message = "Name must be between 2 and 100 characters")
+                        String name,
                 @jakarta.validation.constraints.Email(message = "Invalid email format")
-                String email,
-
+                        String email,
                 @jakarta.validation.constraints.Min(value = 0, message = "Age must be positive")
-                @jakarta.validation.constraints.Max(value = 150, message = "Age must be realistic")
-                Integer age
-        ) implements BaseDTOValidated {}
+                        @jakarta.validation.constraints.Max(
+                                value = 150,
+                                message = "Age must be realistic")
+                        Integer age)
+                implements BaseDTOValidated {}
 
         @Test
         @DisplayName("should validate all fields correctly on create")
         void shouldValidateAllFieldsCorrectlyOnCreate() {
             // Given - valid DTO for creation
-            ComplexDTO validDto = new ComplexDTO(
-                    null,           // ID null for create
-                    true,
-                    "Valid Name",   // Valid name
-                    "test@email.com", // Valid email
-                    25              // Valid age
-            );
+            ComplexDTO validDto =
+                    new ComplexDTO(
+                            null, // ID null for create
+                            true,
+                            "Valid Name", // Valid name
+                            "test@email.com", // Valid email
+                            25 // Valid age
+                            );
 
             // When
             Set<ConstraintViolation<ComplexDTO>> violations =
@@ -250,17 +256,17 @@ class ValidationTest {
         @DisplayName("should collect multiple violations")
         void shouldCollectMultipleViolations() {
             // Given - DTO with multiple issues
-            ComplexDTO invalidDto = new ComplexDTO(
-                    -1L,            // Invalid: negative ID
-                    true,
-                    "X",            // Invalid: too short
-                    "invalid-email", // Invalid: not an email
-                    200             // Invalid: too high
-            );
+            ComplexDTO invalidDto =
+                    new ComplexDTO(
+                            -1L, // Invalid: negative ID
+                            true,
+                            "X", // Invalid: too short
+                            "invalid-email", // Invalid: not an email
+                            200 // Invalid: too high
+                            );
 
             // When
-            Set<ConstraintViolation<ComplexDTO>> violations =
-                    validator.validate(invalidDto);
+            Set<ConstraintViolation<ComplexDTO>> violations = validator.validate(invalidDto);
 
             // Then
             assertThat(violations).hasSizeGreaterThan(1);
@@ -270,9 +276,8 @@ class ValidationTest {
         @DisplayName("should validate email format")
         void shouldValidateEmailFormat() {
             // Given
-            ComplexDTO dtoWithInvalidEmail = new ComplexDTO(
-                    null, true, "Valid Name", "not-an-email", 25
-            );
+            ComplexDTO dtoWithInvalidEmail =
+                    new ComplexDTO(null, true, "Valid Name", "not-an-email", 25);
 
             // When
             Set<ConstraintViolation<ComplexDTO>> violations =
@@ -288,13 +293,10 @@ class ValidationTest {
         @DisplayName("should validate name length")
         void shouldValidateNameLength() {
             // Given - name too short
-            ComplexDTO dtoWithShortName = new ComplexDTO(
-                    null, true, "A", "test@email.com", 25
-            );
+            ComplexDTO dtoWithShortName = new ComplexDTO(null, true, "A", "test@email.com", 25);
 
             // When
-            Set<ConstraintViolation<ComplexDTO>> violations =
-                    validator.validate(dtoWithShortName);
+            Set<ConstraintViolation<ComplexDTO>> violations = validator.validate(dtoWithShortName);
 
             // Then
             assertThat(violations)

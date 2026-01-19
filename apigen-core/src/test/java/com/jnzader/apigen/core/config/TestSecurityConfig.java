@@ -8,12 +8,12 @@ import org.springframework.security.web.SecurityFilterChain;
 /**
  * Test security configuration that disables security for integration tests.
  *
- * This class intentionally has NO @Configuration, @Component, or similar annotations
- * to prevent it from being auto-scanned. Tests that need this configuration must
- * explicitly import it using @Import(TestSecurityConfig.class).
+ * <p>This class intentionally has NO @Configuration, @Component, or similar annotations to prevent
+ * it from being auto-scanned. Tests that need this configuration must explicitly import it
+ * using @Import(TestSecurityConfig.class).
  *
- * Note: This configuration requires HttpSecurity to be available, which only happens
- * in full Spring Boot tests (@SpringBootTest), not in slice tests (@WebMvcTest).
+ * <p>Note: This configuration requires HttpSecurity to be available, which only happens in full
+ * Spring Boot tests (@SpringBootTest), not in slice tests (@WebMvcTest).
  */
 public class TestSecurityConfig {
 
@@ -24,7 +24,7 @@ public class TestSecurityConfig {
     // S4834: permitAll() - INTENCIONAL, config de TEST para deshabilitar seguridad
     public SecurityFilterChain testSecurityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
-            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
         return http.build();
     }
 }

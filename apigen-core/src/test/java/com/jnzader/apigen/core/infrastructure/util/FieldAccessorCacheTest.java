@@ -1,14 +1,13 @@
 package com.jnzader.apigen.core.infrastructure.util;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-import java.util.Map;
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("FieldAccessorCache Tests")
 class FieldAccessorCacheTest {
@@ -34,7 +33,8 @@ class FieldAccessorCacheTest {
         void shouldGetFieldValuesFromPojo() {
             TestPojo pojo = new TestPojo(1L, "Test", 25);
 
-            Map<String, Object> result = FieldAccessorCache.getFieldValues(pojo, Set.of("name", "age"));
+            Map<String, Object> result =
+                    FieldAccessorCache.getFieldValues(pojo, Set.of("name", "age"));
 
             assertThat(result)
                     .containsEntry("id", 1L)
@@ -47,7 +47,8 @@ class FieldAccessorCacheTest {
         void shouldGetFieldValuesFromRecord() {
             TestRecord testRecord = new TestRecord(1L, "Record", true);
 
-            Map<String, Object> result = FieldAccessorCache.getFieldValues(testRecord, Set.of("name", "active"));
+            Map<String, Object> result =
+                    FieldAccessorCache.getFieldValues(testRecord, Set.of("name", "active"));
 
             assertThat(result)
                     .containsEntry("id", 1L)
@@ -70,7 +71,8 @@ class FieldAccessorCacheTest {
         void shouldSkipMissingFields() {
             TestPojo pojo = new TestPojo(1L, "Test", 25);
 
-            Map<String, Object> result = FieldAccessorCache.getFieldValues(pojo, Set.of("nonExistent"));
+            Map<String, Object> result =
+                    FieldAccessorCache.getFieldValues(pojo, Set.of("nonExistent"));
 
             assertThat(result).containsOnlyKeys("id");
         }
@@ -231,9 +233,17 @@ class FieldAccessorCacheTest {
             this.age = age;
         }
 
-        public Long getId() { return id; }
-        public String getName() { return name; }
-        public Integer getAge() { return age; }
+        public Long getId() {
+            return id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public Integer getAge() {
+            return age;
+        }
     }
 
     static class TestPojoWithBoolean {
@@ -243,7 +253,9 @@ class FieldAccessorCacheTest {
             this.active = active;
         }
 
-        public boolean isActive() { return active; }
+        public boolean isActive() {
+            return active;
+        }
     }
 
     record TestRecord(Long id, String name, boolean active) {}

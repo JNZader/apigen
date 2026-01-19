@@ -1,13 +1,13 @@
 package com.jnzader.apigen.server.service.generator;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.jnzader.apigen.server.config.GeneratedProjectVersions;
 import com.jnzader.apigen.server.dto.GenerateRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("ApplicationConfigGenerator Tests")
 class ApplicationConfigGeneratorTest {
@@ -80,9 +80,7 @@ class ApplicationConfigGeneratorTest {
 
             String result = applicationConfigGenerator.generateApplicationYml(config);
 
-            assertThat(result)
-                    .contains("server:")
-                    .contains("port: 8080");
+            assertThat(result).contains("server:").contains("port: 8080");
         }
 
         @Test
@@ -146,11 +144,12 @@ class ApplicationConfigGeneratorTest {
         @DisplayName("Should use environment variable placeholders")
         void shouldUseEnvironmentVariablePlaceholders() {
             GenerateRequest.ProjectConfig config = createDefaultConfig();
-            config.setDatabase(GenerateRequest.DatabaseConfig.builder()
-                    .type("postgresql")
-                    .username("testuser")
-                    .password("testpass")
-                    .build());
+            config.setDatabase(
+                    GenerateRequest.DatabaseConfig.builder()
+                            .type("postgresql")
+                            .username("testuser")
+                            .password("testpass")
+                            .build());
 
             String result = applicationConfigGenerator.generateApplicationDockerYml(config);
 
@@ -196,10 +195,7 @@ class ApplicationConfigGeneratorTest {
 
             String result = applicationConfigGenerator.generateApplicationDockerYml(config);
 
-            assertThat(result)
-                    .contains("h2:")
-                    .contains("console:")
-                    .contains("enabled: false");
+            assertThat(result).contains("h2:").contains("console:").contains("enabled: false");
         }
 
         @Test
@@ -223,10 +219,7 @@ class ApplicationConfigGeneratorTest {
 
             String result = applicationConfigGenerator.generateApplicationDockerYml(config);
 
-            assertThat(result)
-                    .contains("logging:")
-                    .contains("level:")
-                    .contains("root: INFO");
+            assertThat(result).contains("logging:").contains("level:").contains("root: INFO");
         }
 
         @Test

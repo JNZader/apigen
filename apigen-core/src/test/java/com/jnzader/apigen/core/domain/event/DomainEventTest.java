@@ -1,10 +1,13 @@
 package com.jnzader.apigen.core.domain.event;
 
+import static org.assertj.core.api.Assertions.*;
+
 import com.jnzader.apigen.core.fixtures.TestEntity;
 import com.jnzader.apigen.core.infrastructure.event.handler.DomainEventHandler;
 import com.jnzader.apigen.core.support.TestEntityBuilder;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -12,18 +15,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDateTime;
-
-import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests para eventos de dominio.
- * <p>
- * Verifica:
- * - Creación correcta de eventos
- * - Datos del evento
- * - Manejo de eventos por handlers
- * - Métricas de eventos
+ *
+ * <p>Verifica: - Creación correcta de eventos - Datos del evento - Manejo de eventos por handlers -
+ * Métricas de eventos
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Domain Event Tests")
@@ -36,10 +32,11 @@ class DomainEventTest {
     @BeforeEach
     void setUp() {
         TestEntityBuilder.resetIdCounter();
-        testEntity = TestEntityBuilder.aTestEntityWithId()
-                .withName("Test Entity")
-                .withCreadoPor("test-user")
-                .build();
+        testEntity =
+                TestEntityBuilder.aTestEntityWithId()
+                        .withName("Test Entity")
+                        .withCreadoPor("test-user")
+                        .build();
         meterRegistry = new SimpleMeterRegistry();
         eventHandler = new DomainEventHandler(meterRegistry);
     }
@@ -74,9 +71,7 @@ class DomainEventTest {
 
             // Then
             LocalDateTime after = LocalDateTime.now();
-            assertThat(event.occurredOn())
-                    .isAfterOrEqualTo(before)
-                    .isBeforeOrEqualTo(after);
+            assertThat(event.occurredOn()).isAfterOrEqualTo(before).isBeforeOrEqualTo(after);
         }
 
         @Test
@@ -131,7 +126,8 @@ class DomainEventTest {
         @DisplayName("should create hard delete event when specified")
         void shouldCreateHardDeleteEventWhenSpecified() {
             // When
-            EntityDeletedEvent<TestEntity> event = new EntityDeletedEvent<>(testEntity, "deleter", false);
+            EntityDeletedEvent<TestEntity> event =
+                    new EntityDeletedEvent<>(testEntity, "deleter", false);
 
             // Then
             assertThat(event.softDelete()).isFalse();
@@ -177,8 +173,8 @@ class DomainEventTest {
         @DisplayName("should create hard delete event with all parameters")
         void shouldCreateHardDeleteEventWithAllParameters() {
             // When
-            EntityHardDeletedEvent<Long> event = new EntityHardDeletedEvent<>(
-                    1L, "TestEntity", "deleter");
+            EntityHardDeletedEvent<Long> event =
+                    new EntityHardDeletedEvent<>(1L, "TestEntity", "deleter");
 
             // Then
             assertThat(event.entityId()).isEqualTo(1L);

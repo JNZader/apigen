@@ -3,9 +3,7 @@ package com.jnzader.apigen.codegen.model;
 import lombok.Builder;
 import lombok.Data;
 
-/**
- * Represents a foreign key constraint parsed from SQL.
- */
+/** Represents a foreign key constraint parsed from SQL. */
 @Data
 @Builder
 public class SqlForeignKey {
@@ -25,8 +23,8 @@ public class SqlForeignKey {
     }
 
     /**
-     * Determines the JPA relationship type based on FK characteristics.
-     * Note: referencedTable reserved for future bidirectional relationship detection.
+     * Determines the JPA relationship type based on FK characteristics. Note: referencedTable
+     * reserved for future bidirectional relationship detection.
      */
     @SuppressWarnings("java:S1172") // referencedTable reserved for future use
     public RelationType inferRelationType(SqlTable parentTable, SqlTable referencedTable) {
@@ -50,16 +48,12 @@ public class SqlForeignKey {
         // 1. Only 2 columns that are both FKs (+ possible audit fields)
         // 2. Composite primary key on both FK columns
         long fkCount = table.getForeignKeys().size();
-        long pkColumnCount = table.getColumns().stream()
-                .filter(SqlColumn::isPrimaryKey)
-                .count();
+        long pkColumnCount = table.getColumns().stream().filter(SqlColumn::isPrimaryKey).count();
 
         return fkCount == 2 && pkColumnCount == 2;
     }
 
-    /**
-     * Converts table name to Java entity name.
-     */
+    /** Converts table name to Java entity name. */
     public String getReferencedEntityName() {
         if (referencedTable == null) return null;
 
@@ -67,9 +61,7 @@ public class SqlForeignKey {
         return snakeToPascalCase(singular);
     }
 
-    /**
-     * Converts a plural table name to singular form.
-     */
+    /** Converts a plural table name to singular form. */
     private String toSingular(String name) {
         if (name.endsWith("ies")) {
             return name.substring(0, name.length() - 3) + "y";
@@ -96,9 +88,7 @@ public class SqlForeignKey {
         return false;
     }
 
-    /**
-     * Converts snake_case to PascalCase.
-     */
+    /** Converts snake_case to PascalCase. */
     private String snakeToPascalCase(String input) {
         StringBuilder result = new StringBuilder();
         boolean capitalizeNext = true;
@@ -113,9 +103,7 @@ public class SqlForeignKey {
         return result.toString();
     }
 
-    /**
-     * Gets the Java field name for this relationship.
-     */
+    /** Gets the Java field name for this relationship. */
     public String getJavaFieldName() {
         // Remove _id suffix if present
         String fieldName = columnName;

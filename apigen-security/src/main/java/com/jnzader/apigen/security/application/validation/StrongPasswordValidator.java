@@ -2,20 +2,20 @@ package com.jnzader.apigen.security.application.validation;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-
 import java.util.regex.Pattern;
 
 /**
  * Validador para contraseñas fuertes.
- * <p>
- * Verifica que la contraseña cumpla con los requisitos de seguridad.
+ *
+ * <p>Verifica que la contraseña cumpla con los requisitos de seguridad.
  */
 public class StrongPasswordValidator implements ConstraintValidator<StrongPassword, String> {
 
     private static final Pattern UPPERCASE = Pattern.compile("[A-Z]");
     private static final Pattern LOWERCASE = Pattern.compile("[a-z]");
     private static final Pattern DIGIT = Pattern.compile("\\d");
-    private static final Pattern SPECIAL = Pattern.compile("[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?]");
+    private static final Pattern SPECIAL =
+            Pattern.compile("[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?]");
 
     private int minLength;
     private int maxLength;
@@ -62,8 +62,8 @@ public class StrongPasswordValidator implements ConstraintValidator<StrongPasswo
         if (!errors.isEmpty()) {
             context.disableDefaultConstraintViolation();
             context.buildConstraintViolationWithTemplate(
-                    "Contraseña inválida: " + errors.toString().trim()
-            ).addConstraintViolation();
+                            "Contraseña inválida: " + errors.toString().trim())
+                    .addConstraintViolation();
             return false;
         }
 

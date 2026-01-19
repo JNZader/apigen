@@ -13,10 +13,11 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**
  * Controlador REST para Server-Sent Events (SSE).
- * <p>
- * Permite a los clientes suscribirse a eventos en tiempo real.
- * <p>
- * Uso en cliente JavaScript:
+ *
+ * <p>Permite a los clientes suscribirse a eventos en tiempo real.
+ *
+ * <p>Uso en cliente JavaScript:
+ *
  * <pre>
  * const eventSource = new EventSource('/api/v1/events/orders');
  *
@@ -37,11 +38,9 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
  *     eventSource.close();
  * };
  * </pre>
- * <p>
- * Eventos disponibles:
- * - connected: Enviado al establecer conexión (incluye clientId)
- * - heartbeat: Keepalive periódico
- * - message: Evento genérico (configurable por tópico)
+ *
+ * <p>Eventos disponibles: - connected: Enviado al establecer conexión (incluye clientId) -
+ * heartbeat: Keepalive periódico - message: Evento genérico (configurable por tópico)
  */
 @RestController
 @RequestMapping("${app.api.base-path:}/v1/events")
@@ -56,7 +55,8 @@ public class SseController {
 
     @Operation(
             summary = "Suscribirse a eventos de un tópico",
-            description = """
+            description =
+                    """
                     Establece una conexión SSE para recibir eventos en tiempo real.
 
                     La conexión permanece abierta y recibirá eventos cada vez que
@@ -64,56 +64,46 @@ public class SseController {
 
                     Tópicos disponibles dependen de la configuración de la aplicación.
                     Ejemplos comunes: 'orders', 'notifications', 'updates'.
-                    """
-    )
+                    """)
     @ApiResponse(
             responseCode = "200",
             description = "Conexión SSE establecida",
-            content = @Content(mediaType = MediaType.TEXT_EVENT_STREAM_VALUE)
-    )
+            content = @Content(mediaType = MediaType.TEXT_EVENT_STREAM_VALUE))
     @GetMapping(value = "/{topic}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter subscribe(
-            @Parameter(description = "Tópico al que suscribirse", example = "orders")
-            @PathVariable String topic,
-
+            @Parameter(description = "Tópico al que suscribirse", example = "orders") @PathVariable
+                    String topic,
             @Parameter(description = "ID de cliente opcional (se genera uno si no se proporciona)")
-            @RequestParam(required = false) String clientId
-    ) {
+                    @RequestParam(required = false)
+                    String clientId) {
         return sseEmitterService.subscribe(topic, clientId);
     }
 
     @Operation(
             summary = "Obtener estadísticas de SSE",
-            description = "Retorna información sobre conexiones activas por tópico"
-    )
+            description = "Retorna información sobre conexiones activas por tópico")
     @ApiResponse(
             responseCode = "200",
             description = "Estadísticas de conexiones",
-            content = @Content(schema = @Schema(implementation = SseStats.class))
-    )
+            content = @Content(schema = @Schema(implementation = SseStats.class)))
     @GetMapping("/stats")
     public ResponseEntity<SseStats> getStats(
             @Parameter(description = "Filtrar por tópico específico")
-            @RequestParam(required = false) String topic
-    ) {
+                    @RequestParam(required = false)
+                    String topic) {
         int totalClients = sseEmitterService.getTotalClientCount();
-        int topicClients = topic != null ? sseEmitterService.getSubscriberCount(topic) : totalClients;
+        int topicClients =
+                topic != null ? sseEmitterService.getSubscriberCount(topic) : totalClients;
 
         return ResponseEntity.ok(new SseStats(totalClients, topicClients, topic));
     }
 
-    /**
-     * DTO para estadísticas de SSE.
-     */
+    /** DTO para estadísticas de SSE. */
     @Schema(description = "Estadísticas de conexiones SSE")
     public record SseStats(
-            @Schema(description = "Total de clientes conectados")
-            int totalClients,
-
+            @Schema(description = "Total de clientes conectados") int totalClients,
             @Schema(description = "Clientes en el tópico filtrado (o total si no hay filtro)")
-            int topicClients,
-
+                    int topicClients,
             @Schema(description = "Tópico filtrado (null si no hay filtro)")
-            String filteredTopic
-    ) {}
+                    String filteredTopic) {}
 }

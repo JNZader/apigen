@@ -1,5 +1,9 @@
 package com.jnzader.apigen.core.infrastructure.config;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.when;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -13,31 +17,31 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.core.env.Environment;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.when;
-
 @DisplayName("ConfigurationValidator Tests")
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class ConfigurationValidatorTest {
 
-    @Mock
-    private Environment environment;
+    @Mock private Environment environment;
 
-    @Mock
-    private ApplicationArguments args;
+    @Mock private ApplicationArguments args;
 
     private ConfigurationValidator validator;
 
     @BeforeEach
     void setUp() {
         validator = new ConfigurationValidator(environment);
-        when(environment.getActiveProfiles()).thenReturn(new String[]{});
+        when(environment.getActiveProfiles()).thenReturn(new String[] {});
     }
 
-    private void setValidatorFields(String apiVersion, String apiBasePath, String datasourceUrl,
-                                    int cacheMaxSize, String corsOrigins, int rateLimit, String profile) {
+    private void setValidatorFields(
+            String apiVersion,
+            String apiBasePath,
+            String datasourceUrl,
+            int cacheMaxSize,
+            String corsOrigins,
+            int rateLimit,
+            String profile) {
         ReflectionTestUtils.setField(validator, "apiVersion", apiVersion);
         ReflectionTestUtils.setField(validator, "apiBasePath", apiBasePath);
         ReflectionTestUtils.setField(validator, "datasourceUrl", datasourceUrl);
@@ -62,7 +66,7 @@ class ConfigurationValidatorTest {
         @Test
         @DisplayName("should skip validation when test is in active profiles")
         void shouldSkipValidationWhenTestInActiveProfiles() {
-            when(environment.getActiveProfiles()).thenReturn(new String[]{"test"});
+            when(environment.getActiveProfiles()).thenReturn(new String[] {"test"});
             setValidatorFields("", "", "", 0, "", 0, "dev");
 
             assertThatCode(() -> validator.run(args)).doesNotThrowAnyException();
@@ -116,9 +120,12 @@ class ConfigurationValidatorTest {
         @Test
         @DisplayName("should fail when datasourceUrl contains localhost in production")
         void shouldFailWhenDatasourceUrlContainsLocalhostInProduction() {
-            setValidatorFields("v1", "/api", "jdbc:postgresql://localhost/db", 100, "*", 100, "prod");
-            when(environment.getProperty("spring.jpa.hibernate.ddl-auto", "")).thenReturn("validate");
-            when(environment.getProperty("spring.jpa.show-sql", Boolean.class, false)).thenReturn(false);
+            setValidatorFields(
+                    "v1", "/api", "jdbc:postgresql://localhost/db", 100, "*", 100, "prod");
+            when(environment.getProperty("spring.jpa.hibernate.ddl-auto", ""))
+                    .thenReturn("validate");
+            when(environment.getProperty("spring.jpa.show-sql", Boolean.class, false))
+                    .thenReturn(false);
             when(environment.getProperty("logging.level.root", "INFO")).thenReturn("INFO");
 
             assertThatThrownBy(() -> validator.run(args))
@@ -134,9 +141,11 @@ class ConfigurationValidatorTest {
         @Test
         @DisplayName("should fail when ddl-auto is update in production")
         void shouldFailWhenDdlAutoIsUpdateInProduction() {
-            setValidatorFields("v1", "/api", "jdbc:postgresql://prod-host/db", 100, "*", 100, "prod");
+            setValidatorFields(
+                    "v1", "/api", "jdbc:postgresql://prod-host/db", 100, "*", 100, "prod");
             when(environment.getProperty("spring.jpa.hibernate.ddl-auto", "")).thenReturn("update");
-            when(environment.getProperty("spring.jpa.show-sql", Boolean.class, false)).thenReturn(false);
+            when(environment.getProperty("spring.jpa.show-sql", Boolean.class, false))
+                    .thenReturn(false);
             when(environment.getProperty("logging.level.root", "INFO")).thenReturn("INFO");
 
             assertThatThrownBy(() -> validator.run(args))
@@ -147,9 +156,11 @@ class ConfigurationValidatorTest {
         @Test
         @DisplayName("should fail when ddl-auto is create in production")
         void shouldFailWhenDdlAutoIsCreateInProduction() {
-            setValidatorFields("v1", "/api", "jdbc:postgresql://prod-host/db", 100, "*", 100, "prod");
+            setValidatorFields(
+                    "v1", "/api", "jdbc:postgresql://prod-host/db", 100, "*", 100, "prod");
             when(environment.getProperty("spring.jpa.hibernate.ddl-auto", "")).thenReturn("create");
-            when(environment.getProperty("spring.jpa.show-sql", Boolean.class, false)).thenReturn(false);
+            when(environment.getProperty("spring.jpa.show-sql", Boolean.class, false))
+                    .thenReturn(false);
             when(environment.getProperty("logging.level.root", "INFO")).thenReturn("INFO");
 
             assertThatThrownBy(() -> validator.run(args))
@@ -160,9 +171,18 @@ class ConfigurationValidatorTest {
         @Test
         @DisplayName("should pass when ddl-auto is validate in production")
         void shouldPassWhenDdlAutoIsValidateInProduction() {
-            setValidatorFields("v1", "/api", "jdbc:postgresql://prod-host/db", 100, "https://example.com", 100, "production");
-            when(environment.getProperty("spring.jpa.hibernate.ddl-auto", "")).thenReturn("validate");
-            when(environment.getProperty("spring.jpa.show-sql", Boolean.class, false)).thenReturn(false);
+            setValidatorFields(
+                    "v1",
+                    "/api",
+                    "jdbc:postgresql://prod-host/db",
+                    100,
+                    "https://example.com",
+                    100,
+                    "production");
+            when(environment.getProperty("spring.jpa.hibernate.ddl-auto", ""))
+                    .thenReturn("validate");
+            when(environment.getProperty("spring.jpa.show-sql", Boolean.class, false))
+                    .thenReturn(false);
             when(environment.getProperty("logging.level.root", "INFO")).thenReturn("INFO");
 
             assertThatCode(() -> validator.run(args)).doesNotThrowAnyException();
@@ -176,8 +196,16 @@ class ConfigurationValidatorTest {
         @Test
         @DisplayName("should pass with valid configuration")
         void shouldPassWithValidConfiguration() {
-            setValidatorFields("v1", "/api", "jdbc:postgresql://localhost/db", 100, "http://localhost:3000", 100, "dev");
-            when(environment.getProperty("spring.datasource.username", "")).thenReturn("custom_user");
+            setValidatorFields(
+                    "v1",
+                    "/api",
+                    "jdbc:postgresql://localhost/db",
+                    100,
+                    "http://localhost:3000",
+                    100,
+                    "dev");
+            when(environment.getProperty("spring.datasource.username", ""))
+                    .thenReturn("custom_user");
 
             assertThatCode(() -> validator.run(args)).doesNotThrowAnyException();
         }
@@ -186,7 +214,8 @@ class ConfigurationValidatorTest {
         @DisplayName("should pass with minimal configuration in development")
         void shouldPassWithMinimalConfigurationInDevelopment() {
             setValidatorFields("v1", "/api", "jdbc:postgresql://localhost/db", 0, "", 0, "local");
-            when(environment.getProperty("spring.datasource.username", "")).thenReturn("apigen_user");
+            when(environment.getProperty("spring.datasource.username", ""))
+                    .thenReturn("apigen_user");
 
             assertThatCode(() -> validator.run(args)).doesNotThrowAnyException();
         }
@@ -199,25 +228,29 @@ class ConfigurationValidatorTest {
         @Test
         @DisplayName("should treat 'prod' as production")
         void shouldTreatProdAsProduction() {
-            setValidatorFields("v1", "/api", "jdbc:postgresql://localhost/db", 100, "*", 100, "prod");
-            when(environment.getProperty("spring.jpa.hibernate.ddl-auto", "")).thenReturn("validate");
-            when(environment.getProperty("spring.jpa.show-sql", Boolean.class, false)).thenReturn(false);
+            setValidatorFields(
+                    "v1", "/api", "jdbc:postgresql://localhost/db", 100, "*", 100, "prod");
+            when(environment.getProperty("spring.jpa.hibernate.ddl-auto", ""))
+                    .thenReturn("validate");
+            when(environment.getProperty("spring.jpa.show-sql", Boolean.class, false))
+                    .thenReturn(false);
             when(environment.getProperty("logging.level.root", "INFO")).thenReturn("INFO");
 
-            assertThatThrownBy(() -> validator.run(args))
-                    .isInstanceOf(IllegalStateException.class);
+            assertThatThrownBy(() -> validator.run(args)).isInstanceOf(IllegalStateException.class);
         }
 
         @Test
         @DisplayName("should treat 'production' as production")
         void shouldTreatProductionAsProduction() {
-            setValidatorFields("v1", "/api", "jdbc:postgresql://localhost/db", 100, "*", 100, "production");
-            when(environment.getProperty("spring.jpa.hibernate.ddl-auto", "")).thenReturn("validate");
-            when(environment.getProperty("spring.jpa.show-sql", Boolean.class, false)).thenReturn(false);
+            setValidatorFields(
+                    "v1", "/api", "jdbc:postgresql://localhost/db", 100, "*", 100, "production");
+            when(environment.getProperty("spring.jpa.hibernate.ddl-auto", ""))
+                    .thenReturn("validate");
+            when(environment.getProperty("spring.jpa.show-sql", Boolean.class, false))
+                    .thenReturn(false);
             when(environment.getProperty("logging.level.root", "INFO")).thenReturn("INFO");
 
-            assertThatThrownBy(() -> validator.run(args))
-                    .isInstanceOf(IllegalStateException.class);
+            assertThatThrownBy(() -> validator.run(args)).isInstanceOf(IllegalStateException.class);
         }
     }
 }

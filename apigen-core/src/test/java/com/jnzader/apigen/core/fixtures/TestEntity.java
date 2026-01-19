@@ -9,9 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Test entity for unit tests.
- */
+/** Test entity for unit tests. */
 @Entity
 @Table(name = "test_entities")
 @Getter

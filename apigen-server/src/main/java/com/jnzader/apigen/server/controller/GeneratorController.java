@@ -11,9 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-/**
- * REST Controller for code generation endpoints.
- */
+/** REST Controller for code generation endpoints. */
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -23,15 +21,17 @@ public class GeneratorController {
     private final GeneratorService generatorService;
 
     /**
-     * Generates a Spring Boot project from SQL schema.
-     * Returns a ZIP file containing the complete project structure.
+     * Generates a Spring Boot project from SQL schema. Returns a ZIP file containing the complete
+     * project structure.
      *
      * @param request The generation request with SQL and project config
      * @return ZIP file as byte array
      */
     @PostMapping("/generate")
     public ResponseEntity<byte[]> generate(@Valid @RequestBody GenerateRequest request) {
-        log.info("Received generation request for project: {}", request.getProject().getArtifactId());
+        log.info(
+                "Received generation request for project: {}",
+                request.getProject().getArtifactId());
 
         try {
             byte[] zipBytes = generatorService.generateProject(request);
@@ -45,9 +45,7 @@ public class GeneratorController {
 
             log.info("Returning ZIP file: {} ({} bytes)", filename, zipBytes.length);
 
-            return ResponseEntity.ok()
-                    .headers(headers)
-                    .body(zipBytes);
+            return ResponseEntity.ok().headers(headers).body(zipBytes);
 
         } catch (Exception e) {
             log.error("Generation failed", e);
@@ -56,8 +54,8 @@ public class GeneratorController {
     }
 
     /**
-     * Validates a generation request without generating code.
-     * Useful for checking SQL syntax before full generation.
+     * Validates a generation request without generating code. Useful for checking SQL syntax before
+     * full generation.
      *
      * @param request The generation request to validate
      * @return Validation result with any errors
@@ -71,27 +69,19 @@ public class GeneratorController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Health check endpoint.
-     */
+    /** Health check endpoint. */
     @GetMapping("/health")
     public ResponseEntity<HealthResponse> health() {
         return ResponseEntity.ok(new HealthResponse("ok", "APiGen Server is running"));
     }
 
-    /**
-     * Simple health response record.
-     */
+    /** Simple health response record. */
     public record HealthResponse(String status, String message) {}
 
-    /**
-     * Error response record.
-     */
+    /** Error response record. */
     public record ErrorResponse(String error, String message) {}
 
-    /**
-     * Handles GenerationException and returns proper HTTP 500 response.
-     */
+    /** Handles GenerationException and returns proper HTTP 500 response. */
     @ExceptionHandler(GenerationException.class)
     public ResponseEntity<ErrorResponse> handleGenerationException(GenerationException e) {
         log.error("Generation error: {}", e.getMessage());
@@ -99,9 +89,7 @@ public class GeneratorController {
                 .body(new ErrorResponse("GENERATION_ERROR", e.getMessage()));
     }
 
-    /**
-     * Exception for generation errors.
-     */
+    /** Exception for generation errors. */
     public static class GenerationException extends RuntimeException {
         public GenerationException(String message, Throwable cause) {
             super(message, cause);

@@ -1,12 +1,12 @@
 package com.jnzader.apigen.server.service.generator.util;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("StringTransformationUtil Tests")
 class StringTransformationUtilTest {
@@ -16,13 +16,7 @@ class StringTransformationUtilTest {
     class CapitalizeTests {
 
         @ParameterizedTest
-        @CsvSource({
-                "hello, Hello",
-                "world, World",
-                "test, Test",
-                "a, A",
-                "ABC, ABC"
-        })
+        @CsvSource({"hello, Hello", "world, World", "test, Test", "a, A", "ABC, ABC"})
         @DisplayName("Should capitalize first letter")
         void shouldCapitalizeFirstLetter(String input, String expected) {
             assertThat(StringTransformationUtil.capitalize(input)).isEqualTo(expected);
@@ -59,13 +53,13 @@ class StringTransformationUtilTest {
 
         @ParameterizedTest
         @CsvSource({
-                "user_id, userId",
-                "created_at, createdAt",
-                "first_name, firstName",
-                "last_modified_date, lastModifiedDate",
-                "simple, simple",
-                "UPPER_CASE, upperCase",
-                "Mixed_Case, mixedCase"
+            "user_id, userId",
+            "created_at, createdAt",
+            "first_name, firstName",
+            "last_modified_date, lastModifiedDate",
+            "simple, simple",
+            "UPPER_CASE, upperCase",
+            "Mixed_Case, mixedCase"
         })
         @DisplayName("Should convert snake_case to camelCase")
         void shouldConvertSnakeCaseToCamelCase(String input, String expected) {
@@ -109,12 +103,12 @@ class StringTransformationUtilTest {
 
         @ParameterizedTest
         @CsvSource({
-                "my-app, MyApp",
-                "user-service, UserService",
-                "hello-world, HelloWorld",
-                "simple, Simple",
-                "a-b-c, ABC",
-                "test, Test"
+            "my-app, MyApp",
+            "user-service, UserService",
+            "hello-world, HelloWorld",
+            "simple, Simple",
+            "a-b-c, ABC",
+            "test, Test"
         })
         @DisplayName("Should convert kebab-case to PascalCase")
         void shouldConvertKebabCaseToPascalCase(String input, String expected) {
@@ -201,7 +195,8 @@ class StringTransformationUtilTest {
         @Test
         @DisplayName("Should handle multiple escape sequences")
         void shouldHandleMultipleEscapeSequences() {
-            String result = StringTransformationUtil.escapeJsonString("line1\nline2\t\"quoted\"\\path");
+            String result =
+                    StringTransformationUtil.escapeJsonString("line1\nline2\t\"quoted\"\\path");
             assertThat(result).isEqualTo("\"line1\\nline2\\t\\\"quoted\\\"\\\\path\"");
         }
 

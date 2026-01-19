@@ -1,13 +1,13 @@
 package com.jnzader.apigen.codegen.generator.util;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("CodeGenerationUtils Tests")
 class CodeGenerationUtilsTest {
@@ -17,12 +17,57 @@ class CodeGenerationUtilsTest {
     class SafeFieldNameTests {
 
         @ParameterizedTest
-        @ValueSource(strings = {"class", "public", "private", "static", "final", "void", "int", "boolean",
-                "if", "else", "for", "while", "switch", "case", "return", "new", "this", "super",
-                "abstract", "interface", "enum", "extends", "implements", "import", "package",
-                "try", "catch", "finally", "throw", "throws", "synchronized", "volatile",
-                "transient", "native", "strictfp", "assert", "default", "break", "continue",
-                "do", "instanceof", "goto", "const", "var", "yield", "record", "sealed", "permits"})
+        @ValueSource(
+                strings = {
+                    "class",
+                    "public",
+                    "private",
+                    "static",
+                    "final",
+                    "void",
+                    "int",
+                    "boolean",
+                    "if",
+                    "else",
+                    "for",
+                    "while",
+                    "switch",
+                    "case",
+                    "return",
+                    "new",
+                    "this",
+                    "super",
+                    "abstract",
+                    "interface",
+                    "enum",
+                    "extends",
+                    "implements",
+                    "import",
+                    "package",
+                    "try",
+                    "catch",
+                    "finally",
+                    "throw",
+                    "throws",
+                    "synchronized",
+                    "volatile",
+                    "transient",
+                    "native",
+                    "strictfp",
+                    "assert",
+                    "default",
+                    "break",
+                    "continue",
+                    "do",
+                    "instanceof",
+                    "goto",
+                    "const",
+                    "var",
+                    "yield",
+                    "record",
+                    "sealed",
+                    "permits"
+                })
         @DisplayName("Should suffix Java keywords with 'Field'")
         void shouldSuffixJavaKeywords(String keyword) {
             String result = CodeGenerationUtils.safeFieldName(keyword);
@@ -30,7 +75,16 @@ class CodeGenerationUtilsTest {
         }
 
         @ParameterizedTest
-        @ValueSource(strings = {"name", "value", "count", "status", "description", "userId", "createdAt"})
+        @ValueSource(
+                strings = {
+                    "name",
+                    "value",
+                    "count",
+                    "status",
+                    "description",
+                    "userId",
+                    "createdAt"
+                })
         @DisplayName("Should return non-keywords unchanged")
         void shouldReturnNonKeywordsUnchanged(String name) {
             String result = CodeGenerationUtils.safeFieldName(name);
@@ -52,14 +106,14 @@ class CodeGenerationUtilsTest {
 
         @ParameterizedTest
         @CsvSource({
-                "camelCase, camel_case",
-                "PascalCase, pascal_case",
-                "userId, user_id",
-                "createdAt, created_at",
-                "XMLParser, xmlparser",
-                "getHTTPResponse, get_httpresponse",
-                "simple, simple",
-                "ALLCAPS, allcaps"
+            "camelCase, camel_case",
+            "PascalCase, pascal_case",
+            "userId, user_id",
+            "createdAt, created_at",
+            "XMLParser, xmlparser",
+            "getHTTPResponse, get_httpresponse",
+            "simple, simple",
+            "ALLCAPS, allcaps"
         })
         @DisplayName("Should convert camelCase to snake_case")
         void shouldConvertCamelCaseToSnakeCase(String input, String expected) {
@@ -86,12 +140,7 @@ class CodeGenerationUtilsTest {
     class PluralizeTests {
 
         @ParameterizedTest
-        @CsvSource({
-                "user, users",
-                "product, products",
-                "order, orders",
-                "item, items"
-        })
+        @CsvSource({"user, users", "product, products", "order, orders", "item, items"})
         @DisplayName("Should add 's' for regular nouns")
         void shouldAddSForRegularNouns(String singular, String expected) {
             assertThat(CodeGenerationUtils.pluralize(singular)).isEqualTo(expected);
@@ -99,11 +148,11 @@ class CodeGenerationUtilsTest {
 
         @ParameterizedTest
         @CsvSource({
-                "category, categories",
-                "company, companies",
-                "entity, entities",
-                "city, cities",
-                "country, countries"
+            "category, categories",
+            "company, companies",
+            "entity, entities",
+            "city, cities",
+            "country, countries"
         })
         @DisplayName("Should change 'y' to 'ies' for consonant+y endings")
         void shouldChangeYToIes(String singular, String expected) {
@@ -111,58 +160,35 @@ class CodeGenerationUtilsTest {
         }
 
         @ParameterizedTest
-        @CsvSource({
-                "day, days",
-                "key, keys",
-                "boy, boys",
-                "guy, guys",
-                "array, arrays"
-        })
+        @CsvSource({"day, days", "key, keys", "boy, boys", "guy, guys", "array, arrays"})
         @DisplayName("Should add 's' for vowel+y endings")
         void shouldAddSForVowelYEndings(String singular, String expected) {
             assertThat(CodeGenerationUtils.pluralize(singular)).isEqualTo(expected);
         }
 
         @ParameterizedTest
-        @CsvSource({
-                "class, classes",
-                "bus, buses",
-                "address, addresses",
-                "process, processes"
-        })
+        @CsvSource({"class, classes", "bus, buses", "address, addresses", "process, processes"})
         @DisplayName("Should add 'es' for words ending in 's'")
         void shouldAddEsForSEndings(String singular, String expected) {
             assertThat(CodeGenerationUtils.pluralize(singular)).isEqualTo(expected);
         }
 
         @ParameterizedTest
-        @CsvSource({
-                "box, boxes",
-                "tax, taxes",
-                "index, indexes"
-        })
+        @CsvSource({"box, boxes", "tax, taxes", "index, indexes"})
         @DisplayName("Should add 'es' for words ending in 'x'")
         void shouldAddEsForXEndings(String singular, String expected) {
             assertThat(CodeGenerationUtils.pluralize(singular)).isEqualTo(expected);
         }
 
         @ParameterizedTest
-        @CsvSource({
-                "match, matches",
-                "batch, batches",
-                "search, searches"
-        })
+        @CsvSource({"match, matches", "batch, batches", "search, searches"})
         @DisplayName("Should add 'es' for words ending in 'ch'")
         void shouldAddEsForChEndings(String singular, String expected) {
             assertThat(CodeGenerationUtils.pluralize(singular)).isEqualTo(expected);
         }
 
         @ParameterizedTest
-        @CsvSource({
-                "dish, dishes",
-                "push, pushes",
-                "flash, flashes"
-        })
+        @CsvSource({"dish, dishes", "push, pushes", "flash, flashes"})
         @DisplayName("Should add 'es' for words ending in 'sh'")
         void shouldAddEsForShEndings(String singular, String expected) {
             assertThat(CodeGenerationUtils.pluralize(singular)).isEqualTo(expected);
@@ -174,8 +200,11 @@ class CodeGenerationUtilsTest {
     class IsJavaKeywordTests {
 
         @ParameterizedTest
-        @ValueSource(strings = {"class", "public", "private", "static", "void", "int", "boolean",
-                "if", "else", "for", "while", "return", "new", "try", "catch"})
+        @ValueSource(
+                strings = {
+                    "class", "public", "private", "static", "void", "int", "boolean", "if", "else",
+                    "for", "while", "return", "new", "try", "catch"
+                })
         @DisplayName("Should return true for Java keywords")
         void shouldReturnTrueForKeywords(String keyword) {
             assertThat(CodeGenerationUtils.isJavaKeyword(keyword)).isTrue();

@@ -1,5 +1,8 @@
 package com.jnzader.apigen.core.application.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
+
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,21 +16,17 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.cache.concurrent.ConcurrentMapCache;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
-
 /**
  * Tests para CacheEvictionService.
- * <p>
- * Verifica que el servicio de eviction selectivo funciona correctamente
- * para diferentes tipos de cache y escenarios.
+ *
+ * <p>Verifica que el servicio de eviction selectivo funciona correctamente para diferentes tipos de
+ * cache y escenarios.
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("CacheEvictionService Tests")
 class CacheEvictionServiceTest {
 
-    @Mock
-    private CacheManager cacheManager;
+    @Mock private CacheManager cacheManager;
 
     private CacheEvictionService cacheEvictionService;
 
@@ -76,8 +75,10 @@ class CacheEvictionServiceTest {
             // Assert: User entries evicted, others remain
             assertThat(listsNativeCache.getIfPresent("User:all:0:20:id:ASC")).isNull();
             assertThat(listsNativeCache.getIfPresent("User:active:0:10:name:DESC")).isNull();
-            assertThat(listsNativeCache.getIfPresent("Product:all:0:20:id:ASC")).isEqualTo("product-list-1");
-            assertThat(listsNativeCache.getIfPresent("Order:all:0:20:id:ASC")).isEqualTo("order-list-1");
+            assertThat(listsNativeCache.getIfPresent("Product:all:0:20:id:ASC"))
+                    .isEqualTo("product-list-1");
+            assertThat(listsNativeCache.getIfPresent("Order:all:0:20:id:ASC"))
+                    .isEqualTo("order-list-1");
         }
 
         @Test

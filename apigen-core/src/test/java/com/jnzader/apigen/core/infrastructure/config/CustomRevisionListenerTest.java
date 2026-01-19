@@ -1,6 +1,11 @@
 package com.jnzader.apigen.core.infrastructure.config;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.jnzader.apigen.core.domain.entity.audit.Revision;
+import java.util.Collections;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -9,12 +14,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.util.Collections;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @DisplayName("CustomRevisionListener Tests")
 class CustomRevisionListenerTest {
@@ -40,8 +39,9 @@ class CustomRevisionListenerTest {
         @Test
         @DisplayName("should set username from authenticated user")
         void shouldSetUsernameFromAuthenticatedUser() {
-            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                    "testuser", "password", Collections.emptyList());
+            UsernamePasswordAuthenticationToken auth =
+                    new UsernamePasswordAuthenticationToken(
+                            "testuser", "password", Collections.emptyList());
             SecurityContextHolder.getContext().setAuthentication(auth);
 
             listener.newRevision(revision);
@@ -74,7 +74,8 @@ class CustomRevisionListenerTest {
         @Test
         @DisplayName("should set anonymous when not authenticated")
         void shouldSetAnonymousWhenNotAuthenticated() {
-            UsernamePasswordAuthenticationToken auth = mock(UsernamePasswordAuthenticationToken.class);
+            UsernamePasswordAuthenticationToken auth =
+                    mock(UsernamePasswordAuthenticationToken.class);
             when(auth.isAuthenticated()).thenReturn(false);
             SecurityContextHolder.getContext().setAuthentication(auth);
 
@@ -86,8 +87,9 @@ class CustomRevisionListenerTest {
         @Test
         @DisplayName("should use principal name from authentication")
         void shouldUsePrincipalNameFromAuthentication() {
-            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                    "admin@example.com", "secret", Collections.emptyList());
+            UsernamePasswordAuthenticationToken auth =
+                    new UsernamePasswordAuthenticationToken(
+                            "admin@example.com", "secret", Collections.emptyList());
             SecurityContextHolder.getContext().setAuthentication(auth);
 
             listener.newRevision(revision);

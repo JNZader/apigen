@@ -1,11 +1,19 @@
 package com.jnzader.apigen.security.infrastructure.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+
 import com.jnzader.apigen.security.application.dto.AuthResponseDTO;
 import com.jnzader.apigen.security.application.dto.LoginRequestDTO;
 import com.jnzader.apigen.security.application.dto.RefreshTokenRequestDTO;
 import com.jnzader.apigen.security.application.dto.RegisterRequestDTO;
 import com.jnzader.apigen.security.application.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
+import java.time.Instant;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -18,50 +26,37 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 
-import java.time.Instant;
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
-
 /**
  * Unit tests for AuthController.
- * <p>
- * Tests the controller layer in isolation with mocked AuthService.
+ *
+ * <p>Tests the controller layer in isolation with mocked AuthService.
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("AuthController Tests")
 class AuthControllerTest {
 
-    @Mock
-    private AuthService authService;
+    @Mock private AuthService authService;
 
-    @Mock
-    private HttpServletRequest httpServletRequest;
+    @Mock private HttpServletRequest httpServletRequest;
 
-    @InjectMocks
-    private AuthController authController;
+    @InjectMocks private AuthController authController;
 
     private AuthResponseDTO mockAuthResponse;
 
     @BeforeEach
     void setUp() {
-        mockAuthResponse = new AuthResponseDTO(
-                "access-token-123",
-                "refresh-token-456",
-                Instant.now().plusSeconds(900),
-                new AuthResponseDTO.UserInfoDTO(
-                        1L,
-                        "testuser",
-                        "test@example.com",
-                        "Test User",
-                        "USER",
-                        Set.of("READ")
-                )
-        );
+        mockAuthResponse =
+                new AuthResponseDTO(
+                        "access-token-123",
+                        "refresh-token-456",
+                        Instant.now().plusSeconds(900),
+                        new AuthResponseDTO.UserInfoDTO(
+                                1L,
+                                "testuser",
+                                "test@example.com",
+                                "Test User",
+                                "USER",
+                                Set.of("READ")));
     }
 
     @Nested
@@ -105,9 +100,12 @@ class AuthControllerTest {
 
             authController.login(request);
 
-            verify(authService).login(argThat(req ->
-                    req.username().equals("myuser") && req.password().equals("mypassword")
-            ));
+            verify(authService)
+                    .login(
+                            argThat(
+                                    req ->
+                                            req.username().equals("myuser")
+                                                    && req.password().equals("mypassword")));
         }
     }
 
@@ -118,9 +116,9 @@ class AuthControllerTest {
         @Test
         @DisplayName("should return 200 OK on successful registration")
         void shouldReturnOkOnSuccessfulRegistration() {
-            RegisterRequestDTO request = new RegisterRequestDTO(
-                    "newuser", "Password123!", "new@example.com", "New", "User"
-            );
+            RegisterRequestDTO request =
+                    new RegisterRequestDTO(
+                            "newuser", "Password123!", "new@example.com", "New", "User");
             when(authService.register(any(RegisterRequestDTO.class))).thenReturn(mockAuthResponse);
 
             ResponseEntity<AuthResponseDTO> response = authController.register(request);
@@ -135,9 +133,9 @@ class AuthControllerTest {
         @Test
         @DisplayName("should propagate RuntimeException for duplicate username")
         void shouldPropagateRuntimeExceptionForDuplicateUsername() {
-            RegisterRequestDTO request = new RegisterRequestDTO(
-                    "existinguser", "Password123!", "new@example.com", "New", "User"
-            );
+            RegisterRequestDTO request =
+                    new RegisterRequestDTO(
+                            "existinguser", "Password123!", "new@example.com", "New", "User");
             when(authService.register(any(RegisterRequestDTO.class)))
                     .thenThrow(new RuntimeException("El nombre de usuario ya existe"));
 
@@ -149,20 +147,22 @@ class AuthControllerTest {
         @Test
         @DisplayName("should call service with all registration fields")
         void shouldCallServiceWithAllRegistrationFields() {
-            RegisterRequestDTO request = new RegisterRequestDTO(
-                    "newuser", "Password123!", "new@example.com", "New", "User"
-            );
+            RegisterRequestDTO request =
+                    new RegisterRequestDTO(
+                            "newuser", "Password123!", "new@example.com", "New", "User");
             when(authService.register(any(RegisterRequestDTO.class))).thenReturn(mockAuthResponse);
 
             authController.register(request);
 
-            verify(authService).register(argThat(req ->
-                    req.username().equals("newuser") &&
-                            req.password().equals("Password123!") &&
-                            req.email().equals("new@example.com") &&
-                            req.firstName().equals("New") &&
-                            req.lastName().equals("User")
-            ));
+            verify(authService)
+                    .register(
+                            argThat(
+                                    req ->
+                                            req.username().equals("newuser")
+                                                    && req.password().equals("Password123!")
+                                                    && req.email().equals("new@example.com")
+                                                    && req.firstName().equals("New")
+                                                    && req.lastName().equals("User")));
         }
     }
 
@@ -174,7 +174,8 @@ class AuthControllerTest {
         @DisplayName("should return 200 OK on successful token refresh")
         void shouldReturnOkOnSuccessfulTokenRefresh() {
             RefreshTokenRequestDTO request = new RefreshTokenRequestDTO("valid-refresh-token");
-            when(authService.refreshToken(any(RefreshTokenRequestDTO.class))).thenReturn(mockAuthResponse);
+            when(authService.refreshToken(any(RefreshTokenRequestDTO.class)))
+                    .thenReturn(mockAuthResponse);
 
             ResponseEntity<AuthResponseDTO> response = authController.refreshToken(request);
 
@@ -218,7 +219,8 @@ class AuthControllerTest {
         @Test
         @DisplayName("should return 204 No Content on successful logout")
         void shouldReturnNoContentOnSuccessfulLogout() {
-            when(httpServletRequest.getHeader("Authorization")).thenReturn("Bearer valid-token-123");
+            when(httpServletRequest.getHeader("Authorization"))
+                    .thenReturn("Bearer valid-token-123");
             doNothing().when(authService).logout(anyString());
 
             ResponseEntity<Void> response = authController.logout(httpServletRequest);
@@ -255,7 +257,8 @@ class AuthControllerTest {
         @DisplayName("should extract token correctly from Bearer prefix")
         void shouldExtractTokenCorrectlyFromBearerPrefix() {
             String expectedToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test";
-            when(httpServletRequest.getHeader("Authorization")).thenReturn("Bearer " + expectedToken);
+            when(httpServletRequest.getHeader("Authorization"))
+                    .thenReturn("Bearer " + expectedToken);
             doNothing().when(authService).logout(anyString());
 
             authController.logout(httpServletRequest);

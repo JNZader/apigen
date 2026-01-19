@@ -8,14 +8,17 @@ import org.springframework.stereotype.Component;
 
 /**
  * Scheduler para enviar heartbeats periódicos a clientes SSE.
- * <p>
- * Mantiene las conexiones vivas y detecta clientes desconectados.
- * Se ejecuta cada 30 segundos por defecto.
- * <p>
- * Puede deshabilitarse con: apigen.sse.heartbeat.enabled=false
+ *
+ * <p>Mantiene las conexiones vivas y detecta clientes desconectados. Se ejecuta cada 30 segundos
+ * por defecto.
+ *
+ * <p>Puede deshabilitarse con: apigen.sse.heartbeat.enabled=false
  */
 @Component
-@ConditionalOnProperty(name = "apigen.sse.heartbeat.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(
+        name = "apigen.sse.heartbeat.enabled",
+        havingValue = "true",
+        matchIfMissing = true)
 public class SseHeartbeatScheduler {
 
     private static final Logger log = LoggerFactory.getLogger(SseHeartbeatScheduler.class);
@@ -26,10 +29,7 @@ public class SseHeartbeatScheduler {
         this.sseEmitterService = sseEmitterService;
     }
 
-    /**
-     * Envía heartbeat a todos los clientes conectados.
-     * Se ejecuta cada 30 segundos.
-     */
+    /** Envía heartbeat a todos los clientes conectados. Se ejecuta cada 30 segundos. */
     @Scheduled(fixedRateString = "${apigen.sse.heartbeat.interval:30000}")
     public void sendHeartbeat() {
         int clientCount = sseEmitterService.getTotalClientCount();

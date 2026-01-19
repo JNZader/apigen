@@ -1,16 +1,15 @@
 package com.jnzader.apigen.codegen.generator.entity;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.jnzader.apigen.codegen.generator.entity.EntityGenerator.ManyToManyRelation;
 import com.jnzader.apigen.codegen.model.*;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("EntityGenerator Tests")
 class EntityGeneratorTest {
@@ -46,8 +45,9 @@ class EntityGeneratorTest {
         @Test
         @DisplayName("Should generate entity with string field")
         void shouldGenerateEntityWithStringField() {
-            SqlTable table = createTableWithColumn("products",
-                    createColumn("title", "String", false, false, 255));
+            SqlTable table =
+                    createTableWithColumn(
+                            "products", createColumn("title", "String", false, false, 255));
 
             String result = entityGenerator.generate(table, List.of(), List.of(), List.of());
 
@@ -61,8 +61,9 @@ class EntityGeneratorTest {
         @Test
         @DisplayName("Should generate entity with nullable field")
         void shouldGenerateEntityWithNullableField() {
-            SqlTable table = createTableWithColumn("products",
-                    createColumn("description", "String", true, false, 1000));
+            SqlTable table =
+                    createTableWithColumn(
+                            "products", createColumn("description", "String", true, false, 1000));
 
             String result = entityGenerator.generate(table, List.of(), List.of(), List.of());
 
@@ -75,8 +76,9 @@ class EntityGeneratorTest {
         @Test
         @DisplayName("Should generate entity with unique field")
         void shouldGenerateEntityWithUniqueField() {
-            SqlTable table = createTableWithColumn("users",
-                    createColumn("email", "String", false, true, 100));
+            SqlTable table =
+                    createTableWithColumn(
+                            "users", createColumn("email", "String", false, true, 100));
 
             String result = entityGenerator.generate(table, List.of(), List.of(), List.of());
 
@@ -86,12 +88,13 @@ class EntityGeneratorTest {
         @Test
         @DisplayName("Should generate entity with numeric field")
         void shouldGenerateEntityWithNumericField() {
-            SqlColumn column = SqlColumn.builder()
-                    .name("price")
-                    .javaType("BigDecimal")
-                    .nullable(false)
-                    .unique(false)
-                    .build();
+            SqlColumn column =
+                    SqlColumn.builder()
+                            .name("price")
+                            .javaType("BigDecimal")
+                            .nullable(false)
+                            .unique(false)
+                            .build();
 
             SqlTable table = createTableWithColumn("products", column);
 
@@ -106,21 +109,27 @@ class EntityGeneratorTest {
         @Test
         @DisplayName("Should generate entity with date field")
         void shouldGenerateEntityWithDateField() {
-            SqlColumn column = SqlColumn.builder()
-                    .name("event_date")
-                    .javaType("LocalDateTime")
-                    .nullable(true)
-                    .build();
+            SqlColumn column =
+                    SqlColumn.builder()
+                            .name("event_date")
+                            .javaType("LocalDateTime")
+                            .nullable(true)
+                            .build();
 
-            SqlTable table = SqlTable.builder()
-                    .name("events")
-                    .columns(List.of(
-                            SqlColumn.builder().name("id").javaType("Long").primaryKey(true).build(),
-                            column
-                    ))
-                    .foreignKeys(new ArrayList<>())
-                    .indexes(new ArrayList<>())
-                    .build();
+            SqlTable table =
+                    SqlTable.builder()
+                            .name("events")
+                            .columns(
+                                    List.of(
+                                            SqlColumn.builder()
+                                                    .name("id")
+                                                    .javaType("Long")
+                                                    .primaryKey(true)
+                                                    .build(),
+                                            column))
+                            .foreignKeys(new ArrayList<>())
+                            .indexes(new ArrayList<>())
+                            .build();
 
             String result = entityGenerator.generate(table, List.of(), List.of(), List.of());
 
@@ -133,20 +142,24 @@ class EntityGeneratorTest {
             SqlTable sourceTable = createSimpleTable("orders");
             SqlTable targetTable = createSimpleTable("customers");
 
-            SqlForeignKey fk = SqlForeignKey.builder()
-                    .columnName("customer_id")
-                    .referencedTable("customers")
-                    .referencedColumn("id")
-                    .build();
+            SqlForeignKey fk =
+                    SqlForeignKey.builder()
+                            .columnName("customer_id")
+                            .referencedTable("customers")
+                            .referencedColumn("id")
+                            .build();
 
-            SqlSchema.TableRelationship relationship = SqlSchema.TableRelationship.builder()
-                    .sourceTable(sourceTable)
-                    .targetTable(targetTable)
-                    .foreignKey(fk)
-                    .relationType(RelationType.MANY_TO_ONE)
-                    .build();
+            SqlSchema.TableRelationship relationship =
+                    SqlSchema.TableRelationship.builder()
+                            .sourceTable(sourceTable)
+                            .targetTable(targetTable)
+                            .foreignKey(fk)
+                            .relationType(RelationType.MANY_TO_ONE)
+                            .build();
 
-            String result = entityGenerator.generate(sourceTable, List.of(relationship), List.of(), List.of());
+            String result =
+                    entityGenerator.generate(
+                            sourceTable, List.of(relationship), List.of(), List.of());
 
             assertThat(result)
                     .contains("@ManyToOne(fetch = FetchType.LAZY)")
@@ -161,20 +174,24 @@ class EntityGeneratorTest {
             SqlTable sourceTable = createSimpleTable("users");
             SqlTable targetTable = createSimpleTable("profiles");
 
-            SqlForeignKey fk = SqlForeignKey.builder()
-                    .columnName("profile_id")
-                    .referencedTable("profiles")
-                    .referencedColumn("id")
-                    .build();
+            SqlForeignKey fk =
+                    SqlForeignKey.builder()
+                            .columnName("profile_id")
+                            .referencedTable("profiles")
+                            .referencedColumn("id")
+                            .build();
 
-            SqlSchema.TableRelationship relationship = SqlSchema.TableRelationship.builder()
-                    .sourceTable(sourceTable)
-                    .targetTable(targetTable)
-                    .foreignKey(fk)
-                    .relationType(RelationType.ONE_TO_ONE)
-                    .build();
+            SqlSchema.TableRelationship relationship =
+                    SqlSchema.TableRelationship.builder()
+                            .sourceTable(sourceTable)
+                            .targetTable(targetTable)
+                            .foreignKey(fk)
+                            .relationType(RelationType.ONE_TO_ONE)
+                            .build();
 
-            String result = entityGenerator.generate(sourceTable, List.of(relationship), List.of(), List.of());
+            String result =
+                    entityGenerator.generate(
+                            sourceTable, List.of(relationship), List.of(), List.of());
 
             assertThat(result)
                     .contains("@OneToOne(fetch = FetchType.LAZY)")
@@ -188,23 +205,29 @@ class EntityGeneratorTest {
             SqlTable sourceTable = createSimpleTable("orders");
             SqlTable targetTable = createSimpleTable("customers");
 
-            SqlForeignKey fk = SqlForeignKey.builder()
-                    .columnName("customer_id")
-                    .referencedTable("customers")
-                    .referencedColumn("id")
-                    .build();
+            SqlForeignKey fk =
+                    SqlForeignKey.builder()
+                            .columnName("customer_id")
+                            .referencedTable("customers")
+                            .referencedColumn("id")
+                            .build();
 
-            SqlSchema.TableRelationship relationship = SqlSchema.TableRelationship.builder()
-                    .sourceTable(sourceTable)
-                    .targetTable(targetTable)
-                    .foreignKey(fk)
-                    .relationType(RelationType.MANY_TO_ONE)
-                    .build();
+            SqlSchema.TableRelationship relationship =
+                    SqlSchema.TableRelationship.builder()
+                            .sourceTable(sourceTable)
+                            .targetTable(targetTable)
+                            .foreignKey(fk)
+                            .relationType(RelationType.MANY_TO_ONE)
+                            .build();
 
-            String result = entityGenerator.generate(targetTable, List.of(), List.of(relationship), List.of());
+            String result =
+                    entityGenerator.generate(
+                            targetTable, List.of(), List.of(relationship), List.of());
 
             assertThat(result)
-                    .contains("@OneToMany(mappedBy = \"customer\", cascade = CascadeType.ALL, orphanRemoval = true)")
+                    .contains(
+                            "@OneToMany(mappedBy = \"customer\", cascade = CascadeType.ALL,"
+                                    + " orphanRemoval = true)")
                     .contains("private List<Order> orders = new ArrayList<>();")
                     .contains("import java.util.List;")
                     .contains("import java.util.ArrayList;");
@@ -216,11 +239,12 @@ class EntityGeneratorTest {
             SqlTable sourceTable = createSimpleTable("students");
             SqlTable targetTable = createSimpleTable("courses");
 
-            ManyToManyRelation m2m = new ManyToManyRelation(
-                    "student_courses", "student_id", "course_id", targetTable
-            );
+            ManyToManyRelation m2m =
+                    new ManyToManyRelation(
+                            "student_courses", "student_id", "course_id", targetTable);
 
-            String result = entityGenerator.generate(sourceTable, List.of(), List.of(), List.of(m2m));
+            String result =
+                    entityGenerator.generate(sourceTable, List.of(), List.of(), List.of(m2m));
 
             assertThat(result)
                     .contains("@ManyToMany")
@@ -234,21 +258,31 @@ class EntityGeneratorTest {
         @Test
         @DisplayName("Should generate entity with indexes")
         void shouldGenerateEntityWithIndexes() {
-            SqlIndex index = SqlIndex.builder()
-                    .name("idx_products_sku")
-                    .columns(List.of("sku"))
-                    .unique(false)
-                    .build();
+            SqlIndex index =
+                    SqlIndex.builder()
+                            .name("idx_products_sku")
+                            .columns(List.of("sku"))
+                            .unique(false)
+                            .build();
 
-            SqlTable table = SqlTable.builder()
-                    .name("products")
-                    .columns(List.of(
-                            SqlColumn.builder().name("id").javaType("Long").primaryKey(true).build(),
-                            SqlColumn.builder().name("sku").javaType("String").nullable(false).build()
-                    ))
-                    .indexes(List.of(index))
-                    .foreignKeys(new ArrayList<>())
-                    .build();
+            SqlTable table =
+                    SqlTable.builder()
+                            .name("products")
+                            .columns(
+                                    List.of(
+                                            SqlColumn.builder()
+                                                    .name("id")
+                                                    .javaType("Long")
+                                                    .primaryKey(true)
+                                                    .build(),
+                                            SqlColumn.builder()
+                                                    .name("sku")
+                                                    .javaType("String")
+                                                    .nullable(false)
+                                                    .build()))
+                            .indexes(List.of(index))
+                            .foreignKeys(new ArrayList<>())
+                            .build();
 
             String result = entityGenerator.generate(table, List.of(), List.of(), List.of());
 
@@ -260,11 +294,8 @@ class EntityGeneratorTest {
         @Test
         @DisplayName("Should handle reserved Java keywords as field names")
         void shouldHandleReservedJavaKeywordsAsFieldNames() {
-            SqlColumn column = SqlColumn.builder()
-                    .name("class")
-                    .javaType("String")
-                    .nullable(true)
-                    .build();
+            SqlColumn column =
+                    SqlColumn.builder().name("class").javaType("String").nullable(true).build();
 
             SqlTable table = createTableWithColumn("items", column);
 
@@ -277,13 +308,13 @@ class EntityGeneratorTest {
     private SqlTable createSimpleTable(String tableName) {
         return SqlTable.builder()
                 .name(tableName)
-                .columns(List.of(
-                        SqlColumn.builder()
-                                .name("id")
-                                .javaType("Long")
-                                .primaryKey(true)
-                                .build()
-                ))
+                .columns(
+                        List.of(
+                                SqlColumn.builder()
+                                        .name("id")
+                                        .javaType("Long")
+                                        .primaryKey(true)
+                                        .build()))
                 .foreignKeys(new ArrayList<>())
                 .indexes(new ArrayList<>())
                 .build();
@@ -292,20 +323,21 @@ class EntityGeneratorTest {
     private SqlTable createTableWithColumn(String tableName, SqlColumn column) {
         return SqlTable.builder()
                 .name(tableName)
-                .columns(List.of(
-                        SqlColumn.builder()
-                                .name("id")
-                                .javaType("Long")
-                                .primaryKey(true)
-                                .build(),
-                        column
-                ))
+                .columns(
+                        List.of(
+                                SqlColumn.builder()
+                                        .name("id")
+                                        .javaType("Long")
+                                        .primaryKey(true)
+                                        .build(),
+                                column))
                 .foreignKeys(new ArrayList<>())
                 .indexes(new ArrayList<>())
                 .build();
     }
 
-    private SqlColumn createColumn(String name, String type, boolean nullable, boolean unique, Integer length) {
+    private SqlColumn createColumn(
+            String name, String type, boolean nullable, boolean unique, Integer length) {
         return SqlColumn.builder()
                 .name(name)
                 .javaType(type)

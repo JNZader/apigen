@@ -1,6 +1,11 @@
 package com.jnzader.apigen.security.infrastructure.config;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
+
 import com.jnzader.apigen.core.infrastructure.config.properties.AppProperties;
+import java.time.Instant;
+import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -17,32 +22,22 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
-import java.time.Instant;
-import java.util.*;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
 /**
- * Unit tests for OAuth2SecurityConfig.
- * Tests JWT authentication converter and CORS configuration for OAuth2 mode.
+ * Unit tests for OAuth2SecurityConfig. Tests JWT authentication converter and CORS configuration
+ * for OAuth2 mode.
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 @DisplayName("OAuth2SecurityConfig Tests")
 class OAuth2SecurityConfigTest {
 
-    @Mock
-    private SecurityProperties securityProperties;
+    @Mock private SecurityProperties securityProperties;
 
-    @Mock
-    private SecurityProperties.OAuth2Properties oauth2Properties;
+    @Mock private SecurityProperties.OAuth2Properties oauth2Properties;
 
-    @Mock
-    private AppProperties appProperties;
+    @Mock private AppProperties appProperties;
 
-    @Mock
-    private AppProperties.CorsProperties corsProperties;
+    @Mock private AppProperties.CorsProperties corsProperties;
 
     private OAuth2SecurityConfig config;
 
@@ -85,15 +80,14 @@ class OAuth2SecurityConfigTest {
         void shouldExtractRolesFromSimpleArrayClaim() {
             JwtAuthenticationConverter converter = config.jwtAuthenticationConverter();
 
-            Jwt jwt = createJwt(Map.of(
-                    "permissions", List.of("admin", "user", "read")
-            ));
+            Jwt jwt = createJwt(Map.of("permissions", List.of("admin", "user", "read")));
 
             var authentication = converter.convert(jwt);
 
             assertThat(authentication).isNotNull();
             Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-            assertThat(authorities).extracting(GrantedAuthority::getAuthority)
+            assertThat(authorities)
+                    .extracting(GrantedAuthority::getAuthority)
                     .contains("ROLE_ADMIN", "ROLE_USER", "ROLE_READ");
         }
 
@@ -102,15 +96,14 @@ class OAuth2SecurityConfigTest {
         void shouldPreserveRoleThatAlreadyHasPrefix() {
             JwtAuthenticationConverter converter = config.jwtAuthenticationConverter();
 
-            Jwt jwt = createJwt(Map.of(
-                    "permissions", List.of("ROLE_ADMIN", "user")
-            ));
+            Jwt jwt = createJwt(Map.of("permissions", List.of("ROLE_ADMIN", "user")));
 
             var authentication = converter.convert(jwt);
 
             assertThat(authentication).isNotNull();
             Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-            assertThat(authorities).extracting(GrantedAuthority::getAuthority)
+            assertThat(authorities)
+                    .extracting(GrantedAuthority::getAuthority)
                     .contains("ROLE_ADMIN", "ROLE_USER");
         }
 
@@ -119,15 +112,14 @@ class OAuth2SecurityConfigTest {
         void shouldAddDefaultUserRoleWhenNoRolesFound() {
             JwtAuthenticationConverter converter = config.jwtAuthenticationConverter();
 
-            Jwt jwt = createJwt(Map.of(
-                    "sub", "user123"
-            ));
+            Jwt jwt = createJwt(Map.of("sub", "user123"));
 
             var authentication = converter.convert(jwt);
 
             assertThat(authentication).isNotNull();
             Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-            assertThat(authorities).extracting(GrantedAuthority::getAuthority)
+            assertThat(authorities)
+                    .extracting(GrantedAuthority::getAuthority)
                     .contains("ROLE_USER");
         }
 
@@ -136,9 +128,7 @@ class OAuth2SecurityConfigTest {
         void shouldSkipEmptyRoles() {
             JwtAuthenticationConverter converter = config.jwtAuthenticationConverter();
 
-            Jwt jwt = createJwt(Map.of(
-                    "permissions", List.of("admin", "", "  ", "user")
-            ));
+            Jwt jwt = createJwt(Map.of("permissions", List.of("admin", "", "  ", "user")));
 
             var authentication = converter.convert(jwt);
 
@@ -146,7 +136,8 @@ class OAuth2SecurityConfigTest {
             Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
             // Should contain ROLE_ADMIN and ROLE_USER (empty strings are skipped)
             // Note: May include additional default authorities from Spring Security
-            assertThat(authorities).extracting(GrantedAuthority::getAuthority)
+            assertThat(authorities)
+                    .extracting(GrantedAuthority::getAuthority)
                     .contains("ROLE_ADMIN", "ROLE_USER")
                     .doesNotContain("ROLE_", "ROLE_  ");
         }
@@ -156,15 +147,14 @@ class OAuth2SecurityConfigTest {
         void shouldTrimWhitespaceFromRoles() {
             JwtAuthenticationConverter converter = config.jwtAuthenticationConverter();
 
-            Jwt jwt = createJwt(Map.of(
-                    "permissions", List.of("  admin  ", " user ")
-            ));
+            Jwt jwt = createJwt(Map.of("permissions", List.of("  admin  ", " user ")));
 
             var authentication = converter.convert(jwt);
 
             assertThat(authentication).isNotNull();
             Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-            assertThat(authorities).extracting(GrantedAuthority::getAuthority)
+            assertThat(authorities)
+                    .extracting(GrantedAuthority::getAuthority)
                     .contains("ROLE_ADMIN", "ROLE_USER");
         }
     }
@@ -181,15 +171,18 @@ class OAuth2SecurityConfigTest {
 
             JwtAuthenticationConverter converter = config.jwtAuthenticationConverter();
 
-            Jwt jwt = createJwt(Map.of(
-                    "realm_access", Map.of("roles", List.of("admin", "offline_access"))
-            ));
+            Jwt jwt =
+                    createJwt(
+                            Map.of(
+                                    "realm_access",
+                                    Map.of("roles", List.of("admin", "offline_access"))));
 
             var authentication = converter.convert(jwt);
 
             assertThat(authentication).isNotNull();
             Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-            assertThat(authorities).extracting(GrantedAuthority::getAuthority)
+            assertThat(authorities)
+                    .extracting(GrantedAuthority::getAuthority)
                     .contains("ROLE_ADMIN", "ROLE_OFFLINE_ACCESS");
         }
 
@@ -201,18 +194,24 @@ class OAuth2SecurityConfigTest {
 
             JwtAuthenticationConverter converter = config.jwtAuthenticationConverter();
 
-            Jwt jwt = createJwt(Map.of(
-                    "resource_access", Map.of(
-                            "my-client", Map.of("roles", List.of("client_admin", "client_user")),
-                            "other-client", Map.of("roles", List.of("other_role"))
-                    )
-            ));
+            Jwt jwt =
+                    createJwt(
+                            Map.of(
+                                    "resource_access",
+                                    Map.of(
+                                            "my-client",
+                                                    Map.of(
+                                                            "roles",
+                                                            List.of("client_admin", "client_user")),
+                                            "other-client",
+                                                    Map.of("roles", List.of("other_role")))));
 
             var authentication = converter.convert(jwt);
 
             assertThat(authentication).isNotNull();
             Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-            assertThat(authorities).extracting(GrantedAuthority::getAuthority)
+            assertThat(authorities)
+                    .extracting(GrantedAuthority::getAuthority)
                     .contains("ROLE_CLIENT_ADMIN", "ROLE_CLIENT_USER", "ROLE_OTHER_ROLE");
         }
 
@@ -224,21 +223,21 @@ class OAuth2SecurityConfigTest {
 
             JwtAuthenticationConverter converter = config.jwtAuthenticationConverter();
 
-            Jwt jwt = createJwt(Map.of(
-                    "resource_access", Map.of(
-                            "client1", Map.of("roles", List.of("admin")),
-                            "client2", Map.of("roles", List.of("admin", "user"))
-                    )
-            ));
+            Jwt jwt =
+                    createJwt(
+                            Map.of(
+                                    "resource_access",
+                                    Map.of(
+                                            "client1", Map.of("roles", List.of("admin")),
+                                            "client2", Map.of("roles", List.of("admin", "user")))));
 
             var authentication = converter.convert(jwt);
 
             assertThat(authentication).isNotNull();
             Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
             // Should have admin only once, plus user
-            long adminCount = authorities.stream()
-                    .filter(a -> a.getAuthority().equals("ROLE_ADMIN"))
-                    .count();
+            long adminCount =
+                    authorities.stream().filter(a -> a.getAuthority().equals("ROLE_ADMIN")).count();
             assertThat(adminCount).isEqualTo(1);
         }
     }
@@ -255,15 +254,14 @@ class OAuth2SecurityConfigTest {
 
             JwtAuthenticationConverter converter = config.jwtAuthenticationConverter();
 
-            Jwt jwt = createJwt(Map.of(
-                    "cognito:groups", List.of("Admins", "Developers")
-            ));
+            Jwt jwt = createJwt(Map.of("cognito:groups", List.of("Admins", "Developers")));
 
             var authentication = converter.convert(jwt);
 
             assertThat(authentication).isNotNull();
             Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-            assertThat(authorities).extracting(GrantedAuthority::getAuthority)
+            assertThat(authorities)
+                    .extracting(GrantedAuthority::getAuthority)
                     .contains("ROLE_ADMINS", "ROLE_DEVELOPERS");
         }
     }
@@ -280,15 +278,14 @@ class OAuth2SecurityConfigTest {
 
             JwtAuthenticationConverter converter = config.jwtAuthenticationConverter();
 
-            Jwt jwt = createJwt(Map.of(
-                    "permissions", List.of("read", "write")
-            ));
+            Jwt jwt = createJwt(Map.of("permissions", List.of("read", "write")));
 
             var authentication = converter.convert(jwt);
 
             assertThat(authentication).isNotNull();
             Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-            assertThat(authorities).extracting(GrantedAuthority::getAuthority)
+            assertThat(authorities)
+                    .extracting(GrantedAuthority::getAuthority)
                     .contains("SCOPE_READ", "SCOPE_WRITE");
         }
 
@@ -306,7 +303,8 @@ class OAuth2SecurityConfigTest {
 
             assertThat(authentication).isNotNull();
             Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-            assertThat(authorities).extracting(GrantedAuthority::getAuthority)
+            assertThat(authorities)
+                    .extracting(GrantedAuthority::getAuthority)
                     .contains("PERM_USER");
         }
     }
@@ -332,7 +330,8 @@ class OAuth2SecurityConfigTest {
         @Test
         @DisplayName("should use allowed origins from app properties")
         void shouldUseAllowedOriginsFromAppProperties() {
-            when(corsProperties.allowedOrigins()).thenReturn(List.of("https://myapp.com", "https://api.myapp.com"));
+            when(corsProperties.allowedOrigins())
+                    .thenReturn(List.of("https://myapp.com", "https://api.myapp.com"));
 
             CorsConfigurationSource source = config.corsConfigurationSource();
             CorsConfiguration corsConfig = getCorsConfig(source);
@@ -345,7 +344,8 @@ class OAuth2SecurityConfigTest {
         @Test
         @DisplayName("should add ETag header if not present")
         void shouldAddETagHeaderIfNotPresent() {
-            when(corsProperties.exposedHeaders()).thenReturn(new ArrayList<>(List.of("Authorization")));
+            when(corsProperties.exposedHeaders())
+                    .thenReturn(new ArrayList<>(List.of("Authorization")));
 
             CorsConfigurationSource source = config.corsConfigurationSource();
             CorsConfiguration corsConfig = getCorsConfig(source);
@@ -357,7 +357,8 @@ class OAuth2SecurityConfigTest {
         @Test
         @DisplayName("should add Last-Modified header if not present")
         void shouldAddLastModifiedHeaderIfNotPresent() {
-            when(corsProperties.exposedHeaders()).thenReturn(new ArrayList<>(List.of("Authorization")));
+            when(corsProperties.exposedHeaders())
+                    .thenReturn(new ArrayList<>(List.of("Authorization")));
 
             CorsConfigurationSource source = config.corsConfigurationSource();
             CorsConfiguration corsConfig = getCorsConfig(source);
@@ -369,30 +370,32 @@ class OAuth2SecurityConfigTest {
         @Test
         @DisplayName("should not duplicate ETag header if already present")
         void shouldNotDuplicateETagHeaderIfAlreadyPresent() {
-            when(corsProperties.exposedHeaders()).thenReturn(new ArrayList<>(List.of("Authorization", "ETag")));
+            when(corsProperties.exposedHeaders())
+                    .thenReturn(new ArrayList<>(List.of("Authorization", "ETag")));
 
             CorsConfigurationSource source = config.corsConfigurationSource();
             CorsConfiguration corsConfig = getCorsConfig(source);
 
             assertThat(corsConfig).isNotNull();
-            long etagCount = corsConfig.getExposedHeaders().stream()
-                    .filter(h -> h.equals("ETag"))
-                    .count();
+            long etagCount =
+                    corsConfig.getExposedHeaders().stream().filter(h -> h.equals("ETag")).count();
             assertThat(etagCount).isEqualTo(1);
         }
 
         @Test
         @DisplayName("should not duplicate Last-Modified header if already present")
         void shouldNotDuplicateLastModifiedHeaderIfAlreadyPresent() {
-            when(corsProperties.exposedHeaders()).thenReturn(new ArrayList<>(List.of("Authorization", "Last-Modified")));
+            when(corsProperties.exposedHeaders())
+                    .thenReturn(new ArrayList<>(List.of("Authorization", "Last-Modified")));
 
             CorsConfigurationSource source = config.corsConfigurationSource();
             CorsConfiguration corsConfig = getCorsConfig(source);
 
             assertThat(corsConfig).isNotNull();
-            long lastModifiedCount = corsConfig.getExposedHeaders().stream()
-                    .filter(h -> h.equals("Last-Modified"))
-                    .count();
+            long lastModifiedCount =
+                    corsConfig.getExposedHeaders().stream()
+                            .filter(h -> h.equals("Last-Modified"))
+                            .count();
             assertThat(lastModifiedCount).isEqualTo(1);
         }
 
@@ -421,9 +424,7 @@ class OAuth2SecurityConfigTest {
         }
     }
 
-    /**
-     * Helper method to create a mock JWT for testing.
-     */
+    /** Helper method to create a mock JWT for testing. */
     private Jwt createJwt(Map<String, Object> claims) {
         Map<String, Object> headers = new HashMap<>();
         headers.put("alg", "RS256");
@@ -440,7 +441,6 @@ class OAuth2SecurityConfigTest {
                 Instant.now(),
                 Instant.now().plusSeconds(3600),
                 headers,
-                allClaims
-        );
+                allClaims);
     }
 }

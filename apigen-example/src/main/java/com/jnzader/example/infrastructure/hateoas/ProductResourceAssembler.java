@@ -8,20 +8,22 @@ import org.springframework.stereotype.Component;
 
 /**
  * HATEOAS resource assembler for Product.
- * <p>
- * Extends {@link BaseResourceAssembler} which provides:
+ *
+ * <p>Extends {@link BaseResourceAssembler} which provides:
+ *
  * <ul>
- *     <li>toModel(dto) - Convert DTO to EntityModel with HATEOAS links</li>
- *     <li>toCollectionModel(dtos) - Convert collection with links</li>
- *     <li>toPagedModel(page) - Convert paginated results with navigation links</li>
+ *   <li>toModel(dto) - Convert DTO to EntityModel with HATEOAS links
+ *   <li>toCollectionModel(dtos) - Convert collection with links
+ *   <li>toPagedModel(page) - Convert paginated results with navigation links
  * </ul>
- * <p>
- * Generated links:
+ *
+ * <p>Generated links:
+ *
  * <ul>
- *     <li>self - Link to this resource</li>
- *     <li>collection - Link to product list</li>
- *     <li>update - Link to update endpoint</li>
- *     <li>delete - Link to delete endpoint</li>
+ *   <li>self - Link to this resource
+ *   <li>collection - Link to product list
+ *   <li>update - Link to update endpoint
+ *   <li>delete - Link to delete endpoint
  * </ul>
  */
 @Component

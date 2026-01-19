@@ -1,15 +1,15 @@
 package com.jnzader.apigen.codegen.generator.test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlTable;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("ServiceTestGenerator Tests")
 class ServiceTestGeneratorTest {
@@ -43,10 +43,14 @@ class ServiceTestGeneratorTest {
             String result = generator.generate(table);
 
             assertThat(result)
-                    .contains("import com.jnzader.apigen.core.application.service.CacheEvictionService;")
+                    .contains(
+                            "import"
+                                + " com.jnzader.apigen.core.application.service.CacheEvictionService;")
                     .contains("import com.jnzader.apigen.core.application.util.Result;")
                     .contains("import com.example.products.domain.entity.Product;")
-                    .contains("import com.example.products.infrastructure.repository.ProductRepository;")
+                    .contains(
+                            "import"
+                                + " com.example.products.infrastructure.repository.ProductRepository;")
                     .contains("import org.junit.jupiter.api.BeforeEach;")
                     .contains("import org.junit.jupiter.api.Test;")
                     .contains("import org.mockito.Mock;");
@@ -101,7 +105,9 @@ class ServiceTestGeneratorTest {
             assertThat(result)
                     .contains("@BeforeEach")
                     .contains("void setUp()")
-                    .contains("service = new ProductServiceImpl(repository, cacheEvictionService, eventPublisher, auditorAware);")
+                    .contains(
+                            "service = new ProductServiceImpl(repository, cacheEvictionService,"
+                                    + " eventPublisher, auditorAware);")
                     .contains("product = new Product();")
                     .contains("product.setId(1L);")
                     .contains("product.setEstado(true);");
@@ -166,7 +172,8 @@ class ServiceTestGeneratorTest {
 
             String result = generator.generate(table);
 
-            // In update test: findById returns variable, save uses class.class, thenReturn uses variable
+            // In update test: findById returns variable, save uses class.class, thenReturn uses
+            // variable
             assertThat(result)
                     .contains("when(repository.findById(1L)).thenReturn(Optional.of(category));")
                     .contains("when(repository.save(any(Category.class))).thenReturn(category);")
@@ -304,22 +311,15 @@ class ServiceTestGeneratorTest {
         @Test
         @DisplayName("Should generate valid Java code for various table names")
         void shouldGenerateValidJavaCodeForVariousTableNames() {
-            List<String> tableNames = List.of(
-                    "products",
-                    "categories",
-                    "order_items",
-                    "user_profiles",
-                    "api_keys"
-            );
+            List<String> tableNames =
+                    List.of("products", "categories", "order_items", "user_profiles", "api_keys");
 
             for (String tableName : tableNames) {
                 SqlTable table = createSimpleTable(tableName);
                 String result = generator.generate(table);
 
                 // Should not have unformatted placeholders
-                assertThat(result)
-                        .as("Table: " + tableName)
-                        .doesNotContain("%s");
+                assertThat(result).as("Table: " + tableName).doesNotContain("%s");
 
                 // Should have proper class structure
                 assertThat(result)
@@ -334,13 +334,13 @@ class ServiceTestGeneratorTest {
     private SqlTable createSimpleTable(String tableName) {
         return SqlTable.builder()
                 .name(tableName)
-                .columns(List.of(
-                        SqlColumn.builder()
-                                .name("id")
-                                .javaType("Long")
-                                .primaryKey(true)
-                                .build()
-                ))
+                .columns(
+                        List.of(
+                                SqlColumn.builder()
+                                        .name("id")
+                                        .javaType("Long")
+                                        .primaryKey(true)
+                                        .build()))
                 .foreignKeys(new ArrayList<>())
                 .indexes(new ArrayList<>())
                 .build();

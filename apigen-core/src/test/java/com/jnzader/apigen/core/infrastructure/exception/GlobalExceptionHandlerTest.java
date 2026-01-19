@@ -1,7 +1,12 @@
 package com.jnzader.apigen.core.infrastructure.exception;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.jnzader.apigen.core.domain.exception.*;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -16,19 +21,11 @@ import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 /**
  * Tests unitarios para GlobalExceptionHandler.
- * <p>
- * Verifica que cada tipo de excepción se mapea correctamente a:
- * - El código HTTP apropiado
- * - El formato RFC 7807 (Problem Details)
- * - Los campos correctos en la respuesta
+ *
+ * <p>Verifica que cada tipo de excepción se mapea correctamente a: - El código HTTP apropiado - El
+ * formato RFC 7807 (Problem Details) - Los campos correctos en la respuesta
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("GlobalExceptionHandler Tests")
@@ -36,8 +33,7 @@ class GlobalExceptionHandlerTest {
 
     private GlobalExceptionHandler handler;
 
-    @Mock
-    private HttpServletRequest request;
+    @Mock private HttpServletRequest request;
 
     private static final String TEST_URI = "/api/test-entities";
     private static final String TEST_MESSAGE = "Test error message";
@@ -61,7 +57,8 @@ class GlobalExceptionHandlerTest {
             ResourceNotFoundException ex = new ResourceNotFoundException(TEST_MESSAGE);
 
             // When
-            ResponseEntity<ProblemDetail> response = handler.handleResourceNotFoundException(ex, request);
+            ResponseEntity<ProblemDetail> response =
+                    handler.handleResourceNotFoundException(ex, request);
 
             // Then
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
@@ -79,7 +76,8 @@ class GlobalExceptionHandlerTest {
             ResourceNotFoundException ex = new ResourceNotFoundException(TEST_MESSAGE);
 
             // When
-            ResponseEntity<ProblemDetail> response = handler.handleResourceNotFoundException(ex, request);
+            ResponseEntity<ProblemDetail> response =
+                    handler.handleResourceNotFoundException(ex, request);
 
             // Then
             assertThat(response.getHeaders().getContentType())
@@ -100,7 +98,8 @@ class GlobalExceptionHandlerTest {
             DuplicateResourceException ex = new DuplicateResourceException(TEST_MESSAGE);
 
             // When
-            ResponseEntity<ProblemDetail> response = handler.handleDuplicateResourceException(ex, request);
+            ResponseEntity<ProblemDetail> response =
+                    handler.handleDuplicateResourceException(ex, request);
 
             // Then
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
@@ -176,7 +175,8 @@ class GlobalExceptionHandlerTest {
             PreconditionFailedException ex = new PreconditionFailedException(TEST_MESSAGE);
 
             // When
-            ResponseEntity<ProblemDetail> response = handler.handlePreconditionFailedException(ex, request);
+            ResponseEntity<ProblemDetail> response =
+                    handler.handlePreconditionFailedException(ex, request);
 
             // Then
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.PRECONDITION_FAILED);
@@ -200,7 +200,8 @@ class GlobalExceptionHandlerTest {
             OperationFailedException ex = new OperationFailedException(TEST_MESSAGE);
 
             // When
-            ResponseEntity<ProblemDetail> response = handler.handleOperationFailedException(ex, request);
+            ResponseEntity<ProblemDetail> response =
+                    handler.handleOperationFailedException(ex, request);
 
             // Then
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -224,7 +225,8 @@ class GlobalExceptionHandlerTest {
             UnauthorizedActionException ex = new UnauthorizedActionException(TEST_MESSAGE);
 
             // When
-            ResponseEntity<ProblemDetail> response = handler.handleUnauthorizedActionException(ex, request);
+            ResponseEntity<ProblemDetail> response =
+                    handler.handleUnauthorizedActionException(ex, request);
 
             // Then
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
@@ -251,10 +253,12 @@ class GlobalExceptionHandlerTest {
             when(bindingResult.getGlobalErrors()).thenReturn(List.of());
             when(bindingResult.getErrorCount()).thenReturn(1);
 
-            MethodArgumentNotValidException ex = new MethodArgumentNotValidException(null, bindingResult);
+            MethodArgumentNotValidException ex =
+                    new MethodArgumentNotValidException(null, bindingResult);
 
             // When
-            ResponseEntity<ProblemDetail> response = handler.handleMethodArgumentNotValid(ex, request);
+            ResponseEntity<ProblemDetail> response =
+                    handler.handleMethodArgumentNotValid(ex, request);
 
             // Then
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
@@ -275,10 +279,12 @@ class GlobalExceptionHandlerTest {
             when(bindingResult.getGlobalErrors()).thenReturn(List.of(globalError));
             when(bindingResult.getErrorCount()).thenReturn(1);
 
-            MethodArgumentNotValidException ex = new MethodArgumentNotValidException(null, bindingResult);
+            MethodArgumentNotValidException ex =
+                    new MethodArgumentNotValidException(null, bindingResult);
 
             // When
-            ResponseEntity<ProblemDetail> response = handler.handleMethodArgumentNotValid(ex, request);
+            ResponseEntity<ProblemDetail> response =
+                    handler.handleMethodArgumentNotValid(ex, request);
 
             // Then
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
@@ -292,16 +298,19 @@ class GlobalExceptionHandlerTest {
             // Given
             BindingResult bindingResult = mock(BindingResult.class);
             FieldError error1 = new FieldError("testEntity", "name", "Name is required");
-            FieldError error2 = new FieldError("testEntity", "name", "Name must be at least 2 characters");
+            FieldError error2 =
+                    new FieldError("testEntity", "name", "Name must be at least 2 characters");
             FieldError error3 = new FieldError("testEntity", "email", "Invalid email format");
             when(bindingResult.getFieldErrors()).thenReturn(List.of(error1, error2, error3));
             when(bindingResult.getGlobalErrors()).thenReturn(List.of());
             when(bindingResult.getErrorCount()).thenReturn(3);
 
-            MethodArgumentNotValidException ex = new MethodArgumentNotValidException(null, bindingResult);
+            MethodArgumentNotValidException ex =
+                    new MethodArgumentNotValidException(null, bindingResult);
 
             // When
-            ResponseEntity<ProblemDetail> response = handler.handleMethodArgumentNotValid(ex, request);
+            ResponseEntity<ProblemDetail> response =
+                    handler.handleMethodArgumentNotValid(ex, request);
 
             // Then
             assertThat(response.getBody()).isNotNull();
@@ -323,7 +332,8 @@ class GlobalExceptionHandlerTest {
             IllegalArgumentException ex = new IllegalArgumentException(TEST_MESSAGE);
 
             // When
-            ResponseEntity<ProblemDetail> response = handler.handleIllegalArgumentException(ex, request);
+            ResponseEntity<ProblemDetail> response =
+                    handler.handleIllegalArgumentException(ex, request);
 
             // Then
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
@@ -354,7 +364,8 @@ class GlobalExceptionHandlerTest {
             assertThat(response.getBody()).isNotNull();
             assertThat(response.getBody().status()).isEqualTo(500);
             assertThat(response.getBody().title()).isEqualTo("Error interno del servidor");
-            assertThat(response.getBody().detail()).doesNotContain("Unexpected error"); // Should not expose internal details
+            assertThat(response.getBody().detail())
+                    .doesNotContain("Unexpected error"); // Should not expose internal details
         }
 
         @Test
@@ -368,7 +379,10 @@ class GlobalExceptionHandlerTest {
 
             // Then
             assertThat(response.getBody()).isNotNull();
-            assertThat(response.getBody().detail()).isEqualTo("Ha ocurrido un error inesperado. Por favor, inténtelo de nuevo más tarde.");
+            assertThat(response.getBody().detail())
+                    .isEqualTo(
+                            "Ha ocurrido un error inesperado. Por favor, inténtelo de nuevo más"
+                                    + " tarde.");
         }
     }
 
@@ -385,12 +399,14 @@ class GlobalExceptionHandlerTest {
             ResourceNotFoundException ex = new ResourceNotFoundException(TEST_MESSAGE);
 
             // When
-            ResponseEntity<ProblemDetail> response = handler.handleResourceNotFoundException(ex, request);
+            ResponseEntity<ProblemDetail> response =
+                    handler.handleResourceNotFoundException(ex, request);
 
             // Then
             assertThat(response.getBody()).isNotNull();
             assertThat(response.getBody().type()).isNotNull();
-            assertThat(response.getBody().type().toString()).startsWith("https://api.example.com/problems/");
+            assertThat(response.getBody().type().toString())
+                    .startsWith("https://api.example.com/problems/");
         }
 
         @Test
@@ -400,7 +416,8 @@ class GlobalExceptionHandlerTest {
             ResourceNotFoundException ex = new ResourceNotFoundException(TEST_MESSAGE);
 
             // When
-            ResponseEntity<ProblemDetail> response = handler.handleResourceNotFoundException(ex, request);
+            ResponseEntity<ProblemDetail> response =
+                    handler.handleResourceNotFoundException(ex, request);
 
             // Then
             assertThat(response.getBody()).isNotNull();
@@ -414,7 +431,8 @@ class GlobalExceptionHandlerTest {
             DuplicateResourceException ex = new DuplicateResourceException(TEST_MESSAGE);
 
             // When
-            ResponseEntity<ProblemDetail> response = handler.handleDuplicateResourceException(ex, request);
+            ResponseEntity<ProblemDetail> response =
+                    handler.handleDuplicateResourceException(ex, request);
 
             // Then
             assertThat(response.getBody()).isNotNull();

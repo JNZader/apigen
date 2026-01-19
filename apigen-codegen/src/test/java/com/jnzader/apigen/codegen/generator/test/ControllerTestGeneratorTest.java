@@ -1,16 +1,15 @@
 package com.jnzader.apigen.codegen.generator.test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlTable;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("ControllerTestGenerator Tests")
 class ControllerTestGeneratorTest {
@@ -151,7 +150,8 @@ class ControllerTestGeneratorTest {
 
             assertThat(result)
                     .contains("Page<Product> page = new PageImpl<>(List.of(product))")
-                    .contains("when(service.findAll(any(Pageable.class))).thenReturn(Result.success(page));")
+                    .contains(
+                            "when(service.findAll(any(Pageable.class))).thenReturn(Result.success(page));")
                     .contains("get(\"/api/v1/products\")");
         }
 
@@ -195,7 +195,8 @@ class ControllerTestGeneratorTest {
 
             assertThat(result)
                     .contains("when(mapper.toEntity(any(ProductDTO.class))).thenReturn(product);")
-                    .contains("when(service.save(any(Product.class))).thenReturn(Result.success(product));")
+                    .contains(
+                            "when(service.save(any(Product.class))).thenReturn(Result.success(product));")
                     .contains("post(\"/api/v1/products\")");
         }
 
@@ -226,7 +227,9 @@ class ControllerTestGeneratorTest {
 
             assertThat(result)
                     .contains("when(mapper.toEntity(any(OrderDTO.class))).thenReturn(order);")
-                    .contains("when(service.update(anyLong(), any(Order.class))).thenReturn(Result.success(order));")
+                    .contains(
+                            "when(service.update(anyLong(),"
+                                    + " any(Order.class))).thenReturn(Result.success(order));")
                     .contains("put(\"/api/v1/orders/1\")")
                     .contains("verify(service).update(eq(1L), any(Order.class));");
         }
@@ -345,12 +348,8 @@ class ControllerTestGeneratorTest {
         @Test
         @DisplayName("Should generate valid Java code for various table names")
         void shouldGenerateValidJavaCodeForVariousTableNames() {
-            List<String> tableNames = List.of(
-                    "products",
-                    "categories",
-                    "order_items",
-                    "user_profiles"
-            );
+            List<String> tableNames =
+                    List.of("products", "categories", "order_items", "user_profiles");
 
             for (String tableName : tableNames) {
                 SqlTable table = createSimpleTable(tableName);
@@ -369,13 +368,13 @@ class ControllerTestGeneratorTest {
     private SqlTable createSimpleTable(String tableName) {
         return SqlTable.builder()
                 .name(tableName)
-                .columns(List.of(
-                        SqlColumn.builder()
-                                .name("id")
-                                .javaType("Long")
-                                .primaryKey(true)
-                                .build()
-                ))
+                .columns(
+                        List.of(
+                                SqlColumn.builder()
+                                        .name("id")
+                                        .javaType("Long")
+                                        .primaryKey(true)
+                                        .build()))
                 .foreignKeys(new ArrayList<>())
                 .indexes(new ArrayList<>())
                 .build();

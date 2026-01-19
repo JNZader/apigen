@@ -1,21 +1,20 @@
 package com.jnzader.apigen.core.application.service;
 
 import com.github.benmanes.caffeine.cache.Cache;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 /**
  * Servicio para eviction selectivo de cache por entityName.
- * <p>
- * Evita el uso de {@code allEntries = true} que invalida el cache completo,
- * en su lugar invalida solo las entradas relacionadas con una entidad específica.
- * <p>
- * Mejora el cache hit rate de ~20% a ~80% en escenarios con múltiples tipos de entidad.
+ *
+ * <p>Evita el uso de {@code allEntries = true} que invalida el cache completo, en su lugar invalida
+ * solo las entradas relacionadas con una entidad específica.
+ *
+ * <p>Mejora el cache hit rate de ~20% a ~80% en escenarios con múltiples tipos de entidad.
  */
 @Service
 public class CacheEvictionService {
@@ -30,15 +29,11 @@ public class CacheEvictionService {
 
     /**
      * Invalida todas las entradas del cache "lists" que empiezan con el prefijo de la entidad.
-     * <p>
-     * Por ejemplo, si entityName = "User", invalida:
-     * - "User:all:0:20:id:ASC"
-     * - "User:active:0:10:name:DESC"
-     * - etc.
-     * <p>
-     * Pero NO invalida:
-     * - "Product:all:0:20:id:ASC"
-     * - "Order:active:0:10:name:DESC"
+     *
+     * <p>Por ejemplo, si entityName = "User", invalida: - "User:all:0:20:id:ASC" -
+     * "User:active:0:10:name:DESC" - etc.
+     *
+     * <p>Pero NO invalida: - "Product:all:0:20:id:ASC" - "Order:active:0:10:name:DESC"
      *
      * @param entityName Nombre de la entidad cuyas listas se deben invalidar
      */
@@ -54,14 +49,16 @@ public class CacheEvictionService {
             Cache<Object, Object> nativeCache = caffeineCache.getNativeCache();
             String prefix = entityName + ":";
 
-            List<Object> keysToEvict = nativeCache.asMap().keySet().stream()
-                    .filter(key -> key.toString().startsWith(prefix))
-                    .toList();
+            List<Object> keysToEvict =
+                    nativeCache.asMap().keySet().stream()
+                            .filter(key -> key.toString().startsWith(prefix))
+                            .toList();
 
-            keysToEvict.forEach(key -> {
-                nativeCache.invalidate(key);
-                log.debug("Cache evicted: {}", key);
-            });
+            keysToEvict.forEach(
+                    key -> {
+                        nativeCache.invalidate(key);
+                        log.debug("Cache evicted: {}", key);
+                    });
 
             if (!keysToEvict.isEmpty()) {
                 log.info("Evicted {} cache entries for entity: {}", keysToEvict.size(), entityName);
@@ -77,7 +74,7 @@ public class CacheEvictionService {
      * Invalida una entrada específica del cache de entidades.
      *
      * @param entityName Nombre de la entidad
-     * @param id         ID de la entidad
+     * @param id ID de la entidad
      */
     public void evictEntity(String entityName, Object id) {
         org.springframework.cache.Cache entitiesCache = cacheManager.getCache("entities");
@@ -93,7 +90,7 @@ public class CacheEvictionService {
      * Invalida todas las entradas relacionadas con una entidad (entity + lists).
      *
      * @param entityName Nombre de la entidad
-     * @param id         ID de la entidad (puede ser null para solo invalidar listas)
+     * @param id ID de la entidad (puede ser null para solo invalidar listas)
      */
     public void evictEntityAndLists(String entityName, Object id) {
         if (id != null) {
@@ -122,11 +119,11 @@ public class CacheEvictionService {
     }
 
     /**
-     * Invalida todos los caches relacionados con una entidad.
-     * Útil para operaciones de update/delete.
+     * Invalida todos los caches relacionados con una entidad. Útil para operaciones de
+     * update/delete.
      *
      * @param entityName Nombre de la entidad
-     * @param id         ID de la entidad
+     * @param id ID de la entidad
      */
     public void evictAll(String entityName, Object id) {
         evictEntity(entityName, id);

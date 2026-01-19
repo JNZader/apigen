@@ -1,5 +1,8 @@
 package com.jnzader.apigen.security.application.validation;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
+
 import jakarta.validation.ConstraintValidatorContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -9,12 +12,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
-
-/**
- * Tests para StrongPasswordValidator.
- */
+/** Tests para StrongPasswordValidator. */
 @DisplayName("StrongPasswordValidator Tests")
 class StrongPasswordValidatorTest {
 
@@ -30,7 +28,8 @@ class StrongPasswordValidatorTest {
         violationBuilder = mock(ConstraintValidatorContext.ConstraintViolationBuilder.class);
         annotation = mock(StrongPassword.class);
 
-        when(context.buildConstraintViolationWithTemplate(anyString())).thenReturn(violationBuilder);
+        when(context.buildConstraintViolationWithTemplate(anyString()))
+                .thenReturn(violationBuilder);
         when(violationBuilder.addConstraintViolation()).thenReturn(context);
 
         // Default annotation values
@@ -45,14 +44,15 @@ class StrongPasswordValidatorTest {
     class ValidPasswordsTests {
 
         @ParameterizedTest
-        @ValueSource(strings = {
-                "SecurePass123!",
-                "MyP@ssw0rd2024",
-                "Complex#Pass99",
-                "Str0ng&Password!",
-                "Valid123$Password",
-                "SuperSecure@123ABC"
-        })
+        @ValueSource(
+                strings = {
+                    "SecurePass123!",
+                    "MyP@ssw0rd2024",
+                    "Complex#Pass99",
+                    "Str0ng&Password!",
+                    "Valid123$Password",
+                    "SuperSecure@123ABC"
+                })
         @DisplayName("should accept valid strong passwords")
         void shouldAcceptValidStrongPasswords(String password) {
             assertThat(validator.isValid(password, context)).isTrue();

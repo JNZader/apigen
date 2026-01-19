@@ -1,7 +1,11 @@
 package com.jnzader.apigen.codegen.generator.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlTable;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -9,13 +13,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 @DisplayName("ControllerGenerator Tests")
-@SuppressWarnings("java:S5976") // Tests validate different specific controller features, not the same feature with different inputs
+@SuppressWarnings(
+        "java:S5976") // Tests validate different specific controller features, not the same feature
+// with different inputs
 class ControllerGeneratorTest {
 
     private ControllerGenerator controllerGenerator;
@@ -47,7 +48,9 @@ class ControllerGeneratorTest {
             String result = controllerGenerator.generateInterface(table);
 
             assertThat(result)
-                    .contains("import com.jnzader.apigen.core.infrastructure.controller.BaseController;")
+                    .contains(
+                            "import"
+                                + " com.jnzader.apigen.core.infrastructure.controller.BaseController;")
                     .contains("import com.example.products.application.dto.ProductDTO;")
                     .contains("import io.swagger.v3.oas.annotations.tags.Tag;")
                     .contains("import org.springframework.web.bind.annotation.RequestMapping;");
@@ -60,7 +63,9 @@ class ControllerGeneratorTest {
 
             String result = controllerGenerator.generateInterface(table);
 
-            assertThat(result).contains("@Tag(name = \"Products\", description = \"Product management API\")");
+            assertThat(result)
+                    .contains(
+                            "@Tag(name = \"Products\", description = \"Product management API\")");
         }
 
         @Test
@@ -80,7 +85,10 @@ class ControllerGeneratorTest {
 
             String result = controllerGenerator.generateInterface(table);
 
-            assertThat(result).contains("public interface ProductController extends BaseController<ProductDTO, Long>");
+            assertThat(result)
+                    .contains(
+                            "public interface ProductController extends BaseController<ProductDTO,"
+                                    + " Long>");
         }
 
         @Test
@@ -95,21 +103,32 @@ class ControllerGeneratorTest {
 
         @ParameterizedTest(name = "Should handle table {0} -> {1}Controller")
         @CsvSource({
-                "order_items, orderitems, OrderItems, OrderItem",
-                "user_profiles, userprofiles, UserProfiles, UserProfile",
-                "categories, categories, Categorys, Category"
+            "order_items, orderitems, OrderItems, OrderItem",
+            "user_profiles, userprofiles, UserProfiles, UserProfile",
+            "categories, categories, Categorys, Category"
         })
         @DisplayName("Should handle various table names in interface")
-        void shouldHandleTableWithDifferentModuleName(String tableName, String moduleName, String tagName, String entityName) {
+        void shouldHandleTableWithDifferentModuleName(
+                String tableName, String moduleName, String tagName, String entityName) {
             SqlTable table = createSimpleTable(tableName);
 
             String result = controllerGenerator.generateInterface(table);
 
             assertThat(result)
                     .contains("package com.example." + moduleName + ".infrastructure.controller;")
-                    .contains("@Tag(name = \"" + tagName + "\", description = \"" + entityName + " management API\")")
+                    .contains(
+                            "@Tag(name = \""
+                                    + tagName
+                                    + "\", description = \""
+                                    + entityName
+                                    + " management API\")")
                     .contains("@RequestMapping(\"/api/v1/" + moduleName + "\")")
-                    .contains("public interface " + entityName + "Controller extends BaseController<" + entityName + "DTO, Long>");
+                    .contains(
+                            "public interface "
+                                    + entityName
+                                    + "Controller extends BaseController<"
+                                    + entityName
+                                    + "DTO, Long>");
         }
     }
 
@@ -135,7 +154,9 @@ class ControllerGeneratorTest {
             String result = controllerGenerator.generateImpl(table);
 
             assertThat(result)
-                    .contains("import com.jnzader.apigen.core.infrastructure.controller.BaseControllerImpl;")
+                    .contains(
+                            "import"
+                                + " com.jnzader.apigen.core.infrastructure.controller.BaseControllerImpl;")
                     .contains("import com.example.products.application.dto.ProductDTO;")
                     .contains("import com.example.products.application.mapper.ProductMapper;")
                     .contains("import com.example.products.application.service.ProductService;")
@@ -151,9 +172,7 @@ class ControllerGeneratorTest {
 
             String result = controllerGenerator.generateImpl(table);
 
-            assertThat(result)
-                    .contains("@RestController")
-                    .contains("@Slf4j");
+            assertThat(result).contains("@RestController").contains("@Slf4j");
         }
 
         @Test
@@ -189,7 +208,9 @@ class ControllerGeneratorTest {
             String result = controllerGenerator.generateImpl(table);
 
             assertThat(result)
-                    .contains("public ProductControllerImpl(ProductService service, ProductMapper mapper)")
+                    .contains(
+                            "public ProductControllerImpl(ProductService service, ProductMapper"
+                                    + " mapper)")
                     .contains("super(service, mapper);")
                     .contains("this.productService = service;")
                     .contains("this.productMapper = mapper;");
@@ -197,24 +218,50 @@ class ControllerGeneratorTest {
 
         @ParameterizedTest(name = "Should handle table {0} -> {1}ControllerImpl")
         @CsvSource({
-                "user_profiles, userprofiles, UserProfile",
-                "order_items, orderitems, OrderItem",
-                "categories, categories, Category"
+            "user_profiles, userprofiles, UserProfile",
+            "order_items, orderitems, OrderItem",
+            "categories, categories, Category"
         })
         @DisplayName("Should handle various table names in implementation")
-        void shouldHandleTableWithDifferentModuleName(String tableName, String moduleName, String entityName) {
+        void shouldHandleTableWithDifferentModuleName(
+                String tableName, String moduleName, String entityName) {
             SqlTable table = createSimpleTable(tableName);
 
             String result = controllerGenerator.generateImpl(table);
 
             assertThat(result)
                     .contains("package com.example." + moduleName + ".infrastructure.controller;")
-                    .contains("import com.example." + moduleName + ".application.dto." + entityName + "DTO;")
-                    .contains("import com.example." + moduleName + ".application.mapper." + entityName + "Mapper;")
-                    .contains("import com.example." + moduleName + ".application.service." + entityName + "Service;")
-                    .contains("import com.example." + moduleName + ".domain.entity." + entityName + ";")
+                    .contains(
+                            "import com.example."
+                                    + moduleName
+                                    + ".application.dto."
+                                    + entityName
+                                    + "DTO;")
+                    .contains(
+                            "import com.example."
+                                    + moduleName
+                                    + ".application.mapper."
+                                    + entityName
+                                    + "Mapper;")
+                    .contains(
+                            "import com.example."
+                                    + moduleName
+                                    + ".application.service."
+                                    + entityName
+                                    + "Service;")
+                    .contains(
+                            "import com.example."
+                                    + moduleName
+                                    + ".domain.entity."
+                                    + entityName
+                                    + ";")
                     .contains("public class " + entityName + "ControllerImpl")
-                    .contains("extends BaseControllerImpl<" + entityName + ", " + entityName + "DTO, Long>")
+                    .contains(
+                            "extends BaseControllerImpl<"
+                                    + entityName
+                                    + ", "
+                                    + entityName
+                                    + "DTO, Long>")
                     .contains("implements " + entityName + "Controller");
         }
 
@@ -236,13 +283,13 @@ class ControllerGeneratorTest {
     private SqlTable createSimpleTable(String tableName) {
         return SqlTable.builder()
                 .name(tableName)
-                .columns(List.of(
-                        SqlColumn.builder()
-                                .name("id")
-                                .javaType("Long")
-                                .primaryKey(true)
-                                .build()
-                ))
+                .columns(
+                        List.of(
+                                SqlColumn.builder()
+                                        .name("id")
+                                        .javaType("Long")
+                                        .primaryKey(true)
+                                        .build()))
                 .foreignKeys(new ArrayList<>())
                 .indexes(new ArrayList<>())
                 .build();

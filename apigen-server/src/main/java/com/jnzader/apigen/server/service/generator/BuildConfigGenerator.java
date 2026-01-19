@@ -4,9 +4,7 @@ import com.jnzader.apigen.server.config.GeneratedProjectVersions;
 import com.jnzader.apigen.server.dto.GenerateRequest;
 import org.springframework.stereotype.Component;
 
-/**
- * Generates build configuration files (build.gradle, settings.gradle).
- */
+/** Generates build configuration files (build.gradle, settings.gradle). */
 @Component
 public class BuildConfigGenerator {
 
@@ -17,12 +15,15 @@ public class BuildConfigGenerator {
      * @return the build.gradle content
      */
     public String generateBuildGradle(GenerateRequest.ProjectConfig config) {
-        String springBootVersion = config.getSpringBootVersion() != null
-                ? config.getSpringBootVersion() : GeneratedProjectVersions.SPRING_BOOT_VERSION;
-        String javaVersion = config.getJavaVersion() != null
-                ? config.getJavaVersion() : GeneratedProjectVersions.JAVA_VERSION;
-        String groupId = config.getGroupId() != null
-                ? config.getGroupId() : "com.example";
+        String springBootVersion =
+                config.getSpringBootVersion() != null
+                        ? config.getSpringBootVersion()
+                        : GeneratedProjectVersions.SPRING_BOOT_VERSION;
+        String javaVersion =
+                config.getJavaVersion() != null
+                        ? config.getJavaVersion()
+                        : GeneratedProjectVersions.JAVA_VERSION;
+        String groupId = config.getGroupId() != null ? config.getGroupId() : "com.example";
 
         StringBuilder deps = new StringBuilder();
 
@@ -32,12 +33,15 @@ public class BuildConfigGenerator {
 
         if (config.getModules() != null && config.getModules().isSecurity()) {
             deps.append("\n    // APiGen Security (from GitHub via JitPack)\n");
-            deps.append("    implementation 'com.github.jnzader.apigen:apigen-security:main-SNAPSHOT'\n");
+            deps.append(
+                    "    implementation"
+                            + " 'com.github.jnzader.apigen:apigen-security:main-SNAPSHOT'\n");
         }
 
         String dbDeps = generateDatabaseDependencies(config);
 
-        return """
+        return
+"""
 plugins {
     id 'java'
     id 'org.springframework.boot' version '%s'
@@ -90,19 +94,19 @@ dependencies {
 test {
     useJUnitPlatform()
 }
-""".formatted(
-                springBootVersion,
-                GeneratedProjectVersions.SPRING_DEPENDENCY_MANAGEMENT_VERSION,
-                groupId,
-                GeneratedProjectVersions.INITIAL_PROJECT_VERSION,
-                javaVersion,
-                deps,
-                GeneratedProjectVersions.SPRINGDOC_VERSION,
-                dbDeps,
-                GeneratedProjectVersions.MAPSTRUCT_VERSION,
-                GeneratedProjectVersions.MAPSTRUCT_VERSION,
-                GeneratedProjectVersions.LOMBOK_MAPSTRUCT_BINDING_VERSION
-        );
+"""
+                .formatted(
+                        springBootVersion,
+                        GeneratedProjectVersions.SPRING_DEPENDENCY_MANAGEMENT_VERSION,
+                        groupId,
+                        GeneratedProjectVersions.INITIAL_PROJECT_VERSION,
+                        javaVersion,
+                        deps,
+                        GeneratedProjectVersions.SPRINGDOC_VERSION,
+                        dbDeps,
+                        GeneratedProjectVersions.MAPSTRUCT_VERSION,
+                        GeneratedProjectVersions.MAPSTRUCT_VERSION,
+                        GeneratedProjectVersions.LOMBOK_MAPSTRUCT_BINDING_VERSION);
     }
 
     /**
@@ -122,9 +126,10 @@ test {
      * @return the database dependencies
      */
     private String generateDatabaseDependencies(GenerateRequest.ProjectConfig config) {
-        GenerateRequest.DatabaseConfig db = config.getDatabase() != null
-                ? config.getDatabase()
-                : new GenerateRequest.DatabaseConfig();
+        GenerateRequest.DatabaseConfig db =
+                config.getDatabase() != null
+                        ? config.getDatabase()
+                        : new GenerateRequest.DatabaseConfig();
 
         String dbType = db.getType().toLowerCase();
 
@@ -132,11 +137,25 @@ test {
         deps.append("    runtimeOnly 'com.h2database:h2' // For local development/testing\n");
 
         switch (dbType) {
-            case "mysql" -> deps.append("    runtimeOnly 'com.mysql:mysql-connector-j' // Production database\n");
-            case "mariadb" -> deps.append("    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client' // Production database\n");
-            case "sqlserver" -> deps.append("    runtimeOnly 'com.microsoft.sqlserver:mssql-jdbc' // Production database\n");
-            case "oracle" -> deps.append("    runtimeOnly 'com.oracle.database.jdbc:ojdbc11' // Production database\n");
-            default -> deps.append("    runtimeOnly 'org.postgresql:postgresql' // Production database\n");
+            case "mysql" ->
+                    deps.append(
+                            "    runtimeOnly 'com.mysql:mysql-connector-j' // Production"
+                                    + " database\n");
+            case "mariadb" ->
+                    deps.append(
+                            "    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client' // Production"
+                                    + " database\n");
+            case "sqlserver" ->
+                    deps.append(
+                            "    runtimeOnly 'com.microsoft.sqlserver:mssql-jdbc' // Production"
+                                    + " database\n");
+            case "oracle" ->
+                    deps.append(
+                            "    runtimeOnly 'com.oracle.database.jdbc:ojdbc11' // Production"
+                                    + " database\n");
+            default ->
+                    deps.append(
+                            "    runtimeOnly 'org.postgresql:postgresql' // Production database\n");
         }
 
         return deps.toString();

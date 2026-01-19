@@ -1,8 +1,6 @@
 package com.jnzader.apigen.codegen.model;
 
-/**
- * JPA relationship types.
- */
+/** JPA relationship types. */
 public enum RelationType {
     ONE_TO_ONE("@OneToOne"),
     ONE_TO_MANY("@OneToMany"),
@@ -19,9 +17,7 @@ public enum RelationType {
         return annotation;
     }
 
-    /**
-     * Returns the inverse relationship type.
-     */
+    /** Returns the inverse relationship type. */
     public RelationType inverse() {
         return switch (this) {
             case ONE_TO_ONE -> ONE_TO_ONE;
@@ -31,9 +27,7 @@ public enum RelationType {
         };
     }
 
-    /**
-     * Whether this relationship requires a collection type.
-     */
+    /** Whether this relationship requires a collection type. */
     public boolean isCollection() {
         return this == ONE_TO_MANY || this == MANY_TO_MANY;
     }

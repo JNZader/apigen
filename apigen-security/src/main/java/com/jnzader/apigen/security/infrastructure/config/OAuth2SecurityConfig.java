@@ -1,6 +1,10 @@
 package com.jnzader.apigen.security.infrastructure.config;
 
 import com.jnzader.apigen.core.infrastructure.config.properties.AppProperties;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -27,26 +31,14 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
 /**
  * Configuracion de seguridad OAuth2 Resource Server.
- * <p>
- * Se activa cuando:
- * - apigen.security.enabled=true
- * - apigen.security.mode=oauth2
- * <p>
- * Soporta IdPs externos como:
- * - Auth0
- * - Keycloak
- * - Azure AD / Entra ID
- * - Okta
- * - AWS Cognito
- * <p>
- * Valida tokens JWT usando JWKS del IdP y extrae roles del claim configurado.
+ *
+ * <p>Se activa cuando: - apigen.security.enabled=true - apigen.security.mode=oauth2
+ *
+ * <p>Soporta IdPs externos como: - Auth0 - Keycloak - Azure AD / Entra ID - Okta - AWS Cognito
+ *
+ * <p>Valida tokens JWT usando JWKS del IdP y extrae roles del claim configurado.
  */
 @Configuration
 @EnableWebSecurity
@@ -58,7 +50,8 @@ public class OAuth2SecurityConfig {
     private final SecurityProperties securityProperties;
     private final AppProperties appProperties;
 
-    public OAuth2SecurityConfig(SecurityProperties securityProperties, AppProperties appProperties) {
+    public OAuth2SecurityConfig(
+            SecurityProperties securityProperties, AppProperties appProperties) {
         this.securityProperties = securityProperties;
         this.appProperties = appProperties;
     }
@@ -80,62 +73,69 @@ public class OAuth2SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
 
                 // Sesion stateless
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
+                .sessionManagement(
+                        session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 // Headers de seguridad
-                .headers(headers -> headers
-                        .xssProtection(xss -> xss
-                                .headerValue(XXssProtectionHeaderWriter.HeaderValue.ENABLED_MODE_BLOCK)
-                        )
-                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::deny)
-                        .contentTypeOptions(HeadersConfigurer.ContentTypeOptionsConfig::disable)
-                        .contentSecurityPolicy(csp -> csp
-                                .policyDirectives(
-                                        "default-src 'self'; " +
-                                        "script-src 'self'; " +
-                                        "style-src 'self'; " +
-                                        "img-src 'self' data:; " +
-                                        "font-src 'self'; " +
-                                        "frame-ancestors 'none'; " +
-                                        "form-action 'self'"
-                                )
-                        )
-                        .httpStrictTransportSecurity(hsts -> hsts
-                                .includeSubDomains(true)
-                                .maxAgeInSeconds(31536000)
-                        )
-                )
+                .headers(
+                        headers ->
+                                headers.xssProtection(
+                                                xss ->
+                                                        xss.headerValue(
+                                                                XXssProtectionHeaderWriter
+                                                                        .HeaderValue
+                                                                        .ENABLED_MODE_BLOCK))
+                                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::deny)
+                                        .contentTypeOptions(
+                                                HeadersConfigurer.ContentTypeOptionsConfig::disable)
+                                        .contentSecurityPolicy(
+                                                csp ->
+                                                        csp.policyDirectives(
+                                                                "default-src 'self'; "
+                                                                        + "script-src 'self'; "
+                                                                        + "style-src 'self'; "
+                                                                        + "img-src 'self' data:; "
+                                                                        + "font-src 'self'; "
+                                                                        + "frame-ancestors 'none'; "
+                                                                        + "form-action 'self'"))
+                                        .httpStrictTransportSecurity(
+                                                hsts ->
+                                                        hsts.includeSubDomains(true)
+                                                                .maxAgeInSeconds(31536000)))
 
                 // Autorizacion de endpoints
-                .authorizeHttpRequests(auth -> auth
-                        // Actuator health/info publicos
-                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
-                        // Swagger/OpenAPI publicos
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        // CORS preflight
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        // Actuator completo solo para ADMIN
-                        .requestMatchers("/actuator/**").hasRole("ADMIN")
-                        // El resto requiere autenticacion
-                        .anyRequest().authenticated()
-                )
+                .authorizeHttpRequests(
+                        auth ->
+                                auth
+                                        // Actuator health/info publicos
+                                        .requestMatchers("/actuator/health", "/actuator/info")
+                                        .permitAll()
+                                        // Swagger/OpenAPI publicos
+                                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**")
+                                        .permitAll()
+                                        // CORS preflight
+                                        .requestMatchers(HttpMethod.OPTIONS, "/**")
+                                        .permitAll()
+                                        // Actuator completo solo para ADMIN
+                                        .requestMatchers("/actuator/**")
+                                        .hasRole("ADMIN")
+                                        // El resto requiere autenticacion
+                                        .anyRequest()
+                                        .authenticated())
 
                 // OAuth2 Resource Server con JWT
-                .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwt -> jwt
-                                .decoder(jwtDecoder())
-                                .jwtAuthenticationConverter(jwtAuthenticationConverter())
-                        )
-                );
+                .oauth2ResourceServer(
+                        oauth2 ->
+                                oauth2.jwt(
+                                        jwt ->
+                                                jwt.decoder(jwtDecoder())
+                                                        .jwtAuthenticationConverter(
+                                                                jwtAuthenticationConverter())));
 
         return http.build();
     }
 
-    /**
-     * Configura el JwtDecoder para validar tokens del IdP externo.
-     */
+    /** Configura el JwtDecoder para validar tokens del IdP externo. */
     @Bean
     public JwtDecoder jwtDecoder() {
         String issuerUri = securityProperties.getOauth2().getIssuerUri();
@@ -149,13 +149,14 @@ public class OAuth2SecurityConfig {
     }
 
     /**
-     * Convierte claims JWT a GrantedAuthorities de Spring Security.
-     * Extrae roles del claim configurado (por defecto "permissions").
+     * Convierte claims JWT a GrantedAuthorities de Spring Security. Extrae roles del claim
+     * configurado (por defecto "permissions").
      */
     @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
-        converter.setJwtGrantedAuthoritiesConverter(new CustomJwtGrantedAuthoritiesConverter(securityProperties));
+        converter.setJwtGrantedAuthoritiesConverter(
+                new CustomJwtGrantedAuthoritiesConverter(securityProperties));
         return converter;
     }
 
@@ -187,11 +188,10 @@ public class OAuth2SecurityConfig {
 
     /**
      * Converter personalizado que extrae roles de diferentes IdPs.
-     * <p>
-     * Soporta estructuras de claims:
-     * - Simple array: "permissions": ["read", "write"]
-     * - Keycloak: "realm_access": {"roles": ["admin", "user"]}
-     * - Azure AD: "roles": ["Admin.Read", "Admin.Write"]
+     *
+     * <p>Soporta estructuras de claims: - Simple array: "permissions": ["read", "write"] -
+     * Keycloak: "realm_access": {"roles": ["admin", "user"]} - Azure AD: "roles": ["Admin.Read",
+     * "Admin.Write"]
      */
     @SuppressWarnings({"java:S3776", "java:S2638"})
     // S3776: Complejidad cognitiva es INHERENTE a soportar multiples IdPs
@@ -236,9 +236,7 @@ public class OAuth2SecurityConfig {
             return authorities;
         }
 
-        /**
-         * Extrae roles del JWT soportando diferentes estructuras de IdPs.
-         */
+        /** Extrae roles del JWT soportando diferentes estructuras de IdPs. */
         private List<String> extractRoles(Jwt jwt, String rolesClaim) {
             List<String> roles = new ArrayList<>();
 

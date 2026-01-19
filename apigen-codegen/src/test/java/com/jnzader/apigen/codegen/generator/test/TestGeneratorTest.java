@@ -1,16 +1,15 @@
 package com.jnzader.apigen.codegen.generator.test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlTable;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("TestGenerator Facade Tests")
 class TestGeneratorTest {
@@ -79,9 +78,7 @@ class TestGeneratorTest {
 
             String result = generator.generateDTOTest(table);
 
-            assertThat(result)
-                    .contains("class OrderDTOTest")
-                    .contains("OrderDTO dto");
+            assertThat(result).contains("class OrderDTOTest").contains("OrderDTO dto");
         }
 
         @Test
@@ -91,9 +88,7 @@ class TestGeneratorTest {
 
             String result = generator.generateDTOTest(table);
 
-            assertThat(result)
-                    .doesNotContain("%s")
-                    .contains("@DisplayName(\"ProductDTO Tests\")");
+            assertThat(result).doesNotContain("%s").contains("@DisplayName(\"ProductDTO Tests\")");
         }
     }
 
@@ -197,12 +192,8 @@ class TestGeneratorTest {
         @Test
         @DisplayName("Should handle various table names correctly")
         void shouldHandleVariousTableNamesCorrectly() {
-            List<String> tableNames = List.of(
-                    "products",
-                    "order_items",
-                    "user_profiles",
-                    "api_keys"
-            );
+            List<String> tableNames =
+                    List.of("products", "order_items", "user_profiles", "api_keys");
 
             for (String tableName : tableNames) {
                 SqlTable table = createSimpleTable(tableName);
@@ -212,12 +203,8 @@ class TestGeneratorTest {
                 String controllerTest = generator.generateControllerTest(table);
                 String integrationTest = generator.generateIntegrationTest(table);
 
-                assertThat(serviceTest)
-                        .as("ServiceTest for " + tableName)
-                        .doesNotContain("%s");
-                assertThat(dtoTest)
-                        .as("DTOTest for " + tableName)
-                        .doesNotContain("%s");
+                assertThat(serviceTest).as("ServiceTest for " + tableName).doesNotContain("%s");
+                assertThat(dtoTest).as("DTOTest for " + tableName).doesNotContain("%s");
                 assertThat(controllerTest)
                         .as("ControllerTest for " + tableName)
                         .doesNotContain("%s");
@@ -231,13 +218,13 @@ class TestGeneratorTest {
     private SqlTable createSimpleTable(String tableName) {
         return SqlTable.builder()
                 .name(tableName)
-                .columns(List.of(
-                        SqlColumn.builder()
-                                .name("id")
-                                .javaType("Long")
-                                .primaryKey(true)
-                                .build()
-                ))
+                .columns(
+                        List.of(
+                                SqlColumn.builder()
+                                        .name("id")
+                                        .javaType("Long")
+                                        .primaryKey(true)
+                                        .build()))
                 .foreignKeys(new ArrayList<>())
                 .indexes(new ArrayList<>())
                 .build();

@@ -2,9 +2,7 @@ package com.jnzader.apigen.codegen.generator.controller;
 
 import com.jnzader.apigen.codegen.model.SqlTable;
 
-/**
- * Generates Controller interface and implementation classes from SQL table definitions.
- */
+/** Generates Controller interface and implementation classes from SQL table definitions. */
 public class ControllerGenerator {
 
     private static final String APIGEN_CORE_PKG = "com.jnzader.apigen.core";
@@ -15,14 +13,13 @@ public class ControllerGenerator {
         this.basePackage = basePackage;
     }
 
-    /**
-     * Generates the Controller interface code.
-     */
+    /** Generates the Controller interface code. */
     public String generateInterface(SqlTable table) {
         String entityName = table.getEntityName();
         String moduleName = table.getModuleName();
 
-        return """
+        return
+"""
 package %s.%s.infrastructure.controller;
 
 import %s.infrastructure.controller.BaseController;
@@ -36,19 +33,29 @@ public interface %sController extends BaseController<%sDTO, Long> {
 
     // Add custom endpoints here
 }
-""".formatted(basePackage, moduleName, APIGEN_CORE_PKG, basePackage, moduleName, entityName,
-                entityName, entityName, moduleName, entityName, entityName);
+"""
+                .formatted(
+                        basePackage,
+                        moduleName,
+                        APIGEN_CORE_PKG,
+                        basePackage,
+                        moduleName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        moduleName,
+                        entityName,
+                        entityName);
     }
 
-    /**
-     * Generates the Controller implementation class code.
-     */
+    /** Generates the Controller implementation class code. */
     public String generateImpl(SqlTable table) {
         String entityName = table.getEntityName();
         String entityVarName = table.getEntityVariableName();
         String moduleName = table.getModuleName();
 
-        return """
+        return
+"""
 package %s.%s.infrastructure.controller;
 
 import %s.infrastructure.controller.BaseControllerImpl;
@@ -74,10 +81,35 @@ public class %sControllerImpl
         this.%sMapper = mapper;
     }
 }
-""".formatted(basePackage, moduleName, APIGEN_CORE_PKG, basePackage, moduleName, entityName,
-                basePackage, moduleName, entityName, basePackage, moduleName, entityName,
-                basePackage, moduleName, entityName, entityName, entityName, entityName, entityName,
-                entityName, entityVarName, entityName, entityVarName, entityName, entityName, entityName,
-                entityVarName, entityVarName);
+"""
+                .formatted(
+                        basePackage,
+                        moduleName,
+                        APIGEN_CORE_PKG,
+                        basePackage,
+                        moduleName,
+                        entityName,
+                        basePackage,
+                        moduleName,
+                        entityName,
+                        basePackage,
+                        moduleName,
+                        entityName,
+                        basePackage,
+                        moduleName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityVarName,
+                        entityName,
+                        entityVarName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityVarName,
+                        entityVarName);
     }
 }

@@ -2,9 +2,7 @@ package com.jnzader.apigen.codegen.generator.mapper;
 
 import com.jnzader.apigen.codegen.model.SqlTable;
 
-/**
- * Generates MapStruct Mapper interfaces from SQL table definitions.
- */
+/** Generates MapStruct Mapper interfaces from SQL table definitions. */
 public class MapperGenerator {
 
     private static final String APIGEN_CORE_PKG = "com.jnzader.apigen.core";
@@ -15,14 +13,13 @@ public class MapperGenerator {
         this.basePackage = basePackage;
     }
 
-    /**
-     * Generates the Mapper interface code.
-     */
+    /** Generates the Mapper interface code. */
     public String generate(SqlTable table) {
         String entityName = table.getEntityName();
         String moduleName = table.getModuleName();
 
-        return """
+        return
+"""
 package %s.%s.application.mapper;
 
 import %s.application.mapper.BaseMapper;
@@ -35,11 +32,19 @@ public interface %sMapper extends BaseMapper<%s, %sDTO> {
     // Inherits toDTO, toEntity, updateEntityFromDTO from BaseMapper
     // MapStruct will generate implementations automatically
 }
-""".formatted(
-                basePackage, moduleName,
-                APIGEN_CORE_PKG, basePackage, moduleName, entityName,
-                basePackage, moduleName, entityName,
-                entityName, entityName, entityName
-        );
+"""
+                .formatted(
+                        basePackage,
+                        moduleName,
+                        APIGEN_CORE_PKG,
+                        basePackage,
+                        moduleName,
+                        entityName,
+                        basePackage,
+                        moduleName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName);
     }
 }

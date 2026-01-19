@@ -6,6 +6,9 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.time.Duration;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,19 +20,14 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
-import java.time.Duration;
-import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * Filtro de rate limiting específico para endpoints de autenticación.
- * <p>
- * Implementa protección contra ataques de fuerza bruta limitando
- * los intentos de login por IP. Más restrictivo que el rate limiting general.
- * <p>
- * Configuración:
- * - Máximo 5 intentos fallidos por ventana de 15 minutos
- * - Después del límite, bloqueo temporal de la IP
+ *
+ * <p>Implementa protección contra ataques de fuerza bruta limitando los intentos de login por IP.
+ * Más restrictivo que el rate limiting general.
+ *
+ * <p>Configuración: - Máximo 5 intentos fallidos por ventana de 15 minutos - Después del límite,
+ * bloqueo temporal de la IP
  */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE + 1) // Antes del rate limiting general
@@ -49,19 +47,22 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
         this.maxLoginAttempts = maxLoginAttempts;
         this.lockoutDuration = Duration.ofMinutes(lockoutMinutes);
 
-        this.loginAttempts = Caffeine.newBuilder()
-                .expireAfterWrite(lockoutDuration)
-                .maximumSize(10000) // Máximo 10k IPs en tracking
-                .build();
+        this.loginAttempts =
+                Caffeine.newBuilder()
+                        .expireAfterWrite(lockoutDuration)
+                        .maximumSize(10000) // Máximo 10k IPs en tracking
+                        .build();
 
-        log.info("Auth Rate Limit Filter initialized: max {} attempts per {} minutes",
-                maxLoginAttempts, lockoutMinutes);
+        log.info(
+                "Auth Rate Limit Filter initialized: max {} attempts per {} minutes",
+                maxLoginAttempts,
+                lockoutMinutes);
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(
+            HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
 
         // Solo aplicar a endpoints de login
         if (!isLoginEndpoint(request)) {
@@ -81,15 +82,16 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
 
         // Agregar headers informativos
         response.setHeader("X-Auth-RateLimit-Limit", String.valueOf(maxLoginAttempts));
-        response.setHeader("X-Auth-RateLimit-Remaining",
+        response.setHeader(
+                "X-Auth-RateLimit-Remaining",
                 String.valueOf(Math.max(0, maxLoginAttempts - attempts.get())));
 
         // Continuar con la cadena de filtros
         filterChain.doFilter(request, response);
 
         // Incrementar contador en caso de fallo de autenticación
-        if (response.getStatus() == HttpStatus.UNAUTHORIZED.value() ||
-            response.getStatus() == HttpStatus.FORBIDDEN.value()) {
+        if (response.getStatus() == HttpStatus.UNAUTHORIZED.value()
+                || response.getStatus() == HttpStatus.FORBIDDEN.value()) {
             int currentAttempts = attempts.incrementAndGet();
             log.info("Failed login attempt #{} from IP: {}", currentAttempts, clientIp);
 
@@ -108,17 +110,14 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
         String method = request.getMethod();
 
         // Solo POST a endpoints de login
-        return "POST".equalsIgnoreCase(method) &&
-               (uri.endsWith("/auth/login") || uri.endsWith("/auth/register"));
+        return "POST".equalsIgnoreCase(method)
+                && (uri.endsWith("/auth/login") || uri.endsWith("/auth/register"));
     }
 
     private String getClientIp(HttpServletRequest request) {
         // Verificar headers de proxy en orden de preferencia
         String[] headerNames = {
-                "X-Forwarded-For",
-                "X-Real-IP",
-                "Proxy-Client-IP",
-                "WL-Proxy-Client-IP"
+            "X-Forwarded-For", "X-Real-IP", "Proxy-Client-IP", "WL-Proxy-Client-IP"
         };
 
         for (String header : headerNames) {
@@ -137,15 +136,18 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setHeader("Retry-After", String.valueOf(lockoutDuration.toSeconds()));
 
-        String jsonResponse = String.format("""
-                {
-                    "type": "about:blank",
-                    "title": "Too Many Requests",
-                    "status": 429,
-                    "detail": "Demasiados intentos de autenticación fallidos. Intente nuevamente en %d minutos.",
-                    "instance": "/auth/login"
-                }
-                """, lockoutDuration.toMinutes());
+        String jsonResponse =
+                String.format(
+                        """
+                        {
+                            "type": "about:blank",
+                            "title": "Too Many Requests",
+                            "status": 429,
+                            "detail": "Demasiados intentos de autenticación fallidos. Intente nuevamente en %d minutos.",
+                            "instance": "/auth/login"
+                        }
+                        """,
+                        lockoutDuration.toMinutes());
 
         response.getWriter().write(jsonResponse);
     }

@@ -1,13 +1,10 @@
 package com.jnzader.apigen.codegen.model;
 
+import java.util.List;
 import lombok.Builder;
 import lombok.Data;
 
-import java.util.List;
-
-/**
- * Represents a column parsed from SQL CREATE TABLE statement.
- */
+/** Represents a column parsed from SQL CREATE TABLE statement. */
 @Data
 @Builder
 public class SqlColumn {
@@ -26,9 +23,7 @@ public class SqlColumn {
     private List<String> enumValues;
     private String comment;
 
-    /**
-     * Converts snake_case column name to camelCase Java field name.
-     */
+    /** Converts snake_case column name to camelCase Java field name. */
     public String getJavaFieldName() {
         if (name == null) return null;
         StringBuilder result = new StringBuilder();
@@ -44,9 +39,7 @@ public class SqlColumn {
         return result.toString();
     }
 
-    /**
-     * Returns the validation annotations based on column constraints.
-     */
+    /** Returns the validation annotations based on column constraints. */
     public String getValidationAnnotations() {
         StringBuilder annotations = new StringBuilder();
 

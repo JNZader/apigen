@@ -1,9 +1,20 @@
 package com.jnzader.apigen.core.domain.specification;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+
 import com.jnzader.apigen.core.domain.entity.Base;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.criteria.*;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -12,20 +23,9 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.data.jpa.domain.Specification;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
-
 @DisplayName("FilterSpecificationBuilder Tests")
-@SuppressWarnings("java:S5976") // Tests are intentionally separate for better readability and error isolation
+@SuppressWarnings(
+        "java:S5976") // Tests are intentionally separate for better readability and error isolation
 class FilterSpecificationBuilderTest {
 
     private FilterSpecificationBuilder builder;
@@ -33,22 +33,19 @@ class FilterSpecificationBuilderTest {
     // Test entity for specifications
     @Entity
     static class TestEntity extends Base {
-        @Column
-        private String name;
-        @Column
-        private Integer age;
-        @Column
-        private BigDecimal price;
-        @Column
-        private Boolean active;
-        @Column
-        private LocalDate birthDate;
-        @Column
-        private LocalDateTime createdAt;
-        @Column
-        private TestStatus status;
+        @Column private String name;
+        @Column private Integer age;
+        @Column private BigDecimal price;
+        @Column private Boolean active;
+        @Column private LocalDate birthDate;
+        @Column private LocalDateTime createdAt;
+        @Column private TestStatus status;
 
-        enum TestStatus { PENDING, ACTIVE, COMPLETED }
+        enum TestStatus {
+            PENDING,
+            ACTIVE,
+            COMPLETED
+        }
     }
 
     @BeforeEach
@@ -84,7 +81,8 @@ class FilterSpecificationBuilderTest {
         @Test
         @DisplayName("should parse multiple filters")
         void shouldParseMultipleFilters() {
-            Specification<TestEntity> spec = builder.build("name:eq:John,age:gte:25", TestEntity.class);
+            Specification<TestEntity> spec =
+                    builder.build("name:eq:John,age:gte:25", TestEntity.class);
             assertThat(spec).isNotNull();
         }
 
@@ -147,14 +145,16 @@ class FilterSpecificationBuilderTest {
         @Test
         @DisplayName("should handle IN operator")
         void shouldHandleInOperator() {
-            Specification<TestEntity> spec = builder.build("name:in:John;Jane;Bob", TestEntity.class);
+            Specification<TestEntity> spec =
+                    builder.build("name:in:John;Jane;Bob", TestEntity.class);
             assertThat(spec).isNotNull();
         }
 
         @Test
         @DisplayName("should handle NOT_IN operator")
         void shouldHandleNotInOperator() {
-            Specification<TestEntity> spec = builder.build("name:notin:John;Jane", TestEntity.class);
+            Specification<TestEntity> spec =
+                    builder.build("name:notin:John;Jane", TestEntity.class);
             assertThat(spec).isNotNull();
         }
 
@@ -203,7 +203,8 @@ class FilterSpecificationBuilderTest {
         @Test
         @DisplayName("should handle empty filters in comma-separated string")
         void shouldHandleEmptyFilters() {
-            Specification<TestEntity> spec = builder.build("name:eq:John,,age:gte:25", TestEntity.class);
+            Specification<TestEntity> spec =
+                    builder.build("name:eq:John,,age:gte:25", TestEntity.class);
             assertThat(spec).isNotNull();
         }
     }
@@ -351,7 +352,8 @@ class FilterSpecificationBuilderTest {
         @Test
         @DisplayName("should throw for unknown operator")
         void shouldThrowForUnknownOperator() {
-            assertThatThrownBy(() -> FilterSpecificationBuilder.FilterOperator.fromString("unknown"))
+            assertThatThrownBy(
+                            () -> FilterSpecificationBuilder.FilterOperator.fromString("unknown"))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("unknown");
         }
@@ -362,36 +364,31 @@ class FilterSpecificationBuilderTest {
     @SuppressWarnings({"unchecked", "rawtypes"})
     class SpecificationExecutionTests {
 
-        @Mock
-        private Root<TestEntity> root;
-        @Mock
-        private CriteriaQuery<?> query;
-        @Mock
-        private CriteriaBuilder cb;
-        @Mock
-        private Path<Object> path;
-        @Mock
-        private Path<String> stringPath;
-        @Mock
-        private Path<Integer> intPath;
-        @Mock
-        private Predicate predicate;
-        @Mock
-        private Expression<String> lowerExpr;
+        @Mock private Root<TestEntity> root;
+        @Mock private CriteriaQuery<?> query;
+        @Mock private CriteriaBuilder cb;
+        @Mock private Path<Object> path;
+        @Mock private Path<String> stringPath;
+        @Mock private Path<Integer> intPath;
+        @Mock private Predicate predicate;
+        @Mock private Expression<String> lowerExpr;
 
         @BeforeEach
         void setUpMocks() {
             MockitoAnnotations.openMocks(this);
             // Use Mockito's default answer to return predicate for all CriteriaBuilder methods
-            cb = mock(CriteriaBuilder.class, invocation -> {
-                if (invocation.getMethod().getReturnType() == Predicate.class) {
-                    return predicate;
-                }
-                if (invocation.getMethod().getReturnType() == Expression.class) {
-                    return lowerExpr;
-                }
-                return null;
-            });
+            cb =
+                    mock(
+                            CriteriaBuilder.class,
+                            invocation -> {
+                                if (invocation.getMethod().getReturnType() == Predicate.class) {
+                                    return predicate;
+                                }
+                                if (invocation.getMethod().getReturnType() == Expression.class) {
+                                    return lowerExpr;
+                                }
+                                return null;
+                            });
             lenient().when(path.in(any(java.util.Collection.class))).thenReturn(predicate);
             lenient().when(path.getJavaType()).thenReturn((Class) String.class);
         }
@@ -514,7 +511,8 @@ class FilterSpecificationBuilderTest {
         @DisplayName("should execute IN specification")
         void shouldExecuteInSpecification() {
             setupPath("name", String.class);
-            Specification<TestEntity> spec = builder.build("name:in:John;Jane;Bob", TestEntity.class);
+            Specification<TestEntity> spec =
+                    builder.build("name:in:John;Jane;Bob", TestEntity.class);
 
             Predicate result = spec.toPredicate(root, query, cb);
 
@@ -526,7 +524,8 @@ class FilterSpecificationBuilderTest {
         @DisplayName("should execute NOT_IN specification")
         void shouldExecuteNotInSpecification() {
             setupPath("name", String.class);
-            Specification<TestEntity> spec = builder.build("name:notin:John;Jane", TestEntity.class);
+            Specification<TestEntity> spec =
+                    builder.build("name:notin:John;Jane", TestEntity.class);
 
             Predicate result = spec.toPredicate(root, query, cb);
 
@@ -574,7 +573,8 @@ class FilterSpecificationBuilderTest {
         @DisplayName("should handle invalid field gracefully")
         void shouldHandleInvalidFieldGracefully() {
             when(root.get("invalidField")).thenThrow(new IllegalArgumentException("Unknown field"));
-            Specification<TestEntity> spec = builder.build("invalidField:eq:value", TestEntity.class);
+            Specification<TestEntity> spec =
+                    builder.build("invalidField:eq:value", TestEntity.class);
 
             Predicate result = spec.toPredicate(root, query, cb);
 
@@ -661,7 +661,8 @@ class FilterSpecificationBuilderTest {
         @DisplayName("should convert LocalDate values")
         void shouldConvertLocalDateValues() {
             setupPath("birthDate", LocalDate.class);
-            Specification<TestEntity> spec = builder.build("birthDate:eq:2023-01-15", TestEntity.class);
+            Specification<TestEntity> spec =
+                    builder.build("birthDate:eq:2023-01-15", TestEntity.class);
 
             Predicate result = spec.toPredicate(root, query, cb);
 
@@ -673,19 +674,23 @@ class FilterSpecificationBuilderTest {
         @DisplayName("should convert LocalDateTime values")
         void shouldConvertLocalDateTimeValues() {
             setupPath("createdAt", LocalDateTime.class);
-            Specification<TestEntity> spec = builder.build("createdAt:gte:2023-01-15T10:30:00", TestEntity.class);
+            Specification<TestEntity> spec =
+                    builder.build("createdAt:gte:2023-01-15T10:30:00", TestEntity.class);
 
             Predicate result = spec.toPredicate(root, query, cb);
 
             assertThat(result).isNotNull();
-            verify(cb).greaterThanOrEqualTo(any(Expression.class), eq(LocalDateTime.of(2023, 1, 15, 10, 30, 0)));
+            verify(cb)
+                    .greaterThanOrEqualTo(
+                            any(Expression.class), eq(LocalDateTime.of(2023, 1, 15, 10, 30, 0)));
         }
 
         @Test
         @DisplayName("should convert LocalDateTime from date-only string")
         void shouldConvertLocalDateTimeFromDateOnly() {
             setupPath("createdAt", LocalDateTime.class);
-            Specification<TestEntity> spec = builder.build("createdAt:eq:2023-01-15", TestEntity.class);
+            Specification<TestEntity> spec =
+                    builder.build("createdAt:eq:2023-01-15", TestEntity.class);
 
             Predicate result = spec.toPredicate(root, query, cb);
 
@@ -740,7 +745,8 @@ class FilterSpecificationBuilderTest {
         @DisplayName("should handle invalid date format gracefully")
         void shouldHandleInvalidDateFormatGracefully() {
             setupPath("createdAt", LocalDateTime.class);
-            Specification<TestEntity> spec = builder.build("createdAt:eq:invalid-date", TestEntity.class);
+            Specification<TestEntity> spec =
+                    builder.build("createdAt:eq:invalid-date", TestEntity.class);
 
             Predicate result = spec.toPredicate(root, query, cb);
 

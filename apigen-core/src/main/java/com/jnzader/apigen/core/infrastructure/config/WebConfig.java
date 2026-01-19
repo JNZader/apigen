@@ -8,11 +8,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * Configuración de Spring MVC para la API REST.
- * <p>
- * Configura:
- * - Interceptores (Request ID)
- * - Negociación de contenido
- * - Otros aspectos de configuración web
+ *
+ * <p>Configura: - Interceptores (Request ID) - Negociación de contenido - Otros aspectos de
+ * configuración web
  */
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
@@ -26,8 +24,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         // Request ID interceptor para todas las requests de la API
-        registry.addInterceptor(requestIdInterceptor)
-                .addPathPatterns("/api/**");
+        registry.addInterceptor(requestIdInterceptor).addPathPatterns("/api/**");
     }
 
     @Override

@@ -1,15 +1,14 @@
 package com.jnzader.apigen.codegen.model;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("SqlTable Tests")
 class SqlTableTest {
@@ -20,14 +19,14 @@ class SqlTableTest {
 
         @ParameterizedTest
         @CsvSource({
-                "products, Product",
-                "users, User",
-                "categories, Category",
-                "order_items, OrderItem",
-                "user_roles, UserRole",
-                "addresses, Address",
-                "statuses, Status",
-                "companies, Company"
+            "products, Product",
+            "users, User",
+            "categories, Category",
+            "order_items, OrderItem",
+            "user_roles, UserRole",
+            "addresses, Address",
+            "statuses, Status",
+            "companies, Company"
         })
         @DisplayName("Should convert table name to PascalCase entity name")
         void shouldConvertTableNameToPascalCaseEntityName(String tableName, String expected) {
@@ -62,10 +61,10 @@ class SqlTableTest {
 
         @ParameterizedTest
         @CsvSource({
-                "products, products",
-                "order_items, orderitems",
-                "user_roles, userroles",
-                "USERS, users"
+            "products, products",
+            "order_items, orderitems",
+            "user_roles, userroles",
+            "USERS, users"
         })
         @DisplayName("Should return lowercase module name without underscores")
         void shouldReturnLowercaseModuleNameWithoutUnderscores(String tableName, String expected) {
@@ -125,14 +124,21 @@ class SqlTableTest {
         @Test
         @DisplayName("Should return true for valid junction table")
         void shouldReturnTrueForValidJunctionTable() {
-            SqlTable table = SqlTable.builder()
-                    .name("user_roles")
-                    .foreignKeys(List.of(
-                            SqlForeignKey.builder().columnName("user_id").referencedTable("users").build(),
-                            SqlForeignKey.builder().columnName("role_id").referencedTable("roles").build()
-                    ))
-                    .primaryKeyColumns(List.of("user_id", "role_id"))
-                    .build();
+            SqlTable table =
+                    SqlTable.builder()
+                            .name("user_roles")
+                            .foreignKeys(
+                                    List.of(
+                                            SqlForeignKey.builder()
+                                                    .columnName("user_id")
+                                                    .referencedTable("users")
+                                                    .build(),
+                                            SqlForeignKey.builder()
+                                                    .columnName("role_id")
+                                                    .referencedTable("roles")
+                                                    .build()))
+                            .primaryKeyColumns(List.of("user_id", "role_id"))
+                            .build();
 
             assertThat(table.isJunctionTable()).isTrue();
         }
@@ -140,13 +146,17 @@ class SqlTableTest {
         @Test
         @DisplayName("Should return false for table with one foreign key")
         void shouldReturnFalseForTableWithOneForeignKey() {
-            SqlTable table = SqlTable.builder()
-                    .name("orders")
-                    .foreignKeys(List.of(
-                            SqlForeignKey.builder().columnName("user_id").referencedTable("users").build()
-                    ))
-                    .primaryKeyColumns(List.of("id"))
-                    .build();
+            SqlTable table =
+                    SqlTable.builder()
+                            .name("orders")
+                            .foreignKeys(
+                                    List.of(
+                                            SqlForeignKey.builder()
+                                                    .columnName("user_id")
+                                                    .referencedTable("users")
+                                                    .build()))
+                            .primaryKeyColumns(List.of("id"))
+                            .build();
 
             assertThat(table.isJunctionTable()).isFalse();
         }
@@ -154,14 +164,21 @@ class SqlTableTest {
         @Test
         @DisplayName("Should return false for table with non-composite primary key")
         void shouldReturnFalseForTableWithNonCompositePrimaryKey() {
-            SqlTable table = SqlTable.builder()
-                    .name("some_table")
-                    .foreignKeys(List.of(
-                            SqlForeignKey.builder().columnName("user_id").referencedTable("users").build(),
-                            SqlForeignKey.builder().columnName("role_id").referencedTable("roles").build()
-                    ))
-                    .primaryKeyColumns(List.of("id"))
-                    .build();
+            SqlTable table =
+                    SqlTable.builder()
+                            .name("some_table")
+                            .foreignKeys(
+                                    List.of(
+                                            SqlForeignKey.builder()
+                                                    .columnName("user_id")
+                                                    .referencedTable("users")
+                                                    .build(),
+                                            SqlForeignKey.builder()
+                                                    .columnName("role_id")
+                                                    .referencedTable("roles")
+                                                    .build()))
+                            .primaryKeyColumns(List.of("id"))
+                            .build();
 
             assertThat(table.isJunctionTable()).isFalse();
         }
@@ -169,14 +186,21 @@ class SqlTableTest {
         @Test
         @DisplayName("Should return false for table with mismatched FK and PK columns")
         void shouldReturnFalseForTableWithMismatchedFkAndPkColumns() {
-            SqlTable table = SqlTable.builder()
-                    .name("some_table")
-                    .foreignKeys(List.of(
-                            SqlForeignKey.builder().columnName("user_id").referencedTable("users").build(),
-                            SqlForeignKey.builder().columnName("role_id").referencedTable("roles").build()
-                    ))
-                    .primaryKeyColumns(List.of("id", "other_id"))
-                    .build();
+            SqlTable table =
+                    SqlTable.builder()
+                            .name("some_table")
+                            .foreignKeys(
+                                    List.of(
+                                            SqlForeignKey.builder()
+                                                    .columnName("user_id")
+                                                    .referencedTable("users")
+                                                    .build(),
+                                            SqlForeignKey.builder()
+                                                    .columnName("role_id")
+                                                    .referencedTable("roles")
+                                                    .build()))
+                            .primaryKeyColumns(List.of("id", "other_id"))
+                            .build();
 
             assertThat(table.isJunctionTable()).isFalse();
         }
@@ -192,10 +216,11 @@ class SqlTableTest {
             SqlColumn idColumn = SqlColumn.builder().name("id").javaType("Long").build();
             SqlColumn nameColumn = SqlColumn.builder().name("name").javaType("String").build();
 
-            SqlTable table = SqlTable.builder()
-                    .name("products")
-                    .columns(List.of(idColumn, nameColumn))
-                    .build();
+            SqlTable table =
+                    SqlTable.builder()
+                            .name("products")
+                            .columns(List.of(idColumn, nameColumn))
+                            .build();
 
             assertThat(table.getColumnByName("NAME")).isEqualTo(nameColumn);
             assertThat(table.getColumnByName("name")).isEqualTo(nameColumn);
@@ -204,10 +229,11 @@ class SqlTableTest {
         @Test
         @DisplayName("Should return null for non-existent column")
         void shouldReturnNullForNonExistentColumn() {
-            SqlTable table = SqlTable.builder()
-                    .name("products")
-                    .columns(List.of(SqlColumn.builder().name("id").build()))
-                    .build();
+            SqlTable table =
+                    SqlTable.builder()
+                            .name("products")
+                            .columns(List.of(SqlColumn.builder().name("id").build()))
+                            .build();
 
             assertThat(table.getColumnByName("nonexistent")).isNull();
         }
@@ -223,33 +249,37 @@ class SqlTableTest {
             SqlColumn idColumn = SqlColumn.builder().name("id").primaryKey(true).build();
             SqlColumn nameColumn = SqlColumn.builder().name("name").primaryKey(false).build();
 
-            SqlTable table = SqlTable.builder()
-                    .name("products")
-                    .columns(List.of(idColumn, nameColumn))
-                    .foreignKeys(new ArrayList<>())
-                    .build();
+            SqlTable table =
+                    SqlTable.builder()
+                            .name("products")
+                            .columns(List.of(idColumn, nameColumn))
+                            .foreignKeys(new ArrayList<>())
+                            .build();
 
             List<SqlColumn> result = table.getBusinessColumns();
 
-            assertThat(result)
-                    .containsExactly(nameColumn)
-                    .doesNotContain(idColumn);
+            assertThat(result).containsExactly(nameColumn).doesNotContain(idColumn);
         }
 
         @Test
         @DisplayName("Should exclude foreign key columns")
         void shouldExcludeForeignKeyColumns() {
             SqlColumn idColumn = SqlColumn.builder().name("id").primaryKey(true).build();
-            SqlColumn categoryIdColumn = SqlColumn.builder().name("category_id").primaryKey(false).build();
+            SqlColumn categoryIdColumn =
+                    SqlColumn.builder().name("category_id").primaryKey(false).build();
             SqlColumn nameColumn = SqlColumn.builder().name("name").primaryKey(false).build();
 
-            SqlTable table = SqlTable.builder()
-                    .name("products")
-                    .columns(List.of(idColumn, categoryIdColumn, nameColumn))
-                    .foreignKeys(List.of(
-                            SqlForeignKey.builder().columnName("category_id").referencedTable("categories").build()
-                    ))
-                    .build();
+            SqlTable table =
+                    SqlTable.builder()
+                            .name("products")
+                            .columns(List.of(idColumn, categoryIdColumn, nameColumn))
+                            .foreignKeys(
+                                    List.of(
+                                            SqlForeignKey.builder()
+                                                    .columnName("category_id")
+                                                    .referencedTable("categories")
+                                                    .build()))
+                            .build();
 
             List<SqlColumn> result = table.getBusinessColumns();
 
@@ -261,14 +291,16 @@ class SqlTableTest {
         void shouldExcludeBaseAuditColumns() {
             SqlColumn idColumn = SqlColumn.builder().name("id").primaryKey(true).build();
             SqlColumn nameColumn = SqlColumn.builder().name("name").primaryKey(false).build();
-            SqlColumn createdAtColumn = SqlColumn.builder().name("created_at").primaryKey(false).build();
+            SqlColumn createdAtColumn =
+                    SqlColumn.builder().name("created_at").primaryKey(false).build();
             SqlColumn estadoColumn = SqlColumn.builder().name("estado").primaryKey(false).build();
 
-            SqlTable table = SqlTable.builder()
-                    .name("products")
-                    .columns(List.of(idColumn, nameColumn, createdAtColumn, estadoColumn))
-                    .foreignKeys(new ArrayList<>())
-                    .build();
+            SqlTable table =
+                    SqlTable.builder()
+                            .name("products")
+                            .columns(List.of(idColumn, nameColumn, createdAtColumn, estadoColumn))
+                            .foreignKeys(new ArrayList<>())
+                            .build();
 
             List<SqlColumn> result = table.getBusinessColumns();
 
@@ -283,13 +315,14 @@ class SqlTableTest {
         @Test
         @DisplayName("Should return true when table has 'estado' column")
         void shouldReturnTrueWhenTableHasEstadoColumn() {
-            SqlTable table = SqlTable.builder()
-                    .name("products")
-                    .columns(List.of(
-                            SqlColumn.builder().name("id").build(),
-                            SqlColumn.builder().name("estado").build()
-                    ))
-                    .build();
+            SqlTable table =
+                    SqlTable.builder()
+                            .name("products")
+                            .columns(
+                                    List.of(
+                                            SqlColumn.builder().name("id").build(),
+                                            SqlColumn.builder().name("estado").build()))
+                            .build();
 
             assertThat(table.extendsBase()).isTrue();
         }
@@ -297,13 +330,14 @@ class SqlTableTest {
         @Test
         @DisplayName("Should return true when table has 'created_at' column")
         void shouldReturnTrueWhenTableHasCreatedAtColumn() {
-            SqlTable table = SqlTable.builder()
-                    .name("products")
-                    .columns(List.of(
-                            SqlColumn.builder().name("id").build(),
-                            SqlColumn.builder().name("created_at").build()
-                    ))
-                    .build();
+            SqlTable table =
+                    SqlTable.builder()
+                            .name("products")
+                            .columns(
+                                    List.of(
+                                            SqlColumn.builder().name("id").build(),
+                                            SqlColumn.builder().name("created_at").build()))
+                            .build();
 
             assertThat(table.extendsBase()).isTrue();
         }
@@ -311,14 +345,15 @@ class SqlTableTest {
         @Test
         @DisplayName("Should return false when table has no audit columns")
         void shouldReturnFalseWhenTableHasNoAuditColumns() {
-            SqlTable table = SqlTable.builder()
-                    .name("lookup_table")
-                    .columns(List.of(
-                            SqlColumn.builder().name("id").build(),
-                            SqlColumn.builder().name("code").build(),
-                            SqlColumn.builder().name("description").build()
-                    ))
-                    .build();
+            SqlTable table =
+                    SqlTable.builder()
+                            .name("lookup_table")
+                            .columns(
+                                    List.of(
+                                            SqlColumn.builder().name("id").build(),
+                                            SqlColumn.builder().name("code").build(),
+                                            SqlColumn.builder().name("description").build()))
+                            .build();
 
             assertThat(table.extendsBase()).isFalse();
         }

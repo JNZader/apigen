@@ -2,21 +2,67 @@ package com.jnzader.apigen.codegen.generator.util;
 
 import java.util.Set;
 
-/**
- * Utility methods for code generation.
- */
+/** Utility methods for code generation. */
 public final class CodeGenerationUtils {
 
-    private static final Set<String> JAVA_KEYWORDS = Set.of(
-            "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char",
-            "class", "const", "continue", "default", "do", "double", "else", "enum",
-            "extends", "final", "finally", "float", "for", "goto", "if", "implements",
-            "import", "instanceof", "int", "interface", "long", "native", "new",
-            "package", "private", "protected", "public", "return", "short", "static",
-            "strictfp", "super", "switch", "synchronized", "this", "throw", "throws",
-            "transient", "try", "void", "volatile", "while", "var", "yield", "record",
-            "sealed", "permits", "non-sealed"
-    );
+    private static final Set<String> JAVA_KEYWORDS =
+            Set.of(
+                    "abstract",
+                    "assert",
+                    "boolean",
+                    "break",
+                    "byte",
+                    "case",
+                    "catch",
+                    "char",
+                    "class",
+                    "const",
+                    "continue",
+                    "default",
+                    "do",
+                    "double",
+                    "else",
+                    "enum",
+                    "extends",
+                    "final",
+                    "finally",
+                    "float",
+                    "for",
+                    "goto",
+                    "if",
+                    "implements",
+                    "import",
+                    "instanceof",
+                    "int",
+                    "interface",
+                    "long",
+                    "native",
+                    "new",
+                    "package",
+                    "private",
+                    "protected",
+                    "public",
+                    "return",
+                    "short",
+                    "static",
+                    "strictfp",
+                    "super",
+                    "switch",
+                    "synchronized",
+                    "this",
+                    "throw",
+                    "throws",
+                    "transient",
+                    "try",
+                    "void",
+                    "volatile",
+                    "while",
+                    "var",
+                    "yield",
+                    "record",
+                    "sealed",
+                    "permits",
+                    "non-sealed");
 
     private CodeGenerationUtils() {
         // Utility class
@@ -52,12 +98,17 @@ public final class CodeGenerationUtils {
      * @return the plural form
      */
     public static String pluralize(String singular) {
-        if (singular.endsWith("y") && !singular.endsWith("ay") && !singular.endsWith("ey") &&
-                !singular.endsWith("oy") && !singular.endsWith("uy")) {
+        if (singular.endsWith("y")
+                && !singular.endsWith("ay")
+                && !singular.endsWith("ey")
+                && !singular.endsWith("oy")
+                && !singular.endsWith("uy")) {
             return singular.substring(0, singular.length() - 1) + "ies";
         }
-        if (singular.endsWith("s") || singular.endsWith("x") || singular.endsWith("ch") ||
-                singular.endsWith("sh")) {
+        if (singular.endsWith("s")
+                || singular.endsWith("x")
+                || singular.endsWith("ch")
+                || singular.endsWith("sh")) {
             return singular + "es";
         }
         return singular + "s";

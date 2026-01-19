@@ -1,22 +1,23 @@
 package com.jnzader.apigen.server.service.generator;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import com.jnzader.apigen.server.config.GeneratedProjectVersions;
 import com.jnzader.apigen.server.dto.GenerateRequest;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 @DisplayName("ApiTestingGenerator Tests")
-@SuppressWarnings("java:S5976") // Tests validate different specific HTTP endpoints, not the same feature with different inputs
+@SuppressWarnings(
+        "java:S5976") // Tests validate different specific HTTP endpoints, not the same feature with
+// different inputs
 class ApiTestingGeneratorTest {
 
     private ApiTestingGenerator apiTestingGenerator;
@@ -61,9 +62,7 @@ class ApiTestingGeneratorTest {
 
             String result = apiTestingGenerator.generateHttpTestFile(schema);
 
-            assertThat(result)
-                    .contains("PRODUCT ENDPOINTS")
-                    .contains("(products)");
+            assertThat(result).contains("PRODUCT ENDPOINTS").contains("(products)");
         }
 
         @Test
@@ -255,7 +254,9 @@ class ApiTestingGeneratorTest {
             assertThat(result)
                     .contains("\"info\":")
                     .contains("\"name\":")
-                    .contains("\"schema\": \"https://schema.getpostman.com/json/collection/v2.1.0/collection.json\"");
+                    .contains(
+                            "\"schema\":"
+                                + " \"https://schema.getpostman.com/json/collection/v2.1.0/collection.json\"");
         }
 
         @Test
@@ -292,9 +293,7 @@ class ApiTestingGeneratorTest {
 
             String result = apiTestingGenerator.generatePostmanCollection(schema, config);
 
-            assertThat(result)
-                    .contains("\"item\":")
-                    .contains("\"name\": \"Product\"");
+            assertThat(result).contains("\"item\":").contains("\"name\": \"Product\"");
         }
 
         @Test
@@ -442,48 +441,62 @@ class ApiTestingGeneratorTest {
 
             String result = apiTestingGenerator.generatePostmanCollection(schema, config);
 
-            assertThat(result)
-                    .contains("\"description\":")
-                    .contains("Returns paginated list");
+            assertThat(result).contains("\"description\":").contains("Returns paginated list");
         }
     }
 
     private SqlSchema createSchemaWithTable(String tableName) {
-        SqlTable table = SqlTable.builder()
-                .name(tableName)
-                .columns(List.of(
-                        SqlColumn.builder().name("id").javaType("Long").primaryKey(true).build(),
-                        SqlColumn.builder().name("title").javaType("String").nullable(false).build(),
-                        SqlColumn.builder().name("price").javaType("BigDecimal").nullable(false).build()
-                ))
-                .foreignKeys(new ArrayList<>())
-                .indexes(new ArrayList<>())
-                .build();
+        SqlTable table =
+                SqlTable.builder()
+                        .name(tableName)
+                        .columns(
+                                List.of(
+                                        SqlColumn.builder()
+                                                .name("id")
+                                                .javaType("Long")
+                                                .primaryKey(true)
+                                                .build(),
+                                        SqlColumn.builder()
+                                                .name("title")
+                                                .javaType("String")
+                                                .nullable(false)
+                                                .build(),
+                                        SqlColumn.builder()
+                                                .name("price")
+                                                .javaType("BigDecimal")
+                                                .nullable(false)
+                                                .build()))
+                        .foreignKeys(new ArrayList<>())
+                        .indexes(new ArrayList<>())
+                        .build();
 
-        return SqlSchema.builder()
-                .tables(List.of(table))
-                .functions(new ArrayList<>())
-                .build();
+        return SqlSchema.builder().tables(List.of(table)).functions(new ArrayList<>()).build();
     }
 
     private SqlSchema createSchemaWithTables(String... tableNames) {
         List<SqlTable> tables = new ArrayList<>();
         for (String tableName : tableNames) {
-            tables.add(SqlTable.builder()
-                    .name(tableName)
-                    .columns(List.of(
-                            SqlColumn.builder().name("id").javaType("Long").primaryKey(true).build(),
-                            SqlColumn.builder().name("name").javaType("String").nullable(false).build()
-                    ))
-                    .foreignKeys(new ArrayList<>())
-                    .indexes(new ArrayList<>())
-                    .build());
+            tables.add(
+                    SqlTable.builder()
+                            .name(tableName)
+                            .columns(
+                                    List.of(
+                                            SqlColumn.builder()
+                                                    .name("id")
+                                                    .javaType("Long")
+                                                    .primaryKey(true)
+                                                    .build(),
+                                            SqlColumn.builder()
+                                                    .name("name")
+                                                    .javaType("String")
+                                                    .nullable(false)
+                                                    .build()))
+                            .foreignKeys(new ArrayList<>())
+                            .indexes(new ArrayList<>())
+                            .build());
         }
 
-        return SqlSchema.builder()
-                .tables(tables)
-                .functions(new ArrayList<>())
-                .build();
+        return SqlSchema.builder().tables(tables).functions(new ArrayList<>()).build();
     }
 
     private GenerateRequest.ProjectConfig createDefaultConfig() {

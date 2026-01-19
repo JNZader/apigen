@@ -1,22 +1,18 @@
 package com.jnzader.apigen.core.application.util;
 
+import static org.assertj.core.api.Assertions.*;
+
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import static org.assertj.core.api.Assertions.*;
-
 /**
  * Tests para el patrón Result.
- * <p>
- * Verifica el comportamiento correcto de:
- * - Creación de Success y Failure
- * - Transformaciones (map, flatMap)
- * - Extracción de valores
- * - Manejo de excepciones
+ *
+ * <p>Verifica el comportamiento correcto de: - Creación de Success y Failure - Transformaciones
+ * (map, flatMap) - Extracción de valores - Manejo de excepciones
  */
 @DisplayName("Result Pattern Tests")
 class ResultTest {
@@ -69,9 +65,11 @@ class ResultTest {
         @DisplayName("of() should capture exception")
         void ofShouldCaptureException() {
             // When
-            Result<Integer, Exception> result = Result.of(() -> {
-                throw new IllegalArgumentException("test error");
-            });
+            Result<Integer, Exception> result =
+                    Result.of(
+                            () -> {
+                                throw new IllegalArgumentException("test error");
+                            });
 
             // Then
             assertThat(result.isFailure()).isTrue();
@@ -81,10 +79,9 @@ class ResultTest {
         @DisplayName("fromOptional() should create success for present value")
         void fromOptionalShouldCreateSuccessForPresentValue() {
             // When
-            Result<String, Exception> result = Result.fromOptional(
-                    Optional.of("value"),
-                    () -> new RuntimeException("not found")
-            );
+            Result<String, Exception> result =
+                    Result.fromOptional(
+                            Optional.of("value"), () -> new RuntimeException("not found"));
 
             // Then
             assertThat(result.isSuccess()).isTrue();
@@ -95,10 +92,8 @@ class ResultTest {
         @DisplayName("fromOptional() should create failure for empty optional")
         void fromOptionalShouldCreateFailureForEmptyOptional() {
             // When
-            Result<String, Exception> result = Result.fromOptional(
-                    Optional.empty(),
-                    () -> new RuntimeException("not found")
-            );
+            Result<String, Exception> result =
+                    Result.fromOptional(Optional.empty(), () -> new RuntimeException("not found"));
 
             // Then
             assertThat(result.isFailure()).isTrue();
@@ -160,10 +155,12 @@ class ResultTest {
             AtomicBoolean called = new AtomicBoolean(false);
 
             // When
-            Result<Integer, Exception> chained = result.flatMap(n -> {
-                called.set(true);
-                return Result.success(n * 2);
-            });
+            Result<Integer, Exception> chained =
+                    result.flatMap(
+                            n -> {
+                                called.set(true);
+                                return Result.success(n * 2);
+                            });
 
             // Then
             assertThat(chained.isFailure()).isTrue();
@@ -177,8 +174,8 @@ class ResultTest {
             Result<Integer, Exception> result = Result.success(5);
 
             // When
-            Result<Integer, Exception> chained = result.flatMap(n ->
-                    Result.failure(new RuntimeException("mapper error")));
+            Result<Integer, Exception> chained =
+                    result.flatMap(n -> Result.failure(new RuntimeException("mapper error")));
 
             // Then
             assertThat(chained.isFailure()).isTrue();
@@ -225,10 +222,12 @@ class ResultTest {
             AtomicBoolean called = new AtomicBoolean(false);
 
             // When
-            String value = result.orElseGet(e -> {
-                called.set(true);
-                return "default";
-            });
+            String value =
+                    result.orElseGet(
+                            e -> {
+                                called.set(true);
+                                return "default";
+                            });
 
             // Then
             assertThat(value).isEqualTo("value");
@@ -359,10 +358,10 @@ class ResultTest {
             Result<Integer, Exception> result = Result.success(5);
 
             // When
-            Result<String, Exception> chained = result
-                    .map(n -> n * 2)
-                    .flatMap(n -> Result.success(n + 1))
-                    .map(n -> "Result: " + n);
+            Result<String, Exception> chained =
+                    result.map(n -> n * 2)
+                            .flatMap(n -> Result.success(n + 1))
+                            .map(n -> "Result: " + n);
 
             // Then
             assertThat(chained.isSuccess()).isTrue();
@@ -376,12 +375,14 @@ class ResultTest {
             AtomicBoolean secondMapCalled = new AtomicBoolean(false);
 
             // When
-            Result<String, Exception> result = Result.<Integer, Exception>success(5)
-                    .flatMap(n -> Result.failure(new RuntimeException("error")))
-                    .map(n -> {
-                        secondMapCalled.set(true);
-                        return "should not reach";
-                    });
+            Result<String, Exception> result =
+                    Result.<Integer, Exception>success(5)
+                            .flatMap(n -> Result.failure(new RuntimeException("error")))
+                            .map(
+                                    n -> {
+                                        secondMapCalled.set(true);
+                                        return "should not reach";
+                                    });
 
             // Then
             assertThat(result.isFailure()).isTrue();
@@ -402,10 +403,7 @@ class ResultTest {
             Result<Integer, Exception> result = Result.success(5);
 
             // When
-            String folded = result.fold(
-                    v -> "Value: " + v,
-                    e -> "Error: " + e.getMessage()
-            );
+            String folded = result.fold(v -> "Value: " + v, e -> "Error: " + e.getMessage());
 
             // Then
             assertThat(folded).isEqualTo("Value: 5");
@@ -418,10 +416,7 @@ class ResultTest {
             Result<Integer, Exception> result = Result.failure(new RuntimeException("oops"));
 
             // When
-            String folded = result.fold(
-                    v -> "Value: " + v,
-                    e -> "Error: " + e.getMessage()
-            );
+            String folded = result.fold(v -> "Value: " + v, e -> "Error: " + e.getMessage());
 
             // Then
             assertThat(folded).isEqualTo("Error: oops");
@@ -684,7 +679,8 @@ class ResultTest {
             Result<String, Exception> result = Result.failure(new RuntimeException("error"));
 
             // When
-            Result<String, Exception> recovered = result.recoverWith(e -> Result.success("recovered"));
+            Result<String, Exception> recovered =
+                    result.recoverWith(e -> Result.success("recovered"));
 
             // Then
             assertThat(recovered.isSuccess()).isTrue();
@@ -698,9 +694,8 @@ class ResultTest {
             Result<String, Exception> result = Result.failure(new RuntimeException("first"));
 
             // When
-            Result<String, Exception> stillFailed = result.recoverWith(
-                    e -> Result.failure(new IllegalArgumentException("second"))
-            );
+            Result<String, Exception> stillFailed =
+                    result.recoverWith(e -> Result.failure(new IllegalArgumentException("second")));
 
             // Then
             assertThat(stillFailed.isFailure()).isTrue();
@@ -734,10 +729,8 @@ class ResultTest {
             Result<Integer, Exception> result = Result.success(10);
 
             // When
-            Result<Integer, Exception> filtered = result.filter(
-                    n -> n > 5,
-                    () -> new RuntimeException("too small")
-            );
+            Result<Integer, Exception> filtered =
+                    result.filter(n -> n > 5, () -> new RuntimeException("too small"));
 
             // Then
             assertThat(filtered.isSuccess()).isTrue();
@@ -751,10 +744,8 @@ class ResultTest {
             Result<Integer, Exception> result = Result.success(3);
 
             // When
-            Result<Integer, Exception> filtered = result.filter(
-                    n -> n > 5,
-                    () -> new RuntimeException("too small")
-            );
+            Result<Integer, Exception> filtered =
+                    result.filter(n -> n > 5, () -> new RuntimeException("too small"));
 
             // Then
             assertThat(filtered.isFailure()).isTrue();
@@ -767,10 +758,8 @@ class ResultTest {
             Result<Integer, Exception> result = Result.failure(new RuntimeException("original"));
 
             // When
-            Result<Integer, Exception> filtered = result.filter(
-                    n -> n > 5,
-                    () -> new RuntimeException("from filter")
-            );
+            Result<Integer, Exception> filtered =
+                    result.filter(n -> n > 5, () -> new RuntimeException("from filter"));
 
             // Then
             assertThat(filtered.isFailure()).isTrue();

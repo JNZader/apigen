@@ -7,28 +7,28 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
+import java.math.BigDecimal;
+import java.util.Objects;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
-import java.util.Objects;
-
 /**
  * Example Product entity demonstrating APiGen's Base entity usage.
- * <p>
- * Inherits from {@link Base} which provides:
+ *
+ * <p>Inherits from {@link Base} which provides:
+ *
  * <ul>
- *     <li>ID generation with sequence</li>
- *     <li>Soft delete (estado, fechaEliminacion, eliminadoPor)</li>
- *     <li>Auditing (creadoPor, modificadoPor, fechaCreacion, fechaActualizacion)</li>
- *     <li>Optimistic locking (version)</li>
- *     <li>Domain events support</li>
+ *   <li>ID generation with sequence
+ *   <li>Soft delete (estado, fechaEliminacion, eliminadoPor)
+ *   <li>Auditing (creadoPor, modificadoPor, fechaCreacion, fechaActualizacion)
+ *   <li>Optimistic locking (version)
+ *   <li>Domain events support
  * </ul>
- * <p>
- * Note: equals/hashCode are overridden to use the entity ID for JPA entity identity,
- * following best practices for Hibernate entities. This ensures consistency across
- * detached/attached entity states and collection operations.
+ *
+ * <p>Note: equals/hashCode are overridden to use the entity ID for JPA entity identity, following
+ * best practices for Hibernate entities. This ensures consistency across detached/attached entity
+ * states and collection operations.
  */
 @Entity
 @Table(name = "products")
@@ -71,9 +71,8 @@ public class Product extends Base {
     }
 
     /**
-     * Compares this Product to another object for equality.
-     * Uses ID-based equality for JPA entity identity consistency.
-     * Two products are equal if they have the same non-null ID.
+     * Compares this Product to another object for equality. Uses ID-based equality for JPA entity
+     * identity consistency. Two products are equal if they have the same non-null ID.
      *
      * @param o the object to compare
      * @return true if equal, false otherwise
@@ -88,9 +87,9 @@ public class Product extends Base {
     }
 
     /**
-     * Returns a hash code for this Product.
-     * Uses a constant hash code to ensure consistency across entity state transitions.
-     * This follows Hibernate best practices for entities that may be in Sets.
+     * Returns a hash code for this Product. Uses a constant hash code to ensure consistency across
+     * entity state transitions. This follows Hibernate best practices for entities that may be in
+     * Sets.
      *
      * @return a constant hash code value
      */

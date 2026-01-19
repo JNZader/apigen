@@ -1,16 +1,12 @@
 package com.jnzader.apigen.codegen.generator.entity;
 
-import com.jnzader.apigen.codegen.generator.util.CodeGenerationUtils;
-import com.jnzader.apigen.codegen.generator.util.ImportManager;
-import com.jnzader.apigen.codegen.model.*;
-
-import java.util.List;
-
 import static com.jnzader.apigen.codegen.generator.util.CodeGenerationUtils.*;
 
-/**
- * Generates JPA Entity classes from SQL table definitions.
- */
+import com.jnzader.apigen.codegen.generator.util.ImportManager;
+import com.jnzader.apigen.codegen.model.*;
+import java.util.List;
+
+/** Generates JPA Entity classes from SQL table definitions. */
 public class EntityGenerator {
 
     private static final String APIGEN_CORE_PKG = "com.jnzader.apigen.core";
@@ -22,13 +18,12 @@ public class EntityGenerator {
         this.basePackage = basePackage;
     }
 
-    /**
-     * Generates the Entity class code.
-     */
-    public String generate(SqlTable table,
-                           List<SqlSchema.TableRelationship> outgoingRelations,
-                           List<SqlSchema.TableRelationship> incomingRelations,
-                           List<ManyToManyRelation> manyToManyRelations) {
+    /** Generates the Entity class code. */
+    public String generate(
+            SqlTable table,
+            List<SqlSchema.TableRelationship> outgoingRelations,
+            List<SqlSchema.TableRelationship> incomingRelations,
+            List<ManyToManyRelation> manyToManyRelations) {
         String entityName = table.getEntityName();
         String moduleName = table.getModuleName();
 
@@ -49,20 +44,33 @@ public class EntityGenerator {
             String targetModule = rel.getTargetTable().getModuleName();
             String fieldName = rel.getForeignKey().getJavaFieldName();
 
-            imports.addImportForClass(basePackage + "." + targetModule + DOMAIN_ENTITY_SUFFIX + targetEntity);
+            imports.addImportForClass(
+                    basePackage + "." + targetModule + DOMAIN_ENTITY_SUFFIX + targetEntity);
 
             if (rel.getRelationType() == RelationType.ONE_TO_ONE) {
-                fields.append("""
+                fields.append(
+                        """
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "%s", unique = true)
-    private %s %s;""".formatted(rel.getForeignKey().getColumnName(), targetEntity, fieldName));
+                        @OneToOne(fetch = FetchType.LAZY)
+                        @JoinColumn(name = "%s", unique = true)
+                        private %s %s;\
+                        """
+                                .formatted(
+                                        rel.getForeignKey().getColumnName(),
+                                        targetEntity,
+                                        fieldName));
             } else {
-                fields.append("""
+                fields.append(
+                        """
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "%s")
-    private %s %s;""".formatted(rel.getForeignKey().getColumnName(), targetEntity, fieldName));
+                        @ManyToOne(fetch = FetchType.LAZY)
+                        @JoinColumn(name = "%s")
+                        private %s %s;\
+                        """
+                                .formatted(
+                                        rel.getForeignKey().getColumnName(),
+                                        targetEntity,
+                                        fieldName));
             }
         }
 
@@ -75,14 +83,18 @@ public class EntityGenerator {
             String fieldName = pluralize(rel.getSourceTable().getEntityVariableName());
             String mappedBy = rel.getForeignKey().getJavaFieldName();
 
-            imports.addImportForClass(basePackage + "." + sourceModule + DOMAIN_ENTITY_SUFFIX + sourceEntity);
+            imports.addImportForClass(
+                    basePackage + "." + sourceModule + DOMAIN_ENTITY_SUFFIX + sourceEntity);
             imports.addListImport();
             imports.addArrayListImport();
 
-            fields.append("""
+            fields.append(
+                    """
 
-    @OneToMany(mappedBy = "%s", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<%s> %s = new ArrayList<>();""".formatted(mappedBy, sourceEntity, fieldName));
+                    @OneToMany(mappedBy = "%s", cascade = CascadeType.ALL, orphanRemoval = true)
+                    private List<%s> %s = new ArrayList<>();\
+                    """
+                            .formatted(mappedBy, sourceEntity, fieldName));
         }
 
         // Generate ManyToMany relationships
@@ -91,36 +103,47 @@ public class EntityGenerator {
             String targetModule = rel.targetTable().getModuleName();
             String fieldName = pluralize(rel.targetTable().getEntityVariableName());
 
-            imports.addImportForClass(basePackage + "." + targetModule + DOMAIN_ENTITY_SUFFIX + targetEntity);
+            imports.addImportForClass(
+                    basePackage + "." + targetModule + DOMAIN_ENTITY_SUFFIX + targetEntity);
             imports.addListImport();
             imports.addArrayListImport();
 
-            fields.append("""
+            fields.append(
+                    """
 
-    @ManyToMany
-    @JoinTable(
-        name = "%s",
-        joinColumns = @JoinColumn(name = "%s"),
-        inverseJoinColumns = @JoinColumn(name = "%s")
-    )
-    private List<%s> %s = new ArrayList<>();""".formatted(
-                    rel.junctionTable(), rel.sourceColumn(), rel.targetColumn(), targetEntity, fieldName));
+                    @ManyToMany
+                    @JoinTable(
+                        name = "%s",
+                        joinColumns = @JoinColumn(name = "%s"),
+                        inverseJoinColumns = @JoinColumn(name = "%s")
+                    )
+                    private List<%s> %s = new ArrayList<>();\
+                    """
+                            .formatted(
+                                    rel.junctionTable(),
+                                    rel.sourceColumn(),
+                                    rel.targetColumn(),
+                                    targetEntity,
+                                    fieldName));
         }
 
         // Generate index annotations
         StringBuilder indexAnnotations = new StringBuilder();
         if (!table.getIndexes().isEmpty()) {
-            indexAnnotations.append("@Table(name = \"").append(table.getName()).append("\", indexes = {\n");
-            List<String> indexStrings = table.getIndexes().stream()
-                    .map(SqlIndex::toJpaAnnotation)
-                    .toList();
+            indexAnnotations
+                    .append("@Table(name = \"")
+                    .append(table.getName())
+                    .append("\", indexes = {\n");
+            List<String> indexStrings =
+                    table.getIndexes().stream().map(SqlIndex::toJpaAnnotation).toList();
             indexAnnotations.append("    ").append(String.join(",\n    ", indexStrings));
             indexAnnotations.append("\n})");
         } else {
             indexAnnotations.append("@Table(name = \"").append(table.getName()).append("\")");
         }
 
-        return """
+        return
+"""
 package %s.%s.domain.entity;
 
 %s
@@ -136,7 +159,14 @@ package %s.%s.domain.entity;
 public class %s extends Base {
 %s
 }
-""".formatted(basePackage, moduleName, imports.build(), indexAnnotations, entityName, fields);
+"""
+                .formatted(
+                        basePackage,
+                        moduleName,
+                        imports.build(),
+                        indexAnnotations,
+                        entityName,
+                        fields);
     }
 
     private String generateColumnField(SqlColumn column) {
@@ -147,7 +177,9 @@ public class %s extends Base {
             field.append("    ").append(validations).append("\n");
         }
 
-        field.append("    @Column(name = \"").append(toSnakeCase(column.getJavaFieldName())).append("\"");
+        field.append("    @Column(name = \"")
+                .append(toSnakeCase(column.getJavaFieldName()))
+                .append("\"");
         if (!column.isNullable()) field.append(", nullable = false");
         if (column.isUnique()) field.append(", unique = true");
         if (column.getLength() != null && "String".equals(column.getJavaType())) {
@@ -155,16 +187,16 @@ public class %s extends Base {
         }
         field.append(")\n");
 
-        field.append("    private ").append(column.getJavaType()).append(" ")
-                .append(safeFieldName(column.getJavaFieldName())).append(";");
+        field.append("    private ")
+                .append(column.getJavaType())
+                .append(" ")
+                .append(safeFieldName(column.getJavaFieldName()))
+                .append(";");
 
         return field.toString();
     }
 
-    /**
-     * Represents a many-to-many relationship through a junction table.
-     */
-    public record ManyToManyRelation(String junctionTable, String sourceColumn,
-                                     String targetColumn, SqlTable targetTable) {
-    }
+    /** Represents a many-to-many relationship through a junction table. */
+    public record ManyToManyRelation(
+            String junctionTable, String sourceColumn, String targetColumn, SqlTable targetTable) {}
 }

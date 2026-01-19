@@ -2,16 +2,16 @@ package com.jnzader.apigen.core.domain.entity.audit;
 
 import com.jnzader.apigen.core.infrastructure.config.CustomRevisionListener;
 import jakarta.persistence.*;
+import java.io.Serializable;
+import java.util.Date;
 import lombok.Data;
 import org.hibernate.envers.RevisionEntity;
 import org.hibernate.envers.RevisionNumber;
 import org.hibernate.envers.RevisionTimestamp;
 
-import java.io.Serializable;
-import java.util.Date;
-
 /**
- * Entidad de revisión personalizada para Hibernate Envers, compatible con versiones modernas de Hibernate.
+ * Entidad de revisión personalizada para Hibernate Envers, compatible con versiones modernas de
+ * Hibernate.
  */
 @Entity
 @Table(name = "REVISION_INFO")

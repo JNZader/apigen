@@ -1,5 +1,7 @@
 package com.jnzader.apigen.server.service.generator;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.jnzader.apigen.server.config.GeneratedProjectVersions;
 import com.jnzader.apigen.server.dto.GenerateRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -7,10 +9,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 @DisplayName("ProjectStructureGenerator Tests")
-@SuppressWarnings("java:S5976") // Tests validate different specific features, not the same feature with different inputs
+@SuppressWarnings(
+        "java:S5976") // Tests validate different specific features, not the same feature with
+// different inputs
 class ProjectStructureGeneratorTest {
 
     private ProjectStructureGenerator projectStructureGenerator;
@@ -54,7 +56,8 @@ class ProjectStructureGeneratorTest {
 
             assertThat(result)
                     .contains("import org.springframework.boot.SpringApplication;")
-                    .contains("import org.springframework.boot.autoconfigure.SpringBootApplication;");
+                    .contains(
+                            "import org.springframework.boot.autoconfigure.SpringBootApplication;");
         }
 
         @Test
@@ -74,7 +77,10 @@ class ProjectStructureGeneratorTest {
 
             String result = projectStructureGenerator.generateMainClass(config);
 
-            assertThat(result).contains("@ComponentScan(basePackages = {\"com.example.myapi\", \"com.jnzader.apigen.core\"})");
+            assertThat(result)
+                    .contains(
+                            "@ComponentScan(basePackages = {\"com.example.myapi\","
+                                    + " \"com.jnzader.apigen.core\"})");
         }
 
         @Test
@@ -172,9 +178,7 @@ class ProjectStructureGeneratorTest {
 
             String result = projectStructureGenerator.generateReadme(config);
 
-            assertThat(result)
-                    .contains("./gradlew build")
-                    .contains("./gradlew bootRun");
+            assertThat(result).contains("./gradlew build").contains("./gradlew bootRun");
         }
 
         @Test
@@ -271,9 +275,7 @@ class ProjectStructureGeneratorTest {
         void shouldIncludeLogEntries() {
             String result = projectStructureGenerator.getGitignoreContent();
 
-            assertThat(result)
-                    .contains("*.log")
-                    .contains("logs/");
+            assertThat(result).contains("*.log").contains("logs/");
         }
 
         @Test
@@ -281,9 +283,7 @@ class ProjectStructureGeneratorTest {
         void shouldIncludeOsEntries() {
             String result = projectStructureGenerator.getGitignoreContent();
 
-            assertThat(result)
-                    .contains(".DS_Store")
-                    .contains("Thumbs.db");
+            assertThat(result).contains(".DS_Store").contains("Thumbs.db");
         }
 
         @Test
@@ -291,9 +291,7 @@ class ProjectStructureGeneratorTest {
         void shouldIncludeEnvironmentFileEntries() {
             String result = projectStructureGenerator.getGitignoreContent();
 
-            assertThat(result)
-                    .contains(".env")
-                    .contains("*.local");
+            assertThat(result).contains(".env").contains("*.local");
         }
     }
 

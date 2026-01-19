@@ -2,27 +2,28 @@ package com.jnzader.apigen.security.domain.entity;
 
 import com.jnzader.apigen.core.domain.entity.Base;
 import jakarta.persistence.*;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 /**
  * Entidad que representa un usuario en el sistema.
- * <p>
- * Implementa UserDetails de Spring Security para integración directa
- * con el sistema de autenticación.
+ *
+ * <p>Implementa UserDetails de Spring Security para integración directa con el sistema de
+ * autenticación.
  */
 @Entity
-@Table(name = "users", indexes = {
-        @Index(name = "idx_users_username", columnList = "username"),
-        @Index(name = "idx_users_email", columnList = "email")
-})
+@Table(
+        name = "users",
+        indexes = {
+            @Index(name = "idx_users_username", columnList = "username"),
+            @Index(name = "idx_users_email", columnList = "email")
+        })
 @SuppressWarnings("java:S2160") // equals/hashCode heredados de Base (basado en ID)
 public class User extends Base implements UserDetails {
 
@@ -57,21 +58,17 @@ public class User extends Base implements UserDetails {
     @Column(nullable = false)
     private boolean enabled = true;
 
-    @Column
-    private Instant lastLoginAt;
+    @Column private Instant lastLoginAt;
 
-    @Column
-    private String lastLoginIp;
+    @Column private String lastLoginIp;
 
     /**
-     * Cache de authorities para evitar N+1 queries.
-     * Se invalida automáticamente cuando cambia el rol.
+     * Cache de authorities para evitar N+1 queries. Se invalida automáticamente cuando cambia el
+     * rol.
      */
-    @Transient
-    private transient Collection<? extends GrantedAuthority> cachedAuthorities;
+    @Transient private transient Collection<? extends GrantedAuthority> cachedAuthorities;
 
-    public User() {
-    }
+    public User() {}
 
     public User(String username, String password, String email, Role role) {
         this.username = username;
@@ -90,9 +87,10 @@ public class User extends Base implements UserDetails {
         }
 
         // Construir authorities desde rol y permisos
-        Set<SimpleGrantedAuthority> authorities = role.getPermissions().stream()
-                .map(permission -> new SimpleGrantedAuthority(permission.getName()))
-                .collect(Collectors.toSet());
+        Set<SimpleGrantedAuthority> authorities =
+                role.getPermissions().stream()
+                        .map(permission -> new SimpleGrantedAuthority(permission.getName()))
+                        .collect(Collectors.toSet());
 
         // Agregar el rol también (prefijo ROLE_ para Spring Security)
         authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName()));

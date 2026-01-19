@@ -1,9 +1,14 @@
 package com.jnzader.apigen.security.infrastructure.jwt;
 
-import com.jnzader.apigen.security.infrastructure.config.SecurityProperties;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
+
+import com.jnzader.apigen.security.application.service.TokenBlacklistService;
 import com.jnzader.apigen.security.domain.entity.Role;
 import com.jnzader.apigen.security.domain.entity.User;
-import com.jnzader.apigen.security.application.service.TokenBlacklistService;
+import com.jnzader.apigen.security.infrastructure.config.SecurityProperties;
+import java.time.Instant;
+import java.util.HashSet;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -13,28 +18,19 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.Instant;
-import java.util.HashSet;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
-
-/**
- * Tests para JwtService.
- */
+/** Tests para JwtService. */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("JwtService Tests")
 class JwtServiceTest {
 
-    private static final String TEST_SECRET = "test-secret-key-that-is-at-least-32-bytes-long-for-HS256";
+    private static final String TEST_SECRET =
+            "test-secret-key-that-is-at-least-32-bytes-long-for-HS256";
     private static final int ACCESS_TOKEN_EXPIRATION = 15;
     private static final int REFRESH_TOKEN_EXPIRATION = 10080;
 
-    @Mock
-    private TokenBlacklistService blacklistService;
+    @Mock private TokenBlacklistService blacklistService;
 
-    @Mock
-    private UserDetails userDetails;
+    @Mock private UserDetails userDetails;
 
     private JwtService jwtService;
     private User testUser;

@@ -2,6 +2,7 @@ package com.jnzader.apigen.security.infrastructure.config;
 
 import com.jnzader.apigen.core.infrastructure.config.properties.AppProperties;
 import com.jnzader.apigen.security.infrastructure.jwt.JwtAuthenticationFilter;
+import java.util.List;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -26,17 +27,12 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.List;
-
 /**
  * Configuración de seguridad cuando está habilitada (apigen.security.enabled=true).
- * <p>
- * Características:
- * - JWT Authentication con access y refresh tokens
- * - CORS configurables
- * - Headers de seguridad (XSS, HSTS, CSP, Frame Options)
- * - Sesión stateless para API REST
- * - Method-level security habilitada
+ *
+ * <p>Características: - JWT Authentication con access y refresh tokens - CORS configurables -
+ * Headers de seguridad (XSS, HSTS, CSP, Frame Options) - Sesión stateless para API REST -
+ * Method-level security habilitada
  */
 @Configuration
 @EnableWebSecurity
@@ -52,8 +48,7 @@ public class SecurityConfig {
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthFilter,
             UserDetailsService userDetailsService,
-            AppProperties appProperties
-    ) {
+            AppProperties appProperties) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.userDetailsService = userDetailsService;
         this.appProperties = appProperties;
@@ -76,58 +71,68 @@ public class SecurityConfig {
                 // Configuración CORS
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-                // CSRF deshabilitado - seguro para API REST stateless con JWT (ver @SuppressWarnings)
+                // CSRF deshabilitado - seguro para API REST stateless con JWT (ver
+                // @SuppressWarnings)
                 .csrf(AbstractHttpConfigurer::disable)
 
                 // Sesión stateless
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
+                .sessionManagement(
+                        session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 // Headers de seguridad
-                .headers(headers -> headers
-                        // Protección XSS
-                        .xssProtection(xss -> xss
-                                .headerValue(XXssProtectionHeaderWriter.HeaderValue.ENABLED_MODE_BLOCK)
-                        )
-                        // Prevenir clickjacking
-                        .frameOptions(frame -> frame.deny())
-                        // Prevenir MIME type sniffing
-                        .contentTypeOptions(content -> {})
-                        // Content Security Policy
-                        .contentSecurityPolicy(csp -> csp
-                                .policyDirectives(
-                                        "default-src 'self'; " +
-                                        "script-src 'self'; " +
-                                        "style-src 'self'; " +
-                                        "img-src 'self' data:; " +
-                                        "font-src 'self'; " +
-                                        "frame-ancestors 'none'; " +
-                                        "form-action 'self'"
-                                )
-                        )
-                        // HSTS (1 año)
-                        .httpStrictTransportSecurity(hsts -> hsts
-                                .includeSubDomains(true)
-                                .maxAgeInSeconds(31536000)
-                        )
-                )
+                .headers(
+                        headers ->
+                                headers
+                                        // Protección XSS
+                                        .xssProtection(
+                                                xss ->
+                                                        xss.headerValue(
+                                                                XXssProtectionHeaderWriter
+                                                                        .HeaderValue
+                                                                        .ENABLED_MODE_BLOCK))
+                                        // Prevenir clickjacking
+                                        .frameOptions(frame -> frame.deny())
+                                        // Prevenir MIME type sniffing
+                                        .contentTypeOptions(content -> {})
+                                        // Content Security Policy
+                                        .contentSecurityPolicy(
+                                                csp ->
+                                                        csp.policyDirectives(
+                                                                "default-src 'self'; "
+                                                                        + "script-src 'self'; "
+                                                                        + "style-src 'self'; "
+                                                                        + "img-src 'self' data:; "
+                                                                        + "font-src 'self'; "
+                                                                        + "frame-ancestors 'none'; "
+                                                                        + "form-action 'self'"))
+                                        // HSTS (1 año)
+                                        .httpStrictTransportSecurity(
+                                                hsts ->
+                                                        hsts.includeSubDomains(true)
+                                                                .maxAgeInSeconds(31536000)))
 
                 // Autorización de endpoints
-                .authorizeHttpRequests(auth -> auth
-                        // Endpoints de autenticación públicos
-                        .requestMatchers("/api/auth/**").permitAll()
-                        // Actuator health/info públicos
-                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
-                        // Swagger/OpenAPI públicos
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        // CORS preflight
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        // Actuator completo solo para ADMIN
-                        .requestMatchers("/actuator/**").hasRole("ADMIN")
-                        // El resto requiere autenticación
-                        .anyRequest().authenticated()
-                )
+                .authorizeHttpRequests(
+                        auth ->
+                                auth
+                                        // Endpoints de autenticación públicos
+                                        .requestMatchers("/api/auth/**")
+                                        .permitAll()
+                                        // Actuator health/info públicos
+                                        .requestMatchers("/actuator/health", "/actuator/info")
+                                        .permitAll()
+                                        // Swagger/OpenAPI públicos
+                                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**")
+                                        .permitAll()
+                                        // CORS preflight
+                                        .requestMatchers(HttpMethod.OPTIONS, "/**")
+                                        .permitAll()
+                                        // Actuator completo solo para ADMIN
+                                        .requestMatchers("/actuator/**")
+                                        .hasRole("ADMIN")
+                                        // El resto requiere autenticación
+                                        .anyRequest()
+                                        .authenticated())
 
                 // Proveedor de autenticación
                 .authenticationProvider(authenticationProvider())
@@ -183,7 +188,8 @@ public class SecurityConfig {
 
     @Bean
     @SuppressWarnings({"java:S112", "java:S1130"}) // Exception requerido por Spring Security API
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config)
+            throws Exception {
         return config.getAuthenticationManager();
     }
 

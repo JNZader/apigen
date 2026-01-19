@@ -2,9 +2,7 @@ package com.jnzader.apigen.codegen.generator.util;
 
 import com.jnzader.apigen.codegen.model.SqlColumn;
 
-/**
- * Provides sample test values for generated tests.
- */
+/** Provides sample test values for generated tests. */
 public final class TestValueProvider {
 
     private TestValueProvider() {
@@ -24,7 +22,7 @@ public final class TestValueProvider {
     /**
      * Gets a sample test value for a column with optional prefix.
      *
-     * @param col    the SQL column
+     * @param col the SQL column
      * @param prefix optional prefix for string values
      * @return a sample value as a Java expression string
      */
@@ -62,7 +60,7 @@ public final class TestValueProvider {
     /**
      * Gets a sample JSON value for a column with optional prefix.
      *
-     * @param col    the SQL column
+     * @param col the SQL column
      * @param prefix optional prefix for string values
      * @return a sample value as a JSON string
      */

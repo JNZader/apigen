@@ -1,5 +1,8 @@
 package com.jnzader.apigen.core.infrastructure.config;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.concurrent.Executor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -7,10 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-
-import java.util.concurrent.Executor;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("AsyncConfig Tests")
 class AsyncConfigTest {
@@ -37,7 +36,8 @@ class AsyncConfigTest {
         @Test
         @DisplayName("should configure virtual threads")
         void shouldConfigureVirtualThreads() {
-            SimpleAsyncTaskExecutor executor = (SimpleAsyncTaskExecutor) asyncConfig.virtualThreadDomainEventExecutor();
+            SimpleAsyncTaskExecutor executor =
+                    (SimpleAsyncTaskExecutor) asyncConfig.virtualThreadDomainEventExecutor();
 
             // Virtual threads are enabled in the configuration
             assertThat(executor).isNotNull();
@@ -46,7 +46,8 @@ class AsyncConfigTest {
         @Test
         @DisplayName("should set thread name prefix")
         void shouldSetThreadNamePrefix() {
-            SimpleAsyncTaskExecutor executor = (SimpleAsyncTaskExecutor) asyncConfig.virtualThreadDomainEventExecutor();
+            SimpleAsyncTaskExecutor executor =
+                    (SimpleAsyncTaskExecutor) asyncConfig.virtualThreadDomainEventExecutor();
 
             assertThat(executor.getThreadNamePrefix()).isEqualTo("domain-event-");
         }
@@ -67,7 +68,8 @@ class AsyncConfigTest {
         @Test
         @DisplayName("should configure core pool size")
         void shouldConfigureCorePoolSize() {
-            ThreadPoolTaskExecutor executor = (ThreadPoolTaskExecutor) asyncConfig.threadPoolDomainEventExecutor();
+            ThreadPoolTaskExecutor executor =
+                    (ThreadPoolTaskExecutor) asyncConfig.threadPoolDomainEventExecutor();
 
             assertThat(executor.getCorePoolSize()).isEqualTo(2);
         }
@@ -75,7 +77,8 @@ class AsyncConfigTest {
         @Test
         @DisplayName("should configure max pool size")
         void shouldConfigureMaxPoolSize() {
-            ThreadPoolTaskExecutor executor = (ThreadPoolTaskExecutor) asyncConfig.threadPoolDomainEventExecutor();
+            ThreadPoolTaskExecutor executor =
+                    (ThreadPoolTaskExecutor) asyncConfig.threadPoolDomainEventExecutor();
 
             assertThat(executor.getMaxPoolSize()).isEqualTo(5);
         }
@@ -83,7 +86,8 @@ class AsyncConfigTest {
         @Test
         @DisplayName("should set thread name prefix")
         void shouldSetThreadNamePrefix() {
-            ThreadPoolTaskExecutor executor = (ThreadPoolTaskExecutor) asyncConfig.threadPoolDomainEventExecutor();
+            ThreadPoolTaskExecutor executor =
+                    (ThreadPoolTaskExecutor) asyncConfig.threadPoolDomainEventExecutor();
 
             assertThat(executor.getThreadNamePrefix()).isEqualTo("domain-event-");
         }
@@ -104,7 +108,8 @@ class AsyncConfigTest {
         @Test
         @DisplayName("should set async thread name prefix")
         void shouldSetAsyncThreadNamePrefix() {
-            SimpleAsyncTaskExecutor executor = (SimpleAsyncTaskExecutor) asyncConfig.virtualThreadTaskExecutor();
+            SimpleAsyncTaskExecutor executor =
+                    (SimpleAsyncTaskExecutor) asyncConfig.virtualThreadTaskExecutor();
 
             assertThat(executor.getThreadNamePrefix()).isEqualTo("async-");
         }

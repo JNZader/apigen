@@ -3,9 +3,7 @@ package com.jnzader.apigen.server.service.generator;
 import com.jnzader.apigen.server.dto.GenerateRequest;
 import org.springframework.stereotype.Component;
 
-/**
- * Generates application configuration files (application.yml, application-docker.yml).
- */
+/** Generates application configuration files (application.yml, application-docker.yml). */
 @Component
 public class ApplicationConfigGenerator {
 
@@ -16,7 +14,8 @@ public class ApplicationConfigGenerator {
      * @return the application.yml content
      */
     public String generateApplicationYml(GenerateRequest.ProjectConfig config) {
-        return """
+        return
+"""
 spring:
   application:
     name: %s
@@ -67,7 +66,8 @@ management:
   endpoint:
     health:
       show-details: always
-""".formatted(config.getArtifactId());
+"""
+                .formatted(config.getArtifactId());
     }
 
     /**
@@ -77,11 +77,13 @@ management:
      * @return the application-docker.yml content
      */
     public String generateApplicationDockerYml(GenerateRequest.ProjectConfig config) {
-        GenerateRequest.DatabaseConfig db = config.getDatabase() != null
-                ? config.getDatabase()
-                : new GenerateRequest.DatabaseConfig();
+        GenerateRequest.DatabaseConfig db =
+                config.getDatabase() != null
+                        ? config.getDatabase()
+                        : new GenerateRequest.DatabaseConfig();
 
-        return """
+        return
+"""
 # =============================================================================
 # Docker Profile Configuration
 # =============================================================================
@@ -146,13 +148,13 @@ logging:
     org.hibernate.type.descriptor.sql: WARN
   pattern:
     console: "%%d{yyyy-MM-dd HH:mm:ss} [%%thread] %%-5level %%logger{36} - %%msg%%n"
-""".formatted(
-                db.getJdbcUrl(),
-                db.getUsername(),
-                db.getPassword(),
-                db.getDriverClassName(),
-                db.getHibernateDialect(),
-                config.getBasePackage()
-        );
+"""
+                .formatted(
+                        db.getJdbcUrl(),
+                        db.getUsername(),
+                        db.getPassword(),
+                        db.getDriverClassName(),
+                        db.getHibernateDialect(),
+                        config.getBasePackage());
     }
 }

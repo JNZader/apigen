@@ -1,7 +1,11 @@
 package com.jnzader.apigen.codegen.generator.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlTable;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -9,13 +13,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 @DisplayName("ServiceGenerator Tests")
-@SuppressWarnings("java:S5976") // Tests validate different specific service features, not the same feature with different inputs
+@SuppressWarnings(
+        "java:S5976") // Tests validate different specific service features, not the same feature
+// with different inputs
 class ServiceGeneratorTest {
 
     private ServiceGenerator serviceGenerator;
@@ -58,7 +59,8 @@ class ServiceGeneratorTest {
 
             String result = serviceGenerator.generateInterface(table);
 
-            assertThat(result).contains("public interface ProductService extends BaseService<Product, Long>");
+            assertThat(result)
+                    .contains("public interface ProductService extends BaseService<Product, Long>");
         }
 
         @Test
@@ -73,20 +75,31 @@ class ServiceGeneratorTest {
 
         @ParameterizedTest(name = "Should handle table {0} -> {1}Service interface")
         @CsvSource({
-                "order_items, orderitems, OrderItem",
-                "user_profiles, userprofiles, UserProfile",
-                "categories, categories, Category"
+            "order_items, orderitems, OrderItem",
+            "user_profiles, userprofiles, UserProfile",
+            "categories, categories, Category"
         })
         @DisplayName("Should handle various table names in interface")
-        void shouldHandleTableWithDifferentModuleName(String tableName, String moduleName, String entityName) {
+        void shouldHandleTableWithDifferentModuleName(
+                String tableName, String moduleName, String entityName) {
             SqlTable table = createSimpleTable(tableName);
 
             String result = serviceGenerator.generateInterface(table);
 
             assertThat(result)
                     .contains("package com.example." + moduleName + ".application.service;")
-                    .contains("import com.example." + moduleName + ".domain.entity." + entityName + ";")
-                    .contains("public interface " + entityName + "Service extends BaseService<" + entityName + ", Long>");
+                    .contains(
+                            "import com.example."
+                                    + moduleName
+                                    + ".domain.entity."
+                                    + entityName
+                                    + ";")
+                    .contains(
+                            "public interface "
+                                    + entityName
+                                    + "Service extends BaseService<"
+                                    + entityName
+                                    + ", Long>");
         }
     }
 
@@ -113,9 +126,13 @@ class ServiceGeneratorTest {
 
             assertThat(result)
                     .contains("import com.jnzader.apigen.core.application.service.BaseServiceImpl;")
-                    .contains("import com.jnzader.apigen.core.application.service.CacheEvictionService;")
+                    .contains(
+                            "import"
+                                + " com.jnzader.apigen.core.application.service.CacheEvictionService;")
                     .contains("import com.example.products.domain.entity.Product;")
-                    .contains("import com.example.products.infrastructure.repository.ProductRepository;")
+                    .contains(
+                            "import"
+                                + " com.example.products.infrastructure.repository.ProductRepository;")
                     .contains("import lombok.extern.slf4j.Slf4j;")
                     .contains("import org.springframework.context.ApplicationEventPublisher;")
                     .contains("import org.springframework.data.domain.AuditorAware;")
@@ -130,10 +147,7 @@ class ServiceGeneratorTest {
 
             String result = serviceGenerator.generateImpl(table);
 
-            assertThat(result)
-                    .contains("@Service")
-                    .contains("@Slf4j")
-                    .contains("@Transactional");
+            assertThat(result).contains("@Service").contains("@Slf4j").contains("@Transactional");
         }
 
         @Test
@@ -162,7 +176,9 @@ class ServiceGeneratorTest {
                     .contains("CacheEvictionService cacheEvictionService,")
                     .contains("ApplicationEventPublisher eventPublisher,")
                     .contains("AuditorAware<String> auditorAware)")
-                    .contains("super(repository, cacheEvictionService, eventPublisher, auditorAware);");
+                    .contains(
+                            "super(repository, cacheEvictionService, eventPublisher,"
+                                    + " auditorAware);");
         }
 
         @Test
@@ -180,20 +196,31 @@ class ServiceGeneratorTest {
 
         @ParameterizedTest(name = "Should handle table {0} -> {1}ServiceImpl")
         @CsvSource({
-                "user_profiles, userprofiles, UserProfile",
-                "order_items, orderitems, OrderItem",
-                "categories, categories, Category"
+            "user_profiles, userprofiles, UserProfile",
+            "order_items, orderitems, OrderItem",
+            "categories, categories, Category"
         })
         @DisplayName("Should handle various table names in implementation")
-        void shouldHandleTableWithDifferentModuleName(String tableName, String moduleName, String entityName) {
+        void shouldHandleTableWithDifferentModuleName(
+                String tableName, String moduleName, String entityName) {
             SqlTable table = createSimpleTable(tableName);
 
             String result = serviceGenerator.generateImpl(table);
 
             assertThat(result)
                     .contains("package com.example." + moduleName + ".application.service;")
-                    .contains("import com.example." + moduleName + ".domain.entity." + entityName + ";")
-                    .contains("import com.example." + moduleName + ".infrastructure.repository." + entityName + "Repository;")
+                    .contains(
+                            "import com.example."
+                                    + moduleName
+                                    + ".domain.entity."
+                                    + entityName
+                                    + ";")
+                    .contains(
+                            "import com.example."
+                                    + moduleName
+                                    + ".infrastructure.repository."
+                                    + entityName
+                                    + "Repository;")
                     .contains("public class " + entityName + "ServiceImpl")
                     .contains("extends BaseServiceImpl<" + entityName + ", Long>")
                     .contains("implements " + entityName + "Service");
@@ -203,13 +230,13 @@ class ServiceGeneratorTest {
     private SqlTable createSimpleTable(String tableName) {
         return SqlTable.builder()
                 .name(tableName)
-                .columns(List.of(
-                        SqlColumn.builder()
-                                .name("id")
-                                .javaType("Long")
-                                .primaryKey(true)
-                                .build()
-                ))
+                .columns(
+                        List.of(
+                                SqlColumn.builder()
+                                        .name("id")
+                                        .javaType("Long")
+                                        .primaryKey(true)
+                                        .build()))
                 .foreignKeys(new ArrayList<>())
                 .indexes(new ArrayList<>())
                 .build();

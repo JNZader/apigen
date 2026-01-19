@@ -1,5 +1,6 @@
 package com.jnzader.apigen.security.infrastructure.config;
 
+import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -16,20 +17,20 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
-
 /**
  * Configuración de seguridad cuando está deshabilitada (apigen.security.enabled=false).
- * <p>
- * Permite acceso a todos los endpoints sin autenticación pero mantiene:
- * - Headers de seguridad (XSS, HSTS, CSP)
- * - Configuración CORS
- * <p>
- * Útil para desarrollo o APIs públicas.
+ *
+ * <p>Permite acceso a todos los endpoints sin autenticación pero mantiene: - Headers de seguridad
+ * (XSS, HSTS, CSP) - Configuración CORS
+ *
+ * <p>Útil para desarrollo o APIs públicas.
  */
 @Configuration
 @EnableWebSecurity
-@ConditionalOnProperty(name = "apigen.security.enabled", havingValue = "false", matchIfMissing = true)
+@ConditionalOnProperty(
+        name = "apigen.security.enabled",
+        havingValue = "false",
+        matchIfMissing = true)
 public class SecurityDisabledConfig {
 
     private static final Logger log = LoggerFactory.getLogger(SecurityDisabledConfig.class);
@@ -56,28 +57,29 @@ public class SecurityDisabledConfig {
                 .csrf(AbstractHttpConfigurer::disable)
 
                 // Mantener headers de seguridad
-                .headers(headers -> headers
-                        .xssProtection(xss -> xss
-                                .headerValue(XXssProtectionHeaderWriter.HeaderValue.ENABLED_MODE_BLOCK)
-                        )
-                        .frameOptions(frame -> frame.deny())
-                        .contentTypeOptions(content -> {})
-                        .contentSecurityPolicy(csp -> csp
-                                .policyDirectives(
-                                        "default-src 'self'; " +
-                                        "script-src 'self' 'unsafe-inline'; " +
-                                        "style-src 'self' 'unsafe-inline'; " +
-                                        "img-src 'self' data:; " +
-                                        "font-src 'self'; " +
-                                        "frame-ancestors 'none'"
-                                )
-                        )
-                )
+                .headers(
+                        headers ->
+                                headers.xssProtection(
+                                                xss ->
+                                                        xss.headerValue(
+                                                                XXssProtectionHeaderWriter
+                                                                        .HeaderValue
+                                                                        .ENABLED_MODE_BLOCK))
+                                        .frameOptions(frame -> frame.deny())
+                                        .contentTypeOptions(content -> {})
+                                        .contentSecurityPolicy(
+                                                csp ->
+                                                        csp.policyDirectives(
+                                                                "default-src 'self'; script-src"
+                                                                    + " 'self' 'unsafe-inline';"
+                                                                    + " style-src 'self'"
+                                                                    + " 'unsafe-inline'; img-src"
+                                                                    + " 'self' data:; font-src"
+                                                                    + " 'self'; frame-ancestors"
+                                                                    + " 'none'")))
 
                 // Permitir acceso total
-                .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()
-                );
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
 
         return http.build();
     }
@@ -87,32 +89,25 @@ public class SecurityDisabledConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         // Orígenes permitidos para desarrollo
-        configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:3000",
-                "http://localhost:4200",
-                "http://localhost:8080"
-        ));
+        configuration.setAllowedOrigins(
+                Arrays.asList(
+                        "http://localhost:3000", "http://localhost:4200", "http://localhost:8080"));
 
-        configuration.setAllowedMethods(Arrays.asList(
-                "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"
-        ));
+        configuration.setAllowedMethods(
+                Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 
-        configuration.setAllowedHeaders(Arrays.asList(
-                "Authorization",
-                "Content-Type",
-                "X-Requested-With",
-                "Accept",
-                "Origin"
-        ));
+        configuration.setAllowedHeaders(
+                Arrays.asList(
+                        "Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin"));
 
-        configuration.setExposedHeaders(Arrays.asList(
-                "Authorization",
-                "X-Total-Count",
-                "X-Page-Number",
-                "X-Page-Size",
-                "ETag",
-                "Last-Modified"
-        ));
+        configuration.setExposedHeaders(
+                Arrays.asList(
+                        "Authorization",
+                        "X-Total-Count",
+                        "X-Page-Number",
+                        "X-Page-Size",
+                        "ETag",
+                        "Last-Modified"));
 
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
@@ -124,8 +119,8 @@ public class SecurityDisabledConfig {
     }
 
     /**
-     * PasswordEncoder disponible incluso con seguridad deshabilitada.
-     * Útil para tests y preparación de datos.
+     * PasswordEncoder disponible incluso con seguridad deshabilitada. Útil para tests y preparación
+     * de datos.
      */
     @Bean
     public PasswordEncoder passwordEncoder() {

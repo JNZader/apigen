@@ -1,5 +1,8 @@
 package com.jnzader.apigen.core.infrastructure.config;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -12,24 +15,17 @@ import org.springframework.web.servlet.config.annotation.ContentNegotiationConfi
 import org.springframework.web.servlet.config.annotation.InterceptorRegistration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
 @DisplayName("WebConfig Tests")
 @ExtendWith(MockitoExtension.class)
 class WebConfigTest {
 
-    @Mock
-    private RequestIdInterceptor requestIdInterceptor;
+    @Mock private RequestIdInterceptor requestIdInterceptor;
 
-    @Mock
-    private InterceptorRegistry interceptorRegistry;
+    @Mock private InterceptorRegistry interceptorRegistry;
 
-    @Mock
-    private InterceptorRegistration interceptorRegistration;
+    @Mock private InterceptorRegistration interceptorRegistration;
 
-    @Mock
-    private ContentNegotiationConfigurer contentNegotiationConfigurer;
+    @Mock private ContentNegotiationConfigurer contentNegotiationConfigurer;
 
     private WebConfig webConfig;
 

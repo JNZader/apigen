@@ -10,8 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Implementación personalizada de UserDetailsService.
- * <p>
- * Carga usuarios desde la base de datos para la autenticación.
+ *
+ * <p>Carga usuarios desde la base de datos para la autenticación.
  */
 @Service
 @ConditionalOnProperty(name = "apigen.security.enabled", havingValue = "true")
@@ -26,9 +26,11 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findActiveByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException(
-                        "Usuario no encontrado o inactivo: " + username
-                ));
+        return userRepository
+                .findActiveByUsername(username)
+                .orElseThrow(
+                        () ->
+                                new UsernameNotFoundException(
+                                        "Usuario no encontrado o inactivo: " + username));
     }
 }

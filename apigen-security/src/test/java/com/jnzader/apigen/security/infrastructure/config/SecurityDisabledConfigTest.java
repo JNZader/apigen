@@ -1,5 +1,7 @@
 package com.jnzader.apigen.security.infrastructure.config;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -12,11 +14,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 /**
- * Unit tests for SecurityDisabledConfig.
- * Tests CORS configuration and PasswordEncoder when security is disabled.
+ * Unit tests for SecurityDisabledConfig. Tests CORS configuration and PasswordEncoder when security
+ * is disabled.
  */
 @DisplayName("SecurityDisabledConfig Tests")
 class SecurityDisabledConfigTest {
@@ -48,12 +48,18 @@ class SecurityDisabledConfigTest {
         }
 
         @ParameterizedTest(name = "should allow {0} origin")
-        @ValueSource(strings = {"http://localhost:3000", "http://localhost:4200", "http://localhost:8080"})
+        @ValueSource(
+                strings = {
+                    "http://localhost:3000",
+                    "http://localhost:4200",
+                    "http://localhost:8080"
+                })
         @DisplayName("should allow localhost origins")
         void shouldAllowLocalhostOrigins(String origin) {
             CorsConfiguration corsConfig = getCorsConfig();
 
-            assertThat(corsConfig).isNotNull()
+            assertThat(corsConfig)
+                    .isNotNull()
                     .extracting(CorsConfiguration::getAllowedOrigins)
                     .asInstanceOf(InstanceOfAssertFactories.LIST)
                     .contains(origin);
@@ -64,7 +70,8 @@ class SecurityDisabledConfigTest {
         void shouldAllowStandardHttpMethods() {
             CorsConfiguration corsConfig = getCorsConfig();
 
-            assertThat(corsConfig).isNotNull()
+            assertThat(corsConfig)
+                    .isNotNull()
                     .extracting(CorsConfiguration::getAllowedMethods)
                     .asInstanceOf(InstanceOfAssertFactories.LIST)
                     .containsExactlyInAnyOrder("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS");
@@ -75,10 +82,16 @@ class SecurityDisabledConfigTest {
         void shouldAllowRequiredHeaders() {
             CorsConfiguration corsConfig = getCorsConfig();
 
-            assertThat(corsConfig).isNotNull()
+            assertThat(corsConfig)
+                    .isNotNull()
                     .extracting(CorsConfiguration::getAllowedHeaders)
                     .asInstanceOf(InstanceOfAssertFactories.LIST)
-                    .contains("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin");
+                    .contains(
+                            "Authorization",
+                            "Content-Type",
+                            "X-Requested-With",
+                            "Accept",
+                            "Origin");
         }
 
         @Test
@@ -86,7 +99,8 @@ class SecurityDisabledConfigTest {
         void shouldExposeAuthorizationHeader() {
             CorsConfiguration corsConfig = getCorsConfig();
 
-            assertThat(corsConfig).isNotNull()
+            assertThat(corsConfig)
+                    .isNotNull()
                     .extracting(CorsConfiguration::getExposedHeaders)
                     .asInstanceOf(InstanceOfAssertFactories.LIST)
                     .contains("Authorization");
@@ -97,7 +111,8 @@ class SecurityDisabledConfigTest {
         void shouldExposePaginationHeaders() {
             CorsConfiguration corsConfig = getCorsConfig();
 
-            assertThat(corsConfig).isNotNull()
+            assertThat(corsConfig)
+                    .isNotNull()
                     .extracting(CorsConfiguration::getExposedHeaders)
                     .asInstanceOf(InstanceOfAssertFactories.LIST)
                     .contains("X-Total-Count", "X-Page-Number", "X-Page-Size");
@@ -108,7 +123,8 @@ class SecurityDisabledConfigTest {
         void shouldExposeCachingHeaders() {
             CorsConfiguration corsConfig = getCorsConfig();
 
-            assertThat(corsConfig).isNotNull()
+            assertThat(corsConfig)
+                    .isNotNull()
                     .extracting(CorsConfiguration::getExposedHeaders)
                     .asInstanceOf(InstanceOfAssertFactories.LIST)
                     .contains("ETag", "Last-Modified");
@@ -119,7 +135,8 @@ class SecurityDisabledConfigTest {
         void shouldAllowCredentials() {
             CorsConfiguration corsConfig = getCorsConfig();
 
-            assertThat(corsConfig).isNotNull()
+            assertThat(corsConfig)
+                    .isNotNull()
                     .extracting(CorsConfiguration::getAllowCredentials)
                     .isEqualTo(true);
         }
@@ -129,7 +146,8 @@ class SecurityDisabledConfigTest {
         void shouldSetMaxAgeToOneHour() {
             CorsConfiguration corsConfig = getCorsConfig();
 
-            assertThat(corsConfig).isNotNull()
+            assertThat(corsConfig)
+                    .isNotNull()
                     .extracting(CorsConfiguration::getMaxAge)
                     .isEqualTo(3600L);
         }

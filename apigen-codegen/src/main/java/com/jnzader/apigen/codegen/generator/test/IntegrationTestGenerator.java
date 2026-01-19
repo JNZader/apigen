@@ -1,13 +1,11 @@
 package com.jnzader.apigen.codegen.generator.test;
 
+import static com.jnzader.apigen.codegen.generator.util.TestValueProvider.getSampleTestValue;
+
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlTable;
 
-import static com.jnzader.apigen.codegen.generator.util.TestValueProvider.getSampleTestValue;
-
-/**
- * Generates integration test classes for full stack testing.
- */
+/** Generates integration test classes for full stack testing. */
 public class IntegrationTestGenerator {
 
     private final String basePackage;
@@ -16,9 +14,7 @@ public class IntegrationTestGenerator {
         this.basePackage = basePackage;
     }
 
-    /**
-     * Generates the Integration test class code.
-     */
+    /** Generates the Integration test class code. */
     public String generate(SqlTable table) {
         String entityName = table.getEntityName();
         String moduleName = table.getModuleName();
@@ -30,19 +26,34 @@ public class IntegrationTestGenerator {
 
         for (SqlColumn col : table.getBusinessColumns()) {
             String fieldName = col.getJavaFieldName();
-            String capitalField = Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
+            String capitalField =
+                    Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
             String sampleValue = getSampleTestValue(col);
             String updatedValue = getSampleTestValue(col, "Updated");
 
-            fieldAssignments.append("\n                .").append(fieldName).append("(").append(sampleValue).append(")");
-            updateAssignments.append("\n        dto.set").append(capitalField).append("(").append(updatedValue).append(");");
+            fieldAssignments
+                    .append("\n                .")
+                    .append(fieldName)
+                    .append("(")
+                    .append(sampleValue)
+                    .append(")");
+            updateAssignments
+                    .append("\n        dto.set")
+                    .append(capitalField)
+                    .append("(")
+                    .append(updatedValue)
+                    .append(");");
 
             if ("String".equals(col.getJavaType())) {
-                fieldAssertions.append("\n                .jsonPath(\"$.").append(fieldName).append("\").isNotEmpty()");
+                fieldAssertions
+                        .append("\n                .jsonPath(\"$.")
+                        .append(fieldName)
+                        .append("\").isNotEmpty()");
             }
         }
 
-        return """
+        return
+"""
 package %s.%s;
 
 import %s.%s.application.dto.%sDTO;
@@ -297,37 +308,62 @@ class %sIntegrationTest {
                 .andExpect(jsonPath("$.content").isArray());
     }
 }
-""".formatted(
-                basePackage, moduleName,
-                basePackage, moduleName, entityName,
-                basePackage, moduleName, entityName,
-                basePackage, moduleName, entityName,
-                entityName, entityName, entityName, moduleName,
-                entityName, entityName,
-                entityName, fieldAssignments.toString(),
-                // Test 1 - Create
-                entityName, entityName, fieldAssertions.toString(),
-                entityName, entityName,
-                // Test 2 - Find by ID
-                entityName, entityName,
-                // Test 3 - List
-                entityName,
-                // Test 4 - Exists
-                entityName,
-                // Test 6 - Update
-                entityName, entityName, entityName, entityName, updateAssignments.toString(),
-                // Test 7 - Partial Update
-                entityName, entityName,
-                // Test 8 - Soft Delete
-                entityName, entityName,
-                // Test 9 - Restore
-                entityName, entityName,
-                // Test 10 - Hard Delete
-                entityName, entityName,
-                // Test 11 - 404
-                entityName,
-                // Test 12 - Validation
-                entityName, entityName
-        );
+"""
+                .formatted(
+                        basePackage,
+                        moduleName,
+                        basePackage,
+                        moduleName,
+                        entityName,
+                        basePackage,
+                        moduleName,
+                        entityName,
+                        basePackage,
+                        moduleName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        moduleName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        fieldAssignments.toString(),
+                        // Test 1 - Create
+                        entityName,
+                        entityName,
+                        fieldAssertions.toString(),
+                        entityName,
+                        entityName,
+                        // Test 2 - Find by ID
+                        entityName,
+                        entityName,
+                        // Test 3 - List
+                        entityName,
+                        // Test 4 - Exists
+                        entityName,
+                        // Test 6 - Update
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        updateAssignments.toString(),
+                        // Test 7 - Partial Update
+                        entityName,
+                        entityName,
+                        // Test 8 - Soft Delete
+                        entityName,
+                        entityName,
+                        // Test 9 - Restore
+                        entityName,
+                        entityName,
+                        // Test 10 - Hard Delete
+                        entityName,
+                        entityName,
+                        // Test 11 - 404
+                        entityName,
+                        // Test 12 - Validation
+                        entityName,
+                        entityName);
     }
 }

@@ -1,13 +1,10 @@
 package com.jnzader.apigen.codegen.model;
 
+import java.util.List;
 import lombok.Builder;
 import lombok.Data;
 
-import java.util.List;
-
-/**
- * Represents a SQL function or stored procedure.
- */
+/** Represents a SQL function or stored procedure. */
 @Data
 @Builder
 public class SqlFunction {
@@ -16,7 +13,7 @@ public class SqlFunction {
     private List<SqlParameter> parameters;
     private String returnType;
     private String body;
-    private String language;  // plpgsql, sql, etc.
+    private String language; // plpgsql, sql, etc.
     private boolean isVolatile;
     private String comment;
 
@@ -42,9 +39,7 @@ public class SqlFunction {
         }
     }
 
-    /**
-     * Generates a Spring Data JPA @Query annotation.
-     */
+    /** Generates a Spring Data JPA @Query annotation. */
     public String toJpaCallQuery() {
         StringBuilder sb = new StringBuilder();
         if (type == FunctionType.FUNCTION) {
@@ -62,9 +57,7 @@ public class SqlFunction {
         return sb.toString();
     }
 
-    /**
-     * Generates a Java method signature for calling this function.
-     */
+    /** Generates a Java method signature for calling this function. */
     public String toJavaMethodSignature() {
         StringBuilder sb = new StringBuilder();
 
@@ -81,7 +74,10 @@ public class SqlFunction {
         for (int i = 0; i < parameters.size(); i++) {
             if (i > 0) sb.append(", ");
             SqlParameter param = parameters.get(i);
-            sb.append(param.getJavaType() != null ? param.getJavaType() : mapSqlTypeToJava(param.getSqlType()));
+            sb.append(
+                    param.getJavaType() != null
+                            ? param.getJavaType()
+                            : mapSqlTypeToJava(param.getSqlType()));
             sb.append(" ").append(toCamelCase(param.getName()));
         }
 

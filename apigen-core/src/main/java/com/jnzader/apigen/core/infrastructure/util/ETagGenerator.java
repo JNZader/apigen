@@ -2,22 +2,20 @@ package com.jnzader.apigen.core.infrastructure.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Utilidad para generar ETags para recursos REST.
- * <p>
- * Los ETags se utilizan para:
- * - Caché condicional (If-None-Match → 304 Not Modified)
- * - Control de concurrencia optimista (If-Match → 412 Precondition Failed)
- * <p>
- * El ETag se genera como un hash MD5 del contenido JSON del objeto.
+ *
+ * <p>Los ETags se utilizan para: - Caché condicional (If-None-Match → 304 Not Modified) - Control
+ * de concurrencia optimista (If-Match → 412 Precondition Failed)
+ *
+ * <p>El ETag se genera como un hash MD5 del contenido JSON del objeto.
  */
 public final class ETagGenerator {
 
@@ -30,9 +28,9 @@ public final class ETagGenerator {
 
     /**
      * Genera un ETag para el objeto dado.
-     * <p>
-     * El ETag es un hash MD5 del JSON serializado del objeto,
-     * envuelto en comillas dobles según RFC 7232.
+     *
+     * <p>El ETag es un hash MD5 del JSON serializado del objeto, envuelto en comillas dobles según
+     * RFC 7232.
      *
      * @param object El objeto para el que generar el ETag.
      * @return El ETag generado, o null si no se pudo generar.
@@ -62,9 +60,8 @@ public final class ETagGenerator {
 
     /**
      * Genera un ETag débil para el objeto dado.
-     * <p>
-     * Los ETags débiles (W/"...") indican equivalencia semántica,
-     * no igualdad byte-a-byte.
+     *
+     * <p>Los ETags débiles (W/"...") indican equivalencia semántica, no igualdad byte-a-byte.
      *
      * @param object El objeto para el que generar el ETag débil.
      * @return El ETag débil generado, o null si no se pudo generar.
@@ -76,8 +73,8 @@ public final class ETagGenerator {
 
     /**
      * Verifica si dos ETags coinciden.
-     * <p>
-     * Maneja correctamente ETags fuertes y débiles.
+     *
+     * <p>Maneja correctamente ETags fuertes y débiles.
      *
      * @param etag1 Primer ETag.
      * @param etag2 Segundo ETag.
@@ -96,10 +93,11 @@ public final class ETagGenerator {
     }
 
     /**
-     * Verifica si el ETag proporcionado coincide con alguno de los ETags en el header If-None-Match.
-     * <p>
-     * El header If-None-Match puede contener múltiples ETags separados por comas,
-     * o el valor especial "*" que coincide con cualquier ETag.
+     * Verifica si el ETag proporcionado coincide con alguno de los ETags en el header
+     * If-None-Match.
+     *
+     * <p>El header If-None-Match puede contener múltiples ETags separados por comas, o el valor
+     * especial "*" que coincide con cualquier ETag.
      *
      * @param currentEtag El ETag actual del recurso.
      * @param ifNoneMatch El valor del header If-None-Match.
@@ -128,9 +126,9 @@ public final class ETagGenerator {
 
     /**
      * Verifica si el ETag proporcionado coincide con el header If-Match.
-     * <p>
-     * El header If-Match se usa para control de concurrencia optimista.
-     * Si no coincide, se debe retornar 412 Precondition Failed.
+     *
+     * <p>El header If-Match se usa para control de concurrencia optimista. Si no coincide, se debe
+     * retornar 412 Precondition Failed.
      *
      * @param currentEtag El ETag actual del recurso.
      * @param ifMatch El valor del header If-Match.
@@ -163,9 +161,7 @@ public final class ETagGenerator {
         return false;
     }
 
-    /**
-     * Normaliza un ETag removiendo el prefijo W/ si existe.
-     */
+    /** Normaliza un ETag removiendo el prefijo W/ si existe. */
     private static String normalizeEtag(String etag) {
         if (etag == null) {
             return null;

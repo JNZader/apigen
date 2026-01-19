@@ -6,9 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
-/**
- * Testcontainers configuration for integration tests.
- */
+/** Testcontainers configuration for integration tests. */
 @TestConfiguration(proxyBeanMethods = false)
 public class TestcontainersConfiguration {
 

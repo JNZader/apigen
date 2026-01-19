@@ -4,8 +4,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * Main entry point for the APiGen Server.
- * Provides REST API for generating Spring Boot projects from SQL schemas.
+ * Main entry point for the APiGen Server. Provides REST API for generating Spring Boot projects
+ * from SQL schemas.
  */
 @SpringBootApplication
 public class ApiGenServerApplication {

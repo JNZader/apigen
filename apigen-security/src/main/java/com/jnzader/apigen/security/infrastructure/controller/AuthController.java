@@ -22,8 +22,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Controlador de autenticación.
- * <p>
- * Expone endpoints para login, registro, refresh y logout.
+ *
+ * <p>Expone endpoints para login, registro, refresh y logout.
  */
 @RestController
 @RequestMapping("${app.api.base-path:}/v1/auth")
@@ -40,45 +40,58 @@ public class AuthController {
         this.authService = authService;
     }
 
-    @Operation(summary = "Iniciar sesión", description = "Autentica un usuario y retorna tokens JWT")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Login exitoso"),
-            @ApiResponse(responseCode = "401", description = "Credenciales inválidas")
-    })
+    @Operation(
+            summary = "Iniciar sesión",
+            description = "Autentica un usuario y retorna tokens JWT")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "200", description = "Login exitoso"),
+                @ApiResponse(responseCode = "401", description = "Credenciales inválidas")
+            })
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginRequestDTO request) {
         return ResponseEntity.ok(authService.login(request));
     }
 
     @Operation(summary = "Registrar usuario", description = "Crea una nueva cuenta de usuario")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Registro exitoso"),
-            @ApiResponse(responseCode = "400", description = "Datos inválidos o usuario ya existe")
-    })
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "200", description = "Registro exitoso"),
+                @ApiResponse(
+                        responseCode = "400",
+                        description = "Datos inválidos o usuario ya existe")
+            })
     @PostMapping("/register")
-    public ResponseEntity<AuthResponseDTO> register(@Valid @RequestBody RegisterRequestDTO request) {
+    public ResponseEntity<AuthResponseDTO> register(
+            @Valid @RequestBody RegisterRequestDTO request) {
         return ResponseEntity.ok(authService.register(request));
     }
 
-    @Operation(summary = "Refrescar token", description = "Obtiene nuevos tokens usando un refresh token válido")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Tokens renovados"),
-            @ApiResponse(responseCode = "401", description = "Refresh token inválido o expirado")
-    })
+    @Operation(
+            summary = "Refrescar token",
+            description = "Obtiene nuevos tokens usando un refresh token válido")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "200", description = "Tokens renovados"),
+                @ApiResponse(
+                        responseCode = "401",
+                        description = "Refresh token inválido o expirado")
+            })
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponseDTO> refreshToken(@Valid @RequestBody RefreshTokenRequestDTO request) {
+    public ResponseEntity<AuthResponseDTO> refreshToken(
+            @Valid @RequestBody RefreshTokenRequestDTO request) {
         return ResponseEntity.ok(authService.refreshToken(request));
     }
 
     @Operation(
             summary = "Cerrar sesión",
             description = "Invalida el token actual añadiéndolo a la blacklist",
-            security = @SecurityRequirement(name = "bearerAuth")
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Logout exitoso"),
-            @ApiResponse(responseCode = "401", description = "Token inválido")
-    })
+            security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "204", description = "Logout exitoso"),
+                @ApiResponse(responseCode = "401", description = "Token inválido")
+            })
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");

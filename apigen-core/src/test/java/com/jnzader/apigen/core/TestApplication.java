@@ -9,20 +9,22 @@ import org.springframework.context.annotation.FilterType;
 /**
  * Minimal test application for Spring Boot tests.
  *
- * Excludes:
- * - TestcontainersConfiguration (for unit tests)
- * - TestSecurityConfig (import explicitly in integration tests)
- * - JpaConfig (import explicitly in integration tests that need JPA auditing)
+ * <p>Excludes: - TestcontainersConfiguration (for unit tests) - TestSecurityConfig (import
+ * explicitly in integration tests) - JpaConfig (import explicitly in integration tests that need
+ * JPA auditing)
  */
 @SpringBootApplication
 @ComponentScan(
         basePackages = {"com.jnzader.apigen"},
         excludeFilters = {
-                @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = TestcontainersConfiguration.class),
-                @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = TestSecurityConfig.class),
-                @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = JpaConfig.class)
-        }
-)
+            @ComponentScan.Filter(
+                    type = FilterType.ASSIGNABLE_TYPE,
+                    classes = TestcontainersConfiguration.class),
+            @ComponentScan.Filter(
+                    type = FilterType.ASSIGNABLE_TYPE,
+                    classes = TestSecurityConfig.class),
+            @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = JpaConfig.class)
+        })
 public class TestApplication {
     // Empty class - Spring Boot auto-configuration handles all setup via annotations
 }

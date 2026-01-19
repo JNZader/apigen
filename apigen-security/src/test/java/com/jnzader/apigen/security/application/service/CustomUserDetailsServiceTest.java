@@ -1,9 +1,16 @@
 package com.jnzader.apigen.security.application.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.*;
+
 import com.jnzader.apigen.security.domain.entity.Permission;
 import com.jnzader.apigen.security.domain.entity.Role;
 import com.jnzader.apigen.security.domain.entity.User;
 import com.jnzader.apigen.security.domain.repository.UserRepository;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,23 +21,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 @DisplayName("CustomUserDetailsService Tests")
 class CustomUserDetailsServiceTest {
 
-    @Mock
-    private UserRepository userRepository;
+    @Mock private UserRepository userRepository;
 
-    @InjectMocks
-    private CustomUserDetailsService userDetailsService;
+    @InjectMocks private CustomUserDetailsService userDetailsService;
 
     private User testUser;
 

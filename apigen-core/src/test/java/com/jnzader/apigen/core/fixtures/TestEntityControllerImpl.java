@@ -4,9 +4,7 @@ import com.jnzader.apigen.core.infrastructure.controller.BaseControllerImpl;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * Test controller implementation for unit tests.
- */
+/** Test controller implementation for unit tests. */
 @RestController
 @RequestMapping("/test-entities")
 public class TestEntityControllerImpl extends BaseControllerImpl<TestEntity, TestEntityDTO, Long>
@@ -15,8 +13,7 @@ public class TestEntityControllerImpl extends BaseControllerImpl<TestEntity, Tes
     public TestEntityControllerImpl(
             TestEntityService service,
             TestEntityMapperAdapter mapper,
-            TestEntityResourceAssembler resourceAssembler
-    ) {
+            TestEntityResourceAssembler resourceAssembler) {
         super(service, mapper, resourceAssembler);
     }
 

@@ -1,31 +1,31 @@
 package com.jnzader.apigen.core.infrastructure.controller;
 
+import static org.hamcrest.Matchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jnzader.apigen.core.config.TestSecurityConfig;
-import com.jnzader.apigen.core.infrastructure.config.JpaConfig;
 import com.jnzader.apigen.core.fixtures.TestEntity;
 import com.jnzader.apigen.core.fixtures.TestEntityDTO;
 import com.jnzader.apigen.core.fixtures.TestEntityRepository;
+import com.jnzader.apigen.core.infrastructure.config.JpaConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.hamcrest.Matchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 /**
- * Integration tests for BaseControllerImpl.
- * Uses full Spring context to exercise the actual controller implementation.
+ * Integration tests for BaseControllerImpl. Uses full Spring context to exercise the actual
+ * controller implementation.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -35,13 +35,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("BaseControllerImpl Integration Tests")
 class BaseControllerImplIntegrationTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Autowired
-    private TestEntityRepository testEntityRepository;
+    @Autowired private TestEntityRepository testEntityRepository;
 
     private TestEntity savedEntity;
 
@@ -62,10 +60,12 @@ class BaseControllerImplIntegrationTest {
         @DisplayName("should return paginated list of entities")
         void shouldReturnPaginatedListOfEntities() throws Exception {
             // With HATEOAS enabled, the collection is in _embedded.testEntityDTOList
-            mockMvc.perform(get("/test-entities")
-                            .accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(get("/test-entities").accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$._embedded.testEntityDTOList", hasSize(greaterThanOrEqualTo(1))))
+                    .andExpect(
+                            jsonPath(
+                                    "$._embedded.testEntityDTOList",
+                                    hasSize(greaterThanOrEqualTo(1))))
                     .andExpect(header().exists("X-Total-Count"));
         }
 
@@ -75,8 +75,7 @@ class BaseControllerImplIntegrationTest {
             testEntityRepository.deleteAll();
 
             // With HATEOAS enabled, empty collection still has page metadata
-            mockMvc.perform(get("/test-entities")
-                            .accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(get("/test-entities").accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.page.totalElements", is(0)));
         }
@@ -84,10 +83,11 @@ class BaseControllerImplIntegrationTest {
         @Test
         @DisplayName("should support pagination parameters")
         void shouldSupportPaginationParameters() throws Exception {
-            mockMvc.perform(get("/test-entities")
-                            .param("page", "0")
-                            .param("size", "5")
-                            .accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(
+                            get("/test-entities")
+                                    .param("page", "0")
+                                    .param("size", "5")
+                                    .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(header().exists("X-Page-Number"))
                     .andExpect(header().exists("X-Page-Size"));
@@ -114,8 +114,9 @@ class BaseControllerImplIntegrationTest {
         @Test
         @DisplayName("should return entity by ID")
         void shouldReturnEntityById() throws Exception {
-            mockMvc.perform(get("/test-entities/{id}", savedEntity.getId())
-                            .accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(
+                            get("/test-entities/{id}", savedEntity.getId())
+                                    .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.id", is(savedEntity.getId().intValue())))
                     .andExpect(jsonPath("$.name", is("Test Entity")))
@@ -125,8 +126,7 @@ class BaseControllerImplIntegrationTest {
         @Test
         @DisplayName("should return 404 for non-existent ID")
         void shouldReturn404ForNonExistentId() throws Exception {
-            mockMvc.perform(get("/test-entities/{id}", 99999L)
-                            .accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(get("/test-entities/{id}", 99999L).accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isNotFound());
         }
 
@@ -134,17 +134,20 @@ class BaseControllerImplIntegrationTest {
         @DisplayName("should return 304 when ETag matches")
         void shouldReturn304WhenETagMatches() throws Exception {
             // First, get the entity to obtain its ETag
-            String etag = mockMvc.perform(get("/test-entities/{id}", savedEntity.getId())
-                            .accept(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isOk())
-                    .andReturn()
-                    .getResponse()
-                    .getHeader("ETag");
+            String etag =
+                    mockMvc.perform(
+                                    get("/test-entities/{id}", savedEntity.getId())
+                                            .accept(MediaType.APPLICATION_JSON))
+                            .andExpect(status().isOk())
+                            .andReturn()
+                            .getResponse()
+                            .getHeader("ETag");
 
             // Then, request with If-None-Match
-            mockMvc.perform(get("/test-entities/{id}", savedEntity.getId())
-                            .header("If-None-Match", etag)
-                            .accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(
+                            get("/test-entities/{id}", savedEntity.getId())
+                                    .header("If-None-Match", etag)
+                                    .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isNotModified());
         }
     }
@@ -163,8 +166,7 @@ class BaseControllerImplIntegrationTest {
         @Test
         @DisplayName("should return 404 when entity does not exist")
         void shouldReturn404WhenEntityDoesNotExist() throws Exception {
-            mockMvc.perform(head("/test-entities/{id}", 99999L))
-                    .andExpect(status().isNotFound());
+            mockMvc.perform(head("/test-entities/{id}", 99999L)).andExpect(status().isNotFound());
         }
     }
 
@@ -177,9 +179,10 @@ class BaseControllerImplIntegrationTest {
         void shouldCreateNewEntityAndReturn201() throws Exception {
             TestEntityDTO newDto = TestEntityDTO.of(null, true, "New Entity");
 
-            mockMvc.perform(post("/test-entities")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(newDto)))
+            mockMvc.perform(
+                            post("/test-entities")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(newDto)))
                     .andExpect(status().isCreated())
                     .andExpect(header().exists("Location"))
                     .andExpect(header().exists("ETag"))
@@ -191,9 +194,10 @@ class BaseControllerImplIntegrationTest {
         void shouldReturn400ForInvalidInput() throws Exception {
             TestEntityDTO invalidDto = TestEntityDTO.of(null, true, null);
 
-            mockMvc.perform(post("/test-entities")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(invalidDto)))
+            mockMvc.perform(
+                            post("/test-entities")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(invalidDto)))
                     .andExpect(status().isBadRequest());
         }
     }
@@ -207,9 +211,10 @@ class BaseControllerImplIntegrationTest {
         void shouldUpdateEntityAndReturn200() throws Exception {
             TestEntityDTO updateDto = TestEntityDTO.of(savedEntity.getId(), true, "Updated Entity");
 
-            mockMvc.perform(put("/test-entities/{id}", savedEntity.getId())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(updateDto)))
+            mockMvc.perform(
+                            put("/test-entities/{id}", savedEntity.getId())
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(updateDto)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.name", is("Updated Entity")));
         }
@@ -219,9 +224,10 @@ class BaseControllerImplIntegrationTest {
         void shouldReturn404WhenUpdatingNonExistentEntity() throws Exception {
             TestEntityDTO updateDto = TestEntityDTO.of(99999L, true, "Updated");
 
-            mockMvc.perform(put("/test-entities/{id}", 99999L)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(updateDto)))
+            mockMvc.perform(
+                            put("/test-entities/{id}", 99999L)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(updateDto)))
                     .andExpect(status().isNotFound());
         }
 
@@ -230,9 +236,10 @@ class BaseControllerImplIntegrationTest {
         void shouldReturn400WhenIdMismatch() throws Exception {
             TestEntityDTO updateDto = TestEntityDTO.of(999L, true, "Updated");
 
-            mockMvc.perform(put("/test-entities/{id}", savedEntity.getId())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(updateDto)))
+            mockMvc.perform(
+                            put("/test-entities/{id}", savedEntity.getId())
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(updateDto)))
                     .andExpect(status().isBadRequest());
         }
 
@@ -241,10 +248,11 @@ class BaseControllerImplIntegrationTest {
         void shouldReturn412WhenETagMismatch() throws Exception {
             TestEntityDTO updateDto = TestEntityDTO.of(savedEntity.getId(), true, "Updated");
 
-            mockMvc.perform(put("/test-entities/{id}", savedEntity.getId())
-                            .header("If-Match", "\"invalid-etag\"")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(updateDto)))
+            mockMvc.perform(
+                            put("/test-entities/{id}", savedEntity.getId())
+                                    .header("If-Match", "\"invalid-etag\"")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(updateDto)))
                     .andExpect(status().isPreconditionFailed());
         }
     }
@@ -258,9 +266,10 @@ class BaseControllerImplIntegrationTest {
         void shouldPartiallyUpdateEntity() throws Exception {
             TestEntityDTO patchDto = TestEntityDTO.of(null, null, "Patched Name");
 
-            mockMvc.perform(patch("/test-entities/{id}", savedEntity.getId())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(patchDto)))
+            mockMvc.perform(
+                            patch("/test-entities/{id}", savedEntity.getId())
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(patchDto)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.name", is("Patched Name")));
         }
@@ -270,9 +279,10 @@ class BaseControllerImplIntegrationTest {
         void shouldReturn404WhenPatchingNonExistentEntity() throws Exception {
             TestEntityDTO patchDto = TestEntityDTO.of(null, null, "Patched");
 
-            mockMvc.perform(patch("/test-entities/{id}", 99999L)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(patchDto)))
+            mockMvc.perform(
+                            patch("/test-entities/{id}", 99999L)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(patchDto)))
                     .andExpect(status().isNotFound());
         }
     }
@@ -295,15 +305,15 @@ class BaseControllerImplIntegrationTest {
         @Test
         @DisplayName("should return 404 when deleting non-existent entity")
         void shouldReturn404WhenDeletingNonExistentEntity() throws Exception {
-            mockMvc.perform(delete("/test-entities/{id}", 99999L))
-                    .andExpect(status().isNotFound());
+            mockMvc.perform(delete("/test-entities/{id}", 99999L)).andExpect(status().isNotFound());
         }
 
         @Test
         @DisplayName("should hard delete entity when permanent=true")
         void shouldHardDeleteEntityWhenPermanentTrue() throws Exception {
-            mockMvc.perform(delete("/test-entities/{id}", savedEntity.getId())
-                            .param("permanent", "true"))
+            mockMvc.perform(
+                            delete("/test-entities/{id}", savedEntity.getId())
+                                    .param("permanent", "true"))
                     .andExpect(status().isNoContent());
         }
     }

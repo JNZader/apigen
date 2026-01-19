@@ -8,6 +8,7 @@ import com.jnzader.example.application.service.ProductService;
 import com.jnzader.example.domain.entity.Product;
 import com.jnzader.example.infrastructure.hateoas.ProductResourceAssembler;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,30 +16,30 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 /**
  * REST Controller for Product entity.
- * <p>
- * Extends {@link BaseControllerImpl} which provides:
+ *
+ * <p>Extends {@link BaseControllerImpl} which provides:
+ *
  * <ul>
- *     <li>GET / - List with pagination, filtering, and sparse fieldsets</li>
- *     <li>GET /{id} - Get by ID with ETag caching</li>
- *     <li>HEAD / - Count</li>
- *     <li>HEAD /{id} - Check existence</li>
- *     <li>POST / - Create with Location header</li>
- *     <li>PUT /{id} - Full update with optimistic locking</li>
- *     <li>PATCH /{id} - Partial update</li>
- *     <li>DELETE /{id} - Soft delete (or hard with ?permanent=true)</li>
- *     <li>POST /{id}/restore - Restore soft-deleted</li>
- *     <li>GET /cursor - Cursor-based pagination</li>
+ *   <li>GET / - List with pagination, filtering, and sparse fieldsets
+ *   <li>GET /{id} - Get by ID with ETag caching
+ *   <li>HEAD / - Count
+ *   <li>HEAD /{id} - Check existence
+ *   <li>POST / - Create with Location header
+ *   <li>PUT /{id} - Full update with optimistic locking
+ *   <li>PATCH /{id} - Partial update
+ *   <li>DELETE /{id} - Soft delete (or hard with ?permanent=true)
+ *   <li>POST /{id}/restore - Restore soft-deleted
+ *   <li>GET /cursor - Cursor-based pagination
  * </ul>
- * <p>
- * Filtering examples:
+ *
+ * <p>Filtering examples:
+ *
  * <ul>
- *     <li>GET /api/products?filter=name:like:phone</li>
- *     <li>GET /api/products?filter=price:gte:100,category:eq:electronics</li>
- *     <li>GET /api/products?fields=id,name,price</li>
+ *   <li>GET /api/products?filter=name:like:phone
+ *   <li>GET /api/products?filter=price:gte:100,category:eq:electronics
+ *   <li>GET /api/products?fields=id,name,price
  * </ul>
  */
 @RestController
@@ -53,8 +54,7 @@ public class ProductController extends BaseControllerImpl<Product, ProductDTO, L
             ProductService service,
             ProductMapper mapper,
             ProductResourceAssembler assembler,
-            FilterSpecificationBuilder filterBuilder
-    ) {
+            FilterSpecificationBuilder filterBuilder) {
         super(service, mapper, assembler, filterBuilder);
         this.productService = service;
         this.productMapper = mapper;
@@ -72,25 +72,17 @@ public class ProductController extends BaseControllerImpl<Product, ProductDTO, L
 
     // ==================== Custom Endpoints ====================
 
-    /**
-     * Find products by category.
-     */
+    /** Find products by category. */
     @GetMapping("/category/{category}")
     public ResponseEntity<List<ProductDTO>> findByCategory(@PathVariable String category) {
         List<Product> products = productService.findByCategory(category);
-        return ResponseEntity.ok(products.stream()
-                .map(productMapper::toDTO)
-                .toList());
+        return ResponseEntity.ok(products.stream().map(productMapper::toDTO).toList());
     }
 
-    /**
-     * Search products by name.
-     */
+    /** Search products by name. */
     @GetMapping("/search")
     public ResponseEntity<List<ProductDTO>> searchByName(@RequestParam String name) {
         List<Product> products = productService.searchByName(name);
-        return ResponseEntity.ok(products.stream()
-                .map(productMapper::toDTO)
-                .toList());
+        return ResponseEntity.ok(products.stream().map(productMapper::toDTO).toList());
     }
 }

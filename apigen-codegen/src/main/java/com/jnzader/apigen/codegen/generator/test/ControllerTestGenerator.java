@@ -2,9 +2,7 @@ package com.jnzader.apigen.codegen.generator.test;
 
 import com.jnzader.apigen.codegen.model.SqlTable;
 
-/**
- * Generates unit test classes for Controller implementations.
- */
+/** Generates unit test classes for Controller implementations. */
 public class ControllerTestGenerator {
 
     private static final String APIGEN_CORE_PKG = "com.jnzader.apigen.core";
@@ -15,15 +13,14 @@ public class ControllerTestGenerator {
         this.basePackage = basePackage;
     }
 
-    /**
-     * Generates the Controller test class code.
-     */
+    /** Generates the Controller test class code. */
     public String generate(SqlTable table) {
         String entityName = table.getEntityName();
         String entityVarName = table.getEntityVariableName();
         String moduleName = table.getModuleName();
 
-        return """
+        return
+"""
 package %s.%s.infrastructure.controller;
 
 import %s.%s.application.dto.%sDTO;
@@ -230,32 +227,84 @@ class %sControllerImplTest {
         }
     }
 }
-""".formatted(
-                basePackage, moduleName,
-                basePackage, moduleName, entityName,
-                basePackage, moduleName, entityName,
-                basePackage, moduleName, entityName,
-                basePackage, moduleName, entityName,
-                APIGEN_CORE_PKG,
-                entityName, entityName,
-                entityName, entityName,
-                entityName, entityName, entityVarName,
-                entityName,
-                entityName, entityVarName, entityName, entityVarName, entityVarName, entityName,
-                // GET Operations
-                entityName, entityName, entityVarName, entityName, moduleName,
-                entityName, entityVarName, entityVarName, moduleName,
-                entityName, moduleName,
-                // POST Operations
-                entityName, entityName, entityVarName, entityName, entityVarName, entityName, moduleName, entityName,
-                entityName, entityVarName, entityVarName, moduleName,
-                // PUT Operations
-                entityName, entityName, entityVarName, entityName, entityVarName, entityName, moduleName, entityName,
-                // PATCH Operations
-                entityName, entityName, entityVarName, entityName, entityVarName, entityName, moduleName, entityName,
-                // DELETE Operations
-                entityName, moduleName,
-                entityName, moduleName
-        );
+"""
+                .formatted(
+                        basePackage,
+                        moduleName,
+                        basePackage,
+                        moduleName,
+                        entityName,
+                        basePackage,
+                        moduleName,
+                        entityName,
+                        basePackage,
+                        moduleName,
+                        entityName,
+                        basePackage,
+                        moduleName,
+                        entityName,
+                        APIGEN_CORE_PKG,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityVarName,
+                        entityName,
+                        entityName,
+                        entityVarName,
+                        entityName,
+                        entityVarName,
+                        entityVarName,
+                        entityName,
+                        // GET Operations
+                        entityName,
+                        entityName,
+                        entityVarName,
+                        entityName,
+                        moduleName,
+                        entityName,
+                        entityVarName,
+                        entityVarName,
+                        moduleName,
+                        entityName,
+                        moduleName,
+                        // POST Operations
+                        entityName,
+                        entityName,
+                        entityVarName,
+                        entityName,
+                        entityVarName,
+                        entityName,
+                        moduleName,
+                        entityName,
+                        entityName,
+                        entityVarName,
+                        entityVarName,
+                        moduleName,
+                        // PUT Operations
+                        entityName,
+                        entityName,
+                        entityVarName,
+                        entityName,
+                        entityVarName,
+                        entityName,
+                        moduleName,
+                        entityName,
+                        // PATCH Operations
+                        entityName,
+                        entityName,
+                        entityVarName,
+                        entityName,
+                        entityVarName,
+                        entityName,
+                        moduleName,
+                        entityName,
+                        // DELETE Operations
+                        entityName,
+                        moduleName,
+                        entityName,
+                        moduleName);
     }
 }

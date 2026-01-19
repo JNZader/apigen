@@ -1,16 +1,15 @@
 package com.jnzader.apigen.codegen.generator.dto;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.jnzader.apigen.codegen.generator.entity.EntityGenerator.ManyToManyRelation;
 import com.jnzader.apigen.codegen.model.*;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("DTOGenerator Tests")
 class DTOGeneratorTest {
@@ -75,12 +74,13 @@ class DTOGeneratorTest {
         @Test
         @DisplayName("Should generate DTO with string field and validations")
         void shouldGenerateDTOWithStringFieldAndValidations() {
-            SqlColumn column = SqlColumn.builder()
-                    .name("title")
-                    .javaType("String")
-                    .nullable(false)
-                    .length(255)
-                    .build();
+            SqlColumn column =
+                    SqlColumn.builder()
+                            .name("title")
+                            .javaType("String")
+                            .nullable(false)
+                            .length(255)
+                            .build();
 
             SqlTable table = createTableWithColumn("products", column);
 
@@ -94,12 +94,13 @@ class DTOGeneratorTest {
         @Test
         @DisplayName("Should generate DTO with nullable field without NotBlank")
         void shouldGenerateDTOWithNullableFieldWithoutNotBlank() {
-            SqlColumn column = SqlColumn.builder()
-                    .name("description")
-                    .javaType("String")
-                    .nullable(true)
-                    .length(1000)
-                    .build();
+            SqlColumn column =
+                    SqlColumn.builder()
+                            .name("description")
+                            .javaType("String")
+                            .nullable(true)
+                            .length(1000)
+                            .build();
 
             SqlTable table = createTableWithColumn("products", column);
 
@@ -114,11 +115,12 @@ class DTOGeneratorTest {
         @Test
         @DisplayName("Should generate DTO with numeric field")
         void shouldGenerateDTOWithNumericField() {
-            SqlColumn column = SqlColumn.builder()
-                    .name("price")
-                    .javaType("BigDecimal")
-                    .nullable(false)
-                    .build();
+            SqlColumn column =
+                    SqlColumn.builder()
+                            .name("price")
+                            .javaType("BigDecimal")
+                            .nullable(false)
+                            .build();
 
             SqlTable table = createTableWithColumn("products", column);
 
@@ -133,11 +135,12 @@ class DTOGeneratorTest {
         @Test
         @DisplayName("Should generate DTO with date field")
         void shouldGenerateDTOWithDateField() {
-            SqlColumn column = SqlColumn.builder()
-                    .name("release_date")
-                    .javaType("LocalDate")
-                    .nullable(true)
-                    .build();
+            SqlColumn column =
+                    SqlColumn.builder()
+                            .name("release_date")
+                            .javaType("LocalDate")
+                            .nullable(true)
+                            .build();
 
             SqlTable table = createTableWithColumn("products", column);
 
@@ -154,18 +157,20 @@ class DTOGeneratorTest {
             SqlTable sourceTable = createSimpleTable("orders");
             SqlTable targetTable = createSimpleTable("customers");
 
-            SqlForeignKey fk = SqlForeignKey.builder()
-                    .columnName("customer_id")
-                    .referencedTable("customers")
-                    .referencedColumn("id")
-                    .build();
+            SqlForeignKey fk =
+                    SqlForeignKey.builder()
+                            .columnName("customer_id")
+                            .referencedTable("customers")
+                            .referencedColumn("id")
+                            .build();
 
-            SqlSchema.TableRelationship relationship = SqlSchema.TableRelationship.builder()
-                    .sourceTable(sourceTable)
-                    .targetTable(targetTable)
-                    .foreignKey(fk)
-                    .relationType(RelationType.MANY_TO_ONE)
-                    .build();
+            SqlSchema.TableRelationship relationship =
+                    SqlSchema.TableRelationship.builder()
+                            .sourceTable(sourceTable)
+                            .targetTable(targetTable)
+                            .foreignKey(fk)
+                            .relationType(RelationType.MANY_TO_ONE)
+                            .build();
 
             String result = dtoGenerator.generate(sourceTable, List.of(relationship), List.of());
 
@@ -178,9 +183,9 @@ class DTOGeneratorTest {
             SqlTable sourceTable = createSimpleTable("students");
             SqlTable targetTable = createSimpleTable("courses");
 
-            ManyToManyRelation m2m = new ManyToManyRelation(
-                    "student_courses", "student_id", "course_id", targetTable
-            );
+            ManyToManyRelation m2m =
+                    new ManyToManyRelation(
+                            "student_courses", "student_id", "course_id", targetTable);
 
             String result = dtoGenerator.generate(sourceTable, List.of(), List.of(m2m));
 
@@ -192,11 +197,8 @@ class DTOGeneratorTest {
         @Test
         @DisplayName("Should handle reserved Java keywords as field names")
         void shouldHandleReservedJavaKeywordsAsFieldNames() {
-            SqlColumn column = SqlColumn.builder()
-                    .name("class")
-                    .javaType("String")
-                    .nullable(true)
-                    .build();
+            SqlColumn column =
+                    SqlColumn.builder().name("class").javaType("String").nullable(true).build();
 
             SqlTable table = createTableWithColumn("items", column);
 
@@ -208,19 +210,37 @@ class DTOGeneratorTest {
         @Test
         @DisplayName("Should handle multiple business columns")
         void shouldHandleMultipleBusinessColumns() {
-            List<SqlColumn> columns = List.of(
-                    SqlColumn.builder().name("id").javaType("Long").primaryKey(true).build(),
-                    SqlColumn.builder().name("name").javaType("String").nullable(false).length(100).build(),
-                    SqlColumn.builder().name("price").javaType("BigDecimal").nullable(false).build(),
-                    SqlColumn.builder().name("stock").javaType("Integer").nullable(true).build()
-            );
+            List<SqlColumn> columns =
+                    List.of(
+                            SqlColumn.builder()
+                                    .name("id")
+                                    .javaType("Long")
+                                    .primaryKey(true)
+                                    .build(),
+                            SqlColumn.builder()
+                                    .name("name")
+                                    .javaType("String")
+                                    .nullable(false)
+                                    .length(100)
+                                    .build(),
+                            SqlColumn.builder()
+                                    .name("price")
+                                    .javaType("BigDecimal")
+                                    .nullable(false)
+                                    .build(),
+                            SqlColumn.builder()
+                                    .name("stock")
+                                    .javaType("Integer")
+                                    .nullable(true)
+                                    .build());
 
-            SqlTable table = SqlTable.builder()
-                    .name("products")
-                    .columns(columns)
-                    .foreignKeys(new ArrayList<>())
-                    .indexes(new ArrayList<>())
-                    .build();
+            SqlTable table =
+                    SqlTable.builder()
+                            .name("products")
+                            .columns(columns)
+                            .foreignKeys(new ArrayList<>())
+                            .indexes(new ArrayList<>())
+                            .build();
 
             String result = dtoGenerator.generate(table, List.of(), List.of());
 
@@ -234,13 +254,13 @@ class DTOGeneratorTest {
     private SqlTable createSimpleTable(String tableName) {
         return SqlTable.builder()
                 .name(tableName)
-                .columns(List.of(
-                        SqlColumn.builder()
-                                .name("id")
-                                .javaType("Long")
-                                .primaryKey(true)
-                                .build()
-                ))
+                .columns(
+                        List.of(
+                                SqlColumn.builder()
+                                        .name("id")
+                                        .javaType("Long")
+                                        .primaryKey(true)
+                                        .build()))
                 .foreignKeys(new ArrayList<>())
                 .indexes(new ArrayList<>())
                 .build();
@@ -249,14 +269,14 @@ class DTOGeneratorTest {
     private SqlTable createTableWithColumn(String tableName, SqlColumn column) {
         return SqlTable.builder()
                 .name(tableName)
-                .columns(List.of(
-                        SqlColumn.builder()
-                                .name("id")
-                                .javaType("Long")
-                                .primaryKey(true)
-                                .build(),
-                        column
-                ))
+                .columns(
+                        List.of(
+                                SqlColumn.builder()
+                                        .name("id")
+                                        .javaType("Long")
+                                        .primaryKey(true)
+                                        .build(),
+                                column))
                 .foreignKeys(new ArrayList<>())
                 .indexes(new ArrayList<>())
                 .build();

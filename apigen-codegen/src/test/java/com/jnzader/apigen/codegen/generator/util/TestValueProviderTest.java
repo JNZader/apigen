@@ -1,10 +1,11 @@
 package com.jnzader.apigen.codegen.generator.util;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("TestValueProvider Tests")
 class TestValueProviderTest {
@@ -250,9 +251,6 @@ class TestValueProviderTest {
     }
 
     private SqlColumn createColumn(String javaType, String fieldName) {
-        return SqlColumn.builder()
-                .name(fieldName)
-                .javaType(javaType)
-                .build();
+        return SqlColumn.builder().name(fieldName).javaType(javaType).build();
     }
 }

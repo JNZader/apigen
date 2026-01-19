@@ -6,6 +6,9 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.time.Duration;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,19 +18,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
-import java.time.Duration;
-import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * Filtro de rate limiting basado en IP del cliente.
- * <p>
- * Características:
- * - Limita el número de requests por IP en una ventana de tiempo
- * - Usa Caffeine cache para almacenamiento eficiente de contadores
- * - Agrega headers estándar de rate limit (X-RateLimit-*)
- * - Retorna 429 Too Many Requests cuando se excede el límite
- * - Configurable via application.yaml
+ *
+ * <p>Características: - Limita el número de requests por IP en una ventana de tiempo - Usa Caffeine
+ * cache para almacenamiento eficiente de contadores - Agrega headers estándar de rate limit
+ * (X-RateLimit-*) - Retorna 429 Too Many Requests cuando se excede el límite - Configurable via
+ * application.yaml
  */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE + 1)
@@ -46,18 +43,23 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         this.maxRequestsPerWindow = maxRequestsPerWindow;
         this.windowDuration = Duration.ofSeconds(windowSeconds);
 
-        this.requestCounts = Caffeine.newBuilder()
-                .expireAfterWrite(windowDuration)
-                .maximumSize(10000) // Máximo 10k IPs en cache
-                .build();
+        this.requestCounts =
+                Caffeine.newBuilder()
+                        .expireAfterWrite(windowDuration)
+                        .maximumSize(10000) // Máximo 10k IPs en cache
+                        .build();
 
-        log.info("Rate limiting configurado: {} requests por {}s", maxRequestsPerWindow, windowSeconds);
+        log.info(
+                "Rate limiting configurado: {} requests por {}s",
+                maxRequestsPerWindow,
+                windowSeconds);
     }
 
     @Override
     @SuppressWarnings("java:S4449") // El parámetro k nunca es null en Caffeine Cache
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(
+            HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
 
         String clientIp = getClientIp(request);
         AtomicInteger counter = requestCounts.get(clientIp, k -> new AtomicInteger(0));
@@ -75,13 +77,19 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 
             response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
             response.setContentType("application/json");
-            response.getWriter().write("""
-                    {
-                        "error": "Too Many Requests",
-                        "message": "Has excedido el límite de %d requests por %d segundos",
-                        "retryAfter": %d
-                    }
-                    """.formatted(maxRequestsPerWindow, windowDuration.toSeconds(), windowDuration.toSeconds()));
+            response.getWriter()
+                    .write(
+                            """
+                            {
+                                "error": "Too Many Requests",
+                                "message": "Has excedido el límite de %d requests por %d segundos",
+                                "retryAfter": %d
+                            }
+                            """
+                                    .formatted(
+                                            maxRequestsPerWindow,
+                                            windowDuration.toSeconds(),
+                                            windowDuration.toSeconds()));
 
             return;
         }

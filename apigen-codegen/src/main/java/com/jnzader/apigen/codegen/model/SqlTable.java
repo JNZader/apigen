@@ -1,14 +1,11 @@
 package com.jnzader.apigen.codegen.model;
 
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Builder;
 import lombok.Data;
 
-import java.util.ArrayList;
-import java.util.List;
-
-/**
- * Represents a table parsed from SQL CREATE TABLE statement.
- */
+/** Represents a table parsed from SQL CREATE TABLE statement. */
 @Data
 @Builder
 public class SqlTable {
@@ -16,27 +13,19 @@ public class SqlTable {
     private String schema;
     private String comment;
 
-    @Builder.Default
-    private List<SqlColumn> columns = new ArrayList<>();
+    @Builder.Default private List<SqlColumn> columns = new ArrayList<>();
 
-    @Builder.Default
-    private List<SqlForeignKey> foreignKeys = new ArrayList<>();
+    @Builder.Default private List<SqlForeignKey> foreignKeys = new ArrayList<>();
 
-    @Builder.Default
-    private List<SqlIndex> indexes = new ArrayList<>();
+    @Builder.Default private List<SqlIndex> indexes = new ArrayList<>();
 
-    @Builder.Default
-    private List<String> primaryKeyColumns = new ArrayList<>();
+    @Builder.Default private List<String> primaryKeyColumns = new ArrayList<>();
 
-    @Builder.Default
-    private List<String> uniqueConstraints = new ArrayList<>();
+    @Builder.Default private List<String> uniqueConstraints = new ArrayList<>();
 
-    @Builder.Default
-    private List<String> checkConstraints = new ArrayList<>();
+    @Builder.Default private List<String> checkConstraints = new ArrayList<>();
 
-    /**
-     * Whether this table is a junction table (for many-to-many relationships).
-     */
+    /** Whether this table is a junction table (for many-to-many relationships). */
     public boolean isJunctionTable() {
         // A junction table typically:
         // 1. Has exactly 2 foreign keys
@@ -51,16 +40,12 @@ public class SqlTable {
             return false;
         }
 
-        List<String> fkColumns = foreignKeys.stream()
-                .map(SqlForeignKey::getColumnName)
-                .toList();
+        List<String> fkColumns = foreignKeys.stream().map(SqlForeignKey::getColumnName).toList();
 
         return primaryKeyColumns.containsAll(fkColumns);
     }
 
-    /**
-     * Gets the entity name (PascalCase, singular) from table name.
-     */
+    /** Gets the entity name (PascalCase, singular) from table name. */
     public String getEntityName() {
         if (name == null) return null;
 
@@ -68,9 +53,7 @@ public class SqlTable {
         return snakeToPascalCase(singular);
     }
 
-    /**
-     * Converts a plural table name to singular form.
-     */
+    /** Converts a plural table name to singular form. */
     private String toSingular(String tableName) {
         if (tableName.endsWith("ies")) {
             return tableName.substring(0, tableName.length() - 3) + "y";
@@ -97,9 +80,7 @@ public class SqlTable {
         return false;
     }
 
-    /**
-     * Converts snake_case to PascalCase.
-     */
+    /** Converts snake_case to PascalCase. */
     private String snakeToPascalCase(String input) {
         StringBuilder result = new StringBuilder();
         boolean capitalizeNext = true;
@@ -114,17 +95,13 @@ public class SqlTable {
         return result.toString();
     }
 
-    /**
-     * Gets the module name (lowercase, plural) from table name.
-     */
+    /** Gets the module name (lowercase, plural) from table name. */
     public String getModuleName() {
         if (name == null) return null;
         return name.toLowerCase().replace("_", "");
     }
 
-    /**
-     * Gets a column by name.
-     */
+    /** Gets a column by name. */
     public SqlColumn getColumnByName(String columnName) {
         return columns.stream()
                 .filter(c -> c.getName().equalsIgnoreCase(columnName))
@@ -132,13 +109,9 @@ public class SqlTable {
                 .orElse(null);
     }
 
-    /**
-     * Gets non-FK, non-PK business columns (for entity fields).
-     */
+    /** Gets non-FK, non-PK business columns (for entity fields). */
     public List<SqlColumn> getBusinessColumns() {
-        List<String> fkColumns = foreignKeys.stream()
-                .map(SqlForeignKey::getColumnName)
-                .toList();
+        List<String> fkColumns = foreignKeys.stream().map(SqlForeignKey::getColumnName).toList();
 
         return columns.stream()
                 .filter(c -> !c.isPrimaryKey())
@@ -147,32 +120,35 @@ public class SqlTable {
                 .toList();
     }
 
-    /**
-     * Checks if column is a standard Base entity column.
-     */
+    /** Checks if column is a standard Base entity column. */
     private boolean isBaseColumn(String columnName) {
         return List.of(
-                "estado", "fecha_creacion", "fecha_actualizacion", "fecha_eliminacion",
-                "creado_por", "modificado_por", "eliminado_por", "version",
-                "created_at", "updated_at", "deleted_at", "created_by", "updated_by", "deleted_by"
-        ).contains(columnName.toLowerCase());
+                        "estado",
+                        "fecha_creacion",
+                        "fecha_actualizacion",
+                        "fecha_eliminacion",
+                        "creado_por",
+                        "modificado_por",
+                        "eliminado_por",
+                        "version",
+                        "created_at",
+                        "updated_at",
+                        "deleted_at",
+                        "created_by",
+                        "updated_by",
+                        "deleted_by")
+                .contains(columnName.toLowerCase());
     }
 
-    /**
-     * Checks if this table extends Base entity (has standard audit columns).
-     */
+    /** Checks if this table extends Base entity (has standard audit columns). */
     public boolean extendsBase() {
-        List<String> columnNames = columns.stream()
-                .map(c -> c.getName().toLowerCase())
-                .toList();
+        List<String> columnNames = columns.stream().map(c -> c.getName().toLowerCase()).toList();
 
         // Check for common audit columns
         return columnNames.contains("estado") || columnNames.contains("created_at");
     }
 
-    /**
-     * Gets the camelCase variable name for this entity.
-     */
+    /** Gets the camelCase variable name for this entity. */
     public String getEntityVariableName() {
         String entityName = getEntityName();
         if (entityName == null || entityName.isEmpty()) return null;

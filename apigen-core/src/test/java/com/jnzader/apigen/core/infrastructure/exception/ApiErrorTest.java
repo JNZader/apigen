@@ -1,14 +1,13 @@
 package com.jnzader.apigen.core.infrastructure.exception;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.jnzader.apigen.core.domain.exception.*;
+import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
-
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("ApiError Tests")
 class ApiErrorTest {
@@ -127,7 +126,8 @@ class ApiErrorTest {
         @Test
         @DisplayName("should create with ETags")
         void shouldCreateWithETags() {
-            ApiError.PreconditionFailed error = new ApiError.PreconditionFailed("ETag mismatch", "etag1", "etag2");
+            ApiError.PreconditionFailed error =
+                    new ApiError.PreconditionFailed("ETag mismatch", "etag1", "etag2");
 
             assertThat(error.expectedEtag()).isEqualTo("etag1");
             assertThat(error.providedEtag()).isEqualTo("etag2");
@@ -325,7 +325,8 @@ class ApiErrorTest {
         @Test
         @DisplayName("should include ETags for PreconditionFailed")
         void shouldIncludeETagsForPreconditionFailed() {
-            ApiError.PreconditionFailed error = new ApiError.PreconditionFailed("Mismatch", "etag1", "etag2");
+            ApiError.PreconditionFailed error =
+                    new ApiError.PreconditionFailed("Mismatch", "etag1", "etag2");
 
             ProblemDetail detail = error.toProblemDetail("/api/test");
 
@@ -341,9 +342,7 @@ class ApiErrorTest {
 
             ProblemDetail detail = error.toProblemDetail("/api/test");
 
-            assertThat(detail.extensions())
-                    .containsEntry("pathId", 1L)
-                    .containsEntry("bodyId", 2L);
+            assertThat(detail.extensions()).containsEntry("pathId", 1L).containsEntry("bodyId", 2L);
         }
     }
 
@@ -358,9 +357,11 @@ class ApiErrorTest {
             assertThat(new ApiError.Validation("msg").title()).isEqualTo("Error de validación");
             assertThat(new ApiError.Conflict("msg").title()).isEqualTo("Conflicto de recursos");
             assertThat(new ApiError.Forbidden("msg").title()).isEqualTo("Acción no permitida");
-            assertThat(new ApiError.PreconditionFailed("msg").title()).isEqualTo("Precondición fallida");
+            assertThat(new ApiError.PreconditionFailed("msg").title())
+                    .isEqualTo("Precondición fallida");
             assertThat(new ApiError.IdMismatch(1L, 2L).title()).isEqualTo("IDs no coinciden");
-            assertThat(new ApiError.Internal("msg").title()).isEqualTo("Error interno del servidor");
+            assertThat(new ApiError.Internal("msg").title())
+                    .isEqualTo("Error interno del servidor");
         }
 
         @Test

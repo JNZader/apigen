@@ -1,27 +1,27 @@
 package com.jnzader.apigen.core.infrastructure.util;
 
+import java.beans.PropertyDescriptor;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 
-import java.beans.PropertyDescriptor;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
 /**
  * Utilidad para copiar propiedades entre beans de forma segura.
- * <p>
- * Proporciona métodos para copiar solo propiedades no nulas,
- * útil para operaciones PATCH donde solo se envían campos modificados.
- * <p>
- * Características:
+ *
+ * <p>Proporciona métodos para copiar solo propiedades no nulas, útil para operaciones PATCH donde
+ * solo se envían campos modificados.
+ *
+ * <p>Características:
+ *
  * <ul>
- *   <li>Copia solo propiedades no nulas</li>
- *   <li>Excluye automáticamente propiedades de sistema (id, version, etc.)</li>
- *   <li>Permite especificar propiedades adicionales a ignorar</li>
- *   <li>Thread-safe y sin estado</li>
+ *   <li>Copia solo propiedades no nulas
+ *   <li>Excluye automáticamente propiedades de sistema (id, version, etc.)
+ *   <li>Permite especificar propiedades adicionales a ignorar
+ *   <li>Thread-safe y sin estado
  * </ul>
  */
 public final class BeanCopyUtils {
@@ -29,22 +29,21 @@ public final class BeanCopyUtils {
     private static final Logger log = LoggerFactory.getLogger(BeanCopyUtils.class);
 
     /**
-     * Propiedades que nunca deben copiarse en actualizaciones parciales.
-     * Estas son propiedades de infraestructura/auditoría que no deben
-     * ser modificadas directamente por el cliente.
+     * Propiedades que nunca deben copiarse en actualizaciones parciales. Estas son propiedades de
+     * infraestructura/auditoría que no deben ser modificadas directamente por el cliente.
      */
-    private static final Set<String> ALWAYS_IGNORED_PROPERTIES = Set.of(
-            "id",
-            "version",
-            "class",
-            "fechaCreacion",
-            "fechaActualizacion",
-            "fechaEliminacion",
-            "creadoPor",
-            "modificadoPor",
-            "eliminadoPor",
-            "domainEvents"
-    );
+    private static final Set<String> ALWAYS_IGNORED_PROPERTIES =
+            Set.of(
+                    "id",
+                    "version",
+                    "class",
+                    "fechaCreacion",
+                    "fechaActualizacion",
+                    "fechaEliminacion",
+                    "creadoPor",
+                    "modificadoPor",
+                    "eliminadoPor",
+                    "domainEvents");
 
     private BeanCopyUtils() {
         // Utility class
@@ -52,13 +51,13 @@ public final class BeanCopyUtils {
 
     /**
      * Copia propiedades no nulas de source a target.
-     * <p>
-     * Las propiedades de sistema (id, version, fechas de auditoría) son
-     * automáticamente excluidas para prevenir modificaciones accidentales.
+     *
+     * <p>Las propiedades de sistema (id, version, fechas de auditoría) son automáticamente
+     * excluidas para prevenir modificaciones accidentales.
      *
      * @param source Objeto fuente con los valores a copiar
      * @param target Objeto destino donde se copiarán los valores
-     * @param <T>    Tipo del objeto
+     * @param <T> Tipo del objeto
      */
     public static <T> void copyNonNullProperties(T source, T target) {
         copyNonNullProperties(source, target, new String[0]);
@@ -67,10 +66,10 @@ public final class BeanCopyUtils {
     /**
      * Copia propiedades no nulas de source a target, excluyendo propiedades adicionales.
      *
-     * @param source             Objeto fuente con los valores a copiar
-     * @param target             Objeto destino donde se copiarán los valores
-     * @param additionalIgnored  Propiedades adicionales a ignorar (además de las de sistema)
-     * @param <T>                Tipo del objeto
+     * @param source Objeto fuente con los valores a copiar
+     * @param target Objeto destino donde se copiarán los valores
+     * @param additionalIgnored Propiedades adicionales a ignorar (además de las de sistema)
+     * @param <T> Tipo del objeto
      */
     public static <T> void copyNonNullProperties(T source, T target, String... additionalIgnored) {
         if (source == null || target == null) {
@@ -90,9 +89,10 @@ public final class BeanCopyUtils {
             String propertyName = pd.getName();
 
             // Verificar si la propiedad debe procesarse
-            boolean shouldProcess = !ignoredProperties.contains(propertyName)
-                    && sourceWrapper.isReadableProperty(propertyName)
-                    && targetWrapper.isWritableProperty(propertyName);
+            boolean shouldProcess =
+                    !ignoredProperties.contains(propertyName)
+                            && sourceWrapper.isReadableProperty(propertyName)
+                            && targetWrapper.isWritableProperty(propertyName);
 
             if (shouldProcess) {
                 try {
@@ -108,8 +108,11 @@ public final class BeanCopyUtils {
             }
         }
 
-        log.debug("Copied {} non-null properties from {} to {}",
-                copiedCount, source.getClass().getSimpleName(), target.getClass().getSimpleName());
+        log.debug(
+                "Copied {} non-null properties from {} to {}",
+                copiedCount,
+                source.getClass().getSimpleName(),
+                target.getClass().getSimpleName());
     }
 
     /**
@@ -180,8 +183,8 @@ public final class BeanCopyUtils {
     }
 
     /**
-     * Verifica si un objeto tiene todas sus propiedades en null
-     * (excluyendo propiedades de sistema).
+     * Verifica si un objeto tiene todas sus propiedades en null (excluyendo propiedades de
+     * sistema).
      *
      * @param source El objeto a verificar
      * @return true si todas las propiedades copiables son null
@@ -191,8 +194,7 @@ public final class BeanCopyUtils {
     }
 
     /**
-     * Cuenta cuántas propiedades no nulas tiene un objeto
-     * (excluyendo propiedades de sistema).
+     * Cuenta cuántas propiedades no nulas tiene un objeto (excluyendo propiedades de sistema).
      *
      * @param source El objeto a inspeccionar
      * @return Número de propiedades con valor no null

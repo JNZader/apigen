@@ -3,6 +3,12 @@ package com.jnzader.apigen.core.domain.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.jnzader.apigen.core.domain.event.DomainEvent;
 import jakarta.persistence.*;
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.SQLRestriction;
@@ -15,16 +21,9 @@ import org.springframework.data.domain.AfterDomainEventPublication;
 import org.springframework.data.domain.DomainEvents;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.io.Serializable;
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.CopyOnWriteArrayList;
-
 /**
- * Clase base abstracta para todas las entidades del sistema.
- * Proporciona campos comunes de auditoría, soporte para soft delete y domain events.
+ * Clase base abstracta para todas las entidades del sistema. Proporciona campos comunes de
+ * auditoría, soporte para soft delete y domain events.
  */
 @MappedSuperclass
 @Getter
@@ -40,55 +39,39 @@ public abstract class Base implements Serializable {
     private Long id;
 
     /**
-     * Estado de la entidad (true = activo, false = inactivo/eliminado).
-     * Se usa para soft delete.
+     * Estado de la entidad (true = activo, false = inactivo/eliminado). Se usa para soft delete.
      */
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
     private Boolean estado = true;
 
-    /**
-     * Fecha y hora de creación del registro.
-     */
+    /** Fecha y hora de creación del registro. */
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
 
-    /**
-     * Fecha y hora de la última actualización.
-     */
+    /** Fecha y hora de la última actualización. */
     @LastModifiedDate
     @Column(nullable = false)
     private LocalDateTime fechaActualizacion;
 
-    /**
-     * Fecha y hora de eliminación lógica (soft delete).
-     */
-    @Column
-    private LocalDateTime fechaEliminacion;
+    /** Fecha y hora de eliminación lógica (soft delete). */
+    @Column private LocalDateTime fechaEliminacion;
 
-    /**
-     * Usuario que realizó la eliminación lógica.
-     */
+    /** Usuario que realizó la eliminación lógica. */
     @Column(length = 100)
     private String eliminadoPor;
 
-    /**
-     * Usuario que creó el registro.
-     */
+    /** Usuario que creó el registro. */
     @CreatedBy
     @Column(length = 100, updatable = false)
     private String creadoPor;
 
-    /**
-     * Usuario que realizó la última modificación.
-     */
+    /** Usuario que realizó la última modificación. */
     @LastModifiedBy
     @Column(length = 100)
     private String modificadoPor;
 
-    /**
-     * Versión para control de concurrencia optimista.
-     */
+    /** Versión para control de concurrencia optimista. */
     @Version
     @Column(nullable = false)
     private Long version = 0L;
@@ -96,16 +79,15 @@ public abstract class Base implements Serializable {
     // ==================== Domain Events ====================
 
     /**
-     * Lista de eventos de dominio pendientes de publicación.
-     * Usa CopyOnWriteArrayList para thread safety en entornos concurrentes.
+     * Lista de eventos de dominio pendientes de publicación. Usa CopyOnWriteArrayList para thread
+     * safety en entornos concurrentes.
      */
-    @Transient
-    @JsonIgnore
+    @Transient @JsonIgnore
     private final List<DomainEvent> domainEvents = new CopyOnWriteArrayList<>();
 
     /**
-     * Registra un evento de dominio para ser publicado.
-     * Este método es público para permitir que los servicios registren eventos.
+     * Registra un evento de dominio para ser publicado. Este método es público para permitir que
+     * los servicios registren eventos.
      *
      * @param event El evento a registrar.
      */
@@ -113,17 +95,13 @@ public abstract class Base implements Serializable {
         this.domainEvents.add(event);
     }
 
-    /**
-     * Retorna los eventos de dominio pendientes (usado por Spring Data).
-     */
+    /** Retorna los eventos de dominio pendientes (usado por Spring Data). */
     @DomainEvents
     public List<DomainEvent> getDomainEvents() {
         return Collections.unmodifiableList(domainEvents);
     }
 
-    /**
-     * Limpia la lista de eventos después de su publicación.
-     */
+    /** Limpia la lista de eventos después de su publicación. */
     @AfterDomainEventPublication
     public void clearDomainEvents() {
         this.domainEvents.clear();
@@ -142,25 +120,19 @@ public abstract class Base implements Serializable {
         this.eliminadoPor = usuario;
     }
 
-    /**
-     * Restaura una entidad eliminada.
-     */
+    /** Restaura una entidad eliminada. */
     public void restore() {
         this.estado = true;
         this.fechaEliminacion = null;
         this.eliminadoPor = null;
     }
 
-    /**
-     * Verifica si la entidad está eliminada.
-     */
+    /** Verifica si la entidad está eliminada. */
     public boolean isDeleted() {
         return !Boolean.TRUE.equals(estado);
     }
 
-    /**
-     * Verifica si la entidad está activa.
-     */
+    /** Verifica si la entidad está activa. */
     public boolean isActive() {
         return Boolean.TRUE.equals(estado);
     }
@@ -187,10 +159,14 @@ public abstract class Base implements Serializable {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "{" +
-                "id=" + id +
-                ", estado=" + estado +
-                ", fechaCreacion=" + fechaCreacion +
-                '}';
+        return getClass().getSimpleName()
+                + "{"
+                + "id="
+                + id
+                + ", estado="
+                + estado
+                + ", fechaCreacion="
+                + fechaCreacion
+                + '}';
     }
 }

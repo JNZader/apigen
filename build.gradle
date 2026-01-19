@@ -51,7 +51,7 @@ subprojects {
                 endWithNewline()
                 importOrder('java', 'javax', 'jakarta', 'org', 'com', '')
                 // Google Java Format
-                googleJavaFormat('1.25.2').aosp().reflowLongStrings()
+                googleJavaFormat('1.33.0').aosp().reflowLongStrings()
             }
         }
 

@@ -11,17 +11,17 @@ import org.springframework.context.annotation.Import;
 
 /**
  * Auto-configuration for APiGen JPA auditing.
- * <p>
- * This auto-configuration is separate from ApigenCoreAutoConfiguration
- * to ensure JPA auditing only loads when JPA is properly configured.
- * This prevents "JPA metamodel must not be empty" errors in slice tests
- * like @WebMvcTest that don't have JPA infrastructure.
- * <p>
- * Conditions:
+ *
+ * <p>This auto-configuration is separate from ApigenCoreAutoConfiguration to ensure JPA auditing
+ * only loads when JPA is properly configured. This prevents "JPA metamodel must not be empty"
+ * errors in slice tests like @WebMvcTest that don't have JPA infrastructure.
+ *
+ * <p>Conditions:
+ *
  * <ul>
- *     <li>JPA classes are on classpath</li>
- *     <li>EntityManagerFactory bean exists</li>
- *     <li>apigen.core.enabled property is true (default)</li>
+ *   <li>JPA classes are on classpath
+ *   <li>EntityManagerFactory bean exists
+ *   <li>apigen.core.enabled property is true (default)
  * </ul>
  */
 @AutoConfiguration(after = HibernateJpaAutoConfiguration.class)

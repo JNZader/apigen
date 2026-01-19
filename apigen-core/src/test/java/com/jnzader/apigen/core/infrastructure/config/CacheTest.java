@@ -1,27 +1,22 @@
 package com.jnzader.apigen.core.infrastructure.config;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.awaitility.Awaitility.*;
+
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
+import java.time.Duration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.time.Duration;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.awaitility.Awaitility.*;
-
 /**
  * Tests para configuración de caché (Caffeine).
- * <p>
- * Verifica:
- * - Almacenamiento y recuperación
- * - Expiración de entradas
- * - Límites de tamaño
- * - Estadísticas de caché
- * - Invalidación
+ *
+ * <p>Verifica: - Almacenamiento y recuperación - Expiración de entradas - Límites de tamaño -
+ * Estadísticas de caché - Invalidación
  */
 @DisplayName("Cache Tests")
 class CacheTest {
@@ -36,9 +31,7 @@ class CacheTest {
 
         @BeforeEach
         void setUp() {
-            cache = Caffeine.newBuilder()
-                    .maximumSize(100)
-                    .build();
+            cache = Caffeine.newBuilder().maximumSize(100).build();
         }
 
         @Test
@@ -109,17 +102,14 @@ class CacheTest {
         @DisplayName("should expire entries after write duration")
         void shouldExpireEntriesAfterWriteDuration() {
             // Given
-            Cache<String, String> cache = Caffeine.newBuilder()
-                    .expireAfterWrite(Duration.ofMillis(100))
-                    .build();
+            Cache<String, String> cache =
+                    Caffeine.newBuilder().expireAfterWrite(Duration.ofMillis(100)).build();
 
             cache.put("key", "value");
             assertThat(cache.getIfPresent("key")).isEqualTo("value");
 
             // When - wait for expiration
-            await()
-                    .atMost(Duration.ofMillis(500))
-                    .until(() -> cache.getIfPresent("key") == null);
+            await().atMost(Duration.ofMillis(500)).until(() -> cache.getIfPresent("key") == null);
 
             // Then
             assertThat(cache.getIfPresent("key")).isNull();
@@ -130,9 +120,8 @@ class CacheTest {
         @SuppressWarnings("java:S2925") // Thread.sleep necesario para probar expiración de cache
         void shouldExpireEntriesAfterAccessDuration() {
             // Given
-            Cache<String, String> cache = Caffeine.newBuilder()
-                    .expireAfterAccess(Duration.ofMillis(100))
-                    .build();
+            Cache<String, String> cache =
+                    Caffeine.newBuilder().expireAfterAccess(Duration.ofMillis(100)).build();
 
             cache.put("key", "value");
 
@@ -161,9 +150,7 @@ class CacheTest {
         @DisplayName("should evict entries when maximum size exceeded")
         void shouldEvictEntriesWhenMaximumSizeExceeded() {
             // Given
-            Cache<String, String> cache = Caffeine.newBuilder()
-                    .maximumSize(3)
-                    .build();
+            Cache<String, String> cache = Caffeine.newBuilder().maximumSize(3).build();
 
             // When
             cache.put("key1", "value1");
@@ -183,14 +170,15 @@ class CacheTest {
         @DisplayName("should respect weight-based size limit")
         void shouldRespectWeightBasedSizeLimit() {
             // Given
-            Cache<String, String> cache = Caffeine.newBuilder()
-                    .maximumWeight(100)
-                    .weigher((String key, String value) -> value.length())
-                    .build();
+            Cache<String, String> cache =
+                    Caffeine.newBuilder()
+                            .maximumWeight(100)
+                            .weigher((String key, String value) -> value.length())
+                            .build();
 
             // When
-            cache.put("key1", "short");           // weight: 5
-            cache.put("key2", "medium length");   // weight: 13
+            cache.put("key1", "short"); // weight: 5
+            cache.put("key2", "medium length"); // weight: 13
             cache.put("key3", "a very long string that takes up space"); // weight: 39
 
             // Then
@@ -208,10 +196,7 @@ class CacheTest {
 
         @BeforeEach
         void setUp() {
-            cache = Caffeine.newBuilder()
-                    .maximumSize(100)
-                    .recordStats()
-                    .build();
+            cache = Caffeine.newBuilder().maximumSize(100).recordStats().build();
         }
 
         @Test
@@ -248,9 +233,9 @@ class CacheTest {
             cache.put("key", "value");
 
             // When
-            cache.getIfPresent("key");           // hit
-            cache.getIfPresent("key");           // hit
-            cache.getIfPresent("nonexistent");   // miss
+            cache.getIfPresent("key"); // hit
+            cache.getIfPresent("key"); // hit
+            cache.getIfPresent("nonexistent"); // miss
 
             // Then
             CacheStats stats = cache.stats();
@@ -282,11 +267,12 @@ class CacheTest {
 
         @BeforeEach
         void setUp() {
-            entityCache = Caffeine.newBuilder()
-                    .maximumSize(1000)
-                    .expireAfterWrite(Duration.ofMinutes(10))
-                    .recordStats()
-                    .build();
+            entityCache =
+                    Caffeine.newBuilder()
+                            .maximumSize(1000)
+                            .expireAfterWrite(Duration.ofMinutes(10))
+                            .recordStats()
+                            .build();
         }
 
         @Test
@@ -313,10 +299,13 @@ class CacheTest {
             String cacheKey = "TestEntity:1";
 
             // When - simulate repository lookup on miss
-            TestEntity entity = entityCache.get(cacheKey, key -> {
-                // Simulate database lookup
-                return new TestEntity(1L, "Loaded Entity");
-            });
+            TestEntity entity =
+                    entityCache.get(
+                            cacheKey,
+                            key -> {
+                                // Simulate database lookup
+                                return new TestEntity(1L, "Loaded Entity");
+                            });
 
             // Then
             assertThat(entity.name()).isEqualTo("Loaded Entity");

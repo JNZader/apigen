@@ -1,19 +1,16 @@
 package com.jnzader.apigen.codegen.generator.dto;
 
+import static com.jnzader.apigen.codegen.generator.util.CodeGenerationUtils.pluralize;
+import static com.jnzader.apigen.codegen.generator.util.CodeGenerationUtils.safeFieldName;
+
 import com.jnzader.apigen.codegen.generator.entity.EntityGenerator.ManyToManyRelation;
 import com.jnzader.apigen.codegen.generator.util.ImportManager;
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
-
 import java.util.List;
 
-import static com.jnzader.apigen.codegen.generator.util.CodeGenerationUtils.pluralize;
-import static com.jnzader.apigen.codegen.generator.util.CodeGenerationUtils.safeFieldName;
-
-/**
- * Generates DTO classes from SQL table definitions.
- */
+/** Generates DTO classes from SQL table definitions. */
 public class DTOGenerator {
 
     private static final String APIGEN_CORE_PKG = "com.jnzader.apigen.core";
@@ -24,12 +21,11 @@ public class DTOGenerator {
         this.basePackage = basePackage;
     }
 
-    /**
-     * Generates the DTO class code.
-     */
-    public String generate(SqlTable table,
-                           List<SqlSchema.TableRelationship> relations,
-                           List<ManyToManyRelation> manyToManyRelations) {
+    /** Generates the DTO class code. */
+    public String generate(
+            SqlTable table,
+            List<SqlSchema.TableRelationship> relations,
+            List<ManyToManyRelation> manyToManyRelations) {
         String entityName = table.getEntityName();
         String moduleName = table.getModuleName();
 
@@ -45,8 +41,11 @@ public class DTOGenerator {
             if (!validations.isEmpty()) {
                 fields.append("\n    ").append(validations);
             }
-            fields.append("\n    private ").append(column.getJavaType()).append(" ")
-                    .append(safeFieldName(column.getJavaFieldName())).append(";");
+            fields.append("\n    private ")
+                    .append(column.getJavaType())
+                    .append(" ")
+                    .append(safeFieldName(column.getJavaFieldName()))
+                    .append(";");
         }
 
         // Add relation IDs (not full objects to avoid circular refs)
@@ -62,7 +61,8 @@ public class DTOGenerator {
             fields.append("\n    private List<Long> ").append(fieldName).append(";");
         }
 
-        return """
+        return
+"""
 package %s.%s.application.dto;
 
 %s
@@ -92,6 +92,7 @@ public class %sDTO implements BaseDTO {
         return this.activo;
     }
 }
-""".formatted(basePackage, moduleName, imports.build(), entityName, fields);
+"""
+                .formatted(basePackage, moduleName, imports.build(), entityName, fields);
     }
 }

@@ -1,13 +1,10 @@
 package com.jnzader.apigen.codegen.model;
 
+import java.util.List;
 import lombok.Builder;
 import lombok.Data;
 
-import java.util.List;
-
-/**
- * Represents an index parsed from SQL.
- */
+/** Represents an index parsed from SQL. */
 @Data
 @Builder
 public class SqlIndex {
@@ -16,19 +13,17 @@ public class SqlIndex {
     private List<String> columns;
     private boolean unique;
     private IndexType type;
-    private String condition;  // For partial indexes
+    private String condition; // For partial indexes
 
     public enum IndexType {
-        BTREE,      // Default
+        BTREE, // Default
         HASH,
-        GIN,        // PostgreSQL full-text
-        GIST,       // PostgreSQL geometric
-        BRIN        // PostgreSQL block range
+        GIN, // PostgreSQL full-text
+        GIST, // PostgreSQL geometric
+        BRIN // PostgreSQL block range
     }
 
-    /**
-     * Generates JPA @Index annotation.
-     */
+    /** Generates JPA @Index annotation. */
     public String toJpaAnnotation() {
         StringBuilder sb = new StringBuilder();
         sb.append("@Index(name = \"").append(name).append("\"");

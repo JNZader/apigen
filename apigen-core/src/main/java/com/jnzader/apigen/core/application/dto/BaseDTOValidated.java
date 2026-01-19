@@ -7,13 +7,13 @@ import jakarta.validation.constraints.Positive;
 
 /**
  * DTO base con validaciones comunes.
- * <p>
- * Esta interfaz define los campos base con anotaciones de validación.
- * Las implementaciones concretas deben usar records que implementen esta interfaz.
- * <p>
- * Ejemplo de implementación:
- * <pre>
- * {@code
+ *
+ * <p>Esta interfaz define los campos base con anotaciones de validación. Las implementaciones
+ * concretas deben usar records que implementen esta interfaz.
+ *
+ * <p>Ejemplo de implementación:
+ *
+ * <pre>{@code
  * public record ExampleDTO(
  *     @Null(groups = ValidationGroups.Create.class, message = "ID debe ser nulo al crear")
  *     @NotNull(groups = ValidationGroups.Update.class, message = "ID es requerido al actualizar")
@@ -36,25 +36,24 @@ import jakarta.validation.constraints.Positive;
  *         }
  *     }
  * }
- * }
- * </pre>
+ * }</pre>
  */
 public interface BaseDTOValidated extends BaseDTO {
 
     /**
-     * ID de la entidad.
-     * - Debe ser nulo en creación (se auto-genera)
-     * - Debe ser positivo si tiene valor
+     * ID de la entidad. - Debe ser nulo en creación (se auto-genera) - Debe ser positivo si tiene
+     * valor
      */
-    @Null(groups = ValidationGroups.Create.class, message = "ID debe ser nulo al crear una nueva entidad")
+    @Null(
+            groups = ValidationGroups.Create.class,
+            message = "ID debe ser nulo al crear una nueva entidad")
     @NotNull(groups = ValidationGroups.Update.class, message = "ID es requerido para actualizar")
     @Positive(message = "ID debe ser un número positivo")
     Long id();
 
     /**
-     * Estado de la entidad.
-     * - true: entidad activa
-     * - false: entidad eliminada lógicamente (soft delete)
+     * Estado de la entidad. - true: entidad activa - false: entidad eliminada lógicamente (soft
+     * delete)
      */
     Boolean activo();
 }

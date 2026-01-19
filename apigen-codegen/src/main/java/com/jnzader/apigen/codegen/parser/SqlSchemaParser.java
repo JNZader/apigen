@@ -1,6 +1,12 @@
 package com.jnzader.apigen.codegen.parser;
 
 import com.jnzader.apigen.codegen.model.*;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.Statement;
@@ -12,19 +18,12 @@ import net.sf.jsqlparser.statement.create.index.CreateIndex;
 import net.sf.jsqlparser.statement.create.table.ColDataType;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
-import net.sf.jsqlparser.statement.create.table.Index;
 import net.sf.jsqlparser.statement.create.table.ForeignKeyIndex;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import net.sf.jsqlparser.statement.create.table.Index;
 
 /**
- * Parses SQL schema files and extracts table definitions, relationships,
- * indexes, constraints, functions, and stored procedures.
+ * Parses SQL schema files and extracts table definitions, relationships, indexes, constraints,
+ * functions, and stored procedures.
  */
 @SuppressWarnings({"java:S5843", "java:S5852", "java:S1874", "java:S3776", "java:S1858"})
 // S5843: CREATE_FUNCTION_PATTERN regex complexity is necessary for parsing varied SQL syntax
@@ -39,52 +38,42 @@ public class SqlSchemaParser {
     private static final String INDEX_TYPE_UNIQUE = "UNIQUE";
     private static final String JAVA_TYPE_STRING = "String";
 
-    private static final Pattern REFERENCES_PATTERN = Pattern.compile(
-            "REFERENCES\\s+([\\w\\.]+)\\s*\\(\\s*(\\w+)\\s*\\)",
-            Pattern.CASE_INSENSITIVE
-    );
+    private static final Pattern REFERENCES_PATTERN =
+            Pattern.compile(
+                    "REFERENCES\\s+([\\w\\.]+)\\s*\\(\\s*(\\w+)\\s*\\)", Pattern.CASE_INSENSITIVE);
 
-    private static final Pattern ON_DELETE_PATTERN = Pattern.compile(
-            "ON\\s+DELETE\\s+(CASCADE|SET\\s+NULL|SET\\s+DEFAULT|RESTRICT|NO\\s+ACTION)",
-            Pattern.CASE_INSENSITIVE
-    );
+    private static final Pattern ON_DELETE_PATTERN =
+            Pattern.compile(
+                    "ON\\s+DELETE\\s+(CASCADE|SET\\s+NULL|SET\\s+DEFAULT|RESTRICT|NO\\s+ACTION)",
+                    Pattern.CASE_INSENSITIVE);
 
-    private static final Pattern ON_UPDATE_PATTERN = Pattern.compile(
-            "ON\\s+UPDATE\\s+(CASCADE|SET\\s+NULL|SET\\s+DEFAULT|RESTRICT|NO\\s+ACTION)",
-            Pattern.CASE_INSENSITIVE
-    );
+    private static final Pattern ON_UPDATE_PATTERN =
+            Pattern.compile(
+                    "ON\\s+UPDATE\\s+(CASCADE|SET\\s+NULL|SET\\s+DEFAULT|RESTRICT|NO\\s+ACTION)",
+                    Pattern.CASE_INSENSITIVE);
 
-    private static final Pattern CREATE_FUNCTION_PATTERN = Pattern.compile(
-            "CREATE\\s+(OR\\s+REPLACE\\s+)?(FUNCTION|PROCEDURE)\\s+([\\w\\.]+)\\s*\\(([^)]*)\\)" +
-                    "\\s*(RETURNS\\s+([\\w\\s\\[\\]]+))?" +
-                    "\\s*(LANGUAGE\\s+(\\w+))?" +
-                    "\\s*AS\\s*\\$\\$(.+?)\\$\\$",
-            Pattern.CASE_INSENSITIVE | Pattern.DOTALL
-    );
+    private static final Pattern CREATE_FUNCTION_PATTERN =
+            Pattern.compile(
+                    "CREATE\\s+(OR\\s+REPLACE\\s+)?(FUNCTION|PROCEDURE)\\s+([\\w\\.]+)\\s*\\(([^)]*)\\)"
+                        + "\\s*(RETURNS\\s+([\\w\\s\\[\\]]+))?\\s*(LANGUAGE\\s+(\\w+))?"
+                        + "\\s*AS\\s*\\$\\$(.+?)\\$\\$",
+                    Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
-    /**
-     * Parses a SQL file and returns the complete schema.
-     */
+    /** Parses a SQL file and returns the complete schema. */
     public SqlSchema parseFile(Path sqlFile) throws IOException {
         String content = Files.readString(sqlFile);
         return parse(content, sqlFile.getFileName().toString());
     }
 
-    /**
-     * Parses SQL content from a string.
-     * Convenience method for parsing without a source name.
-     */
+    /** Parses SQL content from a string. Convenience method for parsing without a source name. */
     public SqlSchema parseString(String sqlContent) {
         return parse(sqlContent, "inline-sql");
     }
 
-    /**
-     * Parses SQL content and returns the complete schema.
-     */
+    /** Parses SQL content and returns the complete schema. */
     public SqlSchema parse(String sqlContent, String sourceName) {
-        SqlSchema.SqlSchemaBuilder schemaBuilder = SqlSchema.builder()
-                .name(sourceName)
-                .sourceFile(sourceName);
+        SqlSchema.SqlSchemaBuilder schemaBuilder =
+                SqlSchema.builder().name(sourceName).sourceFile(sourceName);
 
         List<SqlTable> tables = new ArrayList<>();
         List<SqlFunction> functions = new ArrayList<>();
@@ -104,7 +93,8 @@ public class SqlSchemaParser {
         } catch (JSQLParserException e) {
             // Try parsing statement by statement
             parseErrors.add("Batch parse failed, trying individual statements: " + e.getMessage());
-            parseIndividualStatements(cleanedContent, tables, standaloneIndexes, functions, parseErrors);
+            parseIndividualStatements(
+                    cleanedContent, tables, standaloneIndexes, functions, parseErrors);
         }
 
         return schemaBuilder
@@ -115,12 +105,13 @@ public class SqlSchemaParser {
                 .build();
     }
 
-    /**
-     * Processes parsed statements and categorizes them into tables, indexes, functions, etc.
-     */
-    private void processStatements(Statements statements, List<SqlTable> tables,
-                                   List<SqlIndex> standaloneIndexes, List<SqlFunction> functions,
-                                   List<String> parseErrors) {
+    /** Processes parsed statements and categorizes them into tables, indexes, functions, etc. */
+    private void processStatements(
+            Statements statements,
+            List<SqlTable> tables,
+            List<SqlIndex> standaloneIndexes,
+            List<SqlFunction> functions,
+            List<String> parseErrors) {
         for (Statement statement : statements.getStatements()) {
             try {
                 if (statement instanceof CreateTable createTable) {
@@ -140,16 +131,17 @@ public class SqlSchemaParser {
 
     /**
      * Parses a CREATE TABLE statement.
-     * <p>
-     * Note: This method has high cognitive complexity due to the comprehensive parsing
-     * of SQL table structures including columns, constraints, indexes, and foreign keys.
-     * Breaking it down further would reduce readability and maintainability.
+     *
+     * <p>Note: This method has high cognitive complexity due to the comprehensive parsing of SQL
+     * table structures including columns, constraints, indexes, and foreign keys. Breaking it down
+     * further would reduce readability and maintainability.
      */
     @SuppressWarnings("java:S3776") // Cognitive complexity justified: comprehensive SQL parsing
     private SqlTable parseCreateTable(CreateTable createTable) {
-        SqlTable.SqlTableBuilder tableBuilder = SqlTable.builder()
-                .name(createTable.getTable().getName())
-                .schema(createTable.getTable().getSchemaName());
+        SqlTable.SqlTableBuilder tableBuilder =
+                SqlTable.builder()
+                        .name(createTable.getTable().getName())
+                        .schema(createTable.getTable().getSchemaName());
 
         List<SqlColumn> columns = new ArrayList<>();
         List<SqlForeignKey> foreignKeys = new ArrayList<>();
@@ -186,20 +178,23 @@ public class SqlSchemaParser {
                     foreignKeys.add(parseForeignKeyIndex(fkIndex));
                 } else if (INDEX_TYPE_PRIMARY_KEY.equalsIgnoreCase(index.getType())) {
                     primaryKeyColumns.clear();
-                    List<String> indexColumnNames = index.getColumns().stream()
-                            .map(Index.ColumnParams::getColumnName)
-                            .toList();
-                    indexColumnNames.forEach(col -> {
-                        primaryKeyColumns.add(col);
-                        // Mark column as PK
-                        columns.stream()
-                                .filter(c -> c.getName().equalsIgnoreCase(col))
-                                .forEach(c -> c.setPrimaryKey(true));
-                    });
+                    List<String> indexColumnNames =
+                            index.getColumns().stream()
+                                    .map(Index.ColumnParams::getColumnName)
+                                    .toList();
+                    indexColumnNames.forEach(
+                            col -> {
+                                primaryKeyColumns.add(col);
+                                // Mark column as PK
+                                columns.stream()
+                                        .filter(c -> c.getName().equalsIgnoreCase(col))
+                                        .forEach(c -> c.setPrimaryKey(true));
+                            });
                 } else if (INDEX_TYPE_UNIQUE.equalsIgnoreCase(index.getType())) {
-                    List<String> indexColumnNames = index.getColumns().stream()
-                            .map(Index.ColumnParams::getColumnName)
-                            .toList();
+                    List<String> indexColumnNames =
+                            index.getColumns().stream()
+                                    .map(Index.ColumnParams::getColumnName)
+                                    .toList();
                     uniqueConstraints.add(String.join(",", indexColumnNames));
                     // Mark columns as unique
                     if (indexColumnNames.size() == 1) {
@@ -223,21 +218,21 @@ public class SqlSchemaParser {
                 .build();
     }
 
-    /**
-     * Parses a column definition.
-     */
+    /** Parses a column definition. */
     private SqlColumn parseColumnDefinition(ColumnDefinition colDef) {
         ColDataType dataType = colDef.getColDataType();
         String sqlType = dataType.getDataType();
 
-        SqlColumn.SqlColumnBuilder builder = SqlColumn.builder()
-                .name(colDef.getColumnName())
-                .sqlType(sqlType)
-                .javaType(mapSqlTypeToJava(sqlType, dataType))
-                .nullable(true);
+        SqlColumn.SqlColumnBuilder builder =
+                SqlColumn.builder()
+                        .name(colDef.getColumnName())
+                        .sqlType(sqlType)
+                        .javaType(mapSqlTypeToJava(sqlType, dataType))
+                        .nullable(true);
 
         // Parse type arguments (length, precision, scale)
-        if (dataType.getArgumentsStringList() != null && !dataType.getArgumentsStringList().isEmpty()) {
+        if (dataType.getArgumentsStringList() != null
+                && !dataType.getArgumentsStringList().isEmpty()) {
             List<String> args = dataType.getArgumentsStringList();
             try {
                 builder.length(Integer.parseInt(args.get(0)));
@@ -264,16 +259,18 @@ public class SqlSchemaParser {
             if (specs.contains(INDEX_TYPE_UNIQUE)) {
                 builder.unique(true);
             }
-            if (specs.contains("AUTO_INCREMENT") || specs.contains("SERIAL") ||
-                    specs.contains("GENERATED") || specs.contains("IDENTITY")) {
+            if (specs.contains("AUTO_INCREMENT")
+                    || specs.contains("SERIAL")
+                    || specs.contains("GENERATED")
+                    || specs.contains("IDENTITY")) {
                 builder.autoIncrement(true);
             }
 
             // Parse DEFAULT value - use possessive quantifiers to prevent catastrophic backtracking
-            Pattern defaultPattern = Pattern.compile(
-                    "DEFAULT\\s++(\\S++)",
-                    Pattern.CASE_INSENSITIVE);
-            Matcher defaultMatcher = defaultPattern.matcher(String.join(" ", colDef.getColumnSpecs()));
+            Pattern defaultPattern =
+                    Pattern.compile("DEFAULT\\s++(\\S++)", Pattern.CASE_INSENSITIVE);
+            Matcher defaultMatcher =
+                    defaultPattern.matcher(String.join(" ", colDef.getColumnSpecs()));
             if (defaultMatcher.find()) {
                 builder.defaultValue(defaultMatcher.group(1).trim());
             }
@@ -284,10 +281,10 @@ public class SqlSchemaParser {
 
     /**
      * Maps SQL types to Java types.
-     * <p>
-     * Note: This method has high cognitive complexity due to the comprehensive mapping
-     * of SQL data types to Java types. The switch expression provides clear, readable
-     * mapping that would be less maintainable if broken into smaller methods.
+     *
+     * <p>Note: This method has high cognitive complexity due to the comprehensive mapping of SQL
+     * data types to Java types. The switch expression provides clear, readable mapping that would
+     * be less maintainable if broken into smaller methods.
      */
     @SuppressWarnings("java:S3776") // Cognitive complexity justified: comprehensive type mapping
     private String mapSqlTypeToJava(String sqlType, ColDataType dataType) {
@@ -304,25 +301,37 @@ public class SqlSchemaParser {
             case "REAL", "FLOAT4" -> "Float";
             case "DOUBLE", "FLOAT8", "DOUBLE PRECISION", "FLOAT" -> "Double";
             case "BOOLEAN", "BOOL", "BIT" -> "Boolean";
-            case "VARCHAR", "CHARACTER VARYING", "NVARCHAR", "TEXT", "CHAR", "CHARACTER", "NCHAR", "CLOB", "NCLOB" ->
+            case "VARCHAR",
+                    "CHARACTER VARYING",
+                    "NVARCHAR",
+                    "TEXT",
+                    "CHAR",
+                    "CHARACTER",
+                    "NCHAR",
+                    "CLOB",
+                    "NCLOB" ->
                     JAVA_TYPE_STRING;
             case "DATE" -> "LocalDate";
             case "TIME", "TIMETZ", "TIME WITH TIME ZONE" -> "LocalTime";
-            case "TIMESTAMP", "TIMESTAMPTZ", "TIMESTAMP WITH TIME ZONE", "DATETIME" -> "LocalDateTime";
+            case "TIMESTAMP", "TIMESTAMPTZ", "TIMESTAMP WITH TIME ZONE", "DATETIME" ->
+                    "LocalDateTime";
             case "UUID" -> "UUID";
             case "JSON", "JSONB" -> JAVA_TYPE_STRING; // Could map to JsonNode
             case "BYTEA", "BLOB", "BINARY", "VARBINARY", "LONGVARBINARY" -> "byte[]";
             case "SERIAL", "SERIAL4" -> "Integer";
             case "MONEY" -> "BigDecimal";
             case "INET", "CIDR", "MACADDR" -> JAVA_TYPE_STRING;
-            case "POINT", "LINE", "LSEG", "BOX", "PATH", "POLYGON", "CIRCLE" -> JAVA_TYPE_STRING; // Geometry types
+            case "POINT", "LINE", "LSEG", "BOX", "PATH", "POLYGON", "CIRCLE" ->
+                    JAVA_TYPE_STRING; // Geometry types
             case "INTERVAL" -> "Duration";
             case "ARRAY" -> "List<Object>";
             case "ENUM" -> JAVA_TYPE_STRING; // Could generate enum
             default -> {
                 // Check for array types
                 if (upperType.endsWith("[]")) {
-                    String baseType = mapSqlTypeToJava(upperType.substring(0, upperType.length() - 2), dataType);
+                    String baseType =
+                            mapSqlTypeToJava(
+                                    upperType.substring(0, upperType.length() - 2), dataType);
                     yield "List<" + baseType + ">";
                 }
                 yield "Object";
@@ -330,16 +339,15 @@ public class SqlSchemaParser {
         };
     }
 
-    /**
-     * Parses inline REFERENCES clause.
-     */
+    /** Parses inline REFERENCES clause. */
     private SqlForeignKey parseInlineReference(String columnName, String specs) {
         Matcher refMatcher = REFERENCES_PATTERN.matcher(specs);
         if (refMatcher.find()) {
-            SqlForeignKey.SqlForeignKeyBuilder builder = SqlForeignKey.builder()
-                    .columnName(columnName)
-                    .referencedTable(refMatcher.group(1))
-                    .referencedColumn(refMatcher.group(2));
+            SqlForeignKey.SqlForeignKeyBuilder builder =
+                    SqlForeignKey.builder()
+                            .columnName(columnName)
+                            .referencedTable(refMatcher.group(1))
+                            .referencedColumn(refMatcher.group(2));
 
             Matcher deleteMatcher = ON_DELETE_PATTERN.matcher(specs);
             if (deleteMatcher.find()) {
@@ -358,23 +366,23 @@ public class SqlSchemaParser {
 
     /**
      * Parses a FOREIGN KEY constraint.
-     * <p>
-     * Note: Uses getReferencedColumnNames() which is deprecated in jsqlparser 5.x.
-     * The new API getReferencedColumns() should be used when available.
-     * Suppressing deprecation warning until jsqlparser API stabilizes.
+     *
+     * <p>Note: Uses getReferencedColumnNames() which is deprecated in jsqlparser 5.x. The new API
+     * getReferencedColumns() should be used when available. Suppressing deprecation warning until
+     * jsqlparser API stabilizes.
      */
     @SuppressWarnings("deprecation") // S1874: jsqlparser API migration in progress
     private SqlForeignKey parseForeignKeyIndex(ForeignKeyIndex fkIndex) {
-        List<String> fkColumnNames = fkIndex.getColumns().stream()
-                .map(Index.ColumnParams::getColumnName)
-                .toList();
+        List<String> fkColumnNames =
+                fkIndex.getColumns().stream().map(Index.ColumnParams::getColumnName).toList();
         List<String> refColumnNames = fkIndex.getReferencedColumnNames();
 
-        SqlForeignKey.SqlForeignKeyBuilder builder = SqlForeignKey.builder()
-                .name(fkIndex.getName())
-                .columnName(fkColumnNames.get(0))
-                .referencedTable(fkIndex.getTable().getName())
-                .referencedColumn(refColumnNames.get(0));
+        SqlForeignKey.SqlForeignKeyBuilder builder =
+                SqlForeignKey.builder()
+                        .name(fkIndex.getName())
+                        .columnName(fkColumnNames.get(0))
+                        .referencedTable(fkIndex.getTable().getName())
+                        .referencedColumn(refColumnNames.get(0));
 
         // S1858: toString() IS required - jsqlparser returns ReferenceOption enum, not String
         if (fkIndex.getOnDeleteReferenceOption() != null) {
@@ -387,9 +395,7 @@ public class SqlSchemaParser {
         return builder.build();
     }
 
-    /**
-     * Parses FK action string to enum.
-     */
+    /** Parses FK action string to enum. */
     private SqlForeignKey.ForeignKeyAction parseFkAction(String action) {
         return switch (action.toUpperCase(Locale.ROOT).replace(" ", "_")) {
             case "CASCADE" -> SqlForeignKey.ForeignKeyAction.CASCADE;
@@ -400,13 +406,10 @@ public class SqlSchemaParser {
         };
     }
 
-    /**
-     * Parses a table-level index.
-     */
+    /** Parses a table-level index. */
     private SqlIndex parseTableIndex(Index index, String tableName) {
-        List<String> indexColumnNames = index.getColumns().stream()
-                .map(Index.ColumnParams::getColumnName)
-                .toList();
+        List<String> indexColumnNames =
+                index.getColumns().stream().map(Index.ColumnParams::getColumnName).toList();
         return SqlIndex.builder()
                 .name(index.getName())
                 .tableName(tableName)
@@ -416,14 +419,11 @@ public class SqlSchemaParser {
                 .build();
     }
 
-    /**
-     * Parses a CREATE INDEX statement.
-     */
+    /** Parses a CREATE INDEX statement. */
     private SqlIndex parseCreateIndex(CreateIndex createIndex) {
         Index index = createIndex.getIndex();
-        List<String> indexColumnNames = index.getColumns().stream()
-                .map(Index.ColumnParams::getColumnName)
-                .toList();
+        List<String> indexColumnNames =
+                index.getColumns().stream().map(Index.ColumnParams::getColumnName).toList();
         return SqlIndex.builder()
                 .name(index.getName())
                 .tableName(createIndex.getTable().getName())
@@ -433,9 +433,7 @@ public class SqlSchemaParser {
                 .build();
     }
 
-    /**
-     * Determines index type from CREATE INDEX statement.
-     */
+    /** Determines index type from CREATE INDEX statement. */
     private SqlIndex.IndexType parseIndexType(CreateIndex createIndex) {
         String indexSpec = createIndex.toString().toUpperCase(Locale.ROOT);
         if (indexSpec.contains("USING GIN")) return SqlIndex.IndexType.GIN;
@@ -445,15 +443,14 @@ public class SqlSchemaParser {
         return SqlIndex.IndexType.BTREE;
     }
 
-    /**
-     * Processes ALTER TABLE statements to add FKs to existing tables.
-     */
+    /** Processes ALTER TABLE statements to add FKs to existing tables. */
     private void processAlterStatement(Alter alter, List<SqlTable> tables, List<String> errors) {
         String tableName = alter.getTable().getName();
-        SqlTable table = tables.stream()
-                .filter(t -> t.getName().equalsIgnoreCase(tableName))
-                .findFirst()
-                .orElse(null);
+        SqlTable table =
+                tables.stream()
+                        .filter(t -> t.getName().equalsIgnoreCase(tableName))
+                        .findFirst()
+                        .orElse(null);
 
         if (table == null) {
             errors.add("ALTER references unknown table: " + tableName);
@@ -469,9 +466,7 @@ public class SqlSchemaParser {
         }
     }
 
-    /**
-     * Parses a CREATE FUNCTION statement.
-     */
+    /** Parses a CREATE FUNCTION statement. */
     private SqlFunction parseCreateFunction(CreateFunction createFunction) {
         return SqlFunction.builder()
                 .name(createFunction.getFunctionDeclarationParts().get(0))
@@ -480,9 +475,7 @@ public class SqlSchemaParser {
                 .build();
     }
 
-    /**
-     * Extracts functions with $$ delimiters using regex.
-     */
+    /** Extracts functions with $$ delimiters using regex. */
     private List<SqlFunction> extractFunctions(String content) {
         List<SqlFunction> functions = new ArrayList<>();
 
@@ -497,23 +490,24 @@ public class SqlSchemaParser {
 
             List<SqlFunction.SqlParameter> parameters = parseParameters(params);
 
-            functions.add(SqlFunction.builder()
-                    .name(funcName)
-                    .type("PROCEDURE".equalsIgnoreCase(funcType) ?
-                            SqlFunction.FunctionType.PROCEDURE : SqlFunction.FunctionType.FUNCTION)
-                    .parameters(parameters)
-                    .returnType(returnType != null ? returnType.trim() : null)
-                    .language(language != null ? language : "sql")
-                    .body(body.trim())
-                    .build());
+            functions.add(
+                    SqlFunction.builder()
+                            .name(funcName)
+                            .type(
+                                    "PROCEDURE".equalsIgnoreCase(funcType)
+                                            ? SqlFunction.FunctionType.PROCEDURE
+                                            : SqlFunction.FunctionType.FUNCTION)
+                            .parameters(parameters)
+                            .returnType(returnType != null ? returnType.trim() : null)
+                            .language(language != null ? language : "sql")
+                            .body(body.trim())
+                            .build());
         }
 
         return functions;
     }
 
-    /**
-     * Parses function parameters.
-     */
+    /** Parses function parameters. */
     private List<SqlFunction.SqlParameter> parseParameters(String params) {
         List<SqlFunction.SqlParameter> parameters = new ArrayList<>();
         if (params == null || params.isBlank()) return parameters;
@@ -548,9 +542,12 @@ public class SqlSchemaParser {
 
         if (parts.length >= 2) {
             int idx = 0;
-            if (parts[0].equalsIgnoreCase("IN") || parts[0].equalsIgnoreCase("OUT") ||
-                    parts[0].equalsIgnoreCase("INOUT")) {
-                mode = SqlFunction.SqlParameter.ParameterMode.valueOf(parts[0].toUpperCase(Locale.ROOT));
+            if (parts[0].equalsIgnoreCase("IN")
+                    || parts[0].equalsIgnoreCase("OUT")
+                    || parts[0].equalsIgnoreCase("INOUT")) {
+                mode =
+                        SqlFunction.SqlParameter.ParameterMode.valueOf(
+                                parts[0].toUpperCase(Locale.ROOT));
                 idx = 1;
             }
             name = parts[idx];
@@ -560,29 +557,31 @@ public class SqlSchemaParser {
             type = parts[0];
         }
 
-        parameters.add(SqlFunction.SqlParameter.builder()
-                .name(name)
-                .sqlType(type)
-                .javaType(mapSqlTypeToJava(type, null))
-                .mode(mode)
-                .build());
+        parameters.add(
+                SqlFunction.SqlParameter.builder()
+                        .name(name)
+                        .sqlType(type)
+                        .javaType(mapSqlTypeToJava(type, null))
+                        .mode(mode)
+                        .build());
     }
 
-    /**
-     * Removes function bodies to avoid parse errors.
-     */
+    /** Removes function bodies to avoid parse errors. */
     private String removeFunctionBodies(String content) {
         return content.replaceAll("\\$\\$[^$]*\\$\\$", "''");
     }
 
     /**
-     * Parses statements individually when batch parsing fails.
-     * Note: functions parameter reserved for future CREATE FUNCTION individual parsing.
+     * Parses statements individually when batch parsing fails. Note: functions parameter reserved
+     * for future CREATE FUNCTION individual parsing.
      */
     @SuppressWarnings("java:S1172") // functions param reserved for future use
-    private void parseIndividualStatements(String content, List<SqlTable> tables,
-                                           List<SqlIndex> indexes, List<SqlFunction> functions,
-                                           List<String> errors) {
+    private void parseIndividualStatements(
+            String content,
+            List<SqlTable> tables,
+            List<SqlIndex> indexes,
+            List<SqlFunction> functions,
+            List<String> errors) {
         // Split by semicolon
         String[] statements = content.split(";");
 
@@ -602,7 +601,9 @@ public class SqlSchemaParser {
             } catch (JSQLParserException _) {
                 // Try regex parsing for unsupported syntax
                 if (trimmed.toUpperCase(Locale.ROOT).startsWith("CREATE TABLE")) {
-                    errors.add("Could not parse CREATE TABLE: " + trimmed.substring(0, Math.min(50, trimmed.length())));
+                    errors.add(
+                            "Could not parse CREATE TABLE: "
+                                    + trimmed.substring(0, Math.min(50, trimmed.length())));
                 }
             }
         }

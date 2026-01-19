@@ -1,8 +1,13 @@
 package com.jnzader.apigen.security.infrastructure.audit;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
+
 import com.jnzader.apigen.security.infrastructure.audit.SecurityAuditEvent.SecurityEventType;
 import com.jnzader.apigen.security.infrastructure.audit.SecurityAuditEvent.SecurityOutcome;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.Collections;
+import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -23,28 +28,18 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.util.Collections;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
-
 @DisplayName("SecurityAuditService Tests")
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class SecurityAuditServiceTest {
 
-    @Mock
-    private ApplicationEventPublisher eventPublisher;
+    @Mock private ApplicationEventPublisher eventPublisher;
 
-    @Mock
-    private HttpServletRequest request;
+    @Mock private HttpServletRequest request;
 
-    @Mock
-    private ServletRequestAttributes requestAttributes;
+    @Mock private ServletRequestAttributes requestAttributes;
 
-    @Captor
-    private ArgumentCaptor<SecurityAuditEvent> eventCaptor;
+    @Captor private ArgumentCaptor<SecurityAuditEvent> eventCaptor;
 
     private SecurityAuditService auditService;
     private MockedStatic<RequestContextHolder> requestContextHolderMock;
@@ -56,7 +51,9 @@ class SecurityAuditServiceTest {
         originalSecurityContext = SecurityContextHolder.getContext();
 
         requestContextHolderMock = mockStatic(RequestContextHolder.class);
-        requestContextHolderMock.when(RequestContextHolder::getRequestAttributes).thenReturn(requestAttributes);
+        requestContextHolderMock
+                .when(RequestContextHolder::getRequestAttributes)
+                .thenReturn(requestAttributes);
         when(requestAttributes.getRequest()).thenReturn(request);
     }
 
@@ -254,10 +251,10 @@ class SecurityAuditServiceTest {
             when(request.getRemoteAddr()).thenReturn("192.168.1.9");
             when(request.getHeader("User-Agent")).thenReturn("SuspiciousBot/1.0");
 
-            Map<String, Object> details = Map.of(
-                    "pattern", "SQL injection attempt",
-                    "payload", "1' OR '1'='1"
-            );
+            Map<String, Object> details =
+                    Map.of(
+                            "pattern", "SQL injection attempt",
+                            "payload", "1' OR '1'='1");
             auditService.logSuspiciousActivity("SQL injection detected", details);
 
             verify(eventPublisher).publishEvent(eventCaptor.capture());
@@ -279,7 +276,9 @@ class SecurityAuditServiceTest {
         void shouldHandleEventPublisherExceptionGracefully() {
             when(request.getRemoteAddr()).thenReturn("192.168.1.10");
             when(request.getHeader("User-Agent")).thenReturn("TestBrowser/1.0");
-            doThrow(new RuntimeException("Publisher error")).when(eventPublisher).publishEvent(any());
+            doThrow(new RuntimeException("Publisher error"))
+                    .when(eventPublisher)
+                    .publishEvent(any());
 
             // Should not throw exception
             auditService.logAuthenticationSuccess("testuser");
@@ -290,7 +289,9 @@ class SecurityAuditServiceTest {
         @Test
         @DisplayName("should handle missing request context")
         void shouldHandleMissingRequestContext() {
-            requestContextHolderMock.when(RequestContextHolder::getRequestAttributes).thenReturn(null);
+            requestContextHolderMock
+                    .when(RequestContextHolder::getRequestAttributes)
+                    .thenReturn(null);
 
             auditService.logAuthenticationSuccess("testuser");
 
@@ -301,9 +302,8 @@ class SecurityAuditServiceTest {
     }
 
     private void setUpAuthenticatedUser(String username) {
-        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                username, null, Collections.emptyList()
-        );
+        UsernamePasswordAuthenticationToken auth =
+                new UsernamePasswordAuthenticationToken(username, null, Collections.emptyList());
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(auth);
         SecurityContextHolder.setContext(context);

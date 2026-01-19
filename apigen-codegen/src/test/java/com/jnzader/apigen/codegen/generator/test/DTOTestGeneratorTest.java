@@ -1,16 +1,15 @@
 package com.jnzader.apigen.codegen.generator.test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlTable;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("DTOTestGenerator Tests")
 class DTOTestGeneratorTest {
@@ -154,8 +153,10 @@ class DTOTestGeneratorTest {
             String result = generator.generate(table);
 
             assertThat(result)
-                    .contains("CategoryDTO dto1 = CategoryDTO.builder().id(1L).activo(true).build();")
-                    .contains("CategoryDTO dto2 = CategoryDTO.builder().id(1L).activo(true).build();")
+                    .contains(
+                            "CategoryDTO dto1 = CategoryDTO.builder().id(1L).activo(true).build();")
+                    .contains(
+                            "CategoryDTO dto2 = CategoryDTO.builder().id(1L).activo(true).build();")
                     .contains("assertThat(dto1).isEqualTo(dto2);")
                     .contains("assertThat(dto1.hashCode()).isEqualTo(dto2.hashCode());");
         }
@@ -185,7 +186,8 @@ class DTOTestGeneratorTest {
             String result = generator.generate(table);
 
             assertThat(result)
-                    .contains("@DisplayName(\"toString should contain class name and field values\")")
+                    .contains(
+                            "@DisplayName(\"toString should contain class name and field values\")")
                     .contains("assertThat(result).contains(\"UserDTO\");")
                     .contains("assertThat(result).contains(\"id=1\");")
                     .contains("assertThat(result).contains(\"activo=true\");");
@@ -209,21 +211,14 @@ class DTOTestGeneratorTest {
         @Test
         @DisplayName("Should generate valid Java code for various table names")
         void shouldGenerateValidJavaCodeForVariousTableNames() {
-            List<String> tableNames = List.of(
-                    "products",
-                    "categories",
-                    "order_items",
-                    "user_profiles",
-                    "api_keys"
-            );
+            List<String> tableNames =
+                    List.of("products", "categories", "order_items", "user_profiles", "api_keys");
 
             for (String tableName : tableNames) {
                 SqlTable table = createSimpleTable(tableName);
                 String result = generator.generate(table);
 
-                assertThat(result)
-                        .as("Table: " + tableName)
-                        .doesNotContain("%s");
+                assertThat(result).as("Table: " + tableName).doesNotContain("%s");
 
                 assertThat(result)
                         .as("Table: " + tableName)
@@ -259,22 +254,20 @@ class DTOTestGeneratorTest {
 
             String result = generator.generate(table);
 
-            assertThat(result)
-                    .contains("UserDTO")
-                    .contains("class UserDTOTest");
+            assertThat(result).contains("UserDTO").contains("class UserDTOTest");
         }
     }
 
     private SqlTable createSimpleTable(String tableName) {
         return SqlTable.builder()
                 .name(tableName)
-                .columns(List.of(
-                        SqlColumn.builder()
-                                .name("id")
-                                .javaType("Long")
-                                .primaryKey(true)
-                                .build()
-                ))
+                .columns(
+                        List.of(
+                                SqlColumn.builder()
+                                        .name("id")
+                                        .javaType("Long")
+                                        .primaryKey(true)
+                                        .build()))
                 .foreignKeys(new ArrayList<>())
                 .indexes(new ArrayList<>())
                 .build();

@@ -1,7 +1,11 @@
 package com.jnzader.apigen.core.infrastructure.hateoas;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import com.jnzader.apigen.core.application.dto.BaseDTO;
 import com.jnzader.apigen.core.infrastructure.controller.BaseController;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -12,11 +16,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.PagedModel;
-
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DisplayName("BaseResourceAssembler Tests")
 class BaseResourceAssemblerTest {
@@ -110,20 +109,22 @@ class BaseResourceAssemblerTest {
         @Test
         @DisplayName("should allow subclass to add custom links")
         void shouldAllowSubclassToAddCustomLinks() {
-            TestResourceAssemblerWithCustomLinks customAssembler = new TestResourceAssemblerWithCustomLinks();
+            TestResourceAssemblerWithCustomLinks customAssembler =
+                    new TestResourceAssemblerWithCustomLinks();
             TestDTO dto = new TestDTO(1L, true);
             EntityModel<TestDTO> model = EntityModel.of(dto);
 
             customAssembler.addCustomLinksPublic(model, dto);
 
-            assertThat(model.getLinks()).extracting(Link::getRel)
+            assertThat(model.getLinks())
+                    .extracting(Link::getRel)
                     .anyMatch(rel -> rel.value().equals("custom"));
         }
     }
 
     /**
-     * Tests for page navigation link URL building.
-     * These test the buildPageUrl method which is used by toPagedModel for navigation links.
+     * Tests for page navigation link URL building. These test the buildPageUrl method which is used
+     * by toPagedModel for navigation links.
      */
     @Nested
     @DisplayName("Page Navigation URL Building")
@@ -160,9 +161,8 @@ class BaseResourceAssemblerTest {
     }
 
     /**
-     * Tests for PagedModel.PageMetadata creation logic.
-     * Note: Full toPagedModel tests require Spring HATEOAS web context
-     * and are covered in integration tests.
+     * Tests for PagedModel.PageMetadata creation logic. Note: Full toPagedModel tests require
+     * Spring HATEOAS web context and are covered in integration tests.
      */
     @Nested
     @DisplayName("Page Metadata Creation")
@@ -220,14 +220,16 @@ class BaseResourceAssemblerTest {
         @Test
         @DisplayName("first page should not have previous")
         void firstPageShouldNotHavePrevious() {
-            Page<TestDTO> page = new PageImpl<>(List.of(new TestDTO(1L, true)), PageRequest.of(0, 10), 50);
+            Page<TestDTO> page =
+                    new PageImpl<>(List.of(new TestDTO(1L, true)), PageRequest.of(0, 10), 50);
             assertThat(page.hasPrevious()).isFalse();
         }
 
         @Test
         @DisplayName("middle page should have both previous and next")
         void middlePageShouldHaveBothPreviousAndNext() {
-            Page<TestDTO> page = new PageImpl<>(List.of(new TestDTO(1L, true)), PageRequest.of(2, 10), 50);
+            Page<TestDTO> page =
+                    new PageImpl<>(List.of(new TestDTO(1L, true)), PageRequest.of(2, 10), 50);
             assertThat(page.hasPrevious()).isTrue();
             assertThat(page.hasNext()).isTrue();
         }
@@ -235,14 +237,16 @@ class BaseResourceAssemblerTest {
         @Test
         @DisplayName("last page should not have next")
         void lastPageShouldNotHaveNext() {
-            Page<TestDTO> page = new PageImpl<>(List.of(new TestDTO(1L, true)), PageRequest.of(4, 10), 50);
+            Page<TestDTO> page =
+                    new PageImpl<>(List.of(new TestDTO(1L, true)), PageRequest.of(4, 10), 50);
             assertThat(page.hasNext()).isFalse();
         }
 
         @Test
         @DisplayName("single page result should have neither previous nor next")
         void singlePageResultShouldHaveNeitherPreviousNorNext() {
-            Page<TestDTO> page = new PageImpl<>(List.of(new TestDTO(1L, true)), PageRequest.of(0, 10), 5);
+            Page<TestDTO> page =
+                    new PageImpl<>(List.of(new TestDTO(1L, true)), PageRequest.of(0, 10), 5);
             assertThat(page.hasPrevious()).isFalse();
             assertThat(page.hasNext()).isFalse();
         }

@@ -1,5 +1,8 @@
 package com.jnzader.apigen.core.infrastructure.filter;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
+
 import jakarta.servlet.FilterChain;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -12,17 +15,11 @@ import org.slf4j.MDC;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
-
 /**
  * Tests para RequestLoggingFilter.
- * <p>
- * Verifica:
- * - Generación de trace IDs
- * - Sanitización de logs
- * - Filtrado de endpoints
- * - Headers de response
+ *
+ * <p>Verifica: - Generación de trace IDs - Sanitización de logs - Filtrado de endpoints - Headers
+ * de response
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("RequestLoggingFilter Tests")
@@ -30,8 +27,7 @@ class RequestLoggingFilterTest {
 
     private RequestLoggingFilter filter;
 
-    @Mock
-    private FilterChain filterChain;
+    @Mock private FilterChain filterChain;
 
     private MockHttpServletRequest request;
     private MockHttpServletResponse response;
@@ -89,10 +85,13 @@ class RequestLoggingFilterTest {
             request.setRequestURI("/api/test");
             final String[] capturedTraceId = new String[1];
 
-            doAnswer(invocation -> {
-                capturedTraceId[0] = MDC.get("traceId");
-                return null;
-            }).when(filterChain).doFilter(any(), any());
+            doAnswer(
+                            invocation -> {
+                                capturedTraceId[0] = MDC.get("traceId");
+                                return null;
+                            })
+                    .when(filterChain)
+                    .doFilter(any(), any());
 
             // When
             filter.doFilter(request, response, filterChain);
@@ -313,13 +312,17 @@ class RequestLoggingFilterTest {
             // Given
             request.setMethod("POST");
             request.setRequestURI("/api/test");
-            doAnswer(invocation -> {
-                // The response is wrapped in ContentCachingResponseWrapper
-                jakarta.servlet.http.HttpServletResponse wrappedResp =
-                    (jakarta.servlet.http.HttpServletResponse) invocation.getArguments()[1];
-                wrappedResp.setStatus(500);
-                return null;
-            }).when(filterChain).doFilter(any(), any());
+            doAnswer(
+                            invocation -> {
+                                // The response is wrapped in ContentCachingResponseWrapper
+                                jakarta.servlet.http.HttpServletResponse wrappedResp =
+                                        (jakarta.servlet.http.HttpServletResponse)
+                                                invocation.getArguments()[1];
+                                wrappedResp.setStatus(500);
+                                return null;
+                            })
+                    .when(filterChain)
+                    .doFilter(any(), any());
 
             // When
             filter.doFilter(request, response, filterChain);
@@ -334,12 +337,16 @@ class RequestLoggingFilterTest {
             // Given
             request.setMethod("POST");
             request.setRequestURI("/api/test");
-            doAnswer(invocation -> {
-                jakarta.servlet.http.HttpServletResponse wrappedResp =
-                    (jakarta.servlet.http.HttpServletResponse) invocation.getArguments()[1];
-                wrappedResp.setStatus(400);
-                return null;
-            }).when(filterChain).doFilter(any(), any());
+            doAnswer(
+                            invocation -> {
+                                jakarta.servlet.http.HttpServletResponse wrappedResp =
+                                        (jakarta.servlet.http.HttpServletResponse)
+                                                invocation.getArguments()[1];
+                                wrappedResp.setStatus(400);
+                                return null;
+                            })
+                    .when(filterChain)
+                    .doFilter(any(), any());
 
             // When
             filter.doFilter(request, response, filterChain);

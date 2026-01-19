@@ -1,18 +1,17 @@
 package com.jnzader.apigen.security.application.dto;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
+import java.time.Instant;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-import java.time.Instant;
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("Security DTOs Tests")
 class SecurityDTOsTest {
@@ -90,10 +89,9 @@ class SecurityDTOsTest {
         @Test
         @DisplayName("should be valid with correct data")
         void shouldBeValidWithCorrectData() {
-            RegisterRequestDTO dto = new RegisterRequestDTO(
-                    "testuser", "StrongP@ss123", "test@example.com",
-                    "John", "Doe"
-            );
+            RegisterRequestDTO dto =
+                    new RegisterRequestDTO(
+                            "testuser", "StrongP@ss123", "test@example.com", "John", "Doe");
 
             Set<ConstraintViolation<RegisterRequestDTO>> violations = validator.validate(dto);
 
@@ -103,10 +101,9 @@ class SecurityDTOsTest {
         @Test
         @DisplayName("should be invalid with short username")
         void shouldBeInvalidWithShortUsername() {
-            RegisterRequestDTO dto = new RegisterRequestDTO(
-                    "ab", "StrongP@ss123", "test@example.com",
-                    "John", "Doe"
-            );
+            RegisterRequestDTO dto =
+                    new RegisterRequestDTO(
+                            "ab", "StrongP@ss123", "test@example.com", "John", "Doe");
 
             Set<ConstraintViolation<RegisterRequestDTO>> violations = validator.validate(dto);
 
@@ -118,10 +115,9 @@ class SecurityDTOsTest {
         @Test
         @DisplayName("should be invalid with invalid email")
         void shouldBeInvalidWithInvalidEmail() {
-            RegisterRequestDTO dto = new RegisterRequestDTO(
-                    "testuser", "StrongP@ss123", "invalid-email",
-                    "John", "Doe"
-            );
+            RegisterRequestDTO dto =
+                    new RegisterRequestDTO(
+                            "testuser", "StrongP@ss123", "invalid-email", "John", "Doe");
 
             Set<ConstraintViolation<RegisterRequestDTO>> violations = validator.validate(dto);
 
@@ -133,10 +129,9 @@ class SecurityDTOsTest {
         @Test
         @DisplayName("should get all fields")
         void shouldGetAllFields() {
-            RegisterRequestDTO dto = new RegisterRequestDTO(
-                    "testuser", "StrongP@ss123", "test@example.com",
-                    "John", "Doe"
-            );
+            RegisterRequestDTO dto =
+                    new RegisterRequestDTO(
+                            "testuser", "StrongP@ss123", "test@example.com", "John", "Doe");
 
             assertThat(dto.username()).isEqualTo("testuser");
             assertThat(dto.password()).isEqualTo("StrongP@ss123");
@@ -189,13 +184,18 @@ class SecurityDTOsTest {
         @DisplayName("should create with all fields")
         void shouldCreateWithAllFields() {
             Instant expiresAt = Instant.now().plusSeconds(3600);
-            AuthResponseDTO.UserInfoDTO userInfo = new AuthResponseDTO.UserInfoDTO(
-                    1L, "testuser", "test@example.com", "Test User", "USER", Set.of("READ")
-            );
+            AuthResponseDTO.UserInfoDTO userInfo =
+                    new AuthResponseDTO.UserInfoDTO(
+                            1L,
+                            "testuser",
+                            "test@example.com",
+                            "Test User",
+                            "USER",
+                            Set.of("READ"));
 
-            AuthResponseDTO dto = new AuthResponseDTO(
-                    "access.token", "refresh.token", "Bearer", expiresAt, userInfo
-            );
+            AuthResponseDTO dto =
+                    new AuthResponseDTO(
+                            "access.token", "refresh.token", "Bearer", expiresAt, userInfo);
 
             assertThat(dto.accessToken()).isEqualTo("access.token");
             assertThat(dto.refreshToken()).isEqualTo("refresh.token");
@@ -208,13 +208,17 @@ class SecurityDTOsTest {
         @DisplayName("should create with convenience constructor")
         void shouldCreateWithConvenienceConstructor() {
             Instant expiresAt = Instant.now().plusSeconds(3600);
-            AuthResponseDTO.UserInfoDTO userInfo = new AuthResponseDTO.UserInfoDTO(
-                    1L, "testuser", "test@example.com", "Test User", "USER", Set.of("READ")
-            );
+            AuthResponseDTO.UserInfoDTO userInfo =
+                    new AuthResponseDTO.UserInfoDTO(
+                            1L,
+                            "testuser",
+                            "test@example.com",
+                            "Test User",
+                            "USER",
+                            Set.of("READ"));
 
-            AuthResponseDTO dto = new AuthResponseDTO(
-                    "access.token", "refresh.token", expiresAt, userInfo
-            );
+            AuthResponseDTO dto =
+                    new AuthResponseDTO("access.token", "refresh.token", expiresAt, userInfo);
 
             assertThat(dto.tokenType()).isEqualTo("Bearer");
         }
@@ -222,9 +226,14 @@ class SecurityDTOsTest {
         @Test
         @DisplayName("should create UserInfoDTO correctly")
         void shouldCreateUserInfoDTOCorrectly() {
-            AuthResponseDTO.UserInfoDTO userInfo = new AuthResponseDTO.UserInfoDTO(
-                    1L, "testuser", "test@example.com", "Test User", "ADMIN", Set.of("READ", "WRITE")
-            );
+            AuthResponseDTO.UserInfoDTO userInfo =
+                    new AuthResponseDTO.UserInfoDTO(
+                            1L,
+                            "testuser",
+                            "test@example.com",
+                            "Test User",
+                            "ADMIN",
+                            Set.of("READ", "WRITE"));
 
             assertThat(userInfo.id()).isEqualTo(1L);
             assertThat(userInfo.username()).isEqualTo("testuser");

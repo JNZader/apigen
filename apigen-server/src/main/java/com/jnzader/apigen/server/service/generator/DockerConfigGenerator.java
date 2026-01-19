@@ -17,10 +17,14 @@ public class DockerConfigGenerator {
      * @return the Dockerfile content
      */
     public String generateDockerfile(GenerateRequest.ProjectConfig config) {
-        String javaVersion = config.getJavaVersion() != null ? config.getJavaVersion() : GeneratedProjectVersions.JAVA_VERSION;
+        String javaVersion =
+                config.getJavaVersion() != null
+                        ? config.getJavaVersion()
+                        : GeneratedProjectVersions.JAVA_VERSION;
         String artifactId = config.getArtifactId();
 
-        return """
+        return
+"""
 # ============================================
 # %s - Dockerfile
 # ============================================
@@ -77,11 +81,16 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \\
 
 # Run the application
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
-""".formatted(
-                artifactId, javaVersion, artifactId, artifactId,
-                javaVersion,
-                config.getGroupId(), artifactId, GeneratedProjectVersions.INITIAL_PROJECT_VERSION
-        );
+"""
+                .formatted(
+                        artifactId,
+                        javaVersion,
+                        artifactId,
+                        artifactId,
+                        javaVersion,
+                        config.getGroupId(),
+                        artifactId,
+                        GeneratedProjectVersions.INITIAL_PROJECT_VERSION);
     }
 
     /**
@@ -92,16 +101,18 @@ ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
      */
     public String generateDockerCompose(GenerateRequest.ProjectConfig config) {
         String artifactId = config.getArtifactId();
-        GenerateRequest.DatabaseConfig db = config.getDatabase() != null
-                ? config.getDatabase()
-                : new GenerateRequest.DatabaseConfig();
+        GenerateRequest.DatabaseConfig db =
+                config.getDatabase() != null
+                        ? config.getDatabase()
+                        : new GenerateRequest.DatabaseConfig();
 
         String dbType = db.getType().toLowerCase();
         String dbImage = db.getDockerImage();
         int dbPort = db.getDefaultPort();
 
         StringBuilder compose = new StringBuilder();
-        compose.append("""
+        compose.append(
+"""
 # ============================================
 # %s - Docker Compose
 # ============================================
@@ -145,7 +156,13 @@ services:
       retries: 3
       start_period: 60s
 
-""".formatted(artifactId, artifactId, db.getJdbcUrl(), db.getUsername(), db.getPassword()));
+"""
+                        .formatted(
+                                artifactId,
+                                artifactId,
+                                db.getJdbcUrl(),
+                                db.getUsername(),
+                                db.getPassword()));
 
         // Add database service based on type
         if (dbImage != null) {
@@ -153,7 +170,8 @@ services:
         }
 
         // Add networks and volumes
-        compose.append("""
+        compose.append(
+"""
 networks:
   app-network:
     driver: bridge
@@ -169,15 +187,17 @@ volumes:
     /**
      * Generates the database service configuration for docker-compose.
      *
-     * @param db      the database configuration
-     * @param dbType  the database type
+     * @param db the database configuration
+     * @param dbType the database type
      * @param dbImage the Docker image
-     * @param dbPort  the database port
+     * @param dbPort the database port
      * @return the database service YAML
      */
-    public String generateDatabaseService(GenerateRequest.DatabaseConfig db, String dbType, String dbImage, int dbPort) {
+    public String generateDatabaseService(
+            GenerateRequest.DatabaseConfig db, String dbType, String dbImage, int dbPort) {
         return switch (dbType) {
-            case "mysql" -> """
+            case "mysql" ->
+"""
   # MySQL Database
   db:
     image: %s
@@ -201,9 +221,19 @@ volumes:
       retries: 5
       start_period: 30s
 
-""".formatted(dbImage, db.getName(), dbPort, dbPort, db.getName(), db.getUsername(), db.getPassword(), db.getPassword());
+"""
+                            .formatted(
+                                    dbImage,
+                                    db.getName(),
+                                    dbPort,
+                                    dbPort,
+                                    db.getName(),
+                                    db.getUsername(),
+                                    db.getPassword(),
+                                    db.getPassword());
 
-            case "mariadb" -> """
+            case "mariadb" ->
+"""
   # MariaDB Database
   db:
     image: %s
@@ -227,9 +257,19 @@ volumes:
       retries: 5
       start_period: 30s
 
-""".formatted(dbImage, db.getName(), dbPort, dbPort, db.getName(), db.getUsername(), db.getPassword(), db.getPassword());
+"""
+                            .formatted(
+                                    dbImage,
+                                    db.getName(),
+                                    dbPort,
+                                    dbPort,
+                                    db.getName(),
+                                    db.getUsername(),
+                                    db.getPassword(),
+                                    db.getPassword());
 
-            case "sqlserver" -> """
+            case "sqlserver" ->
+"""
   # SQL Server Database
   db:
     image: %s
@@ -252,9 +292,11 @@ volumes:
       retries: 5
       start_period: 30s
 
-""".formatted(dbImage, db.getName(), dbPort, dbPort, db.getPassword());
+"""
+                            .formatted(dbImage, db.getName(), dbPort, dbPort, db.getPassword());
 
-            case "oracle" -> """
+            case "oracle" ->
+"""
   # Oracle Database
   db:
     image: %s
@@ -277,9 +319,18 @@ volumes:
       retries: 10
       start_period: 60s
 
-""".formatted(dbImage, db.getName(), dbPort, dbPort, db.getPassword(), db.getUsername(), db.getPassword());
+"""
+                            .formatted(
+                                    dbImage,
+                                    db.getName(),
+                                    dbPort,
+                                    dbPort,
+                                    db.getPassword(),
+                                    db.getUsername(),
+                                    db.getPassword());
 
-            default -> """
+            default ->
+"""
   # PostgreSQL Database
   db:
     image: %s
@@ -302,7 +353,17 @@ volumes:
       retries: 5
       start_period: 10s
 
-""".formatted(dbImage, db.getName(), dbPort, dbPort, db.getName(), db.getUsername(), db.getPassword(), db.getUsername(), db.getName());
+"""
+                            .formatted(
+                                    dbImage,
+                                    db.getName(),
+                                    dbPort,
+                                    dbPort,
+                                    db.getName(),
+                                    db.getUsername(),
+                                    db.getPassword(),
+                                    db.getUsername(),
+                                    db.getName());
         };
     }
 
@@ -312,7 +373,8 @@ volumes:
      * @return the .dockerignore content
      */
     public String generateDockerignore() {
-        return """
+        return
+"""
 # Build artifacts (keep JARs for runtime-only Docker build)
 build/
 !build/libs/
@@ -370,11 +432,13 @@ Dockerfile*
      */
     public String generateDockerReadme(GenerateRequest.ProjectConfig config) {
         String artifactId = config.getArtifactId();
-        GenerateRequest.DatabaseConfig db = config.getDatabase() != null
-                ? config.getDatabase()
-                : new GenerateRequest.DatabaseConfig();
+        GenerateRequest.DatabaseConfig db =
+                config.getDatabase() != null
+                        ? config.getDatabase()
+                        : new GenerateRequest.DatabaseConfig();
 
-        return """
+        return
+"""
 # Docker Guide for %s
 
 ## Quick Start
@@ -504,11 +568,19 @@ docker-compose ps
 ```bash
 docker-compose restart
 ```
-""".formatted(
-                artifactId, artifactId, artifactId,
-                db.getUsername(), db.getPassword(),
-                db.getType().toUpperCase(), db.getDefaultPort(), db.getName(), db.getUsername(), db.getPassword(),
-                db.getUsername(), db.getName()
-        );
+"""
+                .formatted(
+                        artifactId,
+                        artifactId,
+                        artifactId,
+                        db.getUsername(),
+                        db.getPassword(),
+                        db.getType().toUpperCase(),
+                        db.getDefaultPort(),
+                        db.getName(),
+                        db.getUsername(),
+                        db.getPassword(),
+                        db.getUsername(),
+                        db.getName());
     }
 }

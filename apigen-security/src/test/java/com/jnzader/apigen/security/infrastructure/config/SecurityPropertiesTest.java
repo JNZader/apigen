@@ -1,5 +1,8 @@
 package com.jnzader.apigen.security.infrastructure.config;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -7,9 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DisplayName("SecurityProperties Tests")
 class SecurityPropertiesTest {
@@ -42,12 +42,13 @@ class SecurityPropertiesTest {
         void shouldHaveDefaultJwtProperties() {
             SecurityProperties.JwtProperties jwt = properties.getJwt();
 
-            assertThat(jwt).isNotNull()
+            assertThat(jwt)
+                    .isNotNull()
                     .extracting(
                             SecurityProperties.JwtProperties::getExpirationMinutes,
                             SecurityProperties.JwtProperties::getRefreshExpirationMinutes,
-                            SecurityProperties.JwtProperties::getIssuer
-                    ).containsExactly(15, 10080, "apigen");
+                            SecurityProperties.JwtProperties::getIssuer)
+                    .containsExactly(15, 10080, "apigen");
         }
 
         @Test
@@ -55,12 +56,13 @@ class SecurityPropertiesTest {
         void shouldHaveDefaultOAuth2Properties() {
             SecurityProperties.OAuth2Properties oauth2 = properties.getOauth2();
 
-            assertThat(oauth2).isNotNull()
+            assertThat(oauth2)
+                    .isNotNull()
                     .extracting(
                             SecurityProperties.OAuth2Properties::getRolesClaim,
                             SecurityProperties.OAuth2Properties::getRolePrefix,
-                            SecurityProperties.OAuth2Properties::getUsernameClaim
-                    ).containsExactly("permissions", "ROLE_", "sub");
+                            SecurityProperties.OAuth2Properties::getUsernameClaim)
+                    .containsExactly("permissions", "ROLE_", "sub");
         }
     }
 
@@ -165,7 +167,9 @@ class SecurityPropertiesTest {
             properties.setEnabled(true);
             properties.setMode(SecurityProperties.AuthMode.JWT);
             // 32+ bytes secret
-            properties.getJwt().setSecret("this-is-a-very-long-secure-secret-key-that-is-at-least-32-bytes");
+            properties
+                    .getJwt()
+                    .setSecret("this-is-a-very-long-secure-secret-key-that-is-at-least-32-bytes");
 
             // Should not throw
             properties.validate();
@@ -177,7 +181,9 @@ class SecurityPropertiesTest {
             properties.setEnabled(true);
             properties.setMode(SecurityProperties.AuthMode.JWT);
             // Contains "default" but is long enough
-            properties.getJwt().setSecret("this-is-a-default-secret-key-that-is-long-enough-for-testing");
+            properties
+                    .getJwt()
+                    .setSecret("this-is-a-default-secret-key-that-is-long-enough-for-testing");
 
             // Should not throw, just warn
             properties.validate();

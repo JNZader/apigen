@@ -1,5 +1,7 @@
 package com.jnzader.apigen.server.config;
 
+import java.util.Arrays;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -7,14 +9,12 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
-import java.util.Arrays;
-import java.util.List;
-
 /**
- * CORS configuration for the APiGen Server.
- * Allows cross-origin requests from the APiGen Studio frontend.
+ * CORS configuration for the APiGen Server. Allows cross-origin requests from the APiGen Studio
+ * frontend.
  *
  * <p>Configure allowed origins via environment variable:
+ *
  * <pre>CORS_ORIGINS=https://app1.vercel.app,https://app2.vercel.app</pre>
  */
 @Configuration
@@ -47,24 +47,14 @@ public class CorsConfig {
         config.setAllowCredentials(true);
 
         // Allowed HTTP methods
-        config.setAllowedMethods(List.of(
-                "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"
-        ));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 
         // Allowed headers
-        config.setAllowedHeaders(List.of(
-                "Authorization",
-                "Content-Type",
-                "Accept",
-                "Origin",
-                "X-Requested-With"
-        ));
+        config.setAllowedHeaders(
+                List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"));
 
         // Exposed headers (accessible to the frontend)
-        config.setExposedHeaders(List.of(
-                "Content-Disposition",
-                "Content-Length"
-        ));
+        config.setExposedHeaders(List.of("Content-Disposition", "Content-Length"));
 
         // Cache preflight requests for 1 hour
         config.setMaxAge(3600L);

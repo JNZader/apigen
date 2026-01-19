@@ -1,17 +1,16 @@
 package com.jnzader.apigen.server.service.generator;
 
+import static com.jnzader.apigen.server.service.generator.util.StringTransformationUtil.toPascalCase;
+
 import com.jnzader.apigen.server.dto.GenerateRequest;
 import org.springframework.stereotype.Component;
 
-import static com.jnzader.apigen.server.service.generator.util.StringTransformationUtil.toPascalCase;
-
-/**
- * Generates project structure files (Main class, README).
- */
+/** Generates project structure files (Main class, README). */
 @Component
 public class ProjectStructureGenerator {
 
-    private static final String GITIGNORE_CONTENT = """
+    private static final String GITIGNORE_CONTENT =
+"""
 # Gradle
 .gradle/
 build/
@@ -48,7 +47,8 @@ Thumbs.db
      */
     public String generateMainClass(GenerateRequest.ProjectConfig config) {
         String className = toPascalCase(config.getArtifactId()) + "Application";
-        return """
+        return
+"""
 package %s;
 
 import org.springframework.boot.SpringApplication;
@@ -65,7 +65,8 @@ public class %s {
         SpringApplication.run(%s.class, args);
     }
 }
-""".formatted(config.getBasePackage(), config.getBasePackage(), className, className);
+"""
+                .formatted(config.getBasePackage(), config.getBasePackage(), className, className);
     }
 
     /**
@@ -85,7 +86,8 @@ public class %s {
      * @return the README content
      */
     public String generateReadme(GenerateRequest.ProjectConfig config) {
-        return """
+        return
+"""
 # %s
 
 Generated with [APiGen Studio](https://github.com/jnzader/apigen)
@@ -132,10 +134,8 @@ src/main/java/%s/
 - Audit trails (created/updated by)
 - OpenAPI documentation
 - Caching support
-""".formatted(
-                config.getName(),
-                config.getBasePackage().replace('.', '/')
-        );
+"""
+                .formatted(config.getName(), config.getBasePackage().replace('.', '/'));
     }
 
     /**

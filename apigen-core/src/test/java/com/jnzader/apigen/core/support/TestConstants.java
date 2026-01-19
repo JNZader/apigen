@@ -1,8 +1,6 @@
 package com.jnzader.apigen.core.support;
 
-/**
- * Constants used across tests.
- */
+/** Constants used across tests. */
 public final class TestConstants {
 
     private TestConstants() {

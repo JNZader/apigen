@@ -3,8 +3,8 @@ package com.jnzader.apigen.core.domain.event;
 import java.time.LocalDateTime;
 
 /**
- * Interfaz base para todos los eventos de dominio.
- * Los eventos de dominio representan hechos que han ocurrido en el dominio del negocio.
+ * Interfaz base para todos los eventos de dominio. Los eventos de dominio representan hechos que
+ * han ocurrido en el dominio del negocio.
  */
 public interface DomainEvent {
 

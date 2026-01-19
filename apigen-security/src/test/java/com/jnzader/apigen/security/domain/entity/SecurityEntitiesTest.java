@@ -1,17 +1,16 @@
 package com.jnzader.apigen.security.domain.entity;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.springframework.security.core.GrantedAuthority;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Instant;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.springframework.security.core.GrantedAuthority;
 
 @DisplayName("Security Entities Tests")
 class SecurityEntitiesTest {
@@ -326,8 +325,9 @@ class SecurityEntitiesTest {
         @DisplayName("should create token blacklist entry with constructor")
         void shouldCreateTokenBlacklistEntryWithConstructor() {
             Instant expiry = Instant.now().plusSeconds(3600);
-            TokenBlacklist tokenBlacklist = new TokenBlacklist(
-                    "token123", "testuser", expiry, TokenBlacklist.BlacklistReason.LOGOUT);
+            TokenBlacklist tokenBlacklist =
+                    new TokenBlacklist(
+                            "token123", "testuser", expiry, TokenBlacklist.BlacklistReason.LOGOUT);
 
             assertThat(tokenBlacklist.getTokenId()).isEqualTo("token123");
             assertThat(tokenBlacklist.getUsername()).isEqualTo("testuser");
@@ -362,7 +362,8 @@ class SecurityEntitiesTest {
             assertThat(tokenBlacklist.getUsername()).isEqualTo("user123");
             assertThat(tokenBlacklist.getExpiration()).isEqualTo(now);
             assertThat(tokenBlacklist.getBlacklistedAt()).isEqualTo(now);
-            assertThat(tokenBlacklist.getReason()).isEqualTo(TokenBlacklist.BlacklistReason.PASSWORD_CHANGE);
+            assertThat(tokenBlacklist.getReason())
+                    .isEqualTo(TokenBlacklist.BlacklistReason.PASSWORD_CHANGE);
         }
 
         @Test
@@ -375,8 +376,7 @@ class SecurityEntitiesTest {
                             TokenBlacklist.BlacklistReason.ADMIN_REVOKE,
                             TokenBlacklist.BlacklistReason.SECURITY_BREACH,
                             TokenBlacklist.BlacklistReason.SESSION_EXPIRED,
-                            TokenBlacklist.BlacklistReason.TOKEN_ROTATED
-                    );
+                            TokenBlacklist.BlacklistReason.TOKEN_ROTATED);
         }
     }
 }

@@ -17,30 +17,34 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 /**
  * Auto-configuration for APiGen Security module.
- * <p>
- * This auto-configuration automatically enables:
+ *
+ * <p>This auto-configuration automatically enables:
+ *
  * <ul>
- *     <li>JWT authentication with access and refresh tokens</li>
- *     <li>Security repositories for user management</li>
- *     <li>Auth controller for login/logout/refresh endpoints</li>
- *     <li>Rate limiting for authentication endpoints</li>
- *     <li>Security audit logging</li>
+ *   <li>JWT authentication with access and refresh tokens
+ *   <li>Security repositories for user management
+ *   <li>Auth controller for login/logout/refresh endpoints
+ *   <li>Rate limiting for authentication endpoints
+ *   <li>Security audit logging
  * </ul>
- * <p>
- * Security modes (configurable via {@code apigen.security.mode}):
+ *
+ * <p>Security modes (configurable via {@code apigen.security.mode}):
+ *
  * <ul>
- *     <li>{@code jwt} - JWT-based authentication (default)</li>
- *     <li>{@code oauth2} - OAuth2 resource server mode</li>
+ *   <li>{@code jwt} - JWT-based authentication (default)
+ *   <li>{@code oauth2} - OAuth2 resource server mode
  * </ul>
- * <p>
- * Can be disabled with: {@code apigen.security.enabled=false}
- * <p>
- * Usage: Just add the dependency and configure security properties:
+ *
+ * <p>Can be disabled with: {@code apigen.security.enabled=false}
+ *
+ * <p>Usage: Just add the dependency and configure security properties:
+ *
  * <pre>
  * implementation 'com.jnzader:apigen-security'
  * </pre>
- * <p>
- * Required properties for JWT mode:
+ *
+ * <p>Required properties for JWT mode:
+ *
  * <pre>
  * apigen:
  *   security:
@@ -51,20 +55,17 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  */
 @AutoConfiguration(after = ApigenCoreAutoConfiguration.class)
 @ConditionalOnBean(ApigenCoreAutoConfiguration.ApigenCoreMarker.class)
-@ConditionalOnProperty(name = "apigen.security.enabled", havingValue = "true", matchIfMissing = false)
+@ConditionalOnProperty(
+        name = "apigen.security.enabled",
+        havingValue = "true",
+        matchIfMissing = false)
 @EnableConfigurationProperties(SecurityProperties.class)
 @ComponentScan(basePackages = "com.jnzader.apigen.security")
 @EnableJpaRepositories(basePackages = "com.jnzader.apigen.security.infrastructure.repository")
-@Import({
-    SecurityConfig.class,
-    SecurityDisabledConfig.class,
-    OAuth2SecurityConfig.class
-})
+@Import({SecurityConfig.class, SecurityDisabledConfig.class, OAuth2SecurityConfig.class})
 public class ApigenSecurityAutoConfiguration {
 
-    /**
-     * Marker bean to indicate APiGen Security is auto-configured.
-     */
+    /** Marker bean to indicate APiGen Security is auto-configured. */
     @Bean
     @ConditionalOnMissingBean(name = "apigenSecurityMarker")
     public ApigenSecurityMarker apigenSecurityMarker() {
@@ -72,8 +73,8 @@ public class ApigenSecurityAutoConfiguration {
     }
 
     /**
-     * Marker class for APiGen Security auto-configuration.
-     * Used by @ConditionalOnBean to detect if security module is auto-configured.
+     * Marker class for APiGen Security auto-configuration. Used by @ConditionalOnBean to detect if
+     * security module is auto-configured.
      */
     @SuppressWarnings("java:S2094")
     // S2094: Clase vacia INTENCIONAL - es un marker bean para deteccion de auto-configuracion

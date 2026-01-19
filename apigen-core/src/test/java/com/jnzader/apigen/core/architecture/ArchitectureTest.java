@@ -13,8 +13,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 /**
- * Architecture tests to enforce layered architecture and naming conventions.
- * Uses ArchUnit to validate the codebase structure.
+ * Architecture tests to enforce layered architecture and naming conventions. Uses ArchUnit to
+ * validate the codebase structure.
  */
 @DisplayName("Architecture Tests")
 class ArchitectureTest {
@@ -23,9 +23,10 @@ class ArchitectureTest {
 
     @BeforeAll
     static void setup() {
-        importedClasses = new ClassFileImporter()
-                .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-                .importPackages("com.jnzader.apigen.core");
+        importedClasses =
+                new ClassFileImporter()
+                        .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+                        .importPackages("com.jnzader.apigen.core");
     }
 
     @Nested
@@ -37,12 +38,18 @@ class ArchitectureTest {
         void shouldFollowLayeredArchitecture() {
             layeredArchitecture()
                     .consideringAllDependencies()
-                    .layer("Domain").definedBy("..domain..")
-                    .layer("Application").definedBy("..application..")
-                    .layer("Infrastructure").definedBy("..infrastructure..")
-                    .whereLayer("Domain").mayNotAccessAnyLayer()
-                    .whereLayer("Application").mayOnlyAccessLayers("Domain")
-                    .whereLayer("Infrastructure").mayOnlyAccessLayers("Application", "Domain")
+                    .layer("Domain")
+                    .definedBy("..domain..")
+                    .layer("Application")
+                    .definedBy("..application..")
+                    .layer("Infrastructure")
+                    .definedBy("..infrastructure..")
+                    .whereLayer("Domain")
+                    .mayNotAccessAnyLayer()
+                    .whereLayer("Application")
+                    .mayOnlyAccessLayers("Domain")
+                    .whereLayer("Infrastructure")
+                    .mayOnlyAccessLayers("Application", "Domain")
                     .check(importedClasses);
         }
     }
@@ -55,10 +62,14 @@ class ArchitectureTest {
         @DisplayName("services should be suffixed with 'Service' or 'ServiceImpl'")
         void servicesShouldHaveProperSuffix() {
             classes()
-                    .that().resideInAPackage("..application.service..")
-                    .and().areNotInterfaces()
-                    .should().haveSimpleNameEndingWith("ServiceImpl")
-                    .orShould().haveSimpleNameEndingWith("Service")
+                    .that()
+                    .resideInAPackage("..application.service..")
+                    .and()
+                    .areNotInterfaces()
+                    .should()
+                    .haveSimpleNameEndingWith("ServiceImpl")
+                    .orShould()
+                    .haveSimpleNameEndingWith("Service")
                     .check(importedClasses);
         }
 
@@ -66,10 +77,14 @@ class ArchitectureTest {
         @DisplayName("controllers should be suffixed with 'Controller' or 'ControllerImpl'")
         void controllersShouldHaveProperSuffix() {
             classes()
-                    .that().resideInAPackage("..infrastructure.controller..")
-                    .and().areNotInterfaces()
-                    .should().haveSimpleNameEndingWith("Controller")
-                    .orShould().haveSimpleNameEndingWith("ControllerImpl")
+                    .that()
+                    .resideInAPackage("..infrastructure.controller..")
+                    .and()
+                    .areNotInterfaces()
+                    .should()
+                    .haveSimpleNameEndingWith("Controller")
+                    .orShould()
+                    .haveSimpleNameEndingWith("ControllerImpl")
                     .check(importedClasses);
         }
 
@@ -77,8 +92,10 @@ class ArchitectureTest {
         @DisplayName("exceptions should be suffixed with 'Exception'")
         void exceptionsShouldHaveProperSuffix() {
             classes()
-                    .that().resideInAPackage("..domain.exception..")
-                    .should().haveSimpleNameEndingWith("Exception")
+                    .that()
+                    .resideInAPackage("..domain.exception..")
+                    .should()
+                    .haveSimpleNameEndingWith("Exception")
                     .check(importedClasses);
         }
 
@@ -86,12 +103,18 @@ class ArchitectureTest {
         @DisplayName("DTOs should be suffixed with 'DTO'")
         void dtosShouldHaveProperSuffix() {
             classes()
-                    .that().resideInAPackage("..application.dto..")
-                    .and().areNotInterfaces()
-                    .and().doNotHaveSimpleName("ValidationGroups")
-                    .should().haveSimpleNameEndingWith("DTO")
-                    .orShould().haveSimpleNameEndingWith("Request")
-                    .orShould().haveSimpleNameEndingWith("Response")
+                    .that()
+                    .resideInAPackage("..application.dto..")
+                    .and()
+                    .areNotInterfaces()
+                    .and()
+                    .doNotHaveSimpleName("ValidationGroups")
+                    .should()
+                    .haveSimpleNameEndingWith("DTO")
+                    .orShould()
+                    .haveSimpleNameEndingWith("Request")
+                    .orShould()
+                    .haveSimpleNameEndingWith("Response")
                     .check(importedClasses);
         }
     }
@@ -104,8 +127,10 @@ class ArchitectureTest {
         @DisplayName("domain should not depend on Spring framework")
         void domainShouldNotDependOnSpring() {
             noClasses()
-                    .that().resideInAPackage("..domain.entity..")
-                    .should().dependOnClassesThat()
+                    .that()
+                    .resideInAPackage("..domain.entity..")
+                    .should()
+                    .dependOnClassesThat()
                     .resideInAPackage("org.springframework..")
                     .because("Domain entities should be framework-agnostic (except JPA)")
                     .check(importedClasses);
@@ -115,8 +140,10 @@ class ArchitectureTest {
         @DisplayName("domain exceptions should not depend on infrastructure")
         void domainExceptionsShouldNotDependOnInfrastructure() {
             noClasses()
-                    .that().resideInAPackage("..domain.exception..")
-                    .should().dependOnClassesThat()
+                    .that()
+                    .resideInAPackage("..domain.exception..")
+                    .should()
+                    .dependOnClassesThat()
                     .resideInAPackage("..infrastructure..")
                     .check(importedClasses);
         }
@@ -130,9 +157,12 @@ class ArchitectureTest {
         @DisplayName("events should reside in domain.event package")
         void eventsShouldResideInDomainEventPackage() {
             classes()
-                    .that().haveSimpleNameEndingWith("Event")
-                    .and().areNotInterfaces()
-                    .should().resideInAPackage("..domain.event..")
+                    .that()
+                    .haveSimpleNameEndingWith("Event")
+                    .and()
+                    .areNotInterfaces()
+                    .should()
+                    .resideInAPackage("..domain.event..")
                     .check(importedClasses);
         }
 
@@ -140,9 +170,12 @@ class ArchitectureTest {
         @DisplayName("configurations should reside in infrastructure.config package")
         void configurationsShouldResideInInfrastructureConfigPackage() {
             classes()
-                    .that().haveSimpleNameEndingWith("Config")
-                    .should().resideInAPackage("..infrastructure.config..")
-                    .orShould().resideInAPackage("..autoconfigure..")
+                    .that()
+                    .haveSimpleNameEndingWith("Config")
+                    .should()
+                    .resideInAPackage("..infrastructure.config..")
+                    .orShould()
+                    .resideInAPackage("..autoconfigure..")
                     .check(importedClasses);
         }
     }

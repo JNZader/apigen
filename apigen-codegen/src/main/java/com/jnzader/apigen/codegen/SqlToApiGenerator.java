@@ -4,23 +4,24 @@ import com.jnzader.apigen.codegen.generator.CodeGenerator;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import com.jnzader.apigen.codegen.parser.SqlSchemaParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Main entry point for generating API code from SQL schema files.
- * <p>
- * Usage:
+ *
+ * <p>Usage:
+ *
  * <pre>
  *   java SqlToApiGenerator &lt;sql-file&gt; [project-root] [base-package]
  * </pre>
- * <p>
- * Examples:
+ *
+ * <p>Examples:
+ *
  * <pre>
  *   java SqlToApiGenerator schema.sql
  *   java SqlToApiGenerator schema.sql /path/to/project com.mycompany.api
@@ -33,7 +34,8 @@ public class SqlToApiGenerator {
 
     private static final Logger log = LoggerFactory.getLogger(SqlToApiGenerator.class);
     private static final String DEFAULT_BASE_PACKAGE = "com.jnzader.apigen";
-    private static final String SEPARATOR_LINE = "============================================================";
+    private static final String SEPARATOR_LINE =
+            "============================================================";
 
     public static void main(String[] args) {
         if (args.length < 1) {
@@ -56,12 +58,13 @@ public class SqlToApiGenerator {
     /**
      * Generates API code from a SQL schema file.
      *
-     * @param sqlFilePath  Path to the SQL file
-     * @param projectRoot  Root directory of the project
-     * @param basePackage  Base package for generated code
+     * @param sqlFilePath Path to the SQL file
+     * @param projectRoot Root directory of the project
+     * @param basePackage Base package for generated code
      * @throws IOException If file operations fail
      */
-    public static void generate(String sqlFilePath, String projectRoot, String basePackage) throws IOException {
+    public static void generate(String sqlFilePath, String projectRoot, String basePackage)
+            throws IOException {
         Path sqlPath = Paths.get(sqlFilePath);
         Path rootPath = Paths.get(projectRoot);
 
@@ -81,7 +84,8 @@ public class SqlToApiGenerator {
         // Show parse results
         log.info("      Found {} tables", schema.getTables().size());
         log.info("      Found {} functions/procedures", schema.getFunctions().size());
-        log.info("      Found {} junction tables (many-to-many)", schema.getJunctionTables().size());
+        log.info(
+                "      Found {} junction tables (many-to-many)", schema.getJunctionTables().size());
 
         if (!schema.getParseErrors().isEmpty()) {
             log.info("      Warnings:");

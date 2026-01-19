@@ -2,16 +2,14 @@ package com.jnzader.apigen.security.domain.entity;
 
 import com.jnzader.apigen.core.domain.entity.Base;
 import jakarta.persistence.*;
-import org.hibernate.annotations.BatchSize;
-
 import java.util.HashSet;
 import java.util.Set;
+import org.hibernate.annotations.BatchSize;
 
 /**
  * Entidad que representa un rol en el sistema.
- * <p>
- * Los roles agrupan permisos y se asignan a usuarios.
- * Ejemplos: ADMIN, MANAGER, USER, GUEST.
+ *
+ * <p>Los roles agrupan permisos y se asignan a usuarios. Ejemplos: ADMIN, MANAGER, USER, GUEST.
  */
 @Entity
 @Table(name = "roles")
@@ -28,13 +26,11 @@ public class Role extends Base {
     @JoinTable(
             name = "role_permissions",
             joinColumns = @JoinColumn(name = "role_id"),
-            inverseJoinColumns = @JoinColumn(name = "permission_id")
-    )
+            inverseJoinColumns = @JoinColumn(name = "permission_id"))
     @BatchSize(size = 25)
     private Set<Permission> permissions = new HashSet<>();
 
-    public Role() {
-    }
+    public Role() {}
 
     public Role(String name) {
         this.name = name;
@@ -77,11 +73,8 @@ public class Role extends Base {
         this.permissions.remove(permission);
     }
 
-    /**
-     * Verifica si el rol tiene un permiso específico.
-     */
+    /** Verifica si el rol tiene un permiso específico. */
     public boolean hasPermission(String permissionName) {
-        return permissions.stream()
-                .anyMatch(p -> p.getName().equals(permissionName));
+        return permissions.stream().anyMatch(p -> p.getName().equals(permissionName));
     }
 }

@@ -2,9 +2,7 @@ package com.jnzader.apigen.codegen.generator.test;
 
 import com.jnzader.apigen.codegen.model.SqlTable;
 
-/**
- * Generates unit test classes for DTOs.
- */
+/** Generates unit test classes for DTOs. */
 public class DTOTestGenerator {
 
     private final String basePackage;
@@ -13,14 +11,13 @@ public class DTOTestGenerator {
         this.basePackage = basePackage;
     }
 
-    /**
-     * Generates the DTO test class code.
-     */
+    /** Generates the DTO test class code. */
     public String generate(SqlTable table) {
         String entityName = table.getEntityName();
         String moduleName = table.getModuleName();
 
-        return """
+        return
+"""
 package %s.%s.application.dto;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -151,15 +148,28 @@ class %sDTOTest {
         }
     }
 }
-""".formatted(
-                basePackage, moduleName,
-                entityName, entityName, entityName, entityName,
-                entityName, entityName,
-                entityName, entityName,
-                entityName, entityName,
-                entityName, entityName, entityName, entityName,
-                entityName, entityName, entityName, entityName,
-                entityName
-        );
+"""
+                .formatted(
+                        basePackage,
+                        moduleName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName);
     }
 }

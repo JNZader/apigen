@@ -1,16 +1,15 @@
 package com.jnzader.apigen.codegen.generator.test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlTable;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("IntegrationTestGenerator Tests")
 class IntegrationTestGeneratorTest {
@@ -46,9 +45,13 @@ class IntegrationTestGeneratorTest {
             assertThat(result)
                     .contains("import com.example.products.application.dto.ProductDTO;")
                     .contains("import com.example.products.domain.entity.Product;")
-                    .contains("import com.example.products.infrastructure.repository.ProductRepository;")
+                    .contains(
+                            "import"
+                                + " com.example.products.infrastructure.repository.ProductRepository;")
                     .contains("import org.springframework.boot.test.context.SpringBootTest;")
-                    .contains("import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;")
+                    .contains(
+                            "import"
+                                + " org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;")
                     .contains("import org.springframework.test.context.ActiveProfiles;");
         }
 
@@ -99,7 +102,8 @@ class IntegrationTestGeneratorTest {
 
             String result = generator.generate(table);
 
-            assertThat(result).contains("private static final String BASE_URL = \"/api/v1/orders\";");
+            assertThat(result)
+                    .contains("private static final String BASE_URL = \"/api/v1/orders\";");
         }
     }
 
@@ -246,7 +250,9 @@ class IntegrationTestGeneratorTest {
 
             assertThat(result)
                     .contains("@Order(9)")
-                    .contains("@DisplayName(\"9. POST /{id}/restore - Should restore soft-deleted Product\")")
+                    .contains(
+                            "@DisplayName(\"9. POST /{id}/restore - Should restore soft-deleted"
+                                    + " Product\")")
                     .contains("void shouldRestoreProduct()")
                     .contains("mockMvc.perform(post(BASE_URL + \"/\" + createdId + \"/restore\"))");
         }
@@ -260,7 +266,9 @@ class IntegrationTestGeneratorTest {
 
             assertThat(result)
                     .contains("@Order(10)")
-                    .contains("@DisplayName(\"10. DELETE /{id}?permanent=true - Should permanently delete Category\")")
+                    .contains(
+                            "@DisplayName(\"10. DELETE /{id}?permanent=true - Should permanently"
+                                    + " delete Category\")")
                     .contains("void shouldPermanentlyDeleteCategory()")
                     .contains(".param(\"permanent\", \"true\")")
                     .contains("assertThat(repository.findById(createdId)).isEmpty();");
@@ -275,7 +283,9 @@ class IntegrationTestGeneratorTest {
 
             assertThat(result)
                     .contains("@Order(11)")
-                    .contains("@DisplayName(\"11. GET /{id} - Should return 404 for non-existent Product\")")
+                    .contains(
+                            "@DisplayName(\"11. GET /{id} - Should return 404 for non-existent"
+                                    + " Product\")")
                     .contains(".andExpect(status().isNotFound())");
         }
 
@@ -302,7 +312,8 @@ class IntegrationTestGeneratorTest {
 
             assertThat(result)
                     .contains("@Order(13)")
-                    .contains("@DisplayName(\"13. GET /cursor - Should support cursor pagination\")")
+                    .contains(
+                            "@DisplayName(\"13. GET /cursor - Should support cursor pagination\")")
                     .contains("mockMvc.perform(get(BASE_URL + \"/cursor\")")
                     .contains(".andExpect(jsonPath(\"$.hasNext\").isBoolean())");
         }
@@ -333,9 +344,7 @@ class IntegrationTestGeneratorTest {
             String result = generator.generate(table);
 
             // TestValueProvider uses "Test " + fieldName (lowercase fieldName)
-            assertThat(result)
-                    .contains(".name(\"Test name\")")
-                    .contains(".price(99.99)");
+            assertThat(result).contains(".name(\"Test name\")").contains(".price(99.99)");
         }
 
         @Test
@@ -369,20 +378,14 @@ class IntegrationTestGeneratorTest {
         @Test
         @DisplayName("Should generate valid Java code for various table names")
         void shouldGenerateValidJavaCodeForVariousTableNames() {
-            List<String> tableNames = List.of(
-                    "products",
-                    "categories",
-                    "order_items",
-                    "user_profiles"
-            );
+            List<String> tableNames =
+                    List.of("products", "categories", "order_items", "user_profiles");
 
             for (String tableName : tableNames) {
                 SqlTable table = createSimpleTable(tableName);
                 String result = generator.generate(table);
 
-                assertThat(result)
-                        .as("Table: " + tableName)
-                        .doesNotContain("%s");
+                assertThat(result).as("Table: " + tableName).doesNotContain("%s");
 
                 assertThat(result)
                         .as("Table: " + tableName)
@@ -430,13 +433,13 @@ class IntegrationTestGeneratorTest {
     private SqlTable createSimpleTable(String tableName) {
         return SqlTable.builder()
                 .name(tableName)
-                .columns(List.of(
-                        SqlColumn.builder()
-                                .name("id")
-                                .javaType("Long")
-                                .primaryKey(true)
-                                .build()
-                ))
+                .columns(
+                        List.of(
+                                SqlColumn.builder()
+                                        .name("id")
+                                        .javaType("Long")
+                                        .primaryKey(true)
+                                        .build()))
                 .foreignKeys(new ArrayList<>())
                 .indexes(new ArrayList<>())
                 .build();
@@ -445,23 +448,23 @@ class IntegrationTestGeneratorTest {
     private SqlTable createTableWithBusinessColumns() {
         return SqlTable.builder()
                 .name("products")
-                .columns(List.of(
-                        SqlColumn.builder()
-                                .name("id")
-                                .javaType("Long")
-                                .primaryKey(true)
-                                .build(),
-                        SqlColumn.builder()
-                                .name("name")
-                                .javaType("String")
-                                .nullable(false)
-                                .build(),
-                        SqlColumn.builder()
-                                .name("price")
-                                .javaType("Double")
-                                .nullable(false)
-                                .build()
-                ))
+                .columns(
+                        List.of(
+                                SqlColumn.builder()
+                                        .name("id")
+                                        .javaType("Long")
+                                        .primaryKey(true)
+                                        .build(),
+                                SqlColumn.builder()
+                                        .name("name")
+                                        .javaType("String")
+                                        .nullable(false)
+                                        .build(),
+                                SqlColumn.builder()
+                                        .name("price")
+                                        .javaType("Double")
+                                        .nullable(false)
+                                        .build()))
                 .foreignKeys(new ArrayList<>())
                 .indexes(new ArrayList<>())
                 .build();

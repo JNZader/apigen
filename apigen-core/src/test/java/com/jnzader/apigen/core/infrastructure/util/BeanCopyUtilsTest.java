@@ -1,12 +1,11 @@
 package com.jnzader.apigen.core.infrastructure.util;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("BeanCopyUtils Tests")
 class BeanCopyUtilsTest {
@@ -100,9 +99,7 @@ class BeanCopyUtilsTest {
 
             Set<String> nonNullProps = BeanCopyUtils.getNonNullPropertyNames(bean);
 
-            assertThat(nonNullProps)
-                    .contains("name", "age")
-                    .doesNotContain("description");
+            assertThat(nonNullProps).contains("name", "age").doesNotContain("description");
         }
 
         @Test
@@ -163,11 +160,28 @@ class BeanCopyUtilsTest {
             this.description = description;
         }
 
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
-        public Integer getAge() { return age; }
-        public void setAge(Integer age) { this.age = age; }
-        public String getDescription() { return description; }
-        public void setDescription(String description) { this.description = description; }
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public Integer getAge() {
+            return age;
+        }
+
+        public void setAge(Integer age) {
+            this.age = age;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public void setDescription(String description) {
+            this.description = description;
+        }
     }
 }

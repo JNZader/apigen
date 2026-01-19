@@ -1,26 +1,25 @@
 package com.jnzader.apigen.core.infrastructure.exception;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import org.slf4j.MDC;
-
 import java.net.URI;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.MDC;
 
 /**
  * Respuesta de error conforme a RFC 7807 (Problem Details for HTTP APIs).
- * <p>
- * Esta clase proporciona una estructura estandarizada para respuestas de error
- * que es compatible con el estándar RFC 7807.
  *
- * @param type       URI que identifica el tipo de problema
- * @param title      Título breve y legible del problema
- * @param status     Código de estado HTTP
- * @param detail     Explicación detallada del problema específico
- * @param instance   URI que identifica la ocurrencia específica del problema
- * @param timestamp  Momento en que ocurrió el error
- * @param requestId  ID único de la request para trazabilidad
+ * <p>Esta clase proporciona una estructura estandarizada para respuestas de error que es compatible
+ * con el estándar RFC 7807.
+ *
+ * @param type URI que identifica el tipo de problema
+ * @param title Título breve y legible del problema
+ * @param status Código de estado HTTP
+ * @param detail Explicación detallada del problema específico
+ * @param instance URI que identifica la ocurrencia específica del problema
+ * @param timestamp Momento en que ocurrió el error
+ * @param requestId ID único de la request para trazabilidad
  * @param extensions Campos adicionales específicos del problema
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -32,26 +31,18 @@ public record ProblemDetail(
         URI instance,
         Instant timestamp,
         String requestId,
-        Map<String, Object> extensions
-) {
+        Map<String, Object> extensions) {
 
     private static final String BASE_TYPE_URI = "https://api.example.com/problems/";
 
-    /**
-     * Crea un ProblemDetail con los campos básicos requeridos.
-     */
+    /** Crea un ProblemDetail con los campos básicos requeridos. */
     public static ProblemDetail of(int status, String title, String detail) {
-        return builder()
-                .status(status)
-                .title(title)
-                .detail(detail)
-                .build();
+        return builder().status(status).title(title).detail(detail).build();
     }
 
-    /**
-     * Crea un ProblemDetail para errores de validación.
-     */
-    public static ProblemDetail validationError(String detail, Map<String, Object> validationErrors) {
+    /** Crea un ProblemDetail para errores de validación. */
+    public static ProblemDetail validationError(
+            String detail, Map<String, Object> validationErrors) {
         return builder()
                 .type(URI.create(BASE_TYPE_URI + "validation-error"))
                 .status(400)
@@ -61,9 +52,7 @@ public record ProblemDetail(
                 .build();
     }
 
-    /**
-     * Crea un ProblemDetail para recurso no encontrado.
-     */
+    /** Crea un ProblemDetail para recurso no encontrado. */
     public static ProblemDetail notFound(String resourceType, Object resourceId) {
         return builder()
                 .type(URI.create(BASE_TYPE_URI + "not-found"))
@@ -73,9 +62,7 @@ public record ProblemDetail(
                 .build();
     }
 
-    /**
-     * Crea un ProblemDetail para conflicto de recursos.
-     */
+    /** Crea un ProblemDetail para conflicto de recursos. */
     public static ProblemDetail conflict(String detail) {
         return builder()
                 .type(URI.create(BASE_TYPE_URI + "conflict"))
@@ -85,9 +72,7 @@ public record ProblemDetail(
                 .build();
     }
 
-    /**
-     * Crea un ProblemDetail para error interno.
-     */
+    /** Crea un ProblemDetail para error interno. */
     public static ProblemDetail internalError(String detail) {
         return builder()
                 .type(URI.create(BASE_TYPE_URI + "internal-error"))
@@ -97,9 +82,7 @@ public record ProblemDetail(
                 .build();
     }
 
-    /**
-     * Crea un ProblemDetail para acceso denegado.
-     */
+    /** Crea un ProblemDetail para acceso denegado. */
     public static ProblemDetail forbidden(String detail) {
         return builder()
                 .type(URI.create(BASE_TYPE_URI + "forbidden"))
@@ -109,9 +92,7 @@ public record ProblemDetail(
                 .build();
     }
 
-    /**
-     * Crea un ProblemDetail para precondición fallida (ETag mismatch).
-     */
+    /** Crea un ProblemDetail para precondición fallida (ETag mismatch). */
     public static ProblemDetail preconditionFailed(String detail) {
         return builder()
                 .type(URI.create(BASE_TYPE_URI + "precondition-failed"))
@@ -121,9 +102,7 @@ public record ProblemDetail(
                 .build();
     }
 
-    /**
-     * Crea un ProblemDetail para bad request genérico.
-     */
+    /** Crea un ProblemDetail para bad request genérico. */
     public static ProblemDetail badRequest(String detail) {
         return builder()
                 .type(URI.create(BASE_TYPE_URI + "bad-request"))
@@ -133,9 +112,7 @@ public record ProblemDetail(
                 .build();
     }
 
-    /**
-     * Builder para crear ProblemDetail de forma fluida.
-     */
+    /** Builder para crear ProblemDetail de forma fluida. */
     public static Builder builder() {
         return new Builder();
     }
@@ -201,8 +178,7 @@ public record ProblemDetail(
                     instance,
                     Instant.now(),
                     MDC.get("requestId"),
-                    extensions.isEmpty() ? null : extensions
-            );
+                    extensions.isEmpty() ? null : extensions);
         }
     }
 }

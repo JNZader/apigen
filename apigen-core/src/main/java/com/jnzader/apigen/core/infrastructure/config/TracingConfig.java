@@ -11,21 +11,24 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * Configuración de tracing distribuido usando Micrometer Tracing.
- * <p>
- * Habilita observabilidad automática para:
+ *
+ * <p>Habilita observabilidad automática para:
+ *
  * <ul>
- *   <li>Peticiones HTTP entrantes</li>
- *   <li>Llamadas HTTP salientes (RestTemplate/WebClient)</li>
- *   <li>Métodos anotados con @Observed</li>
- *   <li>Operaciones de base de datos</li>
+ *   <li>Peticiones HTTP entrantes
+ *   <li>Llamadas HTTP salientes (RestTemplate/WebClient)
+ *   <li>Métodos anotados con @Observed
+ *   <li>Operaciones de base de datos
  * </ul>
- * <p>
- * El tracing se puede deshabilitar completamente con:
+ *
+ * <p>El tracing se puede deshabilitar completamente con:
+ *
  * <pre>
  * management.tracing.enabled=false
  * </pre>
- * <p>
- * Para exportar traces a un backend OTLP (como Jaeger, Zipkin, etc.):
+ *
+ * <p>Para exportar traces a un backend OTLP (como Jaeger, Zipkin, etc.):
+ *
  * <pre>
  * management.otlp.tracing.endpoint=http://localhost:4318/v1/traces
  * </pre>
@@ -35,16 +38,16 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnProperty(
         name = "management.tracing.enabled",
         havingValue = "true",
-        matchIfMissing = true
-)
+        matchIfMissing = true)
 public class TracingConfig {
 
     private static final Logger log = LoggerFactory.getLogger(TracingConfig.class);
 
     /**
      * Habilita el aspecto @Observed para instrumentación declarativa.
-     * <p>
-     * Uso:
+     *
+     * <p>Uso:
+     *
      * <pre>
      * &#64;Observed(name = "my.operation", contextualName = "processOrder")
      * public void processOrder(Order order) {

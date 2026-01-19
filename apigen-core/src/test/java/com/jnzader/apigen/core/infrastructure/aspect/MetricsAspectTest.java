@@ -1,7 +1,12 @@
 package com.jnzader.apigen.core.infrastructure.aspect;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.*;
+
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import java.lang.reflect.Method;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,12 +20,6 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.lang.reflect.Method;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.*;
-
 @DisplayName("MetricsAspect Tests")
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -29,11 +28,9 @@ class MetricsAspectTest {
     private MeterRegistry meterRegistry;
     private MetricsAspect metricsAspect;
 
-    @Mock
-    private ProceedingJoinPoint joinPoint;
+    @Mock private ProceedingJoinPoint joinPoint;
 
-    @Mock
-    private MethodSignature methodSignature;
+    @Mock private MethodSignature methodSignature;
 
     @BeforeEach
     void setUp() {
@@ -83,9 +80,12 @@ class MetricsAspectTest {
             Measured measured = createMeasured("my-custom-name", false, 0);
             metricsAspect.measureAnnotatedMethod(joinPoint, measured);
 
-            assertThat(meterRegistry.find("apigen.method.duration")
-                    .tag("name", "my-custom-name")
-                    .timer()).isNotNull();
+            assertThat(
+                            meterRegistry
+                                    .find("apigen.method.duration")
+                                    .tag("name", "my-custom-name")
+                                    .timer())
+                    .isNotNull();
         }
 
         @Test
@@ -126,9 +126,12 @@ class MetricsAspectTest {
 
             // The metric name is generated from class.getSimpleName() + "." + method.getName()
             // Since we mock with Object.class.getMethod("toString"), the method name is "toString"
-            assertThat(meterRegistry.find("apigen.method.duration")
-                    .tag("name", "TestTarget.toString")
-                    .timer()).isNotNull();
+            assertThat(
+                            meterRegistry
+                                    .find("apigen.method.duration")
+                                    .tag("name", "TestTarget.toString")
+                                    .timer())
+                    .isNotNull();
         }
 
         @Test
@@ -140,9 +143,12 @@ class MetricsAspectTest {
             Measured measured = createMeasured("histogram-test", true, 0);
             metricsAspect.measureAnnotatedMethod(joinPoint, measured);
 
-            assertThat(meterRegistry.find("apigen.method.duration")
-                    .tag("name", "histogram-test")
-                    .timer()).isNotNull();
+            assertThat(
+                            meterRegistry
+                                    .find("apigen.method.duration")
+                                    .tag("name", "histogram-test")
+                                    .timer())
+                    .isNotNull();
         }
     }
 
@@ -172,10 +178,13 @@ class MetricsAspectTest {
             Object result = metricsAspect.measureClassMethod(joinPoint, measured);
 
             assertThat(result).isEqualTo("result");
-            assertThat(meterRegistry.find("apigen.method.duration")
-                    .tag("name", "TestTarget.someMethod")
-                    .tag("layer", "custom")
-                    .timer()).isNotNull();
+            assertThat(
+                            meterRegistry
+                                    .find("apigen.method.duration")
+                                    .tag("name", "TestTarget.someMethod")
+                                    .tag("layer", "custom")
+                                    .timer())
+                    .isNotNull();
         }
 
         @Test
@@ -188,9 +197,12 @@ class MetricsAspectTest {
             metricsAspect.measureClassMethod(joinPoint, measured);
 
             verify(joinPoint).proceed();
-            assertThat(meterRegistry.find("apigen.method.calls")
-                    .tag("outcome", "success")
-                    .counter()).isNotNull();
+            assertThat(
+                            meterRegistry
+                                    .find("apigen.method.calls")
+                                    .tag("outcome", "success")
+                                    .counter())
+                    .isNotNull();
         }
 
         @Test
@@ -204,9 +216,12 @@ class MetricsAspectTest {
             assertThatThrownBy(() -> metricsAspect.measureClassMethod(joinPoint, measured))
                     .isInstanceOf(IllegalStateException.class);
 
-            assertThat(meterRegistry.find("apigen.method.errors")
-                    .tag("exception", "IllegalStateException")
-                    .counter()).isNotNull();
+            assertThat(
+                            meterRegistry
+                                    .find("apigen.method.errors")
+                                    .tag("exception", "IllegalStateException")
+                                    .counter())
+                    .isNotNull();
         }
     }
 
@@ -234,9 +249,12 @@ class MetricsAspectTest {
             Object result = metricsAspect.measureControllerEndpoint(joinPoint);
 
             assertThat(result).isEqualTo("result");
-            assertThat(meterRegistry.find("apigen.method.duration")
-                    .tag("layer", "controller")
-                    .timer()).isNotNull();
+            assertThat(
+                            meterRegistry
+                                    .find("apigen.method.duration")
+                                    .tag("layer", "controller")
+                                    .timer())
+                    .isNotNull();
         }
 
         @Test
@@ -248,9 +266,12 @@ class MetricsAspectTest {
             assertThatThrownBy(() -> metricsAspect.measureControllerEndpoint(joinPoint))
                     .isInstanceOf(RuntimeException.class);
 
-            assertThat(meterRegistry.find("apigen.method.errors")
-                    .tag("layer", "controller")
-                    .counter()).isNotNull();
+            assertThat(
+                            meterRegistry
+                                    .find("apigen.method.errors")
+                                    .tag("layer", "controller")
+                                    .counter())
+                    .isNotNull();
         }
     }
 
@@ -278,9 +299,8 @@ class MetricsAspectTest {
             Object result = metricsAspect.measureServiceWriteOperation(joinPoint);
 
             assertThat(result).isEqualTo("result");
-            assertThat(meterRegistry.find("apigen.method.duration")
-                    .tag("layer", "service")
-                    .timer()).isNotNull();
+            assertThat(meterRegistry.find("apigen.method.duration").tag("layer", "service").timer())
+                    .isNotNull();
         }
 
         @Test
@@ -292,10 +312,13 @@ class MetricsAspectTest {
             assertThatThrownBy(() -> metricsAspect.measureServiceWriteOperation(joinPoint))
                     .isInstanceOf(IllegalArgumentException.class);
 
-            assertThat(meterRegistry.find("apigen.method.errors")
-                    .tag("layer", "service")
-                    .tag("exception", "IllegalArgumentException")
-                    .counter()).isNotNull();
+            assertThat(
+                            meterRegistry
+                                    .find("apigen.method.errors")
+                                    .tag("layer", "service")
+                                    .tag("exception", "IllegalArgumentException")
+                                    .counter())
+                    .isNotNull();
         }
     }
 
@@ -312,8 +335,8 @@ class MetricsAspectTest {
     }
 
     /**
-     * Helper class for testing metrics aspect.
-     * The class simple name "TestTarget" is used in metric tags.
+     * Helper class for testing metrics aspect. The class simple name "TestTarget" is used in metric
+     * tags.
      */
     static class TestTarget {
         // Intentionally empty - used only to provide a class name for metric tags

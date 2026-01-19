@@ -1,28 +1,26 @@
 package com.jnzader.apigen.codegen.generator.migration;
 
+import static com.jnzader.apigen.codegen.generator.util.CodeGenerationUtils.toSnakeCase;
+
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlForeignKey;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 
-import static com.jnzader.apigen.codegen.generator.util.CodeGenerationUtils.toSnakeCase;
-
-/**
- * Generates Flyway SQL migration scripts from SQL table definitions.
- */
+/** Generates Flyway SQL migration scripts from SQL table definitions. */
 public class MigrationGenerator {
 
     private static final String CREATE_INDEX_PREFIX = "CREATE INDEX idx_";
     private static final String COMMA_NEWLINE_INDENT = ",\n    ";
 
-    /**
-     * Generates the SQL migration script for a table.
-     */
+    /** Generates the SQL migration script for a table. */
     @SuppressWarnings("java:S1172")
     // S1172: El parametro 'schema' se mantiene para futura expansion (relaciones cross-table)
     public String generate(SqlTable table, SqlSchema schema) {
         StringBuilder sql = new StringBuilder();
-        sql.append("-- Auto-generated migration for: ").append(table.getEntityName()).append("\n\n");
+        sql.append("-- Auto-generated migration for: ")
+                .append(table.getEntityName())
+                .append("\n\n");
 
         // CREATE TABLE
         sql.append("CREATE TABLE ").append(table.getName()).append(" (\n");
@@ -32,10 +30,13 @@ public class MigrationGenerator {
 
         // Business columns
         for (SqlColumn col : table.getBusinessColumns()) {
-            sql.append(COMMA_NEWLINE_INDENT).append(toSnakeCase(col.getJavaFieldName())).append(" ")
+            sql.append(COMMA_NEWLINE_INDENT)
+                    .append(toSnakeCase(col.getJavaFieldName()))
+                    .append(" ")
                     .append(col.getSqlType());
             if (!col.isNullable()) sql.append(" NOT NULL");
-            if (col.getDefaultValue() != null) sql.append(" DEFAULT ").append(col.getDefaultValue());
+            if (col.getDefaultValue() != null)
+                sql.append(" DEFAULT ").append(col.getDefaultValue());
         }
 
         // FK columns
@@ -64,8 +65,11 @@ public class MigrationGenerator {
         sql.append("    revtype SMALLINT,\n");
 
         for (SqlColumn col : table.getBusinessColumns()) {
-            sql.append("    ").append(toSnakeCase(col.getJavaFieldName())).append(" ")
-                    .append(col.getSqlType()).append(",\n");
+            sql.append("    ")
+                    .append(toSnakeCase(col.getJavaFieldName()))
+                    .append(" ")
+                    .append(col.getSqlType())
+                    .append(",\n");
         }
 
         sql.append("    estado BOOLEAN,\n");
@@ -77,15 +81,27 @@ public class MigrationGenerator {
 
         // Indexes
         sql.append("-- Indexes\n");
-        sql.append(CREATE_INDEX_PREFIX).append(table.getName()).append("_estado ON ")
-                .append(table.getName()).append("(estado);\n");
-        sql.append(CREATE_INDEX_PREFIX).append(table.getName()).append("_fecha_creacion ON ")
-                .append(table.getName()).append("(fecha_creacion DESC);\n");
+        sql.append(CREATE_INDEX_PREFIX)
+                .append(table.getName())
+                .append("_estado ON ")
+                .append(table.getName())
+                .append("(estado);\n");
+        sql.append(CREATE_INDEX_PREFIX)
+                .append(table.getName())
+                .append("_fecha_creacion ON ")
+                .append(table.getName())
+                .append("(fecha_creacion DESC);\n");
 
         for (SqlForeignKey fk : table.getForeignKeys()) {
-            sql.append(CREATE_INDEX_PREFIX).append(table.getName()).append("_")
-                    .append(toSnakeCase(fk.getJavaFieldName())).append(" ON ")
-                    .append(table.getName()).append("(").append(fk.getColumnName()).append(");\n");
+            sql.append(CREATE_INDEX_PREFIX)
+                    .append(table.getName())
+                    .append("_")
+                    .append(toSnakeCase(fk.getJavaFieldName()))
+                    .append(" ON ")
+                    .append(table.getName())
+                    .append("(")
+                    .append(fk.getColumnName())
+                    .append(");\n");
         }
 
         sql.append("\n");
@@ -94,12 +110,19 @@ public class MigrationGenerator {
         if (!table.getForeignKeys().isEmpty()) {
             sql.append("-- Foreign Key Constraints\n");
             for (SqlForeignKey fk : table.getForeignKeys()) {
-                sql.append("ALTER TABLE ").append(table.getName())
-                        .append(" ADD CONSTRAINT fk_").append(table.getName()).append("_")
+                sql.append("ALTER TABLE ")
+                        .append(table.getName())
+                        .append(" ADD CONSTRAINT fk_")
+                        .append(table.getName())
+                        .append("_")
                         .append(toSnakeCase(fk.getJavaFieldName()))
-                        .append(" FOREIGN KEY (").append(fk.getColumnName())
-                        .append(") REFERENCES ").append(fk.getReferencedTable())
-                        .append("(").append(fk.getReferencedColumn()).append(");\n");
+                        .append(" FOREIGN KEY (")
+                        .append(fk.getColumnName())
+                        .append(") REFERENCES ")
+                        .append(fk.getReferencedTable())
+                        .append("(")
+                        .append(fk.getReferencedColumn())
+                        .append(");\n");
             }
         }
 

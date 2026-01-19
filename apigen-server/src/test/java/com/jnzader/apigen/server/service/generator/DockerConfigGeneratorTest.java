@@ -1,7 +1,10 @@
 package com.jnzader.apigen.server.service.generator;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.jnzader.apigen.server.config.GeneratedProjectVersions;
 import com.jnzader.apigen.server.dto.GenerateRequest;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -10,12 +13,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.stream.Stream;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 @DisplayName("DockerConfigGenerator Tests")
-@SuppressWarnings("java:S5976") // Tests validate different specific features, not the same feature with different inputs
+@SuppressWarnings(
+        "java:S5976") // Tests validate different specific features, not the same feature with
+// different inputs
 class DockerConfigGeneratorTest {
 
     private DockerConfigGenerator dockerConfigGenerator;
@@ -61,10 +62,7 @@ class DockerConfigGeneratorTest {
 
             String result = dockerConfigGenerator.generateDockerfile(config);
 
-            assertThat(result)
-                    .contains("addgroup")
-                    .contains("adduser")
-                    .contains("USER appuser");
+            assertThat(result).contains("addgroup").contains("adduser").contains("USER appuser");
         }
 
         @Test
@@ -117,9 +115,7 @@ class DockerConfigGeneratorTest {
 
             String result = dockerConfigGenerator.generateDockerfile(config);
 
-            assertThat(result)
-                    .contains("HEALTHCHECK")
-                    .contains("/actuator/health");
+            assertThat(result).contains("HEALTHCHECK").contains("/actuator/health");
         }
 
         @Test
@@ -201,10 +197,7 @@ class DockerConfigGeneratorTest {
 
             String result = dockerConfigGenerator.generateDockerCompose(config);
 
-            assertThat(result)
-                    .contains("volumes:")
-                    .contains("db-data:")
-                    .contains("driver: local");
+            assertThat(result).contains("volumes:").contains("db-data:").contains("driver: local");
         }
 
         @Test
@@ -226,26 +219,72 @@ class DockerConfigGeneratorTest {
 
         static Stream<Arguments> databaseServiceTestCases() {
             return Stream.of(
-                    Arguments.of("postgresql", GeneratedProjectVersions.POSTGRES_DOCKER_IMAGE, 5432,
-                            new String[]{"# PostgreSQL Database", "POSTGRES_DB", "POSTGRES_USER", "POSTGRES_PASSWORD", "/var/lib/postgresql/data"}),
-                    Arguments.of("mysql", GeneratedProjectVersions.MYSQL_DOCKER_IMAGE, 3306,
-                            new String[]{"# MySQL Database", "MYSQL_DATABASE", "MYSQL_USER", "MYSQL_PASSWORD", "MYSQL_ROOT_PASSWORD", "/var/lib/mysql"}),
-                    Arguments.of("mariadb", GeneratedProjectVersions.MARIADB_DOCKER_IMAGE, 3306,
-                            new String[]{"# MariaDB Database", "MARIADB_DATABASE", "MARIADB_USER", "MARIADB_PASSWORD"}),
-                    Arguments.of("sqlserver", GeneratedProjectVersions.SQLSERVER_DOCKER_IMAGE, 1433,
-                            new String[]{"# SQL Server Database", "ACCEPT_EULA=Y", "MSSQL_SA_PASSWORD", "MSSQL_PID=Express", "/var/opt/mssql"}),
-                    Arguments.of("oracle", GeneratedProjectVersions.ORACLE_DOCKER_IMAGE, 1521,
-                            new String[]{"# Oracle Database", "ORACLE_PASSWORD", "APP_USER", "APP_USER_PASSWORD", "/opt/oracle/oradata"})
-            );
+                    Arguments.of(
+                            "postgresql",
+                            GeneratedProjectVersions.POSTGRES_DOCKER_IMAGE,
+                            5432,
+                            new String[] {
+                                "# PostgreSQL Database",
+                                "POSTGRES_DB",
+                                "POSTGRES_USER",
+                                "POSTGRES_PASSWORD",
+                                "/var/lib/postgresql/data"
+                            }),
+                    Arguments.of(
+                            "mysql",
+                            GeneratedProjectVersions.MYSQL_DOCKER_IMAGE,
+                            3306,
+                            new String[] {
+                                "# MySQL Database",
+                                "MYSQL_DATABASE",
+                                "MYSQL_USER",
+                                "MYSQL_PASSWORD",
+                                "MYSQL_ROOT_PASSWORD",
+                                "/var/lib/mysql"
+                            }),
+                    Arguments.of(
+                            "mariadb",
+                            GeneratedProjectVersions.MARIADB_DOCKER_IMAGE,
+                            3306,
+                            new String[] {
+                                "# MariaDB Database",
+                                "MARIADB_DATABASE",
+                                "MARIADB_USER",
+                                "MARIADB_PASSWORD"
+                            }),
+                    Arguments.of(
+                            "sqlserver",
+                            GeneratedProjectVersions.SQLSERVER_DOCKER_IMAGE,
+                            1433,
+                            new String[] {
+                                "# SQL Server Database",
+                                "ACCEPT_EULA=Y",
+                                "MSSQL_SA_PASSWORD",
+                                "MSSQL_PID=Express",
+                                "/var/opt/mssql"
+                            }),
+                    Arguments.of(
+                            "oracle",
+                            GeneratedProjectVersions.ORACLE_DOCKER_IMAGE,
+                            1521,
+                            new String[] {
+                                "# Oracle Database",
+                                "ORACLE_PASSWORD",
+                                "APP_USER",
+                                "APP_USER_PASSWORD",
+                                "/opt/oracle/oradata"
+                            }));
         }
 
         @ParameterizedTest(name = "Should generate {0} service")
         @MethodSource("databaseServiceTestCases")
         @DisplayName("Should generate database service with correct configuration")
-        void shouldGenerateDatabaseService(String dbType, String dockerImage, int port, String[] expectedContents) {
+        void shouldGenerateDatabaseService(
+                String dbType, String dockerImage, int port, String[] expectedContents) {
             GenerateRequest.DatabaseConfig db = createDefaultDbConfig();
 
-            String result = dockerConfigGenerator.generateDatabaseService(db, dbType, dockerImage, port);
+            String result =
+                    dockerConfigGenerator.generateDatabaseService(db, dbType, dockerImage, port);
 
             assertThat(result).contains(dockerImage);
             for (String expected : expectedContents) {
@@ -258,8 +297,12 @@ class DockerConfigGeneratorTest {
         void shouldIncludeHealthCheckForEachDatabaseType() {
             GenerateRequest.DatabaseConfig db = createDefaultDbConfig();
 
-            String postgresResult = dockerConfigGenerator.generateDatabaseService(db, "postgresql", GeneratedProjectVersions.POSTGRES_DOCKER_IMAGE, 5432);
-            String mysqlResult = dockerConfigGenerator.generateDatabaseService(db, "mysql", GeneratedProjectVersions.MYSQL_DOCKER_IMAGE, 3306);
+            String postgresResult =
+                    dockerConfigGenerator.generateDatabaseService(
+                            db, "postgresql", GeneratedProjectVersions.POSTGRES_DOCKER_IMAGE, 5432);
+            String mysqlResult =
+                    dockerConfigGenerator.generateDatabaseService(
+                            db, "mysql", GeneratedProjectVersions.MYSQL_DOCKER_IMAGE, 3306);
 
             assertThat(postgresResult).contains("pg_isready");
             // In YAML array format, mysqladmin and ping are separate elements
@@ -288,10 +331,7 @@ class DockerConfigGeneratorTest {
         void shouldExcludeIdeFiles() {
             String result = dockerConfigGenerator.generateDockerignore();
 
-            assertThat(result)
-                    .contains(".idea/")
-                    .contains("*.iml")
-                    .contains(".vscode/");
+            assertThat(result).contains(".idea/").contains("*.iml").contains(".vscode/");
         }
 
         @Test
@@ -299,9 +339,7 @@ class DockerConfigGeneratorTest {
         void shouldExcludeGitFiles() {
             String result = dockerConfigGenerator.generateDockerignore();
 
-            assertThat(result)
-                    .contains(".git/")
-                    .contains(".gitignore");
+            assertThat(result).contains(".git/").contains(".gitignore");
         }
 
         @Test
@@ -309,9 +347,7 @@ class DockerConfigGeneratorTest {
         void shouldExcludeEnvironmentFiles() {
             String result = dockerConfigGenerator.generateDockerignore();
 
-            assertThat(result)
-                    .contains(".env")
-                    .contains(".env.*");
+            assertThat(result).contains(".env").contains(".env.*");
         }
 
         @Test

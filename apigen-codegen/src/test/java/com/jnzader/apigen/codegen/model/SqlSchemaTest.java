@@ -1,14 +1,13 @@
 package com.jnzader.apigen.codegen.model;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("SqlSchema Tests")
 class SqlSchemaTest {
@@ -22,11 +21,13 @@ class SqlSchemaTest {
         void shouldExcludeJunctionTables() {
             SqlTable products = createSimpleTable("products");
             SqlTable categories = createSimpleTable("categories");
-            SqlTable productCategories = createJunctionTable("product_categories", "products", "categories");
+            SqlTable productCategories =
+                    createJunctionTable("product_categories", "products", "categories");
 
-            SqlSchema schema = SqlSchema.builder()
-                    .tables(List.of(products, categories, productCategories))
-                    .build();
+            SqlSchema schema =
+                    SqlSchema.builder()
+                            .tables(List.of(products, categories, productCategories))
+                            .build();
 
             List<SqlTable> result = schema.getEntityTables();
 
@@ -43,9 +44,10 @@ class SqlSchemaTest {
             SqlTable productsAudit = createSimpleTable("products_audit");
             SqlTable revisionInfo = createSimpleTable("revision_info");
 
-            SqlSchema schema = SqlSchema.builder()
-                    .tables(List.of(products, productsAud, productsAudit, revisionInfo))
-                    .build();
+            SqlSchema schema =
+                    SqlSchema.builder()
+                            .tables(List.of(products, productsAud, productsAudit, revisionInfo))
+                            .build();
 
             List<SqlTable> result = schema.getEntityTables();
 
@@ -62,11 +64,13 @@ class SqlSchemaTest {
         void shouldReturnOnlyJunctionTables() {
             SqlTable products = createSimpleTable("products");
             SqlTable categories = createSimpleTable("categories");
-            SqlTable productCategories = createJunctionTable("product_categories", "products", "categories");
+            SqlTable productCategories =
+                    createJunctionTable("product_categories", "products", "categories");
 
-            SqlSchema schema = SqlSchema.builder()
-                    .tables(List.of(products, categories, productCategories))
-                    .build();
+            SqlSchema schema =
+                    SqlSchema.builder()
+                            .tables(List.of(products, categories, productCategories))
+                            .build();
 
             List<SqlTable> result = schema.getJunctionTables();
 
@@ -84,9 +88,7 @@ class SqlSchemaTest {
             SqlTable products = createSimpleTable("products");
             SqlTable categories = createSimpleTable("categories");
 
-            SqlSchema schema = SqlSchema.builder()
-                    .tables(List.of(products, categories))
-                    .build();
+            SqlSchema schema = SqlSchema.builder().tables(List.of(products, categories)).build();
 
             assertThat(schema.getTableByName("PRODUCTS")).isEqualTo(products);
             assertThat(schema.getTableByName("products")).isEqualTo(products);
@@ -95,9 +97,8 @@ class SqlSchemaTest {
         @Test
         @DisplayName("Should return null for non-existent table")
         void shouldReturnNullForNonExistentTable() {
-            SqlSchema schema = SqlSchema.builder()
-                    .tables(List.of(createSimpleTable("products")))
-                    .build();
+            SqlSchema schema =
+                    SqlSchema.builder().tables(List.of(createSimpleTable("products"))).build();
 
             assertThat(schema.getTableByName("nonexistent")).isNull();
         }
@@ -113,21 +114,18 @@ class SqlSchemaTest {
             SqlTable products = createSimpleTable("products");
             SqlTable categories = createSimpleTable("categories");
 
-            SqlColumn categoryIdColumn = SqlColumn.builder()
-                    .name("category_id")
-                    .javaType("Long")
-                    .unique(false)
-                    .build();
+            SqlColumn categoryIdColumn =
+                    SqlColumn.builder().name("category_id").javaType("Long").unique(false).build();
             products.getColumns().add(categoryIdColumn);
-            products.getForeignKeys().add(SqlForeignKey.builder()
-                    .columnName("category_id")
-                    .referencedTable("categories")
-                    .referencedColumn("id")
-                    .build());
+            products.getForeignKeys()
+                    .add(
+                            SqlForeignKey.builder()
+                                    .columnName("category_id")
+                                    .referencedTable("categories")
+                                    .referencedColumn("id")
+                                    .build());
 
-            SqlSchema schema = SqlSchema.builder()
-                    .tables(List.of(products, categories))
-                    .build();
+            SqlSchema schema = SqlSchema.builder().tables(List.of(products, categories)).build();
 
             List<SqlSchema.TableRelationship> result = schema.getAllRelationships();
 
@@ -141,14 +139,14 @@ class SqlSchemaTest {
         @DisplayName("Should skip relationships to non-existent tables")
         void shouldSkipRelationshipsToNonExistentTables() {
             SqlTable products = createSimpleTable("products");
-            products.getForeignKeys().add(SqlForeignKey.builder()
-                    .columnName("category_id")
-                    .referencedTable("nonexistent")
-                    .build());
+            products.getForeignKeys()
+                    .add(
+                            SqlForeignKey.builder()
+                                    .columnName("category_id")
+                                    .referencedTable("nonexistent")
+                                    .build());
 
-            SqlSchema schema = SqlSchema.builder()
-                    .tables(List.of(products))
-                    .build();
+            SqlSchema schema = SqlSchema.builder().tables(List.of(products)).build();
 
             List<SqlSchema.TableRelationship> result = schema.getAllRelationships();
 
@@ -167,9 +165,8 @@ class SqlSchemaTest {
             SqlTable productVariants = createSimpleTable("product_variants");
             SqlTable users = createSimpleTable("users");
 
-            SqlSchema schema = SqlSchema.builder()
-                    .tables(List.of(products, productVariants, users))
-                    .build();
+            SqlSchema schema =
+                    SqlSchema.builder().tables(List.of(products, productVariants, users)).build();
 
             Map<String, List<SqlTable>> result = schema.getTablesByModule();
 
@@ -187,16 +184,15 @@ class SqlSchemaTest {
         @Test
         @DisplayName("Should report tables without primary keys")
         void shouldReportTablesWithoutPrimaryKeys() {
-            SqlTable table = SqlTable.builder()
-                    .name("no_pk_table")
-                    .columns(List.of(SqlColumn.builder().name("name").build()))
-                    .primaryKeyColumns(new ArrayList<>())
-                    .foreignKeys(new ArrayList<>())
-                    .build();
+            SqlTable table =
+                    SqlTable.builder()
+                            .name("no_pk_table")
+                            .columns(List.of(SqlColumn.builder().name("name").build()))
+                            .primaryKeyColumns(new ArrayList<>())
+                            .foreignKeys(new ArrayList<>())
+                            .build();
 
-            SqlSchema schema = SqlSchema.builder()
-                    .tables(List.of(table))
-                    .build();
+            SqlSchema schema = SqlSchema.builder().tables(List.of(table)).build();
 
             List<String> issues = schema.validate();
 
@@ -207,14 +203,14 @@ class SqlSchemaTest {
         @DisplayName("Should report dangling foreign keys")
         void shouldReportDanglingForeignKeys() {
             SqlTable products = createSimpleTable("products");
-            products.getForeignKeys().add(SqlForeignKey.builder()
-                    .columnName("category_id")
-                    .referencedTable("nonexistent_table")
-                    .build());
+            products.getForeignKeys()
+                    .add(
+                            SqlForeignKey.builder()
+                                    .columnName("category_id")
+                                    .referencedTable("nonexistent_table")
+                                    .build());
 
-            SqlSchema schema = SqlSchema.builder()
-                    .tables(List.of(products))
-                    .build();
+            SqlSchema schema = SqlSchema.builder().tables(List.of(products)).build();
 
             List<String> issues = schema.validate();
 
@@ -228,9 +224,7 @@ class SqlSchemaTest {
             SqlTable users = createSimpleTable("users");
             SqlTable user = createSimpleTable("user");
 
-            SqlSchema schema = SqlSchema.builder()
-                    .tables(List.of(users, user))
-                    .build();
+            SqlSchema schema = SqlSchema.builder().tables(List.of(users, user)).build();
 
             List<String> issues = schema.validate();
 
@@ -243,9 +237,7 @@ class SqlSchemaTest {
             SqlTable products = createSimpleTable("products");
             SqlTable categories = createSimpleTable("categories");
 
-            SqlSchema schema = SqlSchema.builder()
-                    .tables(List.of(products, categories))
-                    .build();
+            SqlSchema schema = SqlSchema.builder().tables(List.of(products, categories)).build();
 
             List<String> issues = schema.validate();
 
@@ -275,9 +267,14 @@ class SqlSchemaTest {
     private SqlTable createSimpleTable(String name) {
         return SqlTable.builder()
                 .name(name)
-                .columns(new ArrayList<>(List.of(
-                        SqlColumn.builder().name("id").javaType("Long").primaryKey(true).build()
-                )))
+                .columns(
+                        new ArrayList<>(
+                                List.of(
+                                        SqlColumn.builder()
+                                                .name("id")
+                                                .javaType("Long")
+                                                .primaryKey(true)
+                                                .build())))
                 .primaryKeyColumns(new ArrayList<>(List.of("id")))
                 .foreignKeys(new ArrayList<>())
                 .indexes(new ArrayList<>())
@@ -290,15 +287,31 @@ class SqlSchemaTest {
 
         return SqlTable.builder()
                 .name(name)
-                .columns(new ArrayList<>(List.of(
-                        SqlColumn.builder().name(col1).javaType("Long").primaryKey(true).build(),
-                        SqlColumn.builder().name(col2).javaType("Long").primaryKey(true).build()
-                )))
+                .columns(
+                        new ArrayList<>(
+                                List.of(
+                                        SqlColumn.builder()
+                                                .name(col1)
+                                                .javaType("Long")
+                                                .primaryKey(true)
+                                                .build(),
+                                        SqlColumn.builder()
+                                                .name(col2)
+                                                .javaType("Long")
+                                                .primaryKey(true)
+                                                .build())))
                 .primaryKeyColumns(new ArrayList<>(List.of(col1, col2)))
-                .foreignKeys(new ArrayList<>(List.of(
-                        SqlForeignKey.builder().columnName(col1).referencedTable(table1).build(),
-                        SqlForeignKey.builder().columnName(col2).referencedTable(table2).build()
-                )))
+                .foreignKeys(
+                        new ArrayList<>(
+                                List.of(
+                                        SqlForeignKey.builder()
+                                                .columnName(col1)
+                                                .referencedTable(table1)
+                                                .build(),
+                                        SqlForeignKey.builder()
+                                                .columnName(col2)
+                                                .referencedTable(table2)
+                                                .build())))
                 .indexes(new ArrayList<>())
                 .build();
     }

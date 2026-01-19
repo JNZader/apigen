@@ -1,8 +1,6 @@
 package com.jnzader.apigen.server.service.generator.util;
 
-/**
- * Utility methods for string transformations.
- */
+/** Utility methods for string transformations. */
 public final class StringTransformationUtil {
 
     private StringTransformationUtil() {
@@ -73,10 +71,12 @@ public final class StringTransformationUtil {
      * @return the escaped JSON string (including surrounding quotes)
      */
     public static String escapeJsonString(String s) {
-        return "\"" + s.replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\n", "\\n")
-                .replace("\r", "\\r")
-                .replace("\t", "\\t") + "\"";
+        return "\""
+                + s.replace("\\", "\\\\")
+                        .replace("\"", "\\\"")
+                        .replace("\n", "\\n")
+                        .replace("\r", "\\r")
+                        .replace("\t", "\\t")
+                + "\"";
     }
 }

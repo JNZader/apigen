@@ -1,14 +1,15 @@
 package com.jnzader.apigen.security.infrastructure.jwt;
 
+import jakarta.annotation.Nonnull;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import jakarta.annotation.Nonnull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,13 +18,11 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
-
 /**
  * Filtro de autenticación JWT que procesa cada request.
- * <p>
- * Extrae el token del header Authorization, lo valida y establece
- * el contexto de seguridad si es válido.
+ *
+ * <p>Extrae el token del header Authorization, lo valida y establece el contexto de seguridad si es
+ * válido.
  */
 @Component
 @ConditionalOnProperty(name = "apigen.security.enabled", havingValue = "true")
@@ -46,8 +45,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(
             @Nonnull HttpServletRequest request,
             @Nonnull HttpServletResponse response,
-            @Nonnull FilterChain filterChain
-    ) throws ServletException, IOException {
+            @Nonnull FilterChain filterChain)
+            throws ServletException, IOException {
 
         final String authHeader = request.getHeader(AUTHORIZATION_HEADER);
 
@@ -62,17 +61,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             final String username = jwtService.extractUsername(jwt);
 
             // Si hay username y no hay autenticación previa
-            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            if (username != null
+                    && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
                 // Verificar que sea un access token y que sea válido
                 if (jwtService.isAccessToken(jwt) && jwtService.isTokenValid(jwt, userDetails)) {
-                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            userDetails,
-                            null,
-                            userDetails.getAuthorities()
-                    );
-                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails, null, userDetails.getAuthorities());
+                    authToken.setDetails(
+                            new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                     log.debug("Usuario autenticado: {}", username);
                 }

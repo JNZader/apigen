@@ -1,13 +1,12 @@
 package com.jnzader.apigen.core.infrastructure.exception;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.net.URI;
 import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("ProblemDetail Tests")
 class ProblemDetailTest {
@@ -36,7 +35,8 @@ class ProblemDetailTest {
 
             assertThat(detail.status()).isEqualTo(400);
             assertThat(detail.title()).isEqualTo("Error de validación");
-            assertThat(detail.type()).hasToString("https://api.example.com/problems/validation-error");
+            assertThat(detail.type())
+                    .hasToString("https://api.example.com/problems/validation-error");
             assertThat(detail.extensions()).containsEntry("field", "error message");
         }
 
@@ -68,7 +68,8 @@ class ProblemDetailTest {
 
             assertThat(detail.status()).isEqualTo(500);
             assertThat(detail.title()).isEqualTo("Error interno del servidor");
-            assertThat(detail.type()).hasToString("https://api.example.com/problems/internal-error");
+            assertThat(detail.type())
+                    .hasToString("https://api.example.com/problems/internal-error");
         }
 
         @Test
@@ -88,7 +89,8 @@ class ProblemDetailTest {
 
             assertThat(detail.status()).isEqualTo(412);
             assertThat(detail.title()).isEqualTo("Precondición fallida");
-            assertThat(detail.type()).hasToString("https://api.example.com/problems/precondition-failed");
+            assertThat(detail.type())
+                    .hasToString("https://api.example.com/problems/precondition-failed");
         }
 
         @Test
@@ -112,14 +114,15 @@ class ProblemDetailTest {
             URI type = URI.create("https://example.com/problems/custom");
             URI instance = URI.create("/api/users/1");
 
-            ProblemDetail detail = ProblemDetail.builder()
-                    .type(type)
-                    .title("Custom Error")
-                    .status(418)
-                    .detail("I'm a teapot")
-                    .instance(instance)
-                    .extension("custom", "value")
-                    .build();
+            ProblemDetail detail =
+                    ProblemDetail.builder()
+                            .type(type)
+                            .title("Custom Error")
+                            .status(418)
+                            .detail("I'm a teapot")
+                            .instance(instance)
+                            .extension("custom", "value")
+                            .build();
 
             assertThat(detail.type()).isEqualTo(type);
             assertThat(detail.title()).isEqualTo("Custom Error");
@@ -132,11 +135,12 @@ class ProblemDetailTest {
         @Test
         @DisplayName("should set instance from string path")
         void shouldSetInstanceFromStringPath() {
-            ProblemDetail detail = ProblemDetail.builder()
-                    .status(404)
-                    .title("Not Found")
-                    .instance("/api/users/123")
-                    .build();
+            ProblemDetail detail =
+                    ProblemDetail.builder()
+                            .status(404)
+                            .title("Not Found")
+                            .instance("/api/users/123")
+                            .build();
 
             assertThat(detail.instance()).hasToString("/api/users/123");
         }
@@ -146,11 +150,12 @@ class ProblemDetailTest {
         void shouldAddMultipleExtensions() {
             Map<String, Object> extensions = Map.of("key1", "value1", "key2", "value2");
 
-            ProblemDetail detail = ProblemDetail.builder()
-                    .status(400)
-                    .title("Error")
-                    .extensions(extensions)
-                    .build();
+            ProblemDetail detail =
+                    ProblemDetail.builder()
+                            .status(400)
+                            .title("Error")
+                            .extensions(extensions)
+                            .build();
 
             assertThat(detail.extensions())
                     .containsEntry("key1", "value1")
@@ -160,21 +165,17 @@ class ProblemDetailTest {
         @Test
         @DisplayName("should generate type from title when not provided")
         void shouldGenerateTypeFromTitleWhenNotProvided() {
-            ProblemDetail detail = ProblemDetail.builder()
-                    .status(400)
-                    .title("Custom Error Title")
-                    .build();
+            ProblemDetail detail =
+                    ProblemDetail.builder().status(400).title("Custom Error Title").build();
 
-            assertThat(detail.type()).hasToString("https://api.example.com/problems/custom-error-title");
+            assertThat(detail.type())
+                    .hasToString("https://api.example.com/problems/custom-error-title");
         }
 
         @Test
         @DisplayName("should have null extensions when empty")
         void shouldHaveNullExtensionsWhenEmpty() {
-            ProblemDetail detail = ProblemDetail.builder()
-                    .status(400)
-                    .title("Error")
-                    .build();
+            ProblemDetail detail = ProblemDetail.builder().status(400).title("Error").build();
 
             assertThat(detail.extensions()).isNull();
         }
@@ -182,10 +183,7 @@ class ProblemDetailTest {
         @Test
         @DisplayName("should include timestamp")
         void shouldIncludeTimestamp() {
-            ProblemDetail detail = ProblemDetail.builder()
-                    .status(400)
-                    .title("Error")
-                    .build();
+            ProblemDetail detail = ProblemDetail.builder().status(400).title("Error").build();
 
             assertThat(detail.timestamp()).isNotNull();
         }

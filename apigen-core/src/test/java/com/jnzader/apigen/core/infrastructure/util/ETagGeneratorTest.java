@@ -1,10 +1,10 @@
 package com.jnzader.apigen.core.infrastructure.util;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("ETagGenerator Tests")
 class ETagGeneratorTest {
@@ -19,10 +19,7 @@ class ETagGeneratorTest {
             var obj = new TestObject("test", 123);
             String etag = ETagGenerator.generate(obj);
 
-            assertThat(etag)
-                    .isNotNull()
-                    .startsWith("\"")
-                    .endsWith("\"");
+            assertThat(etag).isNotNull().startsWith("\"").endsWith("\"");
         }
 
         @Test
@@ -67,9 +64,7 @@ class ETagGeneratorTest {
             var obj = new TestObject("test", 123);
             String etag = ETagGenerator.generateWeak(obj);
 
-            assertThat(etag)
-                    .isNotNull()
-                    .startsWith("W/\"");
+            assertThat(etag).isNotNull().startsWith("W/\"");
         }
 
         @Test

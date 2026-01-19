@@ -2,9 +2,7 @@ package com.jnzader.apigen.codegen.generator.test;
 
 import com.jnzader.apigen.codegen.model.SqlTable;
 
-/**
- * Generates unit test classes for Service implementations.
- */
+/** Generates unit test classes for Service implementations. */
 public class ServiceTestGenerator {
 
     private static final String APIGEN_CORE_PKG = "com.jnzader.apigen.core";
@@ -15,15 +13,14 @@ public class ServiceTestGenerator {
         this.basePackage = basePackage;
     }
 
-    /**
-     * Generates the Service test class code.
-     */
+    /** Generates the Service test class code. */
     public String generate(SqlTable table) {
         String entityName = table.getEntityName();
         String entityVarName = table.getEntityVariableName();
         String moduleName = table.getModuleName();
 
-        return """
+        return
+"""
 package %s.%s.application.service;
 
 import %s.application.service.CacheEvictionService;
@@ -288,34 +285,91 @@ class %sServiceImplTest {
         }
     }
 }
-""".formatted(
-                basePackage, moduleName,
-                APIGEN_CORE_PKG, APIGEN_CORE_PKG,
-                basePackage, moduleName, entityName,
-                basePackage, moduleName, entityName,
-                entityName, entityName,
-                entityName, entityName, entityName, entityVarName,
-                entityName, entityVarName, entityName, entityVarName, entityVarName,
-                // Find Operations
-                entityName, entityName, entityVarName, entityName, entityVarName,
-                entityName, entityName,
-                entityName, entityName, entityVarName, entityName,
-                entityName, entityName, entityVarName, entityName,
-                entityName,
-                entityName,
-                entityName,
-                // Save Operations
-                entityName, entityName, entityName, entityName, entityName, entityName, entityVarName,
-                entityName, entityName, entityName,
-                entityName, entityName, entityVarName, entityName, entityVarName, entityName, entityVarName, entityName,
-                entityName, entityName, entityVarName, entityName, entityVarName, entityName, entityVarName, entityName,
-                entityName, entityName, entityVarName, entityName, entityName,
-                // Delete Operations
-                entityName, entityName, entityVarName, entityName, entityVarName, entityName,
-                entityName, entityName,
-                entityName,
-                // Restore Operations
-                entityName
-        );
+"""
+                .formatted(
+                        basePackage,
+                        moduleName,
+                        APIGEN_CORE_PKG,
+                        APIGEN_CORE_PKG,
+                        basePackage,
+                        moduleName,
+                        entityName,
+                        basePackage,
+                        moduleName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityVarName,
+                        entityName,
+                        entityVarName,
+                        entityName,
+                        entityVarName,
+                        entityVarName,
+                        // Find Operations
+                        entityName,
+                        entityName,
+                        entityVarName,
+                        entityName,
+                        entityVarName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityVarName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityVarName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        // Save Operations
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityVarName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityVarName,
+                        entityName,
+                        entityVarName,
+                        entityName,
+                        entityVarName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityVarName,
+                        entityName,
+                        entityVarName,
+                        entityName,
+                        entityVarName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityVarName,
+                        entityName,
+                        entityName,
+                        // Delete Operations
+                        entityName,
+                        entityName,
+                        entityVarName,
+                        entityName,
+                        entityVarName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        entityName,
+                        // Restore Operations
+                        entityName);
     }
 }

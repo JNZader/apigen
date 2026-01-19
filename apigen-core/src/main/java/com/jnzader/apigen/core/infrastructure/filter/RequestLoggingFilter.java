@@ -4,6 +4,10 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.UUID;
+import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -14,20 +18,13 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.UUID;
-import java.util.regex.Pattern;
-
 /**
  * Filtro para logging de requests y responses HTTP.
- * <p>
- * Características:
- * - Genera un ID único de correlación para cada request (traceId)
- * - Registra información del request entrante (método, URI, headers)
- * - Registra información del response (status, duración)
- * - Soporta logging del body para debugging (configurable)
- * - Thread-safe usando MDC para el ID de correlación
+ *
+ * <p>Características: - Genera un ID único de correlación para cada request (traceId) - Registra
+ * información del request entrante (método, URI, headers) - Registra información del response
+ * (status, duración) - Soporta logging del body para debugging (configurable) - Thread-safe usando
+ * MDC para el ID de correlación
  */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -53,18 +50,19 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
     private static final int MAX_PAYLOAD_LENGTH = 1000;
 
     // Patrones para sanitizar información sensible
-    private static final Pattern JWT_PATTERN = Pattern.compile(
-            "(Bearer\\s+)?[\\w-]+\\.[\\w-]+\\.[\\w-]+",
-            Pattern.CASE_INSENSITIVE);
-    private static final Pattern PASSWORD_PATTERN = Pattern.compile(
-            "(password|passwd|pwd|secret|token|apikey|api_key|api-key|authorization)([\"':=\\s]+)([^\"',\\s}{\\]\\[]+)",
-            Pattern.CASE_INSENSITIVE);
-    private static final Pattern CREDIT_CARD_PATTERN = Pattern.compile(
-            "\\b(?:\\d{4}[- ]?){3}\\d{4}\\b");
+    private static final Pattern JWT_PATTERN =
+            Pattern.compile("(Bearer\\s+)?[\\w-]+\\.[\\w-]+\\.[\\w-]+", Pattern.CASE_INSENSITIVE);
+    private static final Pattern PASSWORD_PATTERN =
+            Pattern.compile(
+                    "(password|passwd|pwd|secret|token|apikey|api_key|api-key|authorization)([\"':=\\s]+)([^\"',\\s}{\\]\\[]+)",
+                    Pattern.CASE_INSENSITIVE);
+    private static final Pattern CREDIT_CARD_PATTERN =
+            Pattern.compile("\\b(?:\\d{4}[- ]?){3}\\d{4}\\b");
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(
+            HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
 
         // Generar o recuperar IDs de correlación
         String traceId = getOrGenerateId(request, TRACE_ID_HEADER);
@@ -81,7 +79,8 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         response.setHeader(REQUEST_ID_HEADER, requestId);
 
         // Cachear request y response para poder leer el body múltiples veces
-        ContentCachingRequestWrapper wrappedRequest = new ContentCachingRequestWrapper(request, MAX_PAYLOAD_LENGTH);
+        ContentCachingRequestWrapper wrappedRequest =
+                new ContentCachingRequestWrapper(request, MAX_PAYLOAD_LENGTH);
         ContentCachingResponseWrapper wrappedResponse = new ContentCachingResponseWrapper(response);
 
         long startTime = System.currentTimeMillis();
@@ -106,9 +105,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         }
     }
 
-    /**
-     * Obtiene un ID del header o genera uno nuevo.
-     */
+    /** Obtiene un ID del header o genera uno nuevo. */
     private String getOrGenerateId(HttpServletRequest request, String headerName) {
         String id = request.getHeader(headerName);
         if (id == null || id.isBlank()) {
@@ -118,11 +115,15 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
     }
 
     /**
-     * Pobla el MDC con toda la información de contexto del request.
-     * Estos campos aparecerán automáticamente en los logs JSON.
+     * Pobla el MDC con toda la información de contexto del request. Estos campos aparecerán
+     * automáticamente en los logs JSON.
      */
-    private void populateMdc(HttpServletRequest request, String traceId,
-                             String correlationId, String requestId, String spanId) {
+    private void populateMdc(
+            HttpServletRequest request,
+            String traceId,
+            String correlationId,
+            String requestId,
+            String spanId) {
         MDC.put(MDC_TRACE_ID, traceId);
         MDC.put(MDC_CORRELATION_ID, correlationId);
         MDC.put(MDC_REQUEST_ID, requestId);
@@ -136,9 +137,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         MDC.put(MDC_USER_ID, "anonymous");
     }
 
-    /**
-     * Limpia todos los campos MDC al finalizar el request.
-     */
+    /** Limpia todos los campos MDC al finalizar el request. */
     private void clearMdc() {
         MDC.remove(MDC_TRACE_ID);
         MDC.remove(MDC_CORRELATION_ID);
@@ -179,8 +178,10 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         log.info("{}", message);
     }
 
-    private void logResponse(ContentCachingRequestWrapper request, ContentCachingResponseWrapper response,
-                             long duration) {
+    private void logResponse(
+            ContentCachingRequestWrapper request,
+            ContentCachingResponseWrapper response,
+            long duration) {
         int status = response.getStatus();
         String method = request.getMethod();
         String uri = request.getRequestURI();
@@ -218,8 +219,8 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
     }
 
     /**
-     * Sanitiza texto removiendo información sensible.
-     * Reemplaza tokens, passwords, tarjetas de crédito y emails con placeholders.
+     * Sanitiza texto removiendo información sensible. Reemplaza tokens, passwords, tarjetas de
+     * crédito y emails con placeholders.
      */
     private String sanitize(String text) {
         if (text == null || text.isBlank()) {
@@ -269,10 +270,10 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
         // No loguear requests de actuator/health (demasiado frecuentes)
-        return path.startsWith("/actuator/health") ||
-                path.startsWith("/actuator/prometheus") ||
-                path.endsWith(".ico") ||
-                path.endsWith(".css") ||
-                path.endsWith(".js");
+        return path.startsWith("/actuator/health")
+                || path.startsWith("/actuator/prometheus")
+                || path.endsWith(".ico")
+                || path.endsWith(".css")
+                || path.endsWith(".js");
     }
 }

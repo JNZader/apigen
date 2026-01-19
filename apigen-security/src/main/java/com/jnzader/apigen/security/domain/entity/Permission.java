@@ -5,12 +5,12 @@ import jakarta.persistence.*;
 
 /**
  * Entidad que representa un permiso en el sistema.
- * <p>
- * Los permisos definen acciones específicas que pueden realizarse.
- * Se agrupan en roles para facilitar la gestión.
- * <p>
- * Convención de nombres: VERBO_RECURSO
- * Ejemplos: CREATE_USER, READ_USERS, UPDATE_PRODUCT, DELETE_ORDER
+ *
+ * <p>Los permisos definen acciones específicas que pueden realizarse. Se agrupan en roles para
+ * facilitar la gestión.
+ *
+ * <p>Convención de nombres: VERBO_RECURSO Ejemplos: CREATE_USER, READ_USERS, UPDATE_PRODUCT,
+ * DELETE_ORDER
  */
 @Entity
 @Table(name = "permissions")
@@ -23,15 +23,11 @@ public class Permission extends Base {
     @Column(length = 255)
     private String description;
 
-    /**
-     * Categoría del permiso para agrupación en UI.
-     * Ejemplos: USERS, PRODUCTS, ORDERS, SYSTEM
-     */
+    /** Categoría del permiso para agrupación en UI. Ejemplos: USERS, PRODUCTS, ORDERS, SYSTEM */
     @Column(length = 50)
     private String category;
 
-    public Permission() {
-    }
+    public Permission() {}
 
     public Permission(String name) {
         this.name = name;

@@ -1,5 +1,11 @@
 package com.jnzader.apigen.security.application.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+
 import com.jnzader.apigen.security.application.dto.AuthResponseDTO;
 import com.jnzader.apigen.security.application.dto.LoginRequestDTO;
 import com.jnzader.apigen.security.application.dto.RefreshTokenRequestDTO;
@@ -11,6 +17,9 @@ import com.jnzader.apigen.security.domain.entity.User;
 import com.jnzader.apigen.security.domain.repository.RoleRepository;
 import com.jnzader.apigen.security.domain.repository.UserRepository;
 import com.jnzader.apigen.security.infrastructure.jwt.JwtService;
+import java.time.Instant;
+import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -26,46 +35,26 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.time.Instant;
-import java.util.Optional;
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
-
-/**
- * Tests para AuthService.
- */
+/** Tests para AuthService. */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("AuthService Tests")
 class AuthServiceTest {
 
-    @Mock
-    private UserRepository userRepository;
+    @Mock private UserRepository userRepository;
 
-    @Mock
-    private RoleRepository roleRepository;
+    @Mock private RoleRepository roleRepository;
 
-    @Mock
-    private PasswordEncoder passwordEncoder;
+    @Mock private PasswordEncoder passwordEncoder;
 
-    @Mock
-    private JwtService jwtService;
+    @Mock private JwtService jwtService;
 
-    @Mock
-    private AuthenticationManager authenticationManager;
+    @Mock private AuthenticationManager authenticationManager;
 
-    @Mock
-    private TokenBlacklistService tokenBlacklistService;
+    @Mock private TokenBlacklistService tokenBlacklistService;
 
-    @InjectMocks
-    private AuthService authService;
+    @InjectMocks private AuthService authService;
 
-    @Captor
-    private ArgumentCaptor<User> userCaptor;
+    @Captor private ArgumentCaptor<User> userCaptor;
 
     private User testUser;
     private Role testRole;
@@ -115,7 +104,8 @@ class AuthServiceTest {
             when(userRepository.findActiveByUsername("testuser")).thenReturn(Optional.of(testUser));
             when(jwtService.generateAccessToken(testUser)).thenReturn("access-token");
             when(jwtService.generateRefreshToken(testUser)).thenReturn("refresh-token");
-            when(jwtService.extractExpiration("access-token")).thenReturn(Instant.now().plusSeconds(900));
+            when(jwtService.extractExpiration("access-token"))
+                    .thenReturn(Instant.now().plusSeconds(900));
 
             AuthResponseDTO response = authService.login(request);
 
@@ -126,7 +116,8 @@ class AuthServiceTest {
             assertThat(response.user().username()).isEqualTo("testuser");
             assertThat(response.user().email()).isEqualTo("test@example.com");
 
-            verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
+            verify(authenticationManager)
+                    .authenticate(any(UsernamePasswordAuthenticationToken.class));
         }
 
         @Test
@@ -149,7 +140,8 @@ class AuthServiceTest {
             LoginRequestDTO request = new LoginRequestDTO("nonexistent", "password123");
 
             when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-                    .thenReturn(new UsernamePasswordAuthenticationToken("nonexistent", "password123"));
+                    .thenReturn(
+                            new UsernamePasswordAuthenticationToken("nonexistent", "password123"));
             when(userRepository.findActiveByUsername("nonexistent")).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> authService.login(request))
@@ -165,22 +157,25 @@ class AuthServiceTest {
         @Test
         @DisplayName("should register new user successfully")
         void shouldRegisterNewUserSuccessfully() {
-            RegisterRequestDTO request = new RegisterRequestDTO(
-                    "newuser", "password123", "new@example.com", "New", "User"
-            );
+            RegisterRequestDTO request =
+                    new RegisterRequestDTO(
+                            "newuser", "password123", "new@example.com", "New", "User");
 
             when(userRepository.findByUsername("newuser")).thenReturn(Optional.empty());
             when(userRepository.findByEmail("new@example.com")).thenReturn(Optional.empty());
             when(roleRepository.findByName("USER")).thenReturn(Optional.of(testRole));
             when(passwordEncoder.encode("password123")).thenReturn("encoded-password");
-            when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
-                User user = invocation.getArgument(0);
-                user.setId(2L);
-                return user;
-            });
+            when(userRepository.save(any(User.class)))
+                    .thenAnswer(
+                            invocation -> {
+                                User user = invocation.getArgument(0);
+                                user.setId(2L);
+                                return user;
+                            });
             when(jwtService.generateAccessToken(any(User.class))).thenReturn("access-token");
             when(jwtService.generateRefreshToken(any(User.class))).thenReturn("refresh-token");
-            when(jwtService.extractExpiration("access-token")).thenReturn(Instant.now().plusSeconds(900));
+            when(jwtService.extractExpiration("access-token"))
+                    .thenReturn(Instant.now().plusSeconds(900));
 
             AuthResponseDTO response = authService.register(request);
 
@@ -199,9 +194,9 @@ class AuthServiceTest {
         @Test
         @DisplayName("should fail registration when username already exists")
         void shouldFailRegistrationWhenUsernameExists() {
-            RegisterRequestDTO request = new RegisterRequestDTO(
-                    "testuser", "password123", "new@example.com", "New", "User"
-            );
+            RegisterRequestDTO request =
+                    new RegisterRequestDTO(
+                            "testuser", "password123", "new@example.com", "New", "User");
 
             when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
 
@@ -215,9 +210,9 @@ class AuthServiceTest {
         @Test
         @DisplayName("should fail registration when email already exists")
         void shouldFailRegistrationWhenEmailExists() {
-            RegisterRequestDTO request = new RegisterRequestDTO(
-                    "newuser", "password123", "test@example.com", "New", "User"
-            );
+            RegisterRequestDTO request =
+                    new RegisterRequestDTO(
+                            "newuser", "password123", "test@example.com", "New", "User");
 
             when(userRepository.findByUsername("newuser")).thenReturn(Optional.empty());
             when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
@@ -232,9 +227,9 @@ class AuthServiceTest {
         @Test
         @DisplayName("should fail registration when default role not found")
         void shouldFailRegistrationWhenDefaultRoleNotFound() {
-            RegisterRequestDTO request = new RegisterRequestDTO(
-                    "newuser", "password123", "new@example.com", "New", "User"
-            );
+            RegisterRequestDTO request =
+                    new RegisterRequestDTO(
+                            "newuser", "password123", "new@example.com", "New", "User");
 
             when(userRepository.findByUsername("newuser")).thenReturn(Optional.empty());
             when(userRepository.findByEmail("new@example.com")).thenReturn(Optional.empty());
@@ -264,10 +259,12 @@ class AuthServiceTest {
             when(tokenBlacklistService.isBlacklisted("token-id-123")).thenReturn(false);
             when(jwtService.extractUsername(oldRefreshToken)).thenReturn("testuser");
             when(userRepository.findActiveByUsername("testuser")).thenReturn(Optional.of(testUser));
-            when(jwtService.extractExpiration(oldRefreshToken)).thenReturn(Instant.now().plusSeconds(3600));
+            when(jwtService.extractExpiration(oldRefreshToken))
+                    .thenReturn(Instant.now().plusSeconds(3600));
             when(jwtService.generateAccessToken(testUser)).thenReturn("new-access-token");
             when(jwtService.generateRefreshToken(testUser)).thenReturn("new-refresh-token");
-            when(jwtService.extractExpiration("new-access-token")).thenReturn(Instant.now().plusSeconds(900));
+            when(jwtService.extractExpiration("new-access-token"))
+                    .thenReturn(Instant.now().plusSeconds(900));
 
             AuthResponseDTO response = authService.refreshToken(request);
 
@@ -276,12 +273,12 @@ class AuthServiceTest {
             assertThat(response.refreshToken()).isEqualTo("new-refresh-token");
 
             // Verify token rotation: old token blacklisted
-            verify(tokenBlacklistService).blacklistToken(
-                    eq("token-id-123"),
-                    eq("testuser"),
-                    any(Instant.class),
-                    eq(BlacklistReason.TOKEN_ROTATED)
-            );
+            verify(tokenBlacklistService)
+                    .blacklistToken(
+                            eq("token-id-123"),
+                            eq("testuser"),
+                            any(Instant.class),
+                            eq(BlacklistReason.TOKEN_ROTATED));
         }
 
         @Test
@@ -361,12 +358,12 @@ class AuthServiceTest {
 
             authService.logout(token);
 
-            verify(tokenBlacklistService).blacklistToken(
-                    eq("token-id-123"),
-                    eq("testuser"),
-                    any(Instant.class),
-                    eq(BlacklistReason.LOGOUT)
-            );
+            verify(tokenBlacklistService)
+                    .blacklistToken(
+                            eq("token-id-123"),
+                            eq("testuser"),
+                            any(Instant.class),
+                            eq(BlacklistReason.LOGOUT));
         }
     }
 

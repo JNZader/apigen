@@ -16,15 +16,13 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
  * Handler genérico para eventos de dominio.
- * <p>
- * Características:
- * - Escucha eventos después de que la transacción se complete (AFTER_COMMIT)
- * - Procesa eventos de forma asíncrona para no bloquear la transacción
- * - Registra métricas de eventos para monitoreo
- * - Logging estructurado de eventos
- * <p>
- * Las subclases pueden sobrescribir los métodos handle* para añadir
- * comportamiento específico (notificaciones, integraciones, etc.)
+ *
+ * <p>Características: - Escucha eventos después de que la transacción se complete (AFTER_COMMIT) -
+ * Procesa eventos de forma asíncrona para no bloquear la transacción - Registra métricas de eventos
+ * para monitoreo - Logging estructurado de eventos
+ *
+ * <p>Las subclases pueden sobrescribir los métodos handle* para añadir comportamiento específico
+ * (notificaciones, integraciones, etc.)
  */
 @Component
 public class DomainEventHandler {
@@ -37,23 +35,27 @@ public class DomainEventHandler {
     private final Counter entityRestoredCounter;
 
     public DomainEventHandler(MeterRegistry meterRegistry) {
-        this.entityCreatedCounter = Counter.builder("domain.events.created")
-                .description("Number of entity created events")
-                .register(meterRegistry);
-        this.entityUpdatedCounter = Counter.builder("domain.events.updated")
-                .description("Number of entity updated events")
-                .register(meterRegistry);
-        this.entityDeletedCounter = Counter.builder("domain.events.deleted")
-                .description("Number of entity deleted events")
-                .register(meterRegistry);
-        this.entityRestoredCounter = Counter.builder("domain.events.restored")
-                .description("Number of entity restored events")
-                .register(meterRegistry);
+        this.entityCreatedCounter =
+                Counter.builder("domain.events.created")
+                        .description("Number of entity created events")
+                        .register(meterRegistry);
+        this.entityUpdatedCounter =
+                Counter.builder("domain.events.updated")
+                        .description("Number of entity updated events")
+                        .register(meterRegistry);
+        this.entityDeletedCounter =
+                Counter.builder("domain.events.deleted")
+                        .description("Number of entity deleted events")
+                        .register(meterRegistry);
+        this.entityRestoredCounter =
+                Counter.builder("domain.events.restored")
+                        .description("Number of entity restored events")
+                        .register(meterRegistry);
     }
 
     /**
-     * Maneja eventos de creación de entidades.
-     * Se ejecuta después de que la transacción se complete exitosamente.
+     * Maneja eventos de creación de entidades. Se ejecuta después de que la transacción se complete
+     * exitosamente.
      */
     @Async("domainEventExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -64,16 +66,18 @@ public class DomainEventHandler {
         String entityType = entity.getClass().getSimpleName();
         Object entityId = entity.getId();
 
-        log.info("Entity created: type={}, id={}, createdBy={}, occurredOn={}",
-                entityType, entityId, event.createdBy(), event.occurredOn());
+        log.info(
+                "Entity created: type={}, id={}, createdBy={}, occurredOn={}",
+                entityType,
+                entityId,
+                event.createdBy(),
+                event.occurredOn());
 
         // Hook para subclases
         onEntityCreated(event);
     }
 
-    /**
-     * Maneja eventos de actualización de entidades.
-     */
+    /** Maneja eventos de actualización de entidades. */
     @Async("domainEventExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public <E extends Base> void handleEntityUpdated(EntityUpdatedEvent<E> event) {
@@ -83,16 +87,18 @@ public class DomainEventHandler {
         String entityType = entity.getClass().getSimpleName();
         Object entityId = entity.getId();
 
-        log.info("Entity updated: type={}, id={}, updatedBy={}, occurredOn={}",
-                entityType, entityId, event.updatedBy(), event.occurredOn());
+        log.info(
+                "Entity updated: type={}, id={}, updatedBy={}, occurredOn={}",
+                entityType,
+                entityId,
+                event.updatedBy(),
+                event.occurredOn());
 
         // Hook para subclases
         onEntityUpdated(event);
     }
 
-    /**
-     * Maneja eventos de eliminación de entidades.
-     */
+    /** Maneja eventos de eliminación de entidades. */
     @Async("domainEventExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public <E extends Base> void handleEntityDeleted(EntityDeletedEvent<E> event) {
@@ -103,16 +109,19 @@ public class DomainEventHandler {
         Object entityId = entity.getId();
         String deleteType = event.softDelete() ? "soft" : "hard";
 
-        log.info("Entity deleted: type={}, id={}, deletedBy={}, deleteType={}, occurredOn={}",
-                entityType, entityId, event.deletedBy(), deleteType, event.occurredOn());
+        log.info(
+                "Entity deleted: type={}, id={}, deletedBy={}, deleteType={}, occurredOn={}",
+                entityType,
+                entityId,
+                event.deletedBy(),
+                deleteType,
+                event.occurredOn());
 
         // Hook para subclases
         onEntityDeleted(event);
     }
 
-    /**
-     * Maneja eventos de restauración de entidades.
-     */
+    /** Maneja eventos de restauración de entidades. */
     @Async("domainEventExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public <E extends Base> void handleEntityRestored(EntityRestoredEvent<E> event) {
@@ -122,8 +131,11 @@ public class DomainEventHandler {
         String entityType = entity.getClass().getSimpleName();
         Object entityId = entity.getId();
 
-        log.info("Entity restored: type={}, id={}, occurredOn={}",
-                entityType, entityId, event.occurredOn());
+        log.info(
+                "Entity restored: type={}, id={}, occurredOn={}",
+                entityType,
+                entityId,
+                event.occurredOn());
 
         // Hook para subclases
         onEntityRestored(event);
@@ -132,30 +144,24 @@ public class DomainEventHandler {
     // ==================== Hooks para extensibilidad ====================
 
     /**
-     * Hook llamado después de crear una entidad.
-     * Las subclases pueden sobrescribir para añadir comportamiento.
+     * Hook llamado después de crear una entidad. Las subclases pueden sobrescribir para añadir
+     * comportamiento.
      */
     protected <E extends Base> void onEntityCreated(EntityCreatedEvent<E> event) {
         // Las subclases pueden sobrescribir para notificaciones, integraciones, etc.
     }
 
-    /**
-     * Hook llamado después de actualizar una entidad.
-     */
+    /** Hook llamado después de actualizar una entidad. */
     protected <E extends Base> void onEntityUpdated(EntityUpdatedEvent<E> event) {
         // Las subclases pueden sobrescribir
     }
 
-    /**
-     * Hook llamado después de eliminar una entidad.
-     */
+    /** Hook llamado después de eliminar una entidad. */
     protected <E extends Base> void onEntityDeleted(EntityDeletedEvent<E> event) {
         // Las subclases pueden sobrescribir
     }
 
-    /**
-     * Hook llamado después de restaurar una entidad.
-     */
+    /** Hook llamado después de restaurar una entidad. */
     protected <E extends Base> void onEntityRestored(EntityRestoredEvent<E> event) {
         // Las subclases pueden sobrescribir
     }

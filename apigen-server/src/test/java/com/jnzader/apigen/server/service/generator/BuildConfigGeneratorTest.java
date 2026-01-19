@@ -1,5 +1,7 @@
 package com.jnzader.apigen.server.service.generator;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.jnzader.apigen.server.config.GeneratedProjectVersions;
 import com.jnzader.apigen.server.dto.GenerateRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,10 +11,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 @DisplayName("BuildConfigGenerator Tests")
-@SuppressWarnings("java:S5976") // Tests validate different specific features, not the same feature with different inputs
+@SuppressWarnings(
+        "java:S5976") // Tests validate different specific features, not the same feature with
+// different inputs
 class BuildConfigGeneratorTest {
 
     private BuildConfigGenerator buildConfigGenerator;
@@ -90,7 +92,9 @@ class BuildConfigGeneratorTest {
 
             String result = buildConfigGenerator.generateBuildGradle(config);
 
-            assertThat(result).contains("implementation 'com.github.jnzader.apigen:apigen-core:main-SNAPSHOT'");
+            assertThat(result)
+                    .contains(
+                            "implementation 'com.github.jnzader.apigen:apigen-core:main-SNAPSHOT'");
         }
 
         @Test
@@ -101,7 +105,10 @@ class BuildConfigGeneratorTest {
 
             String result = buildConfigGenerator.generateBuildGradle(config);
 
-            assertThat(result).contains("implementation 'com.github.jnzader.apigen:apigen-security:main-SNAPSHOT'");
+            assertThat(result)
+                    .contains(
+                            "implementation"
+                                    + " 'com.github.jnzader.apigen:apigen-security:main-SNAPSHOT'");
         }
 
         @Test
@@ -178,14 +185,15 @@ class BuildConfigGeneratorTest {
 
         @ParameterizedTest
         @CsvSource({
-                "postgresql, org.postgresql:postgresql",
-                "mysql, com.mysql:mysql-connector-j",
-                "mariadb, org.mariadb.jdbc:mariadb-java-client",
-                "sqlserver, com.microsoft.sqlserver:mssql-jdbc",
-                "oracle, com.oracle.database.jdbc:ojdbc11"
+            "postgresql, org.postgresql:postgresql",
+            "mysql, com.mysql:mysql-connector-j",
+            "mariadb, org.mariadb.jdbc:mariadb-java-client",
+            "sqlserver, com.microsoft.sqlserver:mssql-jdbc",
+            "oracle, com.oracle.database.jdbc:ojdbc11"
         })
         @DisplayName("Should include correct database driver for database type")
-        void shouldIncludeCorrectDatabaseDriverForDatabaseType(String dbType, String expectedDriver) {
+        void shouldIncludeCorrectDatabaseDriverForDatabaseType(
+                String dbType, String expectedDriver) {
             GenerateRequest.ProjectConfig config = createDefaultConfig();
             config.setDatabase(GenerateRequest.DatabaseConfig.builder().type(dbType).build());
 
@@ -201,9 +209,7 @@ class BuildConfigGeneratorTest {
 
             String result = buildConfigGenerator.generateBuildGradle(config);
 
-            assertThat(result)
-                    .contains("test {")
-                    .contains("useJUnitPlatform()");
+            assertThat(result).contains("test {").contains("useJUnitPlatform()");
         }
 
         @Test
@@ -217,7 +223,8 @@ class BuildConfigGeneratorTest {
 
             assertThat(result)
                     .contains("version '" + GeneratedProjectVersions.SPRING_BOOT_VERSION + "'")
-                    .contains("JavaLanguageVersion.of(" + GeneratedProjectVersions.JAVA_VERSION + ")")
+                    .contains(
+                            "JavaLanguageVersion.of(" + GeneratedProjectVersions.JAVA_VERSION + ")")
                     .contains("group = 'com.example'");
         }
     }

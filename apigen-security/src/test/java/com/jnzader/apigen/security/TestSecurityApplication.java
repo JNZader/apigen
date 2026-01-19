@@ -6,14 +6,13 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
  * Minimal test application for Spring Boot tests in the security module.
- * <p>
- * Scans security packages and excludes JPA auto-configuration from core
- * module that requires EntityManagerFactory bean.
+ *
+ * <p>Scans security packages and excludes JPA auto-configuration from core module that requires
+ * EntityManagerFactory bean.
  */
 @SpringBootApplication(
         scanBasePackages = "com.jnzader.apigen.security",
-        exclude = {ApigenJpaAutoConfiguration.class, ApigenCoreAutoConfiguration.class}
-)
+        exclude = {ApigenJpaAutoConfiguration.class, ApigenCoreAutoConfiguration.class})
 public class TestSecurityApplication {
     // Empty class - Spring Boot auto-configuration handles all setup via annotations
 }

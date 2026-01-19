@@ -1,13 +1,10 @@
 package com.jnzader.apigen.codegen.generator.util;
 
 import com.jnzader.apigen.codegen.model.SqlColumn;
-
 import java.util.Set;
 import java.util.TreeSet;
 
-/**
- * Manages imports for generated Java code.
- */
+/** Manages imports for generated Java code. */
 public class ImportManager {
 
     private final Set<String> imports = new TreeSet<>();

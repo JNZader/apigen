@@ -1,10 +1,6 @@
 package com.jnzader.apigen.server.service.generator.util;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -14,16 +10,18 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 @DisplayName("FileArchiveService Tests")
 class FileArchiveServiceTest {
 
     private FileArchiveService fileArchiveService;
 
-    @TempDir
-    Path tempDir;
+    @TempDir Path tempDir;
 
     @BeforeEach
     void setUp() {
@@ -62,10 +60,9 @@ class FileArchiveServiceTest {
 
             // Verify ZIP contents
             Set<String> entries = getZipEntries(zipBytes);
-            assertThat(entries).containsExactlyInAnyOrder(
-                    "project/src/main/java/App.java",
-                    "project/build.gradle"
-            );
+            assertThat(entries)
+                    .containsExactlyInAnyOrder(
+                            "project/src/main/java/App.java", "project/build.gradle");
         }
 
         @Test
@@ -78,11 +75,9 @@ class FileArchiveServiceTest {
             byte[] zipBytes = fileArchiveService.createZipFromDirectory(tempDir, "archive");
 
             Set<String> entries = getZipEntries(zipBytes);
-            assertThat(entries).containsExactlyInAnyOrder(
-                    "archive/file1.txt",
-                    "archive/file2.txt",
-                    "archive/file3.txt"
-            );
+            assertThat(entries)
+                    .containsExactlyInAnyOrder(
+                            "archive/file1.txt", "archive/file2.txt", "archive/file3.txt");
         }
 
         @Test
@@ -124,9 +119,7 @@ class FileArchiveServiceTest {
             Set<String> entries = getZipEntries(zipBytes);
             assertThat(entries)
                     .isNotEmpty()
-                    .allSatisfy(entry ->
-                            assertThat(entry).doesNotContain("\\")
-                    );
+                    .allSatisfy(entry -> assertThat(entry).doesNotContain("\\"));
         }
 
         private Set<String> getZipEntries(byte[] zipBytes) throws IOException {

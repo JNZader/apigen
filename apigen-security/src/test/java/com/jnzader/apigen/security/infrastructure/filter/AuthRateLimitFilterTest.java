@@ -1,8 +1,12 @@
 package com.jnzader.apigen.security.infrastructure.filter;
 
+import static org.mockito.Mockito.*;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -14,23 +18,15 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
-import static org.mockito.Mockito.*;
-
 @DisplayName("AuthRateLimitFilter Tests")
 @ExtendWith(MockitoExtension.class)
 class AuthRateLimitFilterTest {
 
-    @Mock
-    private HttpServletRequest request;
+    @Mock private HttpServletRequest request;
 
-    @Mock
-    private HttpServletResponse response;
+    @Mock private HttpServletResponse response;
 
-    @Mock
-    private FilterChain filterChain;
+    @Mock private FilterChain filterChain;
 
     private AuthRateLimitFilter filter;
 
@@ -149,11 +145,7 @@ class AuthRateLimitFilterTest {
     class NonLoginEndpointTests {
 
         @ParameterizedTest(name = "should pass through {0} {1}")
-        @CsvSource({
-                "/api/users, POST",
-                "/api/auth/login, GET",
-                "/actuator/health, GET"
-        })
+        @CsvSource({"/api/users, POST", "/api/auth/login, GET", "/actuator/health, GET"})
         @DisplayName("should pass through non-login endpoints without rate limiting")
         void shouldPassThroughNonLoginEndpoints(String uri, String method) throws Exception {
             when(request.getRequestURI()).thenReturn(uri);
@@ -202,7 +194,8 @@ class AuthRateLimitFilterTest {
         void shouldExtractFirstIpFromList() throws Exception {
             when(request.getRequestURI()).thenReturn("/api/auth/login");
             when(request.getMethod()).thenReturn("POST");
-            when(request.getHeader("X-Forwarded-For")).thenReturn("10.0.0.3, 192.168.1.1, 172.16.0.1");
+            when(request.getHeader("X-Forwarded-For"))
+                    .thenReturn("10.0.0.3, 192.168.1.1, 172.16.0.1");
             when(response.getStatus()).thenReturn(HttpStatus.OK.value());
 
             filter.doFilterInternal(request, response, filterChain);

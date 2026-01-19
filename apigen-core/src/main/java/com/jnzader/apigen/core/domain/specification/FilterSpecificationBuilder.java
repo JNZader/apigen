@@ -2,46 +2,47 @@ package com.jnzader.apigen.core.domain.specification;
 
 import com.jnzader.apigen.core.domain.entity.Base;
 import jakarta.persistence.criteria.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.stereotype.Component;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Component;
 
 /**
  * Constructor de especificaciones JPA dinámicas a partir de parámetros de filtrado.
- * <p>
- * Soporta un lenguaje de consulta simple basado en operadores:
+ *
+ * <p>Soporta un lenguaje de consulta simple basado en operadores:
+ *
  * <pre>
  * GET /api/v1/entities?filter=nombre:like:Juan,edad:gte:25,estado:eq:true
  * </pre>
- * <p>
- * Operadores soportados:
+ *
+ * <p>Operadores soportados:
+ *
  * <ul>
- *   <li><b>eq</b>: Igual (=)</li>
- *   <li><b>neq</b>: No igual (!=)</li>
- *   <li><b>like</b>: Contiene (LIKE %value%)</li>
- *   <li><b>starts</b>: Empieza con (LIKE value%)</li>
- *   <li><b>ends</b>: Termina con (LIKE %value)</li>
- *   <li><b>gt</b>: Mayor que (>)</li>
- *   <li><b>gte</b>: Mayor o igual (>=)</li>
- *   <li><b>lt</b>: Menor que (<)</li>
- *   <li><b>lte</b>: Menor o igual (<=)</li>
- *   <li><b>in</b>: En lista (IN (v1,v2,v3))</li>
- *   <li><b>notin</b>: No en lista (NOT IN)</li>
- *   <li><b>between</b>: Entre dos valores (BETWEEN)</li>
- *   <li><b>null</b>: Es nulo (IS NULL)</li>
- *   <li><b>notnull</b>: No es nulo (IS NOT NULL)</li>
+ *   <li><b>eq</b>: Igual (=)
+ *   <li><b>neq</b>: No igual (!=)
+ *   <li><b>like</b>: Contiene (LIKE %value%)
+ *   <li><b>starts</b>: Empieza con (LIKE value%)
+ *   <li><b>ends</b>: Termina con (LIKE %value)
+ *   <li><b>gt</b>: Mayor que (>)
+ *   <li><b>gte</b>: Mayor o igual (>=)
+ *   <li><b>lt</b>: Menor que (<)
+ *   <li><b>lte</b>: Menor o igual (<=)
+ *   <li><b>in</b>: En lista (IN (v1,v2,v3))
+ *   <li><b>notin</b>: No en lista (NOT IN)
+ *   <li><b>between</b>: Entre dos valores (BETWEEN)
+ *   <li><b>null</b>: Es nulo (IS NULL)
+ *   <li><b>notnull</b>: No es nulo (IS NOT NULL)
  * </ul>
- * <p>
- * Ejemplo de uso:
- * <pre>
- * {@code
+ *
+ * <p>Ejemplo de uso:
+ *
+ * <pre>{@code
  * @GetMapping
  * public ResponseEntity<?> findAll(
  *         @RequestParam(required = false) String filter,
@@ -50,8 +51,7 @@ import java.util.*;
  *     Specification<MyEntity> spec = filterBuilder.build(filter, MyEntity.class);
  *     return service.findAll(spec, pageable);
  * }
- * }
- * </pre>
+ * }</pre>
  */
 @Component
 public class FilterSpecificationBuilder {
@@ -65,9 +65,10 @@ public class FilterSpecificationBuilder {
     /**
      * Construye una Specification JPA a partir de un string de filtros.
      *
-     * @param filterString String con filtros en formato: campo:operador:valor,campo2:operador2:valor2
-     * @param entityClass  Clase de la entidad para validación de campos
-     * @param <E>          Tipo de entidad que extiende Base
+     * @param filterString String con filtros en formato:
+     *     campo:operador:valor,campo2:operador2:valor2
+     * @param entityClass Clase de la entidad para validación de campos
+     * @param <E> Tipo de entidad que extiende Base
      * @return Specification construida o specification vacía si no hay filtros
      */
     public <E extends Base> Specification<E> build(String filterString, Class<E> entityClass) {
@@ -81,11 +82,12 @@ public class FilterSpecificationBuilder {
     }
 
     /**
-     * Construye una Specification a partir de un Map de filtros.
-     * Útil cuando los filtros vienen como query params individuales.
+     * Construye una Specification a partir de un Map de filtros. Útil cuando los filtros vienen
+     * como query params individuales.
      *
-     * @param filters Map de campo -> valor (operador por defecto: eq para valores simples, like para strings)
-     * @param <E>     Tipo de entidad
+     * @param filters Map de campo -> valor (operador por defecto: eq para valores simples, like
+     *     para strings)
+     * @param <E> Tipo de entidad
      * @return Specification construida
      */
     public <E extends Base> Specification<E> build(Map<String, String> filters) {
@@ -97,12 +99,13 @@ public class FilterSpecificationBuilder {
         // Filtrar parámetros de sistema (page, size, sort, fields, etc.)
         Set<String> systemParams = Set.of("page", "size", "sort", "fields", "filter");
 
-        List<FilterCriteria> criteria = filters.entrySet().stream()
-                .filter(e -> !systemParams.contains(e.getKey().toLowerCase()))
-                .filter(e -> e.getValue() != null && !e.getValue().isBlank())
-                .map(this::parseMapEntry)
-                .filter(Objects::nonNull)
-                .toList();
+        List<FilterCriteria> criteria =
+                filters.entrySet().stream()
+                        .filter(e -> !systemParams.contains(e.getKey().toLowerCase()))
+                        .filter(e -> e.getValue() != null && !e.getValue().isBlank())
+                        .map(this::parseMapEntry)
+                        .filter(Objects::nonNull)
+                        .toList();
 
         return buildSpecification(criteria);
     }
@@ -213,14 +216,14 @@ public class FilterSpecificationBuilder {
             return switch (c.operator()) {
                 case EQ -> cb.equal(path, typedValue);
                 case NEQ -> cb.notEqual(path, typedValue);
-                case LIKE -> cb.like(cb.lower((Path<String>) path),
-                        "%" + c.value().toLowerCase() + "%");
-                case STARTS -> cb.like(cb.lower((Path<String>) path),
-                        c.value().toLowerCase() + "%");
-                case ENDS -> cb.like(cb.lower((Path<String>) path),
-                        "%" + c.value().toLowerCase());
+                case LIKE ->
+                        cb.like(cb.lower((Path<String>) path), "%" + c.value().toLowerCase() + "%");
+                case STARTS ->
+                        cb.like(cb.lower((Path<String>) path), c.value().toLowerCase() + "%");
+                case ENDS -> cb.like(cb.lower((Path<String>) path), "%" + c.value().toLowerCase());
                 case GT -> cb.greaterThan((Path<Comparable>) path, (Comparable) typedValue);
-                case GTE -> cb.greaterThanOrEqualTo((Path<Comparable>) path, (Comparable) typedValue);
+                case GTE ->
+                        cb.greaterThanOrEqualTo((Path<Comparable>) path, (Comparable) typedValue);
                 case LT -> cb.lessThan((Path<Comparable>) path, (Comparable) typedValue);
                 case LTE -> cb.lessThanOrEqualTo((Path<Comparable>) path, (Comparable) typedValue);
                 case IN -> buildInPredicate(path, c.value());
@@ -233,8 +236,8 @@ public class FilterSpecificationBuilder {
     }
 
     /**
-     * Obtiene el Path para un campo, soportando notación con puntos para relaciones.
-     * Ejemplo: "role.name" -> root.get("role").get("name")
+     * Obtiene el Path para un campo, soportando notación con puntos para relaciones. Ejemplo:
+     * "role.name" -> root.get("role").get("name")
      */
     private Path<?> getPath(Root<?> root, String field) {
         String[] parts = field.split("\\.");
@@ -259,10 +262,14 @@ public class FilterSpecificationBuilder {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private Predicate buildBetweenPredicate(CriteriaBuilder cb, Path<? extends Comparable> path, String value) {
+    private Predicate buildBetweenPredicate(
+            CriteriaBuilder cb, Path<? extends Comparable> path, String value) {
         String[] values = value.split(VALUE_LIST_SEPARATOR);
         if (values.length != 2) {
-            log.warn("BETWEEN requiere exactamente 2 valores separados por '{}': {}", VALUE_LIST_SEPARATOR, value);
+            log.warn(
+                    "BETWEEN requiere exactamente 2 valores separados por '{}': {}",
+                    VALUE_LIST_SEPARATOR,
+                    value);
             return cb.conjunction();
         }
 
@@ -273,9 +280,7 @@ public class FilterSpecificationBuilder {
         return cb.between(path, lower, upper);
     }
 
-    /**
-     * Convierte un valor string al tipo Java apropiado.
-     */
+    /** Convierte un valor string al tipo Java apropiado. */
     @SuppressWarnings("unchecked")
     private Object convertValue(String value, Class<?> targetType) {
         if (value == null) return null;
@@ -283,7 +288,11 @@ public class FilterSpecificationBuilder {
         try {
             return convertToType(value, targetType);
         } catch (Exception e) {
-            log.warn("Error convirtiendo valor '{}' a tipo {}: {}", value, targetType.getSimpleName(), e.getMessage());
+            log.warn(
+                    "Error convirtiendo valor '{}' a tipo {}: {}",
+                    value,
+                    targetType.getSimpleName(),
+                    e.getMessage());
             return value;
         }
     }
@@ -293,10 +302,12 @@ public class FilterSpecificationBuilder {
         if (targetType == String.class) return value;
         if (targetType == Long.class || targetType == long.class) return Long.parseLong(value);
         if (targetType == Integer.class || targetType == int.class) return Integer.parseInt(value);
-        if (targetType == Double.class || targetType == double.class) return Double.parseDouble(value);
+        if (targetType == Double.class || targetType == double.class)
+            return Double.parseDouble(value);
         if (targetType == Float.class || targetType == float.class) return Float.parseFloat(value);
         if (targetType == BigDecimal.class) return new BigDecimal(value);
-        if (targetType == Boolean.class || targetType == boolean.class) return Boolean.parseBoolean(value);
+        if (targetType == Boolean.class || targetType == boolean.class)
+            return Boolean.parseBoolean(value);
         if (targetType == LocalDateTime.class) return parseLocalDateTime(value);
         if (targetType == LocalDate.class) return LocalDate.parse(value);
         if (targetType.isEnum()) return Enum.valueOf((Class<Enum>) targetType, value.toUpperCase());
@@ -317,14 +328,10 @@ public class FilterSpecificationBuilder {
         }
     }
 
-    /**
-     * Registro para representar un criterio de filtro parseado.
-     */
+    /** Registro para representar un criterio de filtro parseado. */
     private record FilterCriteria(String field, FilterOperator operator, String value) {}
 
-    /**
-     * Enum de operadores de filtro soportados.
-     */
+    /** Enum de operadores de filtro soportados. */
     public enum FilterOperator {
         EQ("eq"),
         NEQ("neq"),

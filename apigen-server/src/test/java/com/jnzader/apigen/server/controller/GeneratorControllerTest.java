@@ -1,9 +1,15 @@
 package com.jnzader.apigen.server.controller;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jnzader.apigen.server.dto.GenerateRequest;
 import com.jnzader.apigen.server.dto.GenerateResponse;
 import com.jnzader.apigen.server.service.GeneratorService;
+import java.io.IOException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -15,19 +21,11 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.io.IOException;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 @ExtendWith(MockitoExtension.class)
 @DisplayName("GeneratorController Tests")
 class GeneratorControllerTest {
 
-    @Mock
-    private GeneratorService generatorService;
+    @Mock private GeneratorService generatorService;
 
     private MockMvc mockMvc;
     private ObjectMapper objectMapper;
@@ -52,12 +50,20 @@ class GeneratorControllerTest {
 
             when(generatorService.generateProject(any(GenerateRequest.class))).thenReturn(zipBytes);
 
-            mockMvc.perform(post("/api/generate")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
+            mockMvc.perform(
+                            post("/api/generate")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
-                    .andExpect(header().string("Content-Disposition", "form-data; name=\"attachment\"; filename=\"test-api.zip\""))
-                    .andExpect(header().string("Content-Type", MediaType.APPLICATION_OCTET_STREAM_VALUE))
+                    .andExpect(
+                            header().string(
+                                            "Content-Disposition",
+                                            "form-data; name=\"attachment\";"
+                                                    + " filename=\"test-api.zip\""))
+                    .andExpect(
+                            header().string(
+                                            "Content-Type",
+                                            MediaType.APPLICATION_OCTET_STREAM_VALUE))
                     .andExpect(content().bytes(zipBytes));
 
             verify(generatorService).generateProject(any(GenerateRequest.class));
@@ -72,11 +78,16 @@ class GeneratorControllerTest {
 
             when(generatorService.generateProject(any(GenerateRequest.class))).thenReturn(zipBytes);
 
-            mockMvc.perform(post("/api/generate")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
+            mockMvc.perform(
+                            post("/api/generate")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
-                    .andExpect(header().string("Content-Disposition", "form-data; name=\"attachment\"; filename=\"my-awesome-api.zip\""));
+                    .andExpect(
+                            header().string(
+                                            "Content-Disposition",
+                                            "form-data; name=\"attachment\";"
+                                                    + " filename=\"my-awesome-api.zip\""));
         }
 
         @Test
@@ -87,9 +98,10 @@ class GeneratorControllerTest {
 
             when(generatorService.generateProject(any(GenerateRequest.class))).thenReturn(zipBytes);
 
-            mockMvc.perform(post("/api/generate")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
+            mockMvc.perform(
+                            post("/api/generate")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
                     .andExpect(header().longValue("Content-Length", zipBytes.length));
         }
@@ -102,9 +114,10 @@ class GeneratorControllerTest {
             when(generatorService.generateProject(any(GenerateRequest.class)))
                     .thenThrow(new IOException("Disk full"));
 
-            mockMvc.perform(post("/api/generate")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
+            mockMvc.perform(
+                            post("/api/generate")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isInternalServerError());
         }
     }
@@ -117,20 +130,23 @@ class GeneratorControllerTest {
         @DisplayName("Should return success response for valid SQL")
         void shouldReturnSuccessResponseForValidSql() throws Exception {
             GenerateRequest request = createValidRequest();
-            GenerateResponse response = GenerateResponse.builder()
-                    .success(true)
-                    .message("SQL schema is valid")
-                    .stats(GenerateResponse.GenerationStats.builder()
-                            .tablesProcessed(1)
-                            .entitiesGenerated(1)
-                            .build())
-                    .build();
+            GenerateResponse response =
+                    GenerateResponse.builder()
+                            .success(true)
+                            .message("SQL schema is valid")
+                            .stats(
+                                    GenerateResponse.GenerationStats.builder()
+                                            .tablesProcessed(1)
+                                            .entitiesGenerated(1)
+                                            .build())
+                            .build();
 
             when(generatorService.validate(any(GenerateRequest.class))).thenReturn(response);
 
-            mockMvc.perform(post("/api/validate")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
+            mockMvc.perform(
+                            post("/api/validate")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.message").value("SQL schema is valid"));
@@ -143,13 +159,15 @@ class GeneratorControllerTest {
         void shouldReturnErrorResponseForInvalidSql() throws Exception {
             GenerateRequest request = createValidRequest();
             request.setSql("INVALID SQL");
-            GenerateResponse response = GenerateResponse.error("Validation failed", java.util.List.of("Parse error"));
+            GenerateResponse response =
+                    GenerateResponse.error("Validation failed", java.util.List.of("Parse error"));
 
             when(generatorService.validate(any(GenerateRequest.class))).thenReturn(response);
 
-            mockMvc.perform(post("/api/validate")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
+            mockMvc.perform(
+                            post("/api/validate")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(false))
                     .andExpect(jsonPath("$.errors").isArray());
@@ -159,20 +177,23 @@ class GeneratorControllerTest {
         @DisplayName("Should include stats in response")
         void shouldIncludeStatsInResponse() throws Exception {
             GenerateRequest request = createValidRequest();
-            GenerateResponse response = GenerateResponse.builder()
-                    .success(true)
-                    .message("Valid")
-                    .stats(GenerateResponse.GenerationStats.builder()
-                            .tablesProcessed(5)
-                            .entitiesGenerated(3)
-                            .build())
-                    .build();
+            GenerateResponse response =
+                    GenerateResponse.builder()
+                            .success(true)
+                            .message("Valid")
+                            .stats(
+                                    GenerateResponse.GenerationStats.builder()
+                                            .tablesProcessed(5)
+                                            .entitiesGenerated(3)
+                                            .build())
+                            .build();
 
             when(generatorService.validate(any(GenerateRequest.class))).thenReturn(response);
 
-            mockMvc.perform(post("/api/validate")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
+            mockMvc.perform(
+                            post("/api/validate")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.stats.tablesProcessed").value(5))
                     .andExpect(jsonPath("$.stats.entitiesGenerated").value(3));
@@ -208,10 +229,12 @@ class GeneratorControllerTest {
         @Test
         @DisplayName("Should create HealthResponse with values")
         void shouldCreateHealthResponseWithValues() {
-            GeneratorController.HealthResponse response = new GeneratorController.HealthResponse("ok", "test message");
+            GeneratorController.HealthResponse response =
+                    new GeneratorController.HealthResponse("ok", "test message");
 
             org.assertj.core.api.Assertions.assertThat(response.status()).isEqualTo("ok");
-            org.assertj.core.api.Assertions.assertThat(response.message()).isEqualTo("test message");
+            org.assertj.core.api.Assertions.assertThat(response.message())
+                    .isEqualTo("test message");
         }
     }
 
@@ -226,7 +249,8 @@ class GeneratorControllerTest {
             GeneratorController.GenerationException exception =
                     new GeneratorController.GenerationException("Generation failed", cause);
 
-            org.assertj.core.api.Assertions.assertThat(exception.getMessage()).isEqualTo("Generation failed");
+            org.assertj.core.api.Assertions.assertThat(exception.getMessage())
+                    .isEqualTo("Generation failed");
             org.assertj.core.api.Assertions.assertThat(exception.getCause()).isEqualTo(cause);
         }
 
@@ -236,32 +260,37 @@ class GeneratorControllerTest {
             GeneratorController.GenerationException exception =
                     new GeneratorController.GenerationException("test", new Exception());
 
-            org.assertj.core.api.Assertions.assertThat(exception).isInstanceOf(RuntimeException.class);
+            org.assertj.core.api.Assertions.assertThat(exception)
+                    .isInstanceOf(RuntimeException.class);
         }
     }
 
     private GenerateRequest createValidRequest() {
         return GenerateRequest.builder()
-                .project(GenerateRequest.ProjectConfig.builder()
-                        .name("Test Project")
-                        .groupId("com.example")
-                        .artifactId("test-api")
-                        .features(GenerateRequest.FeaturesConfig.builder()
-                                .docker(true)
-                                .swagger(true)
-                                .hateoas(true)
-                                .auditing(true)
-                                .softDelete(true)
-                                .caching(true)
+                .project(
+                        GenerateRequest.ProjectConfig.builder()
+                                .name("Test Project")
+                                .groupId("com.example")
+                                .artifactId("test-api")
+                                .features(
+                                        GenerateRequest.FeaturesConfig.builder()
+                                                .docker(true)
+                                                .swagger(true)
+                                                .hateoas(true)
+                                                .auditing(true)
+                                                .softDelete(true)
+                                                .caching(true)
+                                                .build())
+                                .database(
+                                        GenerateRequest.DatabaseConfig.builder()
+                                                .type("postgresql")
+                                                .name("testdb")
+                                                .username("testuser")
+                                                .password("testpass")
+                                                .build())
                                 .build())
-                        .database(GenerateRequest.DatabaseConfig.builder()
-                                .type("postgresql")
-                                .name("testdb")
-                                .username("testuser")
-                                .password("testpass")
-                                .build())
-                        .build())
-                .sql("""
+                .sql(
+                        """
                         CREATE TABLE products (
                             id BIGINT PRIMARY KEY,
                             name VARCHAR(255) NOT NULL

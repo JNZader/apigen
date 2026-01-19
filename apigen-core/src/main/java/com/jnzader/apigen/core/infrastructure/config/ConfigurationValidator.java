@@ -1,5 +1,7 @@
 package com.jnzader.apigen.core.infrastructure.config;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -8,25 +10,23 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Validador de configuración que se ejecuta al iniciar la aplicación.
- * <p>
- * Verifica que todas las propiedades críticas estén configuradas correctamente
- * antes de que la aplicación comience a procesar solicitudes.
- * <p>
- * Si alguna validación falla, la aplicación fallará en el inicio con un
- * mensaje descriptivo del problema.
- * <p>
- * Propiedades validadas:
+ *
+ * <p>Verifica que todas las propiedades críticas estén configuradas correctamente antes de que la
+ * aplicación comience a procesar solicitudes.
+ *
+ * <p>Si alguna validación falla, la aplicación fallará en el inicio con un mensaje descriptivo del
+ * problema.
+ *
+ * <p>Propiedades validadas:
+ *
  * <ul>
- *   <li>app.api.version - Versión de la API</li>
- *   <li>app.api.base-path - Ruta base de la API</li>
- *   <li>spring.datasource.url - URL de conexión a base de datos</li>
- *   <li>Configuración de caché</li>
- *   <li>Configuración de CORS</li>
+ *   <li>app.api.version - Versión de la API
+ *   <li>app.api.base-path - Ruta base de la API
+ *   <li>spring.datasource.url - URL de conexión a base de datos
+ *   <li>Configuración de caché
+ *   <li>Configuración de CORS
  * </ul>
  */
 @Component
@@ -91,8 +91,9 @@ public class ConfigurationValidator implements ApplicationRunner {
 
         // Fallar si hay errores críticos
         if (!errors.isEmpty()) {
-            String errorMessage = "Configuration validation failed:\n" +
-                    String.join("\n", errors.stream().map(e -> "  - " + e).toList());
+            String errorMessage =
+                    "Configuration validation failed:\n"
+                            + String.join("\n", errors.stream().map(e -> "  - " + e).toList());
             log.error(errorMessage);
             throw new IllegalStateException(errorMessage);
         }
@@ -118,26 +119,35 @@ public class ConfigurationValidator implements ApplicationRunner {
         if (isBlank(datasourceUrl)) {
             errors.add("spring.datasource.url must be configured");
         } else if (datasourceUrl.contains("localhost") && isProductionProfile()) {
-            errors.add("spring.datasource.url contains 'localhost' in production profile - this is likely a configuration error");
+            errors.add(
+                    "spring.datasource.url contains 'localhost' in production profile - this is"
+                            + " likely a configuration error");
         }
     }
 
     private void validateRecommendedProperties(List<String> warnings) {
         // Cache configuration
         if (cacheEntitiesMaxSize <= 0) {
-            warnings.add("app.cache.entities.max-size is not configured or is 0 - caching may be disabled");
+            warnings.add(
+                    "app.cache.entities.max-size is not configured or is 0 - caching may be"
+                            + " disabled");
         }
 
         // Rate limiting
         if (rateLimitMaxRequests <= 0) {
-            warnings.add("app.rate-limit.max-requests is not configured - rate limiting may be disabled");
+            warnings.add(
+                    "app.rate-limit.max-requests is not configured - rate limiting may be"
+                            + " disabled");
         }
 
         // CORS
         if (isBlank(corsAllowedOrigins)) {
-            warnings.add("app.cors.allowed-origins is not configured - CORS may not work correctly");
+            warnings.add(
+                    "app.cors.allowed-origins is not configured - CORS may not work correctly");
         } else if (corsAllowedOrigins.contains("*") && isProductionProfile()) {
-            warnings.add("app.cors.allowed-origins contains '*' in production - consider restricting to specific domains");
+            warnings.add(
+                    "app.cors.allowed-origins contains '*' in production - consider restricting to"
+                            + " specific domains");
         }
     }
 
@@ -153,7 +163,10 @@ public class ConfigurationValidator implements ApplicationRunner {
         // Verificar que no se use ddl-auto: update o create en producción
         String ddlAuto = environment.getProperty("spring.jpa.hibernate.ddl-auto", "");
         if ("update".equals(ddlAuto) || "create".equals(ddlAuto) || "create-drop".equals(ddlAuto)) {
-            errors.add("spring.jpa.hibernate.ddl-auto='" + ddlAuto + "' is not safe for production. Use 'none' or 'validate'");
+            errors.add(
+                    "spring.jpa.hibernate.ddl-auto='"
+                            + ddlAuto
+                            + "' is not safe for production. Use 'none' or 'validate'");
         }
 
         // Verificar que show-sql esté deshabilitado
@@ -165,7 +178,10 @@ public class ConfigurationValidator implements ApplicationRunner {
         // Verificar nivel de logging
         String rootLogLevel = environment.getProperty("logging.level.root", "INFO");
         if ("DEBUG".equalsIgnoreCase(rootLogLevel) || "TRACE".equalsIgnoreCase(rootLogLevel)) {
-            warnings.add("Root logging level is " + rootLogLevel + " in production - consider using INFO or WARN");
+            warnings.add(
+                    "Root logging level is "
+                            + rootLogLevel
+                            + " in production - consider using INFO or WARN");
         }
     }
 
@@ -173,7 +189,10 @@ public class ConfigurationValidator implements ApplicationRunner {
         // Advertir si las credenciales por defecto están en uso
         String dbUsername = environment.getProperty("spring.datasource.username", "");
         if ("apigen_user".equals(dbUsername) || "postgres".equals(dbUsername)) {
-            warnings.add("Using default database username '" + dbUsername + "' - consider using environment variables");
+            warnings.add(
+                    "Using default database username '"
+                            + dbUsername
+                            + "' - consider using environment variables");
         }
     }
 
@@ -191,14 +210,14 @@ public class ConfigurationValidator implements ApplicationRunner {
     }
 
     private boolean isProductionProfile() {
-        return "prod".equalsIgnoreCase(activeProfile) ||
-               "production".equalsIgnoreCase(activeProfile);
+        return "prod".equalsIgnoreCase(activeProfile)
+                || "production".equalsIgnoreCase(activeProfile);
     }
 
     private boolean isDevelopmentProfile() {
-        return "dev".equalsIgnoreCase(activeProfile) ||
-               "development".equalsIgnoreCase(activeProfile) ||
-               "local".equalsIgnoreCase(activeProfile);
+        return "dev".equalsIgnoreCase(activeProfile)
+                || "development".equalsIgnoreCase(activeProfile)
+                || "local".equalsIgnoreCase(activeProfile);
     }
 
     private boolean isTestProfile() {

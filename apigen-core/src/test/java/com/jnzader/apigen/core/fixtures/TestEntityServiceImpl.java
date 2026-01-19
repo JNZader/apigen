@@ -6,18 +6,16 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.stereotype.Service;
 
-/**
- * Test service implementation for unit tests.
- */
+/** Test service implementation for unit tests. */
 @Service
-public class TestEntityServiceImpl extends BaseServiceImpl<TestEntity, Long> implements TestEntityService {
+public class TestEntityServiceImpl extends BaseServiceImpl<TestEntity, Long>
+        implements TestEntityService {
 
     public TestEntityServiceImpl(
             TestEntityRepository repository,
             CacheEvictionService cacheEvictionService,
             ApplicationEventPublisher eventPublisher,
-            AuditorAware<String> auditorAware
-    ) {
+            AuditorAware<String> auditorAware) {
         super(repository, cacheEvictionService, eventPublisher, auditorAware);
     }
 

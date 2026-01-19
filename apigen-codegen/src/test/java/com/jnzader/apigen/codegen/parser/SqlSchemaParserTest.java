@@ -1,5 +1,7 @@
 package com.jnzader.apigen.codegen.parser;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.jnzader.apigen.codegen.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -7,8 +9,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("SqlSchemaParser Tests")
 class SqlSchemaParserTest {
@@ -27,13 +27,14 @@ class SqlSchemaParserTest {
         @Test
         @DisplayName("Should parse simple CREATE TABLE statement")
         void shouldParseSimpleCreateTable() {
-            String sql = """
-                CREATE TABLE products (
-                    id BIGINT PRIMARY KEY,
-                    name VARCHAR(100) NOT NULL,
-                    price DECIMAL(10,2)
-                );
-                """;
+            String sql =
+                    """
+                    CREATE TABLE products (
+                        id BIGINT PRIMARY KEY,
+                        name VARCHAR(100) NOT NULL,
+                        price DECIMAL(10,2)
+                    );
+                    """;
 
             SqlSchema schema = parser.parseString(sql);
 
@@ -46,12 +47,13 @@ class SqlSchemaParserTest {
         @Test
         @DisplayName("Should parse table with schema prefix")
         void shouldParseTableWithSchemaPrefix() {
-            String sql = """
-                CREATE TABLE public.users (
-                    id SERIAL PRIMARY KEY,
-                    email VARCHAR(255)
-                );
-                """;
+            String sql =
+                    """
+                    CREATE TABLE public.users (
+                        id SERIAL PRIMARY KEY,
+                        email VARCHAR(255)
+                    );
+                    """;
 
             SqlSchema schema = parser.parseString(sql);
 
@@ -64,22 +66,24 @@ class SqlSchemaParserTest {
         @Test
         @DisplayName("Should parse multiple tables")
         void shouldParseMultipleTables() {
-            String sql = """
-                CREATE TABLE categories (
-                    id BIGINT PRIMARY KEY,
-                    name VARCHAR(100)
-                );
+            String sql =
+                    """
+                    CREATE TABLE categories (
+                        id BIGINT PRIMARY KEY,
+                        name VARCHAR(100)
+                    );
 
-                CREATE TABLE products (
-                    id BIGINT PRIMARY KEY,
-                    name VARCHAR(100)
-                );
-                """;
+                    CREATE TABLE products (
+                        id BIGINT PRIMARY KEY,
+                        name VARCHAR(100)
+                    );
+                    """;
 
             SqlSchema schema = parser.parseString(sql);
 
             assertThat(schema.getTables()).hasSize(2);
-            assertThat(schema.getTables()).extracting(SqlTable::getName)
+            assertThat(schema.getTables())
+                    .extracting(SqlTable::getName)
                     .containsExactlyInAnyOrder("categories", "products");
         }
     }
@@ -97,14 +101,14 @@ class SqlSchemaParserTest {
 
         @ParameterizedTest
         @CsvSource({
-                "INTEGER, Integer",
-                "INT, Integer",
-                "INT4, Integer",
-                "BIGINT, Long",
-                "INT8, Long",
-                "BIGSERIAL, Long",
-                "SMALLINT, Short",
-                "TINYINT, Byte"
+            "INTEGER, Integer",
+            "INT, Integer",
+            "INT4, Integer",
+            "BIGINT, Long",
+            "INT8, Long",
+            "BIGSERIAL, Long",
+            "SMALLINT, Short",
+            "TINYINT, Byte"
         })
         @DisplayName("Should map integer types correctly")
         void shouldMapIntegerTypes(String sqlType, String javaType) {
@@ -113,11 +117,11 @@ class SqlSchemaParserTest {
 
         @ParameterizedTest
         @CsvSource({
-                "DECIMAL, BigDecimal",
-                "NUMERIC, BigDecimal",
-                "REAL, Float",
-                "DOUBLE, Double",
-                "FLOAT, Double"
+            "DECIMAL, BigDecimal",
+            "NUMERIC, BigDecimal",
+            "REAL, Float",
+            "DOUBLE, Double",
+            "FLOAT, Double"
         })
         @DisplayName("Should map decimal types correctly")
         void shouldMapDecimalTypes(String sqlType, String javaType) {
@@ -125,12 +129,7 @@ class SqlSchemaParserTest {
         }
 
         @ParameterizedTest
-        @CsvSource({
-                "VARCHAR, String",
-                "TEXT, String",
-                "CHAR, String",
-                "CLOB, String"
-        })
+        @CsvSource({"VARCHAR, String", "TEXT, String", "CHAR, String", "CLOB, String"})
         @DisplayName("Should map string types correctly")
         void shouldMapStringTypes(String sqlType, String javaType) {
             assertTypeMapping(sqlType, javaType);
@@ -138,10 +137,10 @@ class SqlSchemaParserTest {
 
         @ParameterizedTest
         @CsvSource({
-                "DATE, LocalDate",
-                "TIME, LocalTime",
-                "TIMESTAMP, LocalDateTime",
-                "DATETIME, LocalDateTime"
+            "DATE, LocalDate",
+            "TIME, LocalTime",
+            "TIMESTAMP, LocalDateTime",
+            "DATETIME, LocalDateTime"
         })
         @DisplayName("Should map date/time types correctly")
         void shouldMapDateTimeTypes(String sqlType, String javaType) {
@@ -150,12 +149,12 @@ class SqlSchemaParserTest {
 
         @ParameterizedTest
         @CsvSource({
-                "UUID, UUID",
-                "BOOLEAN, Boolean",
-                "BYTEA, byte[]",
-                "JSON, String",
-                "SERIAL, Integer",
-                "CUSTOM_TYPE, Object"
+            "UUID, UUID",
+            "BOOLEAN, Boolean",
+            "BYTEA, byte[]",
+            "JSON, String",
+            "SERIAL, Integer",
+            "CUSTOM_TYPE, Object"
         })
         @DisplayName("Should map other types correctly")
         void shouldMapOtherTypes(String sqlType, String javaType) {
@@ -262,13 +261,14 @@ class SqlSchemaParserTest {
         @Test
         @DisplayName("Should parse table-level primary key")
         void shouldParseTableLevelPrimaryKey() {
-            String sql = """
-                CREATE TABLE test (
-                    id BIGINT,
-                    name VARCHAR(100),
-                    PRIMARY KEY (id)
-                );
-                """;
+            String sql =
+                    """
+                    CREATE TABLE test (
+                        id BIGINT,
+                        name VARCHAR(100),
+                        PRIMARY KEY (id)
+                    );
+                    """;
 
             SqlSchema schema = parser.parseString(sql);
 
@@ -279,13 +279,14 @@ class SqlSchemaParserTest {
         @Test
         @DisplayName("Should parse composite primary key")
         void shouldParseCompositePrimaryKey() {
-            String sql = """
-                CREATE TABLE user_roles (
-                    user_id BIGINT,
-                    role_id BIGINT,
-                    PRIMARY KEY (user_id, role_id)
-                );
-                """;
+            String sql =
+                    """
+                    CREATE TABLE user_roles (
+                        user_id BIGINT,
+                        role_id BIGINT,
+                        PRIMARY KEY (user_id, role_id)
+                    );
+                    """;
 
             SqlSchema schema = parser.parseString(sql);
 
@@ -301,12 +302,13 @@ class SqlSchemaParserTest {
         @Test
         @DisplayName("Should parse inline REFERENCES")
         void shouldParseInlineReferences() {
-            String sql = """
-                CREATE TABLE products (
-                    id BIGINT PRIMARY KEY,
-                    category_id BIGINT REFERENCES categories(id)
-                );
-                """;
+            String sql =
+                    """
+                    CREATE TABLE products (
+                        id BIGINT PRIMARY KEY,
+                        category_id BIGINT REFERENCES categories(id)
+                    );
+                    """;
 
             SqlSchema schema = parser.parseString(sql);
 
@@ -321,13 +323,14 @@ class SqlSchemaParserTest {
         @Test
         @DisplayName("Should parse table-level FOREIGN KEY")
         void shouldParseTableLevelForeignKey() {
-            String sql = """
-                CREATE TABLE products (
-                    id BIGINT PRIMARY KEY,
-                    category_id BIGINT,
-                    FOREIGN KEY (category_id) REFERENCES categories(id)
-                );
-                """;
+            String sql =
+                    """
+                    CREATE TABLE products (
+                        id BIGINT PRIMARY KEY,
+                        category_id BIGINT,
+                        FOREIGN KEY (category_id) REFERENCES categories(id)
+                    );
+                    """;
 
             SqlSchema schema = parser.parseString(sql);
 
@@ -341,19 +344,19 @@ class SqlSchemaParserTest {
         @Test
         @DisplayName("Should parse ON DELETE CASCADE")
         void shouldParseOnDeleteCascade() {
-            String sql = """
-                CREATE TABLE order_items (
-                    id BIGINT PRIMARY KEY,
-                    order_id BIGINT REFERENCES orders(id) ON DELETE CASCADE
-                );
-                """;
+            String sql =
+                    """
+                    CREATE TABLE order_items (
+                        id BIGINT PRIMARY KEY,
+                        order_id BIGINT REFERENCES orders(id) ON DELETE CASCADE
+                    );
+                    """;
 
             SqlSchema schema = parser.parseString(sql);
 
             SqlForeignKey fk = schema.getTables().get(0).getForeignKeys().get(0);
             assertThat(fk.getOnDelete()).isEqualTo(SqlForeignKey.ForeignKeyAction.CASCADE);
         }
-
     }
 
     @Nested
@@ -363,10 +366,11 @@ class SqlSchemaParserTest {
         @Test
         @DisplayName("Should parse CREATE INDEX statement")
         void shouldParseCreateIndex() {
-            String sql = """
-                CREATE TABLE products (id BIGINT PRIMARY KEY, name VARCHAR(100));
-                CREATE INDEX idx_products_name ON products(name);
-                """;
+            String sql =
+                    """
+                    CREATE TABLE products (id BIGINT PRIMARY KEY, name VARCHAR(100));
+                    CREATE INDEX idx_products_name ON products(name);
+                    """;
 
             SqlSchema schema = parser.parseString(sql);
 
@@ -380,10 +384,11 @@ class SqlSchemaParserTest {
         @Test
         @DisplayName("Should parse UNIQUE INDEX")
         void shouldParseUniqueIndex() {
-            String sql = """
-                CREATE TABLE users (id BIGINT PRIMARY KEY, email VARCHAR(255));
-                CREATE UNIQUE INDEX idx_users_email ON users(email);
-                """;
+            String sql =
+                    """
+                    CREATE TABLE users (id BIGINT PRIMARY KEY, email VARCHAR(255));
+                    CREATE UNIQUE INDEX idx_users_email ON users(email);
+                    """;
 
             SqlSchema schema = parser.parseString(sql);
 
@@ -394,13 +399,14 @@ class SqlSchemaParserTest {
         @Test
         @DisplayName("Should parse table-level UNIQUE constraint")
         void shouldParseTableLevelUniqueConstraint() {
-            String sql = """
-                CREATE TABLE users (
-                    id BIGINT PRIMARY KEY,
-                    email VARCHAR(255),
-                    UNIQUE (email)
-                );
-                """;
+            String sql =
+                    """
+                    CREATE TABLE users (
+                        id BIGINT PRIMARY KEY,
+                        email VARCHAR(255),
+                        UNIQUE (email)
+                    );
+                    """;
 
             SqlSchema schema = parser.parseString(sql);
 
@@ -411,10 +417,11 @@ class SqlSchemaParserTest {
         @Test
         @DisplayName("Should parse composite index")
         void shouldParseCompositeIndex() {
-            String sql = """
-                CREATE TABLE orders (id BIGINT PRIMARY KEY, user_id BIGINT, order_date DATE);
-                CREATE INDEX idx_orders_user_date ON orders(user_id, order_date);
-                """;
+            String sql =
+                    """
+                    CREATE TABLE orders (id BIGINT PRIMARY KEY, user_id BIGINT, order_date DATE);
+                    CREATE INDEX idx_orders_user_date ON orders(user_id, order_date);
+                    """;
 
             SqlSchema schema = parser.parseString(sql);
 
@@ -430,20 +437,23 @@ class SqlSchemaParserTest {
         @Test
         @DisplayName("Should parse ALTER TABLE ADD FOREIGN KEY")
         void shouldParseAlterTableAddForeignKey() {
-            String sql = """
-                CREATE TABLE categories (id BIGINT PRIMARY KEY);
-                CREATE TABLE products (id BIGINT PRIMARY KEY, category_id BIGINT);
-                ALTER TABLE products ADD FOREIGN KEY (category_id) REFERENCES categories(id);
-                """;
+            String sql =
+                    """
+                    CREATE TABLE categories (id BIGINT PRIMARY KEY);
+                    CREATE TABLE products (id BIGINT PRIMARY KEY, category_id BIGINT);
+                    ALTER TABLE products ADD FOREIGN KEY (category_id) REFERENCES categories(id);
+                    """;
 
             SqlSchema schema = parser.parseString(sql);
 
             // Both tables should be parsed
             assertThat(schema.getTables()).hasSize(2);
 
-            SqlTable products = schema.getTables().stream()
-                    .filter(t -> t.getName().equals("products"))
-                    .findFirst().orElseThrow();
+            SqlTable products =
+                    schema.getTables().stream()
+                            .filter(t -> t.getName().equals("products"))
+                            .findFirst()
+                            .orElseThrow();
 
             // ALTER TABLE FK addition might or might not work depending on parse order
             // At minimum verify the table exists and has expected columns
@@ -453,15 +463,15 @@ class SqlSchemaParserTest {
         @Test
         @DisplayName("Should report error for ALTER on unknown table")
         void shouldReportErrorForAlterOnUnknownTable() {
-            String sql = """
-                CREATE TABLE products (id BIGINT PRIMARY KEY);
-                ALTER TABLE unknown_table ADD COLUMN status VARCHAR(20);
-                """;
+            String sql =
+                    """
+                    CREATE TABLE products (id BIGINT PRIMARY KEY);
+                    ALTER TABLE unknown_table ADD COLUMN status VARCHAR(20);
+                    """;
 
             SqlSchema schema = parser.parseString(sql);
 
-            assertThat(schema.getParseErrors())
-                    .anyMatch(error -> error.contains("unknown table"));
+            assertThat(schema.getParseErrors()).anyMatch(error -> error.contains("unknown table"));
         }
     }
 
@@ -472,16 +482,17 @@ class SqlSchemaParserTest {
         @Test
         @DisplayName("Should extract function with $$ delimiters")
         void shouldExtractFunctionWithDollarDelimiters() {
-            String sql = """
-                CREATE TABLE products (id BIGINT PRIMARY KEY);
+            String sql =
+                    """
+                    CREATE TABLE products (id BIGINT PRIMARY KEY);
 
-                CREATE FUNCTION update_timestamp() RETURNS TRIGGER LANGUAGE plpgsql AS $$
-                BEGIN
-                    NEW.updated_at = NOW();
-                    RETURN NEW;
-                END;
-                $$;
-                """;
+                    CREATE FUNCTION update_timestamp() RETURNS TRIGGER LANGUAGE plpgsql AS $$
+                    BEGIN
+                        NEW.updated_at = NOW();
+                        RETURN NEW;
+                    END;
+                    $$;
+                    """;
 
             SqlSchema schema = parser.parseString(sql);
 
@@ -494,15 +505,16 @@ class SqlSchemaParserTest {
         @Test
         @DisplayName("Should extract procedure")
         void shouldExtractProcedure() {
-            String sql = """
-                CREATE PROCEDURE cleanup_old_records()
-                LANGUAGE plpgsql
-                AS $$
-                BEGIN
-                    DELETE FROM logs WHERE created_at < NOW() - INTERVAL '30 days';
-                END;
-                $$;
-                """;
+            String sql =
+                    """
+                    CREATE PROCEDURE cleanup_old_records()
+                    LANGUAGE plpgsql
+                    AS $$
+                    BEGIN
+                        DELETE FROM logs WHERE created_at < NOW() - INTERVAL '30 days';
+                    END;
+                    $$;
+                    """;
 
             SqlSchema schema = parser.parseString(sql);
 
@@ -515,16 +527,17 @@ class SqlSchemaParserTest {
         @Test
         @DisplayName("Should parse function with parameters")
         void shouldParseFunctionWithParameters() {
-            String sql = """
-                CREATE FUNCTION calculate_discount(price DECIMAL, discount_percent INTEGER)
-                RETURNS DECIMAL
-                LANGUAGE plpgsql
-                AS $$
-                BEGIN
-                    RETURN price * (1 - discount_percent / 100.0);
-                END;
-                $$;
-                """;
+            String sql =
+                    """
+                    CREATE FUNCTION calculate_discount(price DECIMAL, discount_percent INTEGER)
+                    RETURNS DECIMAL
+                    LANGUAGE plpgsql
+                    AS $$
+                    BEGIN
+                        RETURN price * (1 - discount_percent / 100.0);
+                    END;
+                    $$;
+                    """;
 
             SqlSchema schema = parser.parseString(sql);
 
@@ -537,15 +550,16 @@ class SqlSchemaParserTest {
         @Test
         @DisplayName("Should parse function with IN/OUT parameters")
         void shouldParseFunctionWithInOutParameters() {
-            String sql = """
-                CREATE PROCEDURE process_order(IN order_id BIGINT, OUT total DECIMAL)
-                LANGUAGE plpgsql
-                AS $$
-                BEGIN
-                    SELECT SUM(price) INTO total FROM order_items WHERE order_id = order_id;
-                END;
-                $$;
-                """;
+            String sql =
+                    """
+                    CREATE PROCEDURE process_order(IN order_id BIGINT, OUT total DECIMAL)
+                    LANGUAGE plpgsql
+                    AS $$
+                    BEGIN
+                        SELECT SUM(price) INTO total FROM order_items WHERE order_id = order_id;
+                    END;
+                    $$;
+                    """;
 
             SqlSchema schema = parser.parseString(sql);
 
@@ -589,11 +603,12 @@ class SqlSchemaParserTest {
         @Test
         @DisplayName("Should handle SQL with only comments")
         void shouldHandleSqlWithOnlyComments() {
-            String sql = """
-                -- This is a comment
-                /* Multi-line
-                   comment */
-                """;
+            String sql =
+                    """
+                    -- This is a comment
+                    /* Multi-line
+                       comment */
+                    """;
 
             SqlSchema schema = parser.parseString(sql);
 
@@ -608,11 +623,12 @@ class SqlSchemaParserTest {
         @Test
         @DisplayName("Should collect parse errors for invalid SQL")
         void shouldCollectParseErrorsForInvalidSql() {
-            String sql = """
-                CREATE TABLE valid_table (id INT);
-                THIS IS NOT VALID SQL;
-                CREATE TABLE another_valid (id INT);
-                """;
+            String sql =
+                    """
+                    CREATE TABLE valid_table (id INT);
+                    THIS IS NOT VALID SQL;
+                    CREATE TABLE another_valid (id INT);
+                    """;
 
             SqlSchema schema = parser.parseString(sql);
 
@@ -623,11 +639,12 @@ class SqlSchemaParserTest {
         @Test
         @DisplayName("Should parse valid statements even when some fail")
         void shouldParseValidStatementsEvenWhenSomeFail() {
-            String sql = """
-                CREATE TABLE products (id BIGINT PRIMARY KEY);
-                INVALID STATEMENT HERE;
-                CREATE TABLE categories (id BIGINT PRIMARY KEY);
-                """;
+            String sql =
+                    """
+                    CREATE TABLE products (id BIGINT PRIMARY KEY);
+                    INVALID STATEMENT HERE;
+                    CREATE TABLE categories (id BIGINT PRIMARY KEY);
+                    """;
 
             SqlSchema schema = parser.parseString(sql);
 
@@ -643,98 +660,109 @@ class SqlSchemaParserTest {
         @DisplayName("Should parse complete e-commerce schema")
         void shouldParseCompleteEcommerceSchema() {
             // Simplified schema without inline ON DELETE/ON UPDATE (JSQLParser limitation)
-            String sql = """
-                CREATE TABLE categories (
-                    id BIGSERIAL PRIMARY KEY,
-                    name VARCHAR(100) NOT NULL,
-                    description TEXT,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                );
+            String sql =
+                    """
+                    CREATE TABLE categories (
+                        id BIGSERIAL PRIMARY KEY,
+                        name VARCHAR(100) NOT NULL,
+                        description TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    );
 
-                CREATE TABLE products (
-                    id BIGSERIAL PRIMARY KEY,
-                    name VARCHAR(200) NOT NULL,
-                    price DECIMAL(10,2) NOT NULL,
-                    category_id BIGINT,
-                    stock INTEGER DEFAULT 0,
-                    active BOOLEAN DEFAULT true,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (category_id) REFERENCES categories(id)
-                );
+                    CREATE TABLE products (
+                        id BIGSERIAL PRIMARY KEY,
+                        name VARCHAR(200) NOT NULL,
+                        price DECIMAL(10,2) NOT NULL,
+                        category_id BIGINT,
+                        stock INTEGER DEFAULT 0,
+                        active BOOLEAN DEFAULT true,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (category_id) REFERENCES categories(id)
+                    );
 
-                CREATE TABLE users (
-                    id BIGSERIAL PRIMARY KEY,
-                    email VARCHAR(255) NOT NULL UNIQUE,
-                    password_hash VARCHAR(255) NOT NULL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                );
+                    CREATE TABLE users (
+                        id BIGSERIAL PRIMARY KEY,
+                        email VARCHAR(255) NOT NULL UNIQUE,
+                        password_hash VARCHAR(255) NOT NULL,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    );
 
-                CREATE TABLE orders (
-                    id BIGSERIAL PRIMARY KEY,
-                    user_id BIGINT,
-                    status VARCHAR(20) DEFAULT 'pending',
-                    total DECIMAL(12,2),
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (user_id) REFERENCES users(id)
-                );
+                    CREATE TABLE orders (
+                        id BIGSERIAL PRIMARY KEY,
+                        user_id BIGINT,
+                        status VARCHAR(20) DEFAULT 'pending',
+                        total DECIMAL(12,2),
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (user_id) REFERENCES users(id)
+                    );
 
-                CREATE TABLE order_items (
-                    order_id BIGINT,
-                    product_id BIGINT,
-                    quantity INTEGER NOT NULL,
-                    unit_price DECIMAL(10,2) NOT NULL,
-                    PRIMARY KEY (order_id, product_id),
-                    FOREIGN KEY (order_id) REFERENCES orders(id),
-                    FOREIGN KEY (product_id) REFERENCES products(id)
-                );
+                    CREATE TABLE order_items (
+                        order_id BIGINT,
+                        product_id BIGINT,
+                        quantity INTEGER NOT NULL,
+                        unit_price DECIMAL(10,2) NOT NULL,
+                        PRIMARY KEY (order_id, product_id),
+                        FOREIGN KEY (order_id) REFERENCES orders(id),
+                        FOREIGN KEY (product_id) REFERENCES products(id)
+                    );
 
-                CREATE INDEX idx_products_category ON products(category_id);
-                CREATE INDEX idx_orders_user ON orders(user_id);
-                CREATE INDEX idx_orders_status ON orders(status);
-                """;
+                    CREATE INDEX idx_products_category ON products(category_id);
+                    CREATE INDEX idx_orders_user ON orders(user_id);
+                    CREATE INDEX idx_orders_status ON orders(status);
+                    """;
 
             SqlSchema schema = parser.parseString(sql);
 
             // Verify main tables are parsed
             assertThat(schema.getTables()).hasSize(5);
-            assertThat(schema.getTables()).extracting(SqlTable::getName)
-                    .containsExactlyInAnyOrder("categories", "products", "users", "orders", "order_items");
+            assertThat(schema.getTables())
+                    .extracting(SqlTable::getName)
+                    .containsExactlyInAnyOrder(
+                            "categories", "products", "users", "orders", "order_items");
 
             // Verify products table has expected columns
-            SqlTable products = schema.getTables().stream()
-                    .filter(t -> t.getName().equals("products"))
-                    .findFirst().orElseThrow();
+            SqlTable products =
+                    schema.getTables().stream()
+                            .filter(t -> t.getName().equals("products"))
+                            .findFirst()
+                            .orElseThrow();
             assertThat(products.getColumns()).isNotEmpty();
-            assertThat(products.getColumns()).extracting(SqlColumn::getName)
+            assertThat(products.getColumns())
+                    .extracting(SqlColumn::getName)
                     .contains("id", "name", "price");
 
             // Verify order_items has composite primary key
-            SqlTable orderItems = schema.getTables().stream()
-                    .filter(t -> t.getName().equals("order_items"))
-                    .findFirst().orElseThrow();
+            SqlTable orderItems =
+                    schema.getTables().stream()
+                            .filter(t -> t.getName().equals("order_items"))
+                            .findFirst()
+                            .orElseThrow();
             assertThat(orderItems.getPrimaryKeyColumns()).contains("order_id", "product_id");
         }
 
         @Test
         @DisplayName("Should identify junction table from parsed schema")
         void shouldIdentifyJunctionTableFromParsedSchema() {
-            String sql = """
-                CREATE TABLE users (id BIGINT PRIMARY KEY);
-                CREATE TABLE roles (id BIGINT PRIMARY KEY);
-                CREATE TABLE user_roles (
-                    user_id BIGINT,
-                    role_id BIGINT,
-                    PRIMARY KEY (user_id, role_id),
-                    FOREIGN KEY (user_id) REFERENCES users(id),
-                    FOREIGN KEY (role_id) REFERENCES roles(id)
-                );
-                """;
+            String sql =
+                    """
+                    CREATE TABLE users (id BIGINT PRIMARY KEY);
+                    CREATE TABLE roles (id BIGINT PRIMARY KEY);
+                    CREATE TABLE user_roles (
+                        user_id BIGINT,
+                        role_id BIGINT,
+                        PRIMARY KEY (user_id, role_id),
+                        FOREIGN KEY (user_id) REFERENCES users(id),
+                        FOREIGN KEY (role_id) REFERENCES roles(id)
+                    );
+                    """;
 
             SqlSchema schema = parser.parseString(sql);
 
-            SqlTable userRoles = schema.getTables().stream()
-                    .filter(t -> t.getName().equals("user_roles"))
-                    .findFirst().orElseThrow();
+            SqlTable userRoles =
+                    schema.getTables().stream()
+                            .filter(t -> t.getName().equals("user_roles"))
+                            .findFirst()
+                            .orElseThrow();
 
             assertThat(userRoles.isJunctionTable()).isTrue();
         }

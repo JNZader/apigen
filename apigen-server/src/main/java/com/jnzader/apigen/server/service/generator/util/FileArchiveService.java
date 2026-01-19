@@ -1,8 +1,5 @@
 package com.jnzader.apigen.server.service.generator.util;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -12,10 +9,10 @@ import java.util.Comparator;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
-/**
- * Service for file archiving operations.
- */
+/** Service for file archiving operations. */
 @Component
 @Slf4j
 public class FileArchiveService {
@@ -23,7 +20,7 @@ public class FileArchiveService {
     /**
      * Creates a ZIP file from a directory.
      *
-     * @param sourceDir      the source directory to zip
+     * @param sourceDir the source directory to zip
      * @param rootFolderName the name of the root folder in the ZIP
      * @return the ZIP file as a byte array
      * @throws IOException if an I/O error occurs
@@ -44,14 +41,15 @@ public class FileArchiveService {
     /**
      * Adds a single file to the ZIP output stream.
      *
-     * @param zos            the ZIP output stream
-     * @param sourceDir      the source directory base path
-     * @param path           the file path to add
+     * @param zos the ZIP output stream
+     * @param sourceDir the source directory base path
+     * @param path the file path to add
      * @param rootFolderName the root folder name in the ZIP
      */
-    public void addFileToZip(ZipOutputStream zos, Path sourceDir, Path path, String rootFolderName) {
-        String zipEntryName = rootFolderName + "/" +
-                sourceDir.relativize(path).toString().replace("\\", "/");
+    public void addFileToZip(
+            ZipOutputStream zos, Path sourceDir, Path path, String rootFolderName) {
+        String zipEntryName =
+                rootFolderName + "/" + sourceDir.relativize(path).toString().replace("\\", "/");
         try {
             zos.putNextEntry(new ZipEntry(zipEntryName));
             Files.copy(path, zos);
@@ -69,13 +67,14 @@ public class FileArchiveService {
     public void deleteDirectory(Path directory) {
         try (Stream<Path> paths = Files.walk(directory)) {
             paths.sorted(Comparator.reverseOrder())
-                    .forEach(path -> {
-                        try {
-                            Files.delete(path);
-                        } catch (IOException _) {
-                            log.warn("Failed to delete temp file: {}", path);
-                        }
-                    });
+                    .forEach(
+                            path -> {
+                                try {
+                                    Files.delete(path);
+                                } catch (IOException _) {
+                                    log.warn("Failed to delete temp file: {}", path);
+                                }
+                            });
         } catch (IOException _) {
             log.warn("Failed to clean up temp directory: {}", directory);
         }

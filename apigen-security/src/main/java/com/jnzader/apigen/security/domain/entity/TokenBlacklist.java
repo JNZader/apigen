@@ -1,20 +1,21 @@
 package com.jnzader.apigen.security.domain.entity;
 
 import jakarta.persistence.*;
-
 import java.time.Instant;
 
 /**
  * Entidad para almacenar tokens JWT invalidados.
- * <p>
- * Permite revocar tokens antes de su expiración natural.
+ *
+ * <p>Permite revocar tokens antes de su expiración natural.
  */
 @Entity
-@Table(name = "token_blacklist", indexes = {
-        @Index(name = "idx_token_blacklist_token_id", columnList = "token_id"),
-        @Index(name = "idx_token_blacklist_expiration", columnList = "expiration"),
-        @Index(name = "idx_token_blacklist_username", columnList = "username")
-})
+@Table(
+        name = "token_blacklist",
+        indexes = {
+            @Index(name = "idx_token_blacklist_token_id", columnList = "token_id"),
+            @Index(name = "idx_token_blacklist_expiration", columnList = "expiration"),
+            @Index(name = "idx_token_blacklist_username", columnList = "username")
+        })
 public class TokenBlacklist {
 
     @Id
@@ -22,42 +23,31 @@ public class TokenBlacklist {
     @SequenceGenerator(name = "base_seq_gen", sequenceName = "base_sequence", allocationSize = 50)
     private Long id;
 
-    /**
-     * Identificador único del token (claim jti).
-     */
+    /** Identificador único del token (claim jti). */
     @Column(name = "token_id", nullable = false, unique = true)
     private String tokenId;
 
-    /**
-     * Usuario propietario del token.
-     */
+    /** Usuario propietario del token. */
     @Column(nullable = false, length = 50)
     private String username;
 
-    /**
-     * Fecha de expiración original del token.
-     * Usado para limpieza automática.
-     */
+    /** Fecha de expiración original del token. Usado para limpieza automática. */
     @Column(nullable = false)
     private Instant expiration;
 
-    /**
-     * Fecha en que se añadió a la blacklist.
-     */
+    /** Fecha en que se añadió a la blacklist. */
     @Column(name = "blacklisted_at", nullable = false)
     private Instant blacklistedAt;
 
-    /**
-     * Razón de la invalidación.
-     */
+    /** Razón de la invalidación. */
     @Column(length = 50)
     @Enumerated(EnumType.STRING)
     private BlacklistReason reason;
 
-    public TokenBlacklist() {
-    }
+    public TokenBlacklist() {}
 
-    public TokenBlacklist(String tokenId, String username, Instant expiration, BlacklistReason reason) {
+    public TokenBlacklist(
+            String tokenId, String username, Instant expiration, BlacklistReason reason) {
         this.tokenId = tokenId;
         this.username = username;
         this.expiration = expiration;

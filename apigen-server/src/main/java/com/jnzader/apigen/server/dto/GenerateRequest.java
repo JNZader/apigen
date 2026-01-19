@@ -10,26 +10,21 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Request DTO for project generation.
- * Contains project configuration and SQL schema.
- */
+/** Request DTO for project generation. Contains project configuration and SQL schema. */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class GenerateRequest {
 
-    /**
-     * Project configuration
-     */
+    /** Project configuration */
     @Valid
     @NotNull(message = "Project configuration is required")
     private ProjectConfig project;
 
     /**
-     * SQL schema to generate code from.
-     * This is the CREATE TABLE statements exported from the web designer.
+     * SQL schema to generate code from. This is the CREATE TABLE statements exported from the web
+     * designer.
      */
     @NotBlank(message = "SQL schema is required")
     private String sql;
@@ -44,36 +39,29 @@ public class GenerateRequest {
         private String name;
 
         @NotBlank(message = "Group ID is required")
-        @Pattern(regexp = "^[a-z][a-z0-9]*+(\\.[a-z][a-z0-9]*+)*+$",
+        @Pattern(
+                regexp = "^[a-z][a-z0-9]*+(\\.[a-z][a-z0-9]*+)*+$",
                 message = "Group ID must be a valid Java package (e.g., com.example)")
         private String groupId;
 
         @NotBlank(message = "Artifact ID is required")
-        @Pattern(regexp = "^[a-z][a-z0-9-]*$",
+        @Pattern(
+                regexp = "^[a-z][a-z0-9-]*$",
                 message = "Artifact ID must be lowercase with hyphens (e.g., my-api)")
         private String artifactId;
 
-        @Builder.Default
-        private String javaVersion = GeneratedProjectVersions.JAVA_VERSION;
+        @Builder.Default private String javaVersion = GeneratedProjectVersions.JAVA_VERSION;
 
         @Builder.Default
         private String springBootVersion = GeneratedProjectVersions.SPRING_BOOT_VERSION;
 
-        @Valid
-        @Builder.Default
-        private ModulesConfig modules = new ModulesConfig();
+        @Valid @Builder.Default private ModulesConfig modules = new ModulesConfig();
 
-        @Valid
-        @Builder.Default
-        private FeaturesConfig features = new FeaturesConfig();
+        @Valid @Builder.Default private FeaturesConfig features = new FeaturesConfig();
 
-        @Valid
-        @Builder.Default
-        private DatabaseConfig database = new DatabaseConfig();
+        @Valid @Builder.Default private DatabaseConfig database = new DatabaseConfig();
 
-        /**
-         * Generate the base package from groupId and artifactId.
-         */
+        /** Generate the base package from groupId and artifactId. */
         public String getBasePackage() {
             String sanitizedArtifact = artifactId.replace("-", "");
             return groupId + "." + sanitizedArtifact;
@@ -85,11 +73,9 @@ public class GenerateRequest {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ModulesConfig {
-        @Builder.Default
-        private boolean core = true;
+        @Builder.Default private boolean core = true;
 
-        @Builder.Default
-        private boolean security = false;
+        @Builder.Default private boolean security = false;
     }
 
     @Data
@@ -97,23 +83,17 @@ public class GenerateRequest {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class FeaturesConfig {
-        @Builder.Default
-        private boolean hateoas = true;
+        @Builder.Default private boolean hateoas = true;
 
-        @Builder.Default
-        private boolean swagger = true;
+        @Builder.Default private boolean swagger = true;
 
-        @Builder.Default
-        private boolean auditing = true;
+        @Builder.Default private boolean auditing = true;
 
-        @Builder.Default
-        private boolean softDelete = true;
+        @Builder.Default private boolean softDelete = true;
 
-        @Builder.Default
-        private boolean caching = true;
+        @Builder.Default private boolean caching = true;
 
-        @Builder.Default
-        private boolean docker = true;
+        @Builder.Default private boolean docker = true;
     }
 
     @Data
@@ -129,28 +109,23 @@ public class GenerateRequest {
         public static final String DB_H2 = "h2";
         public static final String DB_POSTGRESQL = "postgresql";
 
-        /**
-         * Database type: postgresql, mysql, mariadb, h2, sqlserver, oracle
-         */
-        @Builder.Default
-        private String type = DB_POSTGRESQL;
+        /** Database type: postgresql, mysql, mariadb, h2, sqlserver, oracle */
+        @Builder.Default private String type = DB_POSTGRESQL;
 
-        @Builder.Default
-        private String name = "appdb";
+        @Builder.Default private String name = "appdb";
 
-        @Builder.Default
-        private String username = "appuser";
+        @Builder.Default private String username = "appuser";
 
         /**
-         * Default password placeholder for generated Docker configuration.
-         * This is a template value that users are expected to override in their environment.
+         * Default password placeholder for generated Docker configuration. This is a template value
+         * that users are expected to override in their environment.
          */
         @Builder.Default
-        @SuppressWarnings("java:S2068") // This is a template default, not a hardcoded password in use
+        @SuppressWarnings(
+                "java:S2068") // This is a template default, not a hardcoded password in use
         private String password = "changeme";
 
-        @Builder.Default
-        private Integer port = 5432;
+        @Builder.Default private Integer port = 5432;
 
         // Custom getters to handle null values from JSON deserialization
         public String getType() {
@@ -173,9 +148,7 @@ public class GenerateRequest {
             return port != null ? port : 5432;
         }
 
-        /**
-         * Returns the Docker image for this database type.
-         */
+        /** Returns the Docker image for this database type. */
         public String getDockerImage() {
             return switch (getType().toLowerCase()) {
                 case DB_MYSQL -> GeneratedProjectVersions.MYSQL_DOCKER_IMAGE;
@@ -187,9 +160,7 @@ public class GenerateRequest {
             };
         }
 
-        /**
-         * Returns the JDBC driver class name.
-         */
+        /** Returns the JDBC driver class name. */
         public String getDriverClassName() {
             return switch (getType().toLowerCase()) {
                 case DB_MYSQL -> "com.mysql.cj.jdbc.Driver";
@@ -201,9 +172,7 @@ public class GenerateRequest {
             };
         }
 
-        /**
-         * Returns the default port for this database type.
-         */
+        /** Returns the default port for this database type. */
         public int getDefaultPort() {
             return switch (getType().toLowerCase()) {
                 case DB_MYSQL, DB_MARIADB -> 3306;
@@ -214,23 +183,29 @@ public class GenerateRequest {
             };
         }
 
-        /**
-         * Returns the JDBC URL for Docker environment.
-         */
+        /** Returns the JDBC URL for Docker environment. */
         public String getJdbcUrl() {
             return switch (getType().toLowerCase()) {
-                case DB_MYSQL -> "jdbc:mysql://db:" + getDefaultPort() + "/" + getName() + "?useSSL=false&allowPublicKeyRetrieval=true";
+                case DB_MYSQL ->
+                        "jdbc:mysql://db:"
+                                + getDefaultPort()
+                                + "/"
+                                + getName()
+                                + "?useSSL=false&allowPublicKeyRetrieval=true";
                 case DB_MARIADB -> "jdbc:mariadb://db:" + getDefaultPort() + "/" + getName();
-                case DB_SQLSERVER -> "jdbc:sqlserver://db:" + getDefaultPort() + ";databaseName=" + getName() + ";encrypt=false";
+                case DB_SQLSERVER ->
+                        "jdbc:sqlserver://db:"
+                                + getDefaultPort()
+                                + ";databaseName="
+                                + getName()
+                                + ";encrypt=false";
                 case DB_ORACLE -> "jdbc:oracle:thin:@db:" + getDefaultPort() + "/" + getName();
                 case DB_H2 -> "jdbc:h2:mem:" + getName() + ";DB_CLOSE_DELAY=-1";
                 default -> "jdbc:postgresql://db:" + getDefaultPort() + "/" + getName();
             };
         }
 
-        /**
-         * Returns the Hibernate dialect for this database type.
-         */
+        /** Returns the Hibernate dialect for this database type. */
         public String getHibernateDialect() {
             return switch (getType().toLowerCase()) {
                 case DB_MYSQL -> "org.hibernate.dialect.MySQLDialect";

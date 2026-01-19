@@ -1,14 +1,12 @@
 package com.jnzader.apigen.core.fixtures;
 
 import com.jnzader.apigen.core.application.mapper.BaseMapper;
+import java.util.List;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 /**
- * Adapter that wraps TestEntityMapper to implement BaseMapper.
- * This is needed because TestEntityDTO is a record (immutable) so we can't
- * implement updateDTOFromEntity directly.
+ * Adapter that wraps TestEntityMapper to implement BaseMapper. This is needed because TestEntityDTO
+ * is a record (immutable) so we can't implement updateDTOFromEntity directly.
  */
 @Component
 public class TestEntityMapperAdapter implements BaseMapper<TestEntity, TestEntityDTO> {

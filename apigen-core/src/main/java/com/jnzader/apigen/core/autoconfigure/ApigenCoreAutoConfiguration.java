@@ -13,16 +13,18 @@ import org.springframework.context.annotation.Import;
 
 /**
  * Auto-configuration for APiGen Core module.
- * <p>
- * This auto-configuration automatically enables:
+ *
+ * <p>This auto-configuration automatically enables:
+ *
  * <ul>
- *     <li>Component scanning for core services and controllers</li>
- *     <li>All core configurations (JPA, Cache, Tracing, Web, etc.)</li>
+ *   <li>Component scanning for core services and controllers
+ *   <li>All core configurations (JPA, Cache, Tracing, Web, etc.)
  * </ul>
- * <p>
- * Can be disabled with: {@code apigen.core.enabled=false}
- * <p>
- * Usage: Just add the dependency and everything configures automatically:
+ *
+ * <p>Can be disabled with: {@code apigen.core.enabled=false}
+ *
+ * <p>Usage: Just add the dependency and everything configures automatically:
+ *
  * <pre>
  * implementation 'com.jnzader:apigen-core'
  * </pre>
@@ -31,12 +33,9 @@ import org.springframework.context.annotation.Import;
 @ConditionalOnProperty(name = "apigen.core.enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(AppProperties.class)
 @ComponentScan(
-    basePackages = "com.jnzader.apigen.core",
-    excludeFilters = @ComponentScan.Filter(
-        type = FilterType.ASSIGNABLE_TYPE,
-        classes = JpaConfig.class
-    )
-)
+        basePackages = "com.jnzader.apigen.core",
+        excludeFilters =
+                @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = JpaConfig.class))
 @Import({
     CacheConfig.class,
     WebConfig.class,
@@ -50,9 +49,7 @@ import org.springframework.context.annotation.Import;
 })
 public class ApigenCoreAutoConfiguration {
 
-    /**
-     * Marker bean to indicate APiGen Core is auto-configured.
-     */
+    /** Marker bean to indicate APiGen Core is auto-configured. */
     @Bean
     @ConditionalOnMissingBean(name = "apigenCoreMarker")
     public ApigenCoreMarker apigenCoreMarker() {
@@ -60,8 +57,8 @@ public class ApigenCoreAutoConfiguration {
     }
 
     /**
-     * Marker class for APiGen Core auto-configuration.
-     * Used by @ConditionalOnBean to detect if core module is auto-configured.
+     * Marker class for APiGen Core auto-configuration. Used by @ConditionalOnBean to detect if core
+     * module is auto-configured.
      */
     @SuppressWarnings("java:S2094")
     // S2094: Clase vacia INTENCIONAL - es un marker bean para deteccion de auto-configuracion

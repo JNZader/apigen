@@ -1,7 +1,13 @@
 package com.jnzader.apigen.core.domain.specification;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
+
 import com.jnzader.apigen.core.domain.entity.Base;
 import jakarta.persistence.criteria.*;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -11,44 +17,28 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.jpa.domain.Specification;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 @DisplayName("BaseSpecification Tests")
 @SuppressWarnings({"unchecked", "rawtypes"})
 class BaseSpecificationTest {
 
-    @Mock
-    private Root root;
+    @Mock private Root root;
 
-    @Mock
-    private CriteriaQuery query;
+    @Mock private CriteriaQuery query;
 
-    @Mock
-    private CriteriaBuilder cb;
+    @Mock private CriteriaBuilder cb;
 
-    @Mock
-    private Path path;
+    @Mock private Path path;
 
-    @Mock
-    private Predicate predicate;
+    @Mock private Predicate predicate;
 
-    @Mock
-    private Predicate conjunction;
+    @Mock private Predicate conjunction;
 
-    @Mock
-    private Predicate disjunction;
+    @Mock private Predicate disjunction;
 
-    @Mock
-    private Expression stringExpression;
+    @Mock private Expression stringExpression;
 
-    static class TestEntity extends Base {
-    }
+    static class TestEntity extends Base {}
 
     @BeforeEach
     void setUp() {
@@ -606,7 +596,8 @@ class BaseSpecificationTest {
         @Test
         @DisplayName("anyOf() should return disjunction for all null specs")
         void anyOfShouldReturnDisjunctionForAllNullSpecs() {
-            Specification<TestEntity> combined = BaseSpecification.anyOf((Specification<TestEntity>) null);
+            Specification<TestEntity> combined =
+                    BaseSpecification.anyOf((Specification<TestEntity>) null);
             Predicate result = combined.toPredicate(root, query, cb);
 
             assertThat(result).isEqualTo(disjunction);

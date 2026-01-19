@@ -6,15 +6,15 @@ import java.util.Map;
 /**
  * Representa un evento de auditoría de seguridad.
  *
- * @param timestamp   Momento en que ocurrió el evento.
- * @param eventType   Tipo de evento de seguridad.
- * @param username    Usuario involucrado (puede ser null para eventos anónimos).
- * @param ipAddress   Dirección IP del cliente.
- * @param userAgent   User-Agent del cliente.
- * @param resource    Recurso accedido.
- * @param action      Acción realizada.
- * @param outcome     Resultado (SUCCESS, FAILURE, DENIED).
- * @param details     Detalles adicionales del evento.
+ * @param timestamp Momento en que ocurrió el evento.
+ * @param eventType Tipo de evento de seguridad.
+ * @param username Usuario involucrado (puede ser null para eventos anónimos).
+ * @param ipAddress Dirección IP del cliente.
+ * @param userAgent User-Agent del cliente.
+ * @param resource Recurso accedido.
+ * @param action Acción realizada.
+ * @param outcome Resultado (SUCCESS, FAILURE, DENIED).
+ * @param details Detalles adicionales del evento.
  */
 public record SecurityAuditEvent(
         Instant timestamp,
@@ -25,16 +25,13 @@ public record SecurityAuditEvent(
         String resource,
         String action,
         SecurityOutcome outcome,
-        Map<String, Object> details
-) {
+        Map<String, Object> details) {
     public SecurityAuditEvent {
         if (timestamp == null) timestamp = Instant.now();
         if (details == null) details = Map.of();
     }
 
-    /**
-     * Tipos de eventos de seguridad.
-     */
+    /** Tipos de eventos de seguridad. */
     public enum SecurityEventType {
         AUTHENTICATION_SUCCESS,
         AUTHENTICATION_FAILURE,
@@ -52,9 +49,7 @@ public record SecurityAuditEvent(
         ADMIN_ACTION
     }
 
-    /**
-     * Resultado del evento de seguridad.
-     */
+    /** Resultado del evento de seguridad. */
     public enum SecurityOutcome {
         SUCCESS,
         FAILURE,
@@ -62,9 +57,7 @@ public record SecurityAuditEvent(
         BLOCKED
     }
 
-    /**
-     * Builder para crear eventos de auditoría.
-     */
+    /** Builder para crear eventos de auditoría. */
     public static Builder builder() {
         return new Builder();
     }
@@ -127,9 +120,8 @@ public record SecurityAuditEvent(
 
         public SecurityAuditEvent build() {
             return new SecurityAuditEvent(
-                    timestamp, eventType, username, ipAddress, userAgent,
-                    resource, action, outcome, details
-            );
+                    timestamp, eventType, username, ipAddress, userAgent, resource, action, outcome,
+                    details);
         }
     }
 }
