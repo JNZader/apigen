@@ -1,6 +1,7 @@
 package com.jnzader.apigen.core.infrastructure.exception;
 
 import com.jnzader.apigen.core.domain.exception.*;
+import com.jnzader.apigen.core.infrastructure.i18n.MessageService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import java.net.URI;
@@ -20,10 +21,12 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 /**
- * Manejador global de excepciones para la API REST.
+ * Global exception handler for the REST API.
  *
- * <p>Centraliza la gestión de errores para proporcionar respuestas consistentes conforme al
- * estándar RFC 7807 (Problem Details for HTTP APIs).
+ * <p>Centralizes error handling to provide consistent responses conforming to RFC 7807 (Problem
+ * Details for HTTP APIs).
+ *
+ * <p>All error messages are internationalized based on the Accept-Language header.
  *
  * <p>Content-Type: application/problem+json
  */
@@ -32,14 +35,17 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    /** Media type para RFC 7807 Problem Details. */
+    /** Media type for RFC 7807 Problem Details. */
     public static final MediaType APPLICATION_PROBLEM_JSON =
             MediaType.valueOf("application/problem+json");
 
-    /**
-     * Maneja las excepciones de tipo {@link ResourceNotFoundException}. Retorna un estado HTTP 404
-     * Not Found.
-     */
+    private final MessageService messageService;
+
+    public GlobalExceptionHandler(MessageService messageService) {
+        this.messageService = messageService;
+    }
+
+    /** Handles {@link ResourceNotFoundException}. Returns HTTP 404 Not Found. */
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ProblemDetail> handleResourceNotFoundException(
             ResourceNotFoundException ex, HttpServletRequest request) {
@@ -49,7 +55,7 @@ public class GlobalExceptionHandler {
         ProblemDetail problem =
                 ProblemDetail.builder()
                         .type(URI.create("https://api.example.com/problems/not-found"))
-                        .title("Recurso no encontrado")
+                        .title(messageService.getNotFoundTitle())
                         .status(HttpStatus.NOT_FOUND.value())
                         .detail(ex.getMessage())
                         .instance(request.getRequestURI())
@@ -60,10 +66,7 @@ public class GlobalExceptionHandler {
                 .body(problem);
     }
 
-    /**
-     * Maneja las excepciones de tipo {@link DuplicateResourceException}. Retorna un estado HTTP 409
-     * Conflict.
-     */
+    /** Handles {@link DuplicateResourceException}. Returns HTTP 409 Conflict. */
     @ExceptionHandler(DuplicateResourceException.class)
     public ResponseEntity<ProblemDetail> handleDuplicateResourceException(
             DuplicateResourceException ex, HttpServletRequest request) {
@@ -73,7 +76,7 @@ public class GlobalExceptionHandler {
         ProblemDetail problem =
                 ProblemDetail.builder()
                         .type(URI.create("https://api.example.com/problems/conflict"))
-                        .title("Conflicto de recurso")
+                        .title(messageService.getConflictTitle())
                         .status(HttpStatus.CONFLICT.value())
                         .detail(ex.getMessage())
                         .instance(request.getRequestURI())
@@ -84,10 +87,7 @@ public class GlobalExceptionHandler {
                 .body(problem);
     }
 
-    /**
-     * Maneja las excepciones de tipo {@link ValidationException}. Retorna un estado HTTP 400 Bad
-     * Request.
-     */
+    /** Handles {@link ValidationException}. Returns HTTP 400 Bad Request. */
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<ProblemDetail> handleValidationException(
             ValidationException ex, HttpServletRequest request) {
@@ -97,7 +97,7 @@ public class GlobalExceptionHandler {
         ProblemDetail problem =
                 ProblemDetail.builder()
                         .type(URI.create("https://api.example.com/problems/validation-error"))
-                        .title("Error de validación")
+                        .title(messageService.getValidationTitle())
                         .status(HttpStatus.BAD_REQUEST.value())
                         .detail(ex.getMessage())
                         .instance(request.getRequestURI())
@@ -108,10 +108,7 @@ public class GlobalExceptionHandler {
                 .body(problem);
     }
 
-    /**
-     * Maneja las excepciones de tipo {@link IdMismatchException}. Retorna un estado HTTP 400 Bad
-     * Request.
-     */
+    /** Handles {@link IdMismatchException}. Returns HTTP 400 Bad Request. */
     @ExceptionHandler(IdMismatchException.class)
     public ResponseEntity<ProblemDetail> handleIdMismatchException(
             IdMismatchException ex, HttpServletRequest request) {
@@ -121,9 +118,9 @@ public class GlobalExceptionHandler {
         ProblemDetail problem =
                 ProblemDetail.builder()
                         .type(URI.create("https://api.example.com/problems/id-mismatch"))
-                        .title("ID no coincide")
+                        .title(messageService.getIdMismatchTitle())
                         .status(HttpStatus.BAD_REQUEST.value())
-                        .detail(ex.getMessage())
+                        .detail(messageService.getIdMismatchDetail(ex.getPathId(), ex.getBodyId()))
                         .instance(request.getRequestURI())
                         .extension("pathId", ex.getPathId())
                         .extension("bodyId", ex.getBodyId())
@@ -135,8 +132,8 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Maneja las excepciones de tipo {@link PreconditionFailedException}. Retorna un estado HTTP
-     * 412 Precondition Failed (para ETag mismatch).
+     * Handles {@link PreconditionFailedException}. Returns HTTP 412 Precondition Failed (for ETag
+     * mismatch).
      */
     @ExceptionHandler(PreconditionFailedException.class)
     public ResponseEntity<ProblemDetail> handlePreconditionFailedException(
@@ -147,7 +144,7 @@ public class GlobalExceptionHandler {
         ProblemDetail problem =
                 ProblemDetail.builder()
                         .type(URI.create("https://api.example.com/problems/precondition-failed"))
-                        .title("Precondición fallida")
+                        .title(messageService.getPreconditionFailedTitle())
                         .status(HttpStatus.PRECONDITION_FAILED.value())
                         .detail(ex.getMessage())
                         .instance(request.getRequestURI())
@@ -158,10 +155,7 @@ public class GlobalExceptionHandler {
                 .body(problem);
     }
 
-    /**
-     * Maneja las excepciones de tipo {@link OperationFailedException}. Retorna un estado HTTP 500
-     * Internal Server Error.
-     */
+    /** Handles {@link OperationFailedException}. Returns HTTP 500 Internal Server Error. */
     @ExceptionHandler(OperationFailedException.class)
     public ResponseEntity<ProblemDetail> handleOperationFailedException(
             OperationFailedException ex, HttpServletRequest request) {
@@ -171,7 +165,7 @@ public class GlobalExceptionHandler {
         ProblemDetail problem =
                 ProblemDetail.builder()
                         .type(URI.create("https://api.example.com/problems/operation-failed"))
-                        .title("Operación fallida")
+                        .title(messageService.getOperationFailedTitle())
                         .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                         .detail(ex.getMessage())
                         .instance(request.getRequestURI())
@@ -182,10 +176,7 @@ public class GlobalExceptionHandler {
                 .body(problem);
     }
 
-    /**
-     * Maneja las excepciones de tipo {@link UnauthorizedActionException}. Retorna un estado HTTP
-     * 403 Forbidden.
-     */
+    /** Handles {@link UnauthorizedActionException}. Returns HTTP 403 Forbidden. */
     @ExceptionHandler(UnauthorizedActionException.class)
     public ResponseEntity<ProblemDetail> handleUnauthorizedActionException(
             UnauthorizedActionException ex, HttpServletRequest request) {
@@ -195,7 +186,7 @@ public class GlobalExceptionHandler {
         ProblemDetail problem =
                 ProblemDetail.builder()
                         .type(URI.create("https://api.example.com/problems/forbidden"))
-                        .title("Acción no autorizada")
+                        .title(messageService.getForbiddenTitle())
                         .status(HttpStatus.FORBIDDEN.value())
                         .detail(ex.getMessage())
                         .instance(request.getRequestURI())
@@ -207,17 +198,17 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Maneja las excepciones de validación de argumentos de método (@Valid en DTOs). Retorna un
-     * estado HTTP 400 Bad Request con lista de errores de validación.
+     * Handles validation exceptions for method arguments (@Valid on DTOs). Returns HTTP 400 Bad
+     * Request with list of validation errors.
      */
-    @SuppressWarnings("java:S2259") // False positive: Objects.requireNonNullElse garantiza non-null
+    @SuppressWarnings("java:S2259") // False positive
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ProblemDetail> handleMethodArgumentNotValid(
             MethodArgumentNotValidException ex, HttpServletRequest request) {
 
         log.debug("Validation failed for request to {}", request.getRequestURI());
 
-        // Recopilar errores de campo
+        // Collect field errors
         Map<String, List<String>> fieldErrors =
                 ex.getBindingResult().getFieldErrors().stream()
                         .collect(
@@ -228,7 +219,7 @@ public class GlobalExceptionHandler {
                                                         ::getDefaultMessage,
                                                 Collectors.toList())));
 
-        // Recopilar errores globales
+        // Collect global errors
         List<String> globalErrors =
                 ex.getBindingResult().getGlobalErrors().stream()
                         .map(org.springframework.validation.ObjectError::getDefaultMessage)
@@ -246,12 +237,11 @@ public class GlobalExceptionHandler {
         ProblemDetail problem =
                 ProblemDetail.builder()
                         .type(URI.create("https://api.example.com/problems/validation-error"))
-                        .title("Error de validación de entrada")
+                        .title(messageService.getMessage("error.title.validation-input"))
                         .status(HttpStatus.BAD_REQUEST.value())
                         .detail(
-                                "La solicitud contiene "
-                                        + ex.getBindingResult().getErrorCount()
-                                        + " error(es) de validación")
+                                messageService.getValidationDetail(
+                                        ex.getBindingResult().getErrorCount()))
                         .instance(request.getRequestURI())
                         .extensions(extensions)
                         .build();
@@ -261,10 +251,7 @@ public class GlobalExceptionHandler {
                 .body(problem);
     }
 
-    /**
-     * Maneja las excepciones de tipo {@link IllegalArgumentException}. Retorna un estado HTTP 400
-     * Bad Request.
-     */
+    /** Handles {@link IllegalArgumentException}. Returns HTTP 400 Bad Request. */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ProblemDetail> handleIllegalArgumentException(
             IllegalArgumentException ex, HttpServletRequest request) {
@@ -274,7 +261,7 @@ public class GlobalExceptionHandler {
         ProblemDetail problem =
                 ProblemDetail.builder()
                         .type(URI.create("https://api.example.com/problems/bad-request"))
-                        .title("Argumento inválido")
+                        .title(messageService.getBadRequestTitle())
                         .status(HttpStatus.BAD_REQUEST.value())
                         .detail(ex.getMessage())
                         .instance(request.getRequestURI())
@@ -286,8 +273,8 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Maneja las excepciones de tipo {@link HttpMessageNotReadableException}. Se lanza cuando el
-     * JSON del body no puede ser parseado (malformado). Retorna un estado HTTP 400 Bad Request.
+     * Handles {@link HttpMessageNotReadableException}. Thrown when request body JSON cannot be
+     * parsed. Returns HTTP 400 Bad Request.
      */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ProblemDetail> handleHttpMessageNotReadableException(
@@ -298,9 +285,9 @@ public class GlobalExceptionHandler {
         ProblemDetail problem =
                 ProblemDetail.builder()
                         .type(URI.create("https://api.example.com/problems/malformed-json"))
-                        .title("JSON malformado")
+                        .title(messageService.getMalformedJsonTitle())
                         .status(HttpStatus.BAD_REQUEST.value())
-                        .detail("El cuerpo de la solicitud contiene JSON inválido o malformado")
+                        .detail(messageService.getMalformedJsonDetail())
                         .instance(request.getRequestURI())
                         .build();
 
@@ -310,9 +297,8 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Maneja las excepciones de tipo {@link ConstraintViolationException}. Se lanza cuando los
-     * parámetros de query o path violan restricciones de validación. Retorna un estado HTTP 400 Bad
-     * Request.
+     * Handles {@link ConstraintViolationException}. Thrown when query or path parameters violate
+     * validation constraints. Returns HTTP 400 Bad Request.
      */
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ProblemDetail> handleConstraintViolationException(
@@ -332,11 +318,9 @@ public class GlobalExceptionHandler {
         ProblemDetail problem =
                 ProblemDetail.builder()
                         .type(URI.create("https://api.example.com/problems/constraint-violation"))
-                        .title("Parámetros inválidos")
+                        .title(messageService.getConstraintViolationTitle())
                         .status(HttpStatus.BAD_REQUEST.value())
-                        .detail(
-                                "Los parámetros de la solicitud no cumplen con las restricciones de"
-                                        + " validación")
+                        .detail(messageService.getConstraintViolationDetail())
                         .instance(request.getRequestURI())
                         .extensions(extensions)
                         .build();
@@ -347,9 +331,8 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Maneja las excepciones de tipo {@link MethodArgumentTypeMismatchException}. Se lanza cuando
-     * un parámetro no puede ser convertido al tipo esperado. Retorna un estado HTTP 400 Bad
-     * Request.
+     * Handles {@link MethodArgumentTypeMismatchException}. Thrown when a parameter cannot be
+     * converted to the expected type. Returns HTTP 400 Bad Request.
      */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ProblemDetail> handleMethodArgumentTypeMismatchException(
@@ -360,12 +343,9 @@ public class GlobalExceptionHandler {
         ProblemDetail problem =
                 ProblemDetail.builder()
                         .type(URI.create("https://api.example.com/problems/type-mismatch"))
-                        .title("Tipo de parámetro inválido")
+                        .title(messageService.getTypeMismatchTitle())
                         .status(HttpStatus.BAD_REQUEST.value())
-                        .detail(
-                                String.format(
-                                        "El parámetro '%s' tiene un valor inválido: '%s'",
-                                        ex.getName(), ex.getValue()))
+                        .detail(messageService.getTypeMismatchDetail(ex.getName(), ex.getValue()))
                         .instance(request.getRequestURI())
                         .build();
 
@@ -374,10 +354,7 @@ public class GlobalExceptionHandler {
                 .body(problem);
     }
 
-    /**
-     * Maneja cualquier otra excepción no capturada específicamente. Retorna un estado HTTP 500
-     * Internal Server Error.
-     */
+    /** Handles any other uncaught exception. Returns HTTP 500 Internal Server Error. */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ProblemDetail> handleGlobalException(
             Exception ex, HttpServletRequest request) {
@@ -391,11 +368,9 @@ public class GlobalExceptionHandler {
         ProblemDetail problem =
                 ProblemDetail.builder()
                         .type(URI.create("https://api.example.com/problems/internal-error"))
-                        .title("Error interno del servidor")
+                        .title(messageService.getInternalErrorTitle())
                         .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                        .detail(
-                                "Ha ocurrido un error inesperado. Por favor, inténtelo de nuevo más"
-                                        + " tarde.")
+                        .detail(messageService.getInternalErrorDetail())
                         .instance(request.getRequestURI())
                         .build();
 

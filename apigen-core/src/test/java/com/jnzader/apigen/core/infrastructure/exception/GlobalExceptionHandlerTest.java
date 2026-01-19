@@ -1,10 +1,12 @@
 package com.jnzader.apigen.core.infrastructure.exception;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.jnzader.apigen.core.domain.exception.*;
+import com.jnzader.apigen.core.infrastructure.i18n.MessageService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,6 +16,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -22,26 +26,54 @@ import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
 /**
- * Tests unitarios para GlobalExceptionHandler.
+ * Unit tests for GlobalExceptionHandler.
  *
- * <p>Verifica que cada tipo de excepción se mapea correctamente a: - El código HTTP apropiado - El
- * formato RFC 7807 (Problem Details) - Los campos correctos en la respuesta
+ * <p>Verifies that each exception type is correctly mapped to: - The appropriate HTTP code - RFC
+ * 7807 (Problem Details) format - Correct fields in the response
  */
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 @DisplayName("GlobalExceptionHandler Tests")
 class GlobalExceptionHandlerTest {
 
     private GlobalExceptionHandler handler;
 
     @Mock private HttpServletRequest request;
+    @Mock private MessageService messageService;
 
     private static final String TEST_URI = "/api/test-entities";
     private static final String TEST_MESSAGE = "Test error message";
 
+    // English message constants for testing
+    private static final String MSG_NOT_FOUND_TITLE = "Resource not found";
+    private static final String MSG_CONFLICT_TITLE = "Resource conflict";
+    private static final String MSG_VALIDATION_TITLE = "Validation error";
+    private static final String MSG_VALIDATION_INPUT_TITLE = "Validation input error";
+    private static final String MSG_ID_MISMATCH_TITLE = "ID mismatch";
+    private static final String MSG_PRECONDITION_FAILED_TITLE = "Precondition failed";
+    private static final String MSG_OPERATION_FAILED_TITLE = "Operation failed";
+    private static final String MSG_FORBIDDEN_TITLE = "Forbidden action";
+    private static final String MSG_BAD_REQUEST_TITLE = "Invalid argument";
+    private static final String MSG_INTERNAL_ERROR_TITLE = "Internal server error";
+    private static final String MSG_INTERNAL_ERROR_DETAIL =
+            "An unexpected error occurred. Please try again later.";
+
     @BeforeEach
     void setUp() {
-        handler = new GlobalExceptionHandler();
+        handler = new GlobalExceptionHandler(messageService);
         when(request.getRequestURI()).thenReturn(TEST_URI);
+
+        // Setup common message service returns
+        when(messageService.getNotFoundTitle()).thenReturn(MSG_NOT_FOUND_TITLE);
+        when(messageService.getConflictTitle()).thenReturn(MSG_CONFLICT_TITLE);
+        when(messageService.getValidationTitle()).thenReturn(MSG_VALIDATION_TITLE);
+        when(messageService.getIdMismatchTitle()).thenReturn(MSG_ID_MISMATCH_TITLE);
+        when(messageService.getPreconditionFailedTitle()).thenReturn(MSG_PRECONDITION_FAILED_TITLE);
+        when(messageService.getOperationFailedTitle()).thenReturn(MSG_OPERATION_FAILED_TITLE);
+        when(messageService.getForbiddenTitle()).thenReturn(MSG_FORBIDDEN_TITLE);
+        when(messageService.getBadRequestTitle()).thenReturn(MSG_BAD_REQUEST_TITLE);
+        when(messageService.getInternalErrorTitle()).thenReturn(MSG_INTERNAL_ERROR_TITLE);
+        when(messageService.getInternalErrorDetail()).thenReturn(MSG_INTERNAL_ERROR_DETAIL);
     }
 
     // ==================== ResourceNotFoundException Tests ====================
@@ -64,7 +96,7 @@ class GlobalExceptionHandlerTest {
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
             assertThat(response.getBody()).isNotNull();
             assertThat(response.getBody().status()).isEqualTo(404);
-            assertThat(response.getBody().title()).isEqualTo("Recurso no encontrado");
+            assertThat(response.getBody().title()).isEqualTo(MSG_NOT_FOUND_TITLE);
             assertThat(response.getBody().detail()).isEqualTo(TEST_MESSAGE);
             assertThat(response.getBody().instance()).hasToString(TEST_URI);
         }
@@ -105,7 +137,7 @@ class GlobalExceptionHandlerTest {
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
             assertThat(response.getBody()).isNotNull();
             assertThat(response.getBody().status()).isEqualTo(409);
-            assertThat(response.getBody().title()).isEqualTo("Conflicto de recurso");
+            assertThat(response.getBody().title()).isEqualTo(MSG_CONFLICT_TITLE);
             assertThat(response.getBody().detail()).isEqualTo(TEST_MESSAGE);
         }
     }
@@ -129,7 +161,7 @@ class GlobalExceptionHandlerTest {
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
             assertThat(response.getBody()).isNotNull();
             assertThat(response.getBody().status()).isEqualTo(400);
-            assertThat(response.getBody().title()).isEqualTo("Error de validación");
+            assertThat(response.getBody().title()).isEqualTo(MSG_VALIDATION_TITLE);
             assertThat(response.getBody().detail()).isEqualTo(TEST_MESSAGE);
         }
     }
@@ -147,6 +179,8 @@ class GlobalExceptionHandlerTest {
             Long pathId = 1L;
             Long bodyId = 2L;
             IdMismatchException ex = new IdMismatchException(pathId, bodyId);
+            when(messageService.getIdMismatchDetail(any(), any()))
+                    .thenReturn("Path ID (1) does not match body ID (2)");
 
             // When
             ResponseEntity<ProblemDetail> response = handler.handleIdMismatchException(ex, request);
@@ -155,7 +189,7 @@ class GlobalExceptionHandlerTest {
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
             assertThat(response.getBody()).isNotNull();
             assertThat(response.getBody().status()).isEqualTo(400);
-            assertThat(response.getBody().title()).isEqualTo("ID no coincide");
+            assertThat(response.getBody().title()).isEqualTo(MSG_ID_MISMATCH_TITLE);
             assertThat(response.getBody().extensions()).isNotNull();
             assertThat(response.getBody().extensions()).containsEntry("pathId", pathId);
             assertThat(response.getBody().extensions()).containsEntry("bodyId", bodyId);
@@ -182,7 +216,7 @@ class GlobalExceptionHandlerTest {
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.PRECONDITION_FAILED);
             assertThat(response.getBody()).isNotNull();
             assertThat(response.getBody().status()).isEqualTo(412);
-            assertThat(response.getBody().title()).isEqualTo("Precondición fallida");
+            assertThat(response.getBody().title()).isEqualTo(MSG_PRECONDITION_FAILED_TITLE);
             assertThat(response.getBody().detail()).isEqualTo(TEST_MESSAGE);
         }
     }
@@ -207,7 +241,7 @@ class GlobalExceptionHandlerTest {
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
             assertThat(response.getBody()).isNotNull();
             assertThat(response.getBody().status()).isEqualTo(500);
-            assertThat(response.getBody().title()).isEqualTo("Operación fallida");
+            assertThat(response.getBody().title()).isEqualTo(MSG_OPERATION_FAILED_TITLE);
             assertThat(response.getBody().detail()).isEqualTo(TEST_MESSAGE);
         }
     }
@@ -232,7 +266,7 @@ class GlobalExceptionHandlerTest {
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
             assertThat(response.getBody()).isNotNull();
             assertThat(response.getBody().status()).isEqualTo(403);
-            assertThat(response.getBody().title()).isEqualTo("Acción no autorizada");
+            assertThat(response.getBody().title()).isEqualTo(MSG_FORBIDDEN_TITLE);
             assertThat(response.getBody().detail()).isEqualTo(TEST_MESSAGE);
         }
     }
@@ -252,6 +286,10 @@ class GlobalExceptionHandlerTest {
             when(bindingResult.getFieldErrors()).thenReturn(List.of(fieldError));
             when(bindingResult.getGlobalErrors()).thenReturn(List.of());
             when(bindingResult.getErrorCount()).thenReturn(1);
+            when(messageService.getMessage("error.title.validation-input"))
+                    .thenReturn(MSG_VALIDATION_INPUT_TITLE);
+            when(messageService.getValidationDetail(1))
+                    .thenReturn("The request contains 1 validation error(s)");
 
             MethodArgumentNotValidException ex =
                     new MethodArgumentNotValidException(null, bindingResult);
@@ -264,7 +302,7 @@ class GlobalExceptionHandlerTest {
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
             assertThat(response.getBody()).isNotNull();
             assertThat(response.getBody().status()).isEqualTo(400);
-            assertThat(response.getBody().title()).isEqualTo("Error de validación de entrada");
+            assertThat(response.getBody().title()).isEqualTo(MSG_VALIDATION_INPUT_TITLE);
             assertThat(response.getBody().extensions()).containsKey("fieldErrors");
             assertThat(response.getBody().extensions()).containsEntry("errorCount", 1);
         }
@@ -278,6 +316,10 @@ class GlobalExceptionHandlerTest {
             when(bindingResult.getFieldErrors()).thenReturn(List.of());
             when(bindingResult.getGlobalErrors()).thenReturn(List.of(globalError));
             when(bindingResult.getErrorCount()).thenReturn(1);
+            when(messageService.getMessage("error.title.validation-input"))
+                    .thenReturn(MSG_VALIDATION_INPUT_TITLE);
+            when(messageService.getValidationDetail(1))
+                    .thenReturn("The request contains 1 validation error(s)");
 
             MethodArgumentNotValidException ex =
                     new MethodArgumentNotValidException(null, bindingResult);
@@ -304,6 +346,10 @@ class GlobalExceptionHandlerTest {
             when(bindingResult.getFieldErrors()).thenReturn(List.of(error1, error2, error3));
             when(bindingResult.getGlobalErrors()).thenReturn(List.of());
             when(bindingResult.getErrorCount()).thenReturn(3);
+            when(messageService.getMessage("error.title.validation-input"))
+                    .thenReturn(MSG_VALIDATION_INPUT_TITLE);
+            when(messageService.getValidationDetail(3))
+                    .thenReturn("The request contains 3 validation error(s)");
 
             MethodArgumentNotValidException ex =
                     new MethodArgumentNotValidException(null, bindingResult);
@@ -315,7 +361,7 @@ class GlobalExceptionHandlerTest {
             // Then
             assertThat(response.getBody()).isNotNull();
             assertThat(response.getBody().extensions()).containsEntry("errorCount", 3);
-            assertThat(response.getBody().detail()).contains("3 error(es)");
+            assertThat(response.getBody().detail()).contains("3 validation error(s)");
         }
     }
 
@@ -339,7 +385,7 @@ class GlobalExceptionHandlerTest {
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
             assertThat(response.getBody()).isNotNull();
             assertThat(response.getBody().status()).isEqualTo(400);
-            assertThat(response.getBody().title()).isEqualTo("Argumento inválido");
+            assertThat(response.getBody().title()).isEqualTo(MSG_BAD_REQUEST_TITLE);
             assertThat(response.getBody().detail()).isEqualTo(TEST_MESSAGE);
         }
     }
@@ -363,7 +409,7 @@ class GlobalExceptionHandlerTest {
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
             assertThat(response.getBody()).isNotNull();
             assertThat(response.getBody().status()).isEqualTo(500);
-            assertThat(response.getBody().title()).isEqualTo("Error interno del servidor");
+            assertThat(response.getBody().title()).isEqualTo(MSG_INTERNAL_ERROR_TITLE);
             assertThat(response.getBody().detail())
                     .doesNotContain("Unexpected error"); // Should not expose internal details
         }
@@ -379,10 +425,7 @@ class GlobalExceptionHandlerTest {
 
             // Then
             assertThat(response.getBody()).isNotNull();
-            assertThat(response.getBody().detail())
-                    .isEqualTo(
-                            "Ha ocurrido un error inesperado. Por favor, inténtelo de nuevo más"
-                                    + " tarde.");
+            assertThat(response.getBody().detail()).isEqualTo(MSG_INTERNAL_ERROR_DETAIL);
         }
     }
 
