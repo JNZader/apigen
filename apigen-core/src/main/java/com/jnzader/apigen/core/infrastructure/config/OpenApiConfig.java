@@ -59,7 +59,10 @@ public class OpenApiConfig {
                                 .name("Javier N. Zader")
                                 .url("https://github.com/JNZader")
                                 .email("jnzader@example.com"))
-                .license(new License().name("MIT License").url("https://opensource.org/licenses/MIT"));
+                .license(
+                        new License()
+                                .name("MIT License")
+                                .url("https://opensource.org/licenses/MIT"));
     }
 
     private Components apiComponents() {
@@ -89,10 +92,14 @@ public class OpenApiConfig {
         return new Schema<>()
                 .type("object")
                 .description("RFC 7807 Problem Details for HTTP APIs")
-                .addProperty("type", new Schema<>().type("string").example("urn:problem-type:validation-error"))
+                .addProperty(
+                        "type",
+                        new Schema<>().type("string").example("urn:problem-type:validation-error"))
                 .addProperty("title", new Schema<>().type("string").example("Error de validación"))
                 .addProperty("status", new Schema<>().type("integer").example(400))
-                .addProperty("detail", new Schema<>().type("string").example("El campo 'name' es requerido"))
+                .addProperty(
+                        "detail",
+                        new Schema<>().type("string").example("El campo 'name' es requerido"))
                 .addProperty("instance", new Schema<>().type("string").example("/api/products"));
     }
 
@@ -101,17 +108,28 @@ public class OpenApiConfig {
         return new Schema<>()
                 .type("object")
                 .description("Error de validación con detalle de campos")
-                .addProperty("type", new Schema<>().type("string").example("urn:problem-type:validation-error"))
+                .addProperty(
+                        "type",
+                        new Schema<>().type("string").example("urn:problem-type:validation-error"))
                 .addProperty("title", new Schema<>().type("string").example("Error de validación"))
                 .addProperty("status", new Schema<>().type("integer").example(400))
-                .addProperty("detail", new Schema<>().type("string").example("Error de validación en los datos enviados"))
+                .addProperty(
+                        "detail",
+                        new Schema<>()
+                                .type("string")
+                                .example("Error de validación en los datos enviados"))
                 .addProperty("instance", new Schema<>().type("string").example("/api/products"))
                 .addProperty(
                         "fieldErrors",
                         new Schema<>()
                                 .type("object")
                                 .additionalProperties(new Schema<>().type("string"))
-                                .example(Map.of("name", "El nombre es requerido", "price", "El precio debe ser positivo")));
+                                .example(
+                                        Map.of(
+                                                "name",
+                                                "El nombre es requerido",
+                                                "price",
+                                                "El precio debe ser positivo")));
     }
 
     private ApiResponse badRequestResponse() {
@@ -122,32 +140,66 @@ public class OpenApiConfig {
                                 .addMediaType(
                                         "application/problem+json",
                                         new MediaType()
-                                                .schema(new Schema<>().$ref("#/components/schemas/ValidationError"))
+                                                .schema(
+                                                        new Schema<>()
+                                                                .$ref(
+                                                                        "#/components/schemas/ValidationError"))
                                                 .examples(
                                                         Map.of(
                                                                 "validation",
                                                                 new Example()
-                                                                        .summary("Error de validación")
+                                                                        .summary(
+                                                                                "Error de"
+                                                                                    + " validación")
                                                                         .value(
                                                                                 Map.of(
-                                                                                        "type", "urn:problem-type:validation-error",
-                                                                                        "title", "Error de validación",
-                                                                                        "status", 400,
-                                                                                        "detail", "Error de validación en los datos enviados",
-                                                                                        "instance", "/api/products",
-                                                                                        "fieldErrors", Map.of("name", "El nombre es requerido"))),
+                                                                                        "type",
+                                                                                        "urn:problem-type:validation-error",
+                                                                                        "title",
+                                                                                        "Error de"
+                                                                                            + " validación",
+                                                                                        "status",
+                                                                                        400,
+                                                                                        "detail",
+                                                                                        "Error de"
+                                                                                            + " validación"
+                                                                                            + " en los"
+                                                                                            + " datos"
+                                                                                            + " enviados",
+                                                                                        "instance",
+                                                                                        "/api/products",
+                                                                                        "fieldErrors",
+                                                                                        Map.of(
+                                                                                                "name",
+                                                                                                "El nombre"
+                                                                                                    + " es requerido"))),
                                                                 "idMismatch",
                                                                 new Example()
                                                                         .summary("IDs no coinciden")
                                                                         .value(
                                                                                 Map.of(
-                                                                                        "type", "urn:problem-type:id-mismatch",
-                                                                                        "title", "IDs no coinciden",
-                                                                                        "status", 400,
-                                                                                        "detail", "El ID del path (1) no coincide con el ID del body (2)",
-                                                                                        "instance", "/api/products/1",
-                                                                                        "pathId", 1,
-                                                                                        "bodyId", 2))))));
+                                                                                        "type",
+                                                                                        "urn:problem-type:id-mismatch",
+                                                                                        "title",
+                                                                                        "IDs no"
+                                                                                            + " coinciden",
+                                                                                        "status",
+                                                                                        400,
+                                                                                        "detail",
+                                                                                        "El ID del"
+                                                                                            + " path"
+                                                                                            + " (1) no"
+                                                                                            + " coincide"
+                                                                                            + " con el"
+                                                                                            + " ID del"
+                                                                                            + " body"
+                                                                                            + " (2)",
+                                                                                        "instance",
+                                                                                        "/api/products/1",
+                                                                                        "pathId",
+                                                                                        1,
+                                                                                        "bodyId",
+                                                                                        2))))));
     }
 
     private ApiResponse unauthorizedResponse() {
@@ -158,13 +210,19 @@ public class OpenApiConfig {
                                 .addMediaType(
                                         "application/problem+json",
                                         new MediaType()
-                                                .schema(new Schema<>().$ref("#/components/schemas/ProblemDetail"))
+                                                .schema(
+                                                        new Schema<>()
+                                                                .$ref(
+                                                                        "#/components/schemas/ProblemDetail"))
                                                 .example(
                                                         Map.of(
-                                                                "type", "urn:problem-type:unauthorized",
+                                                                "type",
+                                                                        "urn:problem-type:unauthorized",
                                                                 "title", "No autenticado",
                                                                 "status", 401,
-                                                                "detail", "Token JWT inválido o expirado",
+                                                                "detail",
+                                                                        "Token JWT inválido o"
+                                                                                + " expirado",
                                                                 "instance", "/api/products"))));
     }
 
@@ -176,13 +234,20 @@ public class OpenApiConfig {
                                 .addMediaType(
                                         "application/problem+json",
                                         new MediaType()
-                                                .schema(new Schema<>().$ref("#/components/schemas/ProblemDetail"))
+                                                .schema(
+                                                        new Schema<>()
+                                                                .$ref(
+                                                                        "#/components/schemas/ProblemDetail"))
                                                 .example(
                                                         Map.of(
-                                                                "type", "urn:problem-type:forbidden",
+                                                                "type",
+                                                                        "urn:problem-type:forbidden",
                                                                 "title", "Acción no permitida",
                                                                 "status", 403,
-                                                                "detail", "No tienes permisos para realizar esta acción",
+                                                                "detail",
+                                                                        "No tienes permisos para"
+                                                                                + " realizar esta"
+                                                                                + " acción",
                                                                 "instance", "/api/products"))));
     }
 
@@ -194,13 +259,19 @@ public class OpenApiConfig {
                                 .addMediaType(
                                         "application/problem+json",
                                         new MediaType()
-                                                .schema(new Schema<>().$ref("#/components/schemas/ProblemDetail"))
+                                                .schema(
+                                                        new Schema<>()
+                                                                .$ref(
+                                                                        "#/components/schemas/ProblemDetail"))
                                                 .example(
                                                         Map.of(
-                                                                "type", "urn:problem-type:resource-not-found",
+                                                                "type",
+                                                                        "urn:problem-type:resource-not-found",
                                                                 "title", "Recurso no encontrado",
                                                                 "status", 404,
-                                                                "detail", "Producto con ID '999' no encontrado",
+                                                                "detail",
+                                                                        "Producto con ID '999' no"
+                                                                                + " encontrado",
                                                                 "instance", "/api/products/999"))));
     }
 
@@ -212,15 +283,22 @@ public class OpenApiConfig {
                                 .addMediaType(
                                         "application/problem+json",
                                         new MediaType()
-                                                .schema(new Schema<>().$ref("#/components/schemas/ProblemDetail"))
+                                                .schema(
+                                                        new Schema<>()
+                                                                .$ref(
+                                                                        "#/components/schemas/ProblemDetail"))
                                                 .example(
                                                         Map.of(
-                                                                "type", "urn:problem-type:resource-conflict",
+                                                                "type",
+                                                                        "urn:problem-type:resource-conflict",
                                                                 "title", "Conflicto de recursos",
                                                                 "status", 409,
-                                                                "detail", "Ya existe un producto con el SKU 'ABC-123'",
+                                                                "detail",
+                                                                        "Ya existe un producto con"
+                                                                            + " el SKU 'ABC-123'",
                                                                 "instance", "/api/products",
-                                                                "conflictType", "DUPLICATE_RESOURCE"))));
+                                                                "conflictType",
+                                                                        "DUPLICATE_RESOURCE"))));
     }
 
     private ApiResponse preconditionFailedResponse() {
@@ -231,13 +309,19 @@ public class OpenApiConfig {
                                 .addMediaType(
                                         "application/problem+json",
                                         new MediaType()
-                                                .schema(new Schema<>().$ref("#/components/schemas/ProblemDetail"))
+                                                .schema(
+                                                        new Schema<>()
+                                                                .$ref(
+                                                                        "#/components/schemas/ProblemDetail"))
                                                 .example(
                                                         Map.of(
-                                                                "type", "urn:problem-type:precondition-failed",
+                                                                "type",
+                                                                        "urn:problem-type:precondition-failed",
                                                                 "title", "Precondición fallida",
                                                                 "status", 412,
-                                                                "detail", "El recurso fue modificado por otro usuario",
+                                                                "detail",
+                                                                        "El recurso fue modificado"
+                                                                            + " por otro usuario",
                                                                 "instance", "/api/products/1",
                                                                 "expectedEtag", "\"v2\"",
                                                                 "providedEtag", "\"v1\""))));
@@ -251,13 +335,22 @@ public class OpenApiConfig {
                                 .addMediaType(
                                         "application/problem+json",
                                         new MediaType()
-                                                .schema(new Schema<>().$ref("#/components/schemas/ProblemDetail"))
+                                                .schema(
+                                                        new Schema<>()
+                                                                .$ref(
+                                                                        "#/components/schemas/ProblemDetail"))
                                                 .example(
                                                         Map.of(
-                                                                "type", "urn:problem-type:internal-error",
-                                                                "title", "Error interno del servidor",
-                                                                "status", 500,
-                                                                "detail", "Ha ocurrido un error inesperado",
-                                                                "instance", "/api/products"))));
+                                                                "type",
+                                                                "urn:problem-type:internal-error",
+                                                                "title",
+                                                                "Error interno del" + " servidor",
+                                                                "status",
+                                                                500,
+                                                                "detail",
+                                                                "Ha ocurrido un error"
+                                                                        + " inesperado",
+                                                                "instance",
+                                                                "/api/products"))));
     }
 }

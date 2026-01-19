@@ -15,32 +15,35 @@ import java.math.BigDecimal;
  */
 @Schema(description = "Producto del catálogo")
 public record ProductDTO(
-        @Schema(description = "ID único del producto", example = "1", accessMode = Schema.AccessMode.READ_ONLY)
-        Long id,
-
+        @Schema(
+                        description = "ID único del producto",
+                        example = "1",
+                        accessMode = Schema.AccessMode.READ_ONLY)
+                Long id,
         @Schema(description = "Estado activo del producto", example = "true", defaultValue = "true")
-        Boolean activo,
-
-        @Schema(description = "Nombre del producto", example = "MacBook Pro 16\"", requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotBlank(message = "Product name is required")
-        String name,
-
-        @Schema(description = "Descripción detallada del producto", example = "Laptop profesional con chip M3 Pro, 18GB RAM, 512GB SSD")
-        String description,
-
-        @Schema(description = "Precio unitario", example = "2499.99", minimum = "0.01", requiredMode = Schema.RequiredMode.REQUIRED)
-        @Positive(message = "Price must be positive")
-        BigDecimal price,
-
+                Boolean activo,
+        @Schema(
+                        description = "Nombre del producto",
+                        example = "MacBook Pro 16\"",
+                        requiredMode = Schema.RequiredMode.REQUIRED)
+                @NotBlank(message = "Product name is required")
+                String name,
+        @Schema(
+                        description = "Descripción detallada del producto",
+                        example = "Laptop profesional con chip M3 Pro, 18GB RAM, 512GB SSD")
+                String description,
+        @Schema(
+                        description = "Precio unitario",
+                        example = "2499.99",
+                        minimum = "0.01",
+                        requiredMode = Schema.RequiredMode.REQUIRED)
+                @Positive(message = "Price must be positive")
+                BigDecimal price,
         @Schema(description = "Cantidad en stock", example = "50", minimum = "0")
-        @PositiveOrZero(message = "Stock cannot be negative")
-        Integer stock,
-
-        @Schema(description = "Categoría del producto", example = "Electronics")
-        String category,
-
-        @Schema(description = "Código SKU único", example = "MBP-16-M3-512")
-        String sku)
+                @PositiveOrZero(message = "Stock cannot be negative")
+                Integer stock,
+        @Schema(description = "Categoría del producto", example = "Electronics") String category,
+        @Schema(description = "Código SKU único", example = "MBP-16-M3-512") String sku)
         implements BaseDTO {
 
     /** Factory method for creating a ProductDTO. */

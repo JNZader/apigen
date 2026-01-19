@@ -7,8 +7,8 @@ import jakarta.validation.constraints.NotBlank;
 @Schema(description = "Solicitud para renovar el access token usando un refresh token")
 public record RefreshTokenRequestDTO(
         @Schema(
-                description = "Refresh token obtenido en el login",
-                example = "dGhpcyBpcyBhIHJlZnJlc2ggdG9rZW4gZXhhbXBsZQ==",
-                requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotBlank(message = "El refresh token es requerido")
-        String refreshToken) {}
+                        description = "Refresh token obtenido en el login",
+                        example = "dGhpcyBpcyBhIHJlZnJlc2ggdG9rZW4gZXhhbXBsZQ==",
+                        requiredMode = Schema.RequiredMode.REQUIRED)
+                @NotBlank(message = "El refresh token es requerido")
+                String refreshToken) {}
