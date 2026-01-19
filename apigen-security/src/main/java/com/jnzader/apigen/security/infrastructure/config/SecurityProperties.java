@@ -215,6 +215,9 @@ public class SecurityProperties {
         /** Issuer del token JWT. */
         private String issuer = "apigen";
 
+        /** Configuración de rotación de claves. */
+        private KeyRotationProperties keyRotation = new KeyRotationProperties();
+
         public String getSecret() {
             return secret;
         }
@@ -245,6 +248,104 @@ public class SecurityProperties {
 
         public void setIssuer(String issuer) {
             this.issuer = issuer;
+        }
+
+        public KeyRotationProperties getKeyRotation() {
+            return keyRotation;
+        }
+
+        public void setKeyRotation(KeyRotationProperties keyRotation) {
+            this.keyRotation = keyRotation;
+        }
+    }
+
+    /**
+     * Propiedades para rotación de claves JWT.
+     *
+     * <p>Permite mantener múltiples claves activas durante la transición para evitar invalidar
+     * tokens existentes. Uso:
+     *
+     * <pre>
+     * apigen:
+     *   security:
+     *     jwt:
+     *       secret: ${JWT_SECRET_CURRENT}
+     *       key-rotation:
+     *         enabled: true
+     *         current-key-id: "key-2025-01"
+     *         previous-secrets:
+     *           - id: "key-2024-10"
+     *             secret: ${JWT_SECRET_PREVIOUS}
+     * </pre>
+     */
+    public static class KeyRotationProperties {
+
+        /**
+         * Habilitar rotación de claves con soporte para múltiples keys. Cuando está habilitado, los
+         * tokens incluyen header 'kid' y se pueden verificar con claves anteriores.
+         */
+        private boolean enabled = false;
+
+        /**
+         * ID de la clave actual (kid header). Se recomienda usar formato: "key-YYYY-MM" Ejemplo:
+         * "key-2025-01"
+         */
+        private String currentKeyId = "key-1";
+
+        /**
+         * Lista de claves anteriores que aún son válidas para verificación. Mantener hasta que
+         * todos los tokens firmados con ellas hayan expirado.
+         */
+        private java.util.List<PreviousKey> previousSecrets = new java.util.ArrayList<>();
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public String getCurrentKeyId() {
+            return currentKeyId;
+        }
+
+        public void setCurrentKeyId(String currentKeyId) {
+            this.currentKeyId = currentKeyId;
+        }
+
+        public java.util.List<PreviousKey> getPreviousSecrets() {
+            return previousSecrets;
+        }
+
+        public void setPreviousSecrets(java.util.List<PreviousKey> previousSecrets) {
+            this.previousSecrets = previousSecrets;
+        }
+    }
+
+    /** Representa una clave anterior para rotación. */
+    public static class PreviousKey {
+
+        /** ID único de la clave (debe coincidir con el 'kid' en tokens firmados con esta clave). */
+        private String id;
+
+        /** El secret de la clave anterior (mínimo 256 bits). */
+        private String secret;
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getSecret() {
+            return secret;
+        }
+
+        public void setSecret(String secret) {
+            this.secret = secret;
         }
     }
 
