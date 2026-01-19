@@ -1,0 +1,25 @@
+# Test configuration for apigen-security
+spring:
+  # Disable Redis auto-configuration in tests
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+
+  # Disable Redis health indicator
+  data:
+    redis:
+      repositories:
+        enabled: false
+
+# Disable rate limiting in tests (no Redis available)
+apigen:
+  security:
+    rate-limit:
+      enabled: false
+
+# Disable Redis health check
+management:
+  health:
+    redis:
+      enabled: false

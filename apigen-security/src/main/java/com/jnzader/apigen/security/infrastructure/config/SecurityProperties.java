@@ -56,6 +56,12 @@ public class SecurityProperties {
     /** Configuración de OAuth2 Resource Server para IdPs externos. */
     private OAuth2Properties oauth2 = new OAuth2Properties();
 
+    /** Configuración de security headers HTTP. */
+    private HeadersProperties headers = new HeadersProperties();
+
+    /** Configuración de rate limiting. */
+    private RateLimitProperties rateLimit = new RateLimitProperties();
+
     /** Modos de autenticación soportados. */
     public enum AuthMode {
         /** JWT propio con secret compartido (HS256) */
@@ -160,6 +166,22 @@ public class SecurityProperties {
 
     public void setOauth2(OAuth2Properties oauth2) {
         this.oauth2 = oauth2;
+    }
+
+    public HeadersProperties getHeaders() {
+        return headers;
+    }
+
+    public void setHeaders(HeadersProperties headers) {
+        this.headers = headers;
+    }
+
+    public RateLimitProperties getRateLimit() {
+        return rateLimit;
+    }
+
+    public void setRateLimit(RateLimitProperties rateLimit) {
+        this.rateLimit = rateLimit;
     }
 
     /** Determina si está en modo JWT propio. */
@@ -295,6 +317,263 @@ public class SecurityProperties {
 
         public void setUsernameClaim(String usernameClaim) {
             this.usernameClaim = usernameClaim;
+        }
+    }
+
+    /**
+     * Propiedades de configuración para Security Headers HTTP.
+     *
+     * <p>Configura headers de seguridad como CSP, HSTS, Referrer-Policy, etc.
+     */
+    public static class HeadersProperties {
+
+        /**
+         * Content Security Policy. Define qué recursos puede cargar el navegador. Default:
+         * restrictivo para APIs.
+         */
+        private String contentSecurityPolicy =
+                "default-src 'self'; script-src 'self'; style-src 'self'; "
+                        + "img-src 'self' data:; font-src 'self'; frame-ancestors 'none'; "
+                        + "form-action 'self'";
+
+        /**
+         * Referrer-Policy header. Controla qué información de referrer se envía. Opciones:
+         * no-referrer, no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin,
+         * strict-origin, strict-origin-when-cross-origin, unsafe-url Default: strict-origin (solo
+         * origen en HTTPS)
+         */
+        private String referrerPolicy = "strict-origin-when-cross-origin";
+
+        /**
+         * Permissions-Policy header (antes Feature-Policy). Controla qué features del navegador
+         * están permitidas. Default: deshabilita geolocalización, cámara, micrófono, etc.
+         */
+        private String permissionsPolicy =
+                "geolocation=(), camera=(), microphone=(), payment=(), usb=(), magnetometer=(), "
+                        + "gyroscope=(), accelerometer=()";
+
+        /** Habilitar HSTS (HTTP Strict Transport Security). Default: true. */
+        private boolean hstsEnabled = true;
+
+        /** HSTS max-age en segundos. Default: 1 año (31536000). */
+        private long hstsMaxAgeSeconds = 31536000;
+
+        /** HSTS incluir subdominios. Default: true. */
+        private boolean hstsIncludeSubDomains = true;
+
+        /** HSTS preload. Permite inclusión en listas de preload de navegadores. Default: false. */
+        private boolean hstsPreload = false;
+
+        /** Habilitar X-Content-Type-Options: nosniff. Default: true. */
+        private boolean contentTypeOptionsEnabled = true;
+
+        /** Habilitar X-Frame-Options: DENY. Default: true. */
+        private boolean frameOptionsEnabled = true;
+
+        /** Habilitar X-XSS-Protection. Default: true. */
+        private boolean xssProtectionEnabled = true;
+
+        public String getContentSecurityPolicy() {
+            return contentSecurityPolicy;
+        }
+
+        public void setContentSecurityPolicy(String contentSecurityPolicy) {
+            this.contentSecurityPolicy = contentSecurityPolicy;
+        }
+
+        public String getReferrerPolicy() {
+            return referrerPolicy;
+        }
+
+        public void setReferrerPolicy(String referrerPolicy) {
+            this.referrerPolicy = referrerPolicy;
+        }
+
+        public String getPermissionsPolicy() {
+            return permissionsPolicy;
+        }
+
+        public void setPermissionsPolicy(String permissionsPolicy) {
+            this.permissionsPolicy = permissionsPolicy;
+        }
+
+        public boolean isHstsEnabled() {
+            return hstsEnabled;
+        }
+
+        public void setHstsEnabled(boolean hstsEnabled) {
+            this.hstsEnabled = hstsEnabled;
+        }
+
+        public long getHstsMaxAgeSeconds() {
+            return hstsMaxAgeSeconds;
+        }
+
+        public void setHstsMaxAgeSeconds(long hstsMaxAgeSeconds) {
+            this.hstsMaxAgeSeconds = hstsMaxAgeSeconds;
+        }
+
+        public boolean isHstsIncludeSubDomains() {
+            return hstsIncludeSubDomains;
+        }
+
+        public void setHstsIncludeSubDomains(boolean hstsIncludeSubDomains) {
+            this.hstsIncludeSubDomains = hstsIncludeSubDomains;
+        }
+
+        public boolean isHstsPreload() {
+            return hstsPreload;
+        }
+
+        public void setHstsPreload(boolean hstsPreload) {
+            this.hstsPreload = hstsPreload;
+        }
+
+        public boolean isContentTypeOptionsEnabled() {
+            return contentTypeOptionsEnabled;
+        }
+
+        public void setContentTypeOptionsEnabled(boolean contentTypeOptionsEnabled) {
+            this.contentTypeOptionsEnabled = contentTypeOptionsEnabled;
+        }
+
+        public boolean isFrameOptionsEnabled() {
+            return frameOptionsEnabled;
+        }
+
+        public void setFrameOptionsEnabled(boolean frameOptionsEnabled) {
+            this.frameOptionsEnabled = frameOptionsEnabled;
+        }
+
+        public boolean isXssProtectionEnabled() {
+            return xssProtectionEnabled;
+        }
+
+        public void setXssProtectionEnabled(boolean xssProtectionEnabled) {
+            this.xssProtectionEnabled = xssProtectionEnabled;
+        }
+    }
+
+    /**
+     * Propiedades de configuración para Rate Limiting.
+     *
+     * <p>Soporta dos modos de almacenamiento: - in-memory: usa Bucket4j con almacenamiento local
+     * (single instance) - redis: usa Bucket4j con Redis/Lettuce (distributed, multi-instance)
+     */
+    public static class RateLimitProperties {
+
+        /** Habilitar rate limiting general para API. Default: true. */
+        private boolean enabled = true;
+
+        /**
+         * Modo de almacenamiento: 'in-memory' o 'redis'. - in-memory: para desarrollo o single
+         * instance - redis: para producción multi-instancia
+         */
+        private StorageMode storageMode = StorageMode.IN_MEMORY;
+
+        /** Requests por segundo permitidos para la API general. Default: 100. */
+        private int requestsPerSecond = 100;
+
+        /** Requests por minuto para endpoints de autenticación (más restrictivo). Default: 10. */
+        private int authRequestsPerMinute = 10;
+
+        /** Capacidad máxima del bucket (burst). Default: 150. */
+        private int burstCapacity = 150;
+
+        /** Capacidad burst para auth endpoints. Default: 15. */
+        private int authBurstCapacity = 15;
+
+        /** Tiempo de bloqueo en segundos después de exceder el límite. Default: 60. */
+        private int blockDurationSeconds = 60;
+
+        /** Prefijo para las claves en Redis. Default: "rate-limit:". */
+        private String redisKeyPrefix = "rate-limit:";
+
+        /** TTL en segundos para las claves de Redis. Default: 3600 (1 hora). */
+        private int redisTtlSeconds = 3600;
+
+        public enum StorageMode {
+            /** Almacenamiento en memoria local (single instance) */
+            IN_MEMORY,
+            /** Almacenamiento distribuido en Redis (multi-instance) */
+            REDIS
+        }
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public StorageMode getStorageMode() {
+            return storageMode;
+        }
+
+        public void setStorageMode(StorageMode storageMode) {
+            this.storageMode = storageMode;
+        }
+
+        public int getRequestsPerSecond() {
+            return requestsPerSecond;
+        }
+
+        public void setRequestsPerSecond(int requestsPerSecond) {
+            this.requestsPerSecond = requestsPerSecond;
+        }
+
+        public int getAuthRequestsPerMinute() {
+            return authRequestsPerMinute;
+        }
+
+        public void setAuthRequestsPerMinute(int authRequestsPerMinute) {
+            this.authRequestsPerMinute = authRequestsPerMinute;
+        }
+
+        public int getBurstCapacity() {
+            return burstCapacity;
+        }
+
+        public void setBurstCapacity(int burstCapacity) {
+            this.burstCapacity = burstCapacity;
+        }
+
+        public int getAuthBurstCapacity() {
+            return authBurstCapacity;
+        }
+
+        public void setAuthBurstCapacity(int authBurstCapacity) {
+            this.authBurstCapacity = authBurstCapacity;
+        }
+
+        public int getBlockDurationSeconds() {
+            return blockDurationSeconds;
+        }
+
+        public void setBlockDurationSeconds(int blockDurationSeconds) {
+            this.blockDurationSeconds = blockDurationSeconds;
+        }
+
+        public String getRedisKeyPrefix() {
+            return redisKeyPrefix;
+        }
+
+        public void setRedisKeyPrefix(String redisKeyPrefix) {
+            this.redisKeyPrefix = redisKeyPrefix;
+        }
+
+        public int getRedisTtlSeconds() {
+            return redisTtlSeconds;
+        }
+
+        public void setRedisTtlSeconds(int redisTtlSeconds) {
+            this.redisTtlSeconds = redisTtlSeconds;
+        }
+
+        /** Determina si está configurado para usar Redis. */
+        public boolean isRedisMode() {
+            return storageMode == StorageMode.REDIS;
         }
     }
 }

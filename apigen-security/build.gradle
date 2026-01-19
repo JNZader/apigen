@@ -13,6 +13,7 @@ ext {
     jjwtVersion = '0.13.0'
     mapstructVersion = '1.6.3'
     lombokMapstructBindingVersion = '0.2.0'
+    bucket4jVersion = '8.16.0' // Latest as of Jan 2026
 }
 
 java {
@@ -45,6 +46,13 @@ dependencies {
     api "io.jsonwebtoken:jjwt-api:${jjwtVersion}"
     runtimeOnly "io.jsonwebtoken:jjwt-impl:${jjwtVersion}"
     runtimeOnly "io.jsonwebtoken:jjwt-jackson:${jjwtVersion}"
+
+    // Rate Limiting - Bucket4j with Redis support (optional)
+    api "com.bucket4j:bucket4j_jdk17-core:${bucket4jVersion}"
+    implementation "com.bucket4j:bucket4j_jdk17-lettuce:${bucket4jVersion}"
+
+    // Redis (optional - for distributed rate limiting)
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
     // Lombok
     compileOnly 'org.projectlombok:lombok'

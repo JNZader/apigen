@@ -22,6 +22,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
+import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.security.web.header.writers.XXssProtectionHeaderWriter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -44,14 +46,17 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
     private final AppProperties appProperties;
+    private final SecurityProperties securityProperties;
 
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthFilter,
             UserDetailsService userDetailsService,
-            AppProperties appProperties) {
+            AppProperties appProperties,
+            SecurityProperties securityProperties) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.userDetailsService = userDetailsService;
         this.appProperties = appProperties;
+        this.securityProperties = securityProperties;
     }
 
     @Bean
@@ -79,37 +84,8 @@ public class SecurityConfig {
                 .sessionManagement(
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // Headers de seguridad
-                .headers(
-                        headers ->
-                                headers
-                                        // Protección XSS
-                                        .xssProtection(
-                                                xss ->
-                                                        xss.headerValue(
-                                                                XXssProtectionHeaderWriter
-                                                                        .HeaderValue
-                                                                        .ENABLED_MODE_BLOCK))
-                                        // Prevenir clickjacking
-                                        .frameOptions(frame -> frame.deny())
-                                        // Prevenir MIME type sniffing
-                                        .contentTypeOptions(content -> {})
-                                        // Content Security Policy
-                                        .contentSecurityPolicy(
-                                                csp ->
-                                                        csp.policyDirectives(
-                                                                "default-src 'self'; "
-                                                                        + "script-src 'self'; "
-                                                                        + "style-src 'self'; "
-                                                                        + "img-src 'self' data:; "
-                                                                        + "font-src 'self'; "
-                                                                        + "frame-ancestors 'none'; "
-                                                                        + "form-action 'self'"))
-                                        // HSTS (1 año)
-                                        .httpStrictTransportSecurity(
-                                                hsts ->
-                                                        hsts.includeSubDomains(true)
-                                                                .maxAgeInSeconds(31536000)))
+                // Headers de seguridad (configurables via apigen.security.headers.*)
+                .headers(headers -> configureSecurityHeaders(headers))
 
                 // Autorización de endpoints
                 .authorizeHttpRequests(
@@ -141,6 +117,79 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    /**
+     * Configura los headers de seguridad HTTP basados en SecurityProperties.
+     *
+     * <p>Headers configurados: - X-XSS-Protection - X-Frame-Options - X-Content-Type-Options -
+     * Content-Security-Policy - Strict-Transport-Security (HSTS) - Referrer-Policy -
+     * Permissions-Policy
+     */
+    private void configureSecurityHeaders(
+            org.springframework.security.config.annotation.web.configurers.HeadersConfigurer<
+                            org.springframework.security.config.annotation.web.builders
+                                    .HttpSecurity>
+                    headers) {
+
+        SecurityProperties.HeadersProperties headersConfig = securityProperties.getHeaders();
+
+        // X-XSS-Protection
+        if (headersConfig.isXssProtectionEnabled()) {
+            headers.xssProtection(
+                    xss ->
+                            xss.headerValue(
+                                    XXssProtectionHeaderWriter.HeaderValue.ENABLED_MODE_BLOCK));
+        } else {
+            headers.xssProtection(xss -> xss.disable());
+        }
+
+        // X-Frame-Options
+        if (headersConfig.isFrameOptionsEnabled()) {
+            headers.frameOptions(frame -> frame.deny());
+        } else {
+            headers.frameOptions(frame -> frame.disable());
+        }
+
+        // X-Content-Type-Options
+        if (headersConfig.isContentTypeOptionsEnabled()) {
+            headers.contentTypeOptions(content -> {});
+        } else {
+            headers.contentTypeOptions(content -> content.disable());
+        }
+
+        // Content-Security-Policy
+        String csp = headersConfig.getContentSecurityPolicy();
+        if (csp != null && !csp.isBlank()) {
+            headers.contentSecurityPolicy(policy -> policy.policyDirectives(csp));
+        }
+
+        // HSTS
+        if (headersConfig.isHstsEnabled()) {
+            headers.httpStrictTransportSecurity(
+                    hsts ->
+                            hsts.includeSubDomains(headersConfig.isHstsIncludeSubDomains())
+                                    .maxAgeInSeconds(headersConfig.getHstsMaxAgeSeconds())
+                                    .preload(headersConfig.isHstsPreload()));
+        } else {
+            headers.httpStrictTransportSecurity(hsts -> hsts.disable());
+        }
+
+        // Referrer-Policy
+        String referrerPolicy = headersConfig.getReferrerPolicy();
+        if (referrerPolicy != null && !referrerPolicy.isBlank()) {
+            headers.referrerPolicy(
+                    referrer ->
+                            referrer.policy(
+                                    ReferrerPolicyHeaderWriter.ReferrerPolicy.get(referrerPolicy)));
+        }
+
+        // Permissions-Policy (custom header)
+        String permissionsPolicy = headersConfig.getPermissionsPolicy();
+        if (permissionsPolicy != null && !permissionsPolicy.isBlank()) {
+            headers.addHeaderWriter(
+                    new StaticHeadersWriter("Permissions-Policy", permissionsPolicy));
+        }
     }
 
     @Bean
