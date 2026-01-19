@@ -62,6 +62,9 @@ LABEL maintainer="APiGen <dev@example.com>"
 LABEL description="APiGen REST API Template"
 LABEL version="0.0.1-SNAPSHOT"
 
+# Security: Update Alpine packages to fix CVEs (libpng, libtasn1, BusyBox)
+RUN apk upgrade --no-cache
+
 # Crear usuario no-root para seguridad
 RUN addgroup -g 1001 -S apigen && \
     adduser -u 1001 -S apigen -G apigen

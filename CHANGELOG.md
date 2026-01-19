@@ -47,15 +47,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - FeatureChecker utility for runtime feature state checks
 - QueryAssertions for test query count validation
 
+#### Fase 5: Documentación
+- OpenAPI examples with @Schema annotations on all DTOs (security, example modules)
+- Enhanced OpenApiConfig with security schemes and error response schemas
+- RFC 7807 Problem Detail examples for all error types (400, 401, 403, 404, 409, 412, 500)
+- C4 architecture diagrams (Context, Container, Component levels) in Mermaid format
+- Sequence diagrams for Create Resource and Authentication flows
+- Updated FEATURES.md with Phase 4 features documentation (sections 17-21)
+- Added docs/architecture folder with C4_ARCHITECTURE.md
+
 ### Changed
 - Updated .gitignore to exclude logs, .env, and .claude files
 - Optimized Docker CI (single platform for main, multi-platform for releases)
 - Converted image name to lowercase for registry compatibility
+- Updated OpenTelemetry from 1.53.0 to 1.58.0
+- Updated JSQLParser from 5.0 to 5.3
 
 ### Security
 - Added X-RateLimit-* headers for API throttling visibility
 - Added Retry-After header on 429 responses
 - Stricter rate limits on authentication endpoints (10 req/min vs 100 req/s)
+- Fixed CVE-2020-8908, CVE-2023-2976: Upgraded Guava from 30.1-jre to 33.5.0-jre (insecure temp directory)
+- Fixed Docker image CVEs: Added `apk upgrade` for libpng, libtasn1, BusyBox vulnerabilities
 
 ---
 

@@ -20,6 +20,11 @@ Esta guía documenta **todas las características** disponibles en APiGen, indep
 14. [Rate Limiting](#14-rate-limiting)
 15. [Seguridad JWT](#15-seguridad-jwt)
 16. [OpenAPI/Swagger](#16-openapiswagger)
+17. [Feature Flags](#17-feature-flags)
+18. [Redis Cache Distribuido](#18-redis-cache-distribuido)
+19. [Métricas HikariCP](#19-métricas-hikaricp)
+20. [Detección N+1](#20-detección-n1)
+21. [Batch Operations](#21-batch-operations)
 
 ---
 
@@ -1036,8 +1041,361 @@ springdoc:
 
 ---
 
+## 17. Feature Flags
+
+Sistema de feature flags usando Togglz para habilitar/deshabilitar funcionalidades en runtime.
+
+### Features Disponibles
+
+```java
+public enum ApigenFeatures implements Feature {
+    @Label("Habilitar caché distribuido Redis")
+    DISTRIBUTED_CACHE,
+
+    @Label("Habilitar métricas detalladas")
+    DETAILED_METRICS,
+
+    @Label("Habilitar detección de queries N+1")
+    N_PLUS_ONE_DETECTION,
+
+    @Label("Habilitar operaciones batch")
+    BATCH_OPERATIONS,
+
+    @Label("Habilitar eventos de dominio")
+    @EnabledByDefault
+    DOMAIN_EVENTS
+}
+```
+
+### Uso en Código
+
+```java
+@Service
+public class ProductService {
+
+    private final FeatureChecker featureChecker;
+
+    public void processProducts(List<Product> products) {
+        if (featureChecker.isEnabled(ApigenFeatures.BATCH_OPERATIONS)) {
+            // Usar procesamiento batch optimizado
+            batchService.processAsync(products);
+        } else {
+            // Procesamiento tradicional
+            products.forEach(this::process);
+        }
+    }
+}
+```
+
+### Configuración
+
+```yaml
+apigen:
+  features:
+    enabled: true  # Habilita el sistema de feature flags
+
+togglz:
+  features:
+    DISTRIBUTED_CACHE:
+      enabled: true
+    DETAILED_METRICS:
+      enabled: false
+```
+
+### Consola Web
+
+Accede a `/togglz-console` para gestionar features en runtime (requiere autenticación admin).
+
+---
+
+## 18. Redis Cache Distribuido
+
+Caché distribuido como alternativa a Caffeine para entornos multi-instancia.
+
+### Configuración
+
+```yaml
+spring:
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: ${REDIS_PASSWORD:}
+
+apigen:
+  cache:
+    type: redis  # 'caffeine' (default) o 'redis'
+    redis:
+      ttl: 10m
+      key-prefix: "apigen:"
+```
+
+### Características
+
+- **Serialización JSON** para compatibilidad
+- **TTL configurable** por tipo de caché
+- **Prefijos de clave** para evitar colisiones
+- **Fallback a Caffeine** si Redis no está disponible
+
+### Uso Programático
+
+```java
+@Service
+public class ProductService {
+
+    @Cacheable(value = "products", key = "#id")
+    public Product findById(Long id) {
+        return repository.findById(id).orElseThrow();
+    }
+
+    @CacheEvict(value = "products", key = "#product.id")
+    public Product update(Product product) {
+        return repository.save(product);
+    }
+
+    @CacheEvict(value = "products", allEntries = true)
+    public void clearCache() {
+        // Limpia todo el caché de productos
+    }
+}
+```
+
+---
+
+## 19. Métricas HikariCP
+
+Exporta métricas del pool de conexiones a Prometheus para monitoreo.
+
+### Métricas Disponibles
+
+| Métrica | Descripción |
+|---------|-------------|
+| `hikaricp_connections_active` | Conexiones activas |
+| `hikaricp_connections_idle` | Conexiones idle |
+| `hikaricp_connections_pending` | Conexiones pendientes |
+| `hikaricp_connections_timeout_total` | Timeouts totales |
+| `hikaricp_connections_acquire_seconds` | Tiempo de adquisición |
+| `hikaricp_connections_usage_seconds` | Tiempo de uso |
+| `hikaricp_connections_creation_seconds` | Tiempo de creación |
+
+### Configuración
+
+```yaml
+spring:
+  datasource:
+    hikari:
+      pool-name: APiGenPool
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      register-mbeans: true  # Para JMX
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+```
+
+### Dashboard Grafana
+
+Importa el dashboard incluido en `docker/grafana/dashboards/hikaricp.json` para visualizar:
+- Uso del pool en tiempo real
+- Tiempos de espera de conexión
+- Alertas de pool exhausted
+
+---
+
+## 20. Detección N+1
+
+Detecta queries N+1 automáticamente usando Hibernate Statistics.
+
+### Configuración
+
+```yaml
+apigen:
+  query-analysis:
+    enabled: true
+    warn-threshold: 5      # Advertencia si > 5 queries similares
+    error-threshold: 10    # Error si > 10 queries similares
+    log-slow-queries: true
+    slow-query-threshold: 100ms
+
+spring:
+  jpa:
+    properties:
+      hibernate:
+        generate_statistics: true
+```
+
+### Logs de Advertencia
+
+```
+WARN  QueryAnalysis - Possible N+1 detected: 15 similar SELECT queries for entity 'Product'
+WARN  QueryAnalysis - Consider using JOIN FETCH or @EntityGraph
+```
+
+### Assertions en Tests
+
+```java
+@Test
+void findAllProducts_shouldNotCauseNPlusOne() {
+    QueryAssertions.assertMaxQueries(3, () -> {
+        List<Product> products = productService.findAll();
+        products.forEach(p -> p.getCategory().getName()); // Trigger lazy load
+    });
+}
+```
+
+### Soluciones Comunes
+
+```java
+// 1. JOIN FETCH en JPQL
+@Query("SELECT p FROM Product p JOIN FETCH p.category")
+List<Product> findAllWithCategory();
+
+// 2. EntityGraph
+@EntityGraph(attributePaths = {"category", "tags"})
+List<Product> findAll();
+
+// 3. Batch fetching
+@BatchSize(size = 25)
+@OneToMany(mappedBy = "product")
+private List<Review> reviews;
+```
+
+---
+
+## 21. Batch Operations
+
+Procesamiento batch asíncrono usando Virtual Threads (Java 21+).
+
+### Interfaz BatchService
+
+```java
+public interface BatchService {
+
+    /**
+     * Procesa items en paralelo usando Virtual Threads.
+     */
+    <T, R> CompletableFuture<List<R>> processAsync(
+        List<T> items,
+        Function<T, R> processor
+    );
+
+    /**
+     * Procesa items en lotes con tamaño configurable.
+     */
+    <T, R> CompletableFuture<List<R>> processBatchAsync(
+        List<T> items,
+        Function<List<T>, List<R>> batchProcessor,
+        int batchSize
+    );
+
+    /**
+     * Procesa items con rate limiting.
+     */
+    <T, R> CompletableFuture<List<R>> processWithRateLimit(
+        List<T> items,
+        Function<T, R> processor,
+        int maxPerSecond
+    );
+}
+```
+
+### Uso
+
+```java
+@Service
+public class ProductImportService {
+
+    private final BatchService batchService;
+
+    public CompletableFuture<ImportResult> importProducts(List<ProductDTO> dtos) {
+        return batchService.processAsync(dtos, dto -> {
+            Product product = mapper.toEntity(dto);
+            return repository.save(product);
+        }).thenApply(products -> new ImportResult(products.size(), 0));
+    }
+
+    public CompletableFuture<List<Product>> updatePrices(
+            List<Long> productIds,
+            BigDecimal percentage
+    ) {
+        return batchService.processBatchAsync(
+            productIds,
+            batch -> {
+                List<Product> products = repository.findAllById(batch);
+                products.forEach(p -> p.setPrice(
+                    p.getPrice().multiply(BigDecimal.ONE.add(percentage))
+                ));
+                return repository.saveAll(products);
+            },
+            100  // Batch size
+        );
+    }
+}
+```
+
+### Configuración
+
+```yaml
+apigen:
+  batch:
+    enabled: true
+    default-batch-size: 100
+    max-concurrent: 50
+    timeout: 30s
+```
+
+### Características
+
+- **Virtual Threads** para máxima concurrencia
+- **Backpressure** automático
+- **Retry** con exponential backoff
+- **Métricas** de procesamiento batch
+- **Cancelación** de operaciones en progreso
+
+---
+
+## Resumen de Características por Módulo
+
+| Característica | apigen-core | apigen-security |
+|----------------|:-----------:|:---------------:|
+| Entidad Base | ✅ | - |
+| Repository Base | ✅ | - |
+| Servicio Base | ✅ | - |
+| Controller Base | ✅ | - |
+| Filtrado Dinámico | ✅ | - |
+| Paginación | ✅ | - |
+| HATEOAS | ✅ | - |
+| ETag/Caché | ✅ | - |
+| Soft Delete | ✅ | - |
+| Auditoría | ✅ | ✅ |
+| Validación | ✅ | ✅ |
+| Eventos | ✅ | ✅ |
+| Result Pattern | ✅ | ✅ |
+| Rate Limiting | ✅ | ✅ |
+| JWT Auth | - | ✅ |
+| OAuth2 | - | ✅ |
+| OpenAPI/Swagger | ✅ | ✅ |
+| Feature Flags | ✅ | - |
+| Redis Cache | ✅ | - |
+| HikariCP Metrics | ✅ | - |
+| N+1 Detection | ✅ | - |
+| Batch Operations | ✅ | - |
+
+---
+
 ## Ver También
 
 - [USAGE_GUIDE.md](USAGE_GUIDE.md) - Cómo usar APiGen
 - [USAGE_GUIDE_LIBRARY.md](USAGE_GUIDE_LIBRARY.md) - Guía detallada de la librería
+- [C4_ARCHITECTURE.md](architecture/C4_ARCHITECTURE.md) - Diagramas de arquitectura
 - [apigen-example README](../apigen-example/README.md) - Ejemplos prácticos
