@@ -8,13 +8,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+#### Fase 0: Fundamentos DevOps
 - ROADMAP.md with improvement plan
 - CHANGELOG.md following Keep a Changelog convention
 - README.md for each module (bom, core, security, codegen, server)
 - LICENSE file (MIT)
 
+#### Fase 1: Calidad de Código
+- Spotless plugin (google-java-format) for consistent formatting
+- Error Prone static analysis for compile-time bug detection
+- JaCoCo code coverage with 70% minimum threshold
+- ArchUnit tests for architecture validation (hexagonal, naming conventions)
+- Pre-commit hooks via Gradle task for validation before commits
+
+#### Fase 2: Seguridad Básica
+- Configurable security headers (CSP, HSTS, Referrer-Policy, Permissions-Policy)
+- Rate limiting with Bucket4j 8.16.0 (in-memory + Redis distributed)
+- JWT key rotation support with `kid` header for zero-downtime rotation
+- Multiple signing keys registry for transition periods
+
 ### Changed
 - Updated .gitignore to exclude logs, .env, and .claude files
+- Optimized Docker CI (single platform for main, multi-platform for releases)
+- Converted image name to lowercase for registry compatibility
+
+### Security
+- Added X-RateLimit-* headers for API throttling visibility
+- Added Retry-After header on 429 responses
+- Stricter rate limits on authentication endpoints (10 req/min vs 100 req/s)
 
 ---
 
