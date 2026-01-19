@@ -51,7 +51,11 @@ public class JpaEventStore implements EventStore {
 
     @Override
     @Transactional
-    public void append(String aggregateId, String aggregateType, List<DomainEvent> events, long expectedVersion) {
+    public void append(
+            String aggregateId,
+            String aggregateType,
+            List<DomainEvent> events,
+            long expectedVersion) {
         if (events == null || events.isEmpty()) {
             return;
         }
@@ -84,7 +88,10 @@ public class JpaEventStore implements EventStore {
             eventRepository.save(storedEvent);
 
             log.debug(
-                    "Stored event {} v{} for aggregate {}", event.getEventType(), version, aggregateId);
+                    "Stored event {} v{} for aggregate {}",
+                    event.getEventType(),
+                    version,
+                    aggregateId);
 
             // Publish to Spring event system
             if (eventPublisher != null) {
@@ -109,14 +116,17 @@ public class JpaEventStore implements EventStore {
     @Override
     @Transactional(readOnly = true)
     public List<StoredEvent> getEventsFrom(String aggregateId, long fromVersion) {
-        return eventRepository.findByAggregateIdAndVersionGreaterThanOrderByVersionAsc(aggregateId, fromVersion);
+        return eventRepository.findByAggregateIdAndVersionGreaterThanOrderByVersionAsc(
+                aggregateId, fromVersion);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<StoredEvent> getEventsBetween(String aggregateId, long fromVersion, long toVersion) {
-        return eventRepository.findByAggregateIdAndVersionGreaterThanAndVersionLessThanEqualOrderByVersionAsc(
-                aggregateId, fromVersion, toVersion);
+    public List<StoredEvent> getEventsBetween(
+            String aggregateId, long fromVersion, long toVersion) {
+        return eventRepository
+                .findByAggregateIdAndVersionGreaterThanAndVersionLessThanEqualOrderByVersionAsc(
+                        aggregateId, fromVersion, toVersion);
     }
 
     @Override

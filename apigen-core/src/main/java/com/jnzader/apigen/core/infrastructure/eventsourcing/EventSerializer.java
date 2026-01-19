@@ -48,7 +48,8 @@ public class EventSerializer {
         mapper.registerModule(new JavaTimeModule());
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         mapper.configure(
-                com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
+                false);
         return mapper;
     }
 
@@ -73,7 +74,8 @@ public class EventSerializer {
         try {
             return objectMapper.writeValueAsString(event);
         } catch (JsonProcessingException e) {
-            throw new EventSerializationException("Failed to serialize event: " + event.getEventType(), e);
+            throw new EventSerializationException(
+                    "Failed to serialize event: " + event.getEventType(), e);
         }
     }
 
@@ -111,7 +113,8 @@ public class EventSerializer {
         try {
             return objectMapper.readValue(json, eventClass);
         } catch (JsonProcessingException e) {
-            throw new EventSerializationException("Failed to deserialize event to " + eventClass.getSimpleName(), e);
+            throw new EventSerializationException(
+                    "Failed to deserialize event to " + eventClass.getSimpleName(), e);
         }
     }
 

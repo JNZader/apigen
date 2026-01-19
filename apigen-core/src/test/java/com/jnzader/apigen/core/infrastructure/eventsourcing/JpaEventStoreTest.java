@@ -29,7 +29,8 @@ class JpaEventStoreTest {
         snapshotRepository = mock(SnapshotRepository.class);
         serializer = new EventSerializer();
         eventPublisher = mock(ApplicationEventPublisher.class);
-        eventStore = new JpaEventStore(eventRepository, snapshotRepository, serializer, eventPublisher);
+        eventStore =
+                new JpaEventStore(eventRepository, snapshotRepository, serializer, eventPublisher);
     }
 
     @Nested
@@ -112,7 +113,8 @@ class JpaEventStoreTest {
                             .payload("{}")
                             .occurredAt(Instant.now())
                             .build();
-            when(eventRepository.findByAggregateIdOrderByVersionAsc("agg-1")).thenReturn(List.of(stored));
+            when(eventRepository.findByAggregateIdOrderByVersionAsc("agg-1"))
+                    .thenReturn(List.of(stored));
 
             List<StoredEvent> events = eventStore.getEvents("agg-1");
 
@@ -133,7 +135,8 @@ class JpaEventStoreTest {
                             .payload("{}")
                             .occurredAt(Instant.now())
                             .build();
-            when(eventRepository.findByAggregateIdAndVersionGreaterThanOrderByVersionAsc("agg-1", 1L))
+            when(eventRepository.findByAggregateIdAndVersionGreaterThanOrderByVersionAsc(
+                            "agg-1", 1L))
                     .thenReturn(List.of(stored));
 
             List<StoredEvent> events = eventStore.getEventsFrom("agg-1", 1);
@@ -231,7 +234,8 @@ class JpaEventStoreTest {
 
     // Test helper
 
-    record TestEvent(String aggregateId, String eventType, Instant occurredAt, String data) implements DomainEvent {
+    record TestEvent(String aggregateId, String eventType, Instant occurredAt, String data)
+            implements DomainEvent {
         @Override
         public String getAggregateId() {
             return aggregateId;

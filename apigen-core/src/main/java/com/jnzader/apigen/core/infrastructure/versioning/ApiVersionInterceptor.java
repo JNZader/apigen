@@ -68,8 +68,7 @@ public class ApiVersionInterceptor implements HandlerInterceptor {
         // Check method-level deprecation first, then class-level
         DeprecatedVersion deprecation = handlerMethod.getMethodAnnotation(DeprecatedVersion.class);
         if (deprecation == null) {
-            deprecation =
-                    handlerMethod.getBeanType().getAnnotation(DeprecatedVersion.class);
+            deprecation = handlerMethod.getBeanType().getAnnotation(DeprecatedVersion.class);
         }
 
         if (deprecation == null) {
@@ -130,10 +129,7 @@ public class ApiVersionInterceptor implements HandlerInterceptor {
             String currentPath = request.getRequestURI();
             // Simple path transformation: replace version in path
             String successorPath = transformPathToVersion(currentPath, successor);
-            linkBuilder
-                    .append("<")
-                    .append(successorPath)
-                    .append(">; rel=\"successor-version\"");
+            linkBuilder.append("<").append(successorPath).append(">; rel=\"successor-version\"");
         }
 
         // Add migration guide link

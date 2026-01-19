@@ -103,7 +103,8 @@ class ApiVersionInterceptorTest {
             when(request.getHeader("X-API-Version")).thenReturn("1.0");
             when(request.getRequestURI()).thenReturn("/api/v1/products");
 
-            HandlerMethod handlerMethod = createHandlerMethod(DeprecatedWithSuccessorController.class);
+            HandlerMethod handlerMethod =
+                    createHandlerMethod(DeprecatedWithSuccessorController.class);
 
             interceptor.preHandle(request, response, handlerMethod);
 
@@ -116,7 +117,8 @@ class ApiVersionInterceptorTest {
             when(request.getHeader("X-API-Version")).thenReturn("1.0");
             when(request.getRequestURI()).thenReturn("/api/v1/products");
 
-            HandlerMethod handlerMethod = createHandlerMethod(DeprecatedWithMigrationController.class);
+            HandlerMethod handlerMethod =
+                    createHandlerMethod(DeprecatedWithMigrationController.class);
 
             interceptor.preHandle(request, response, handlerMethod);
 

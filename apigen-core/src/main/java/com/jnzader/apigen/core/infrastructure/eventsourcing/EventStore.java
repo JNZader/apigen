@@ -34,7 +34,11 @@ public interface EventStore {
      *     aggregates)
      * @throws ConcurrencyException if the expected version doesn't match the current version
      */
-    void append(String aggregateId, String aggregateType, List<DomainEvent> events, long expectedVersion);
+    void append(
+            String aggregateId,
+            String aggregateType,
+            List<DomainEvent> events,
+            long expectedVersion);
 
     /**
      * Retrieves all events for an aggregate.

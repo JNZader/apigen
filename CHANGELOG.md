@@ -162,6 +162,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `GrpcAutoConfiguration` for Spring Boot (`apigen.grpc.enabled=true`)
   - gRPC Java 1.72.0, Protobuf 4.31.1, gRPC Spring Boot Starter 3.1.0.RELEASE
   - Comprehensive test suite (37 tests) covering server, client, interceptors, and health checks
+- **API Gateway Module (7.5)**: New `apigen-gateway` module for API Gateway functionality
+  - `LoggingGatewayFilter` global filter with correlation ID generation and request/response logging
+  - `AuthenticationGatewayFilter` JWT-based authentication filter with configurable paths
+  - `AuthResult` record for authentication results (success/failure with user details)
+  - `RateLimitKeyResolver` with multiple strategies (IP, USER_ID, API_KEY, COMPOSITE, PATH)
+  - Path normalization for rate limiting (replaces numeric IDs and UUIDs with placeholders)
+  - `CircuitBreakerGatewayFilter` with configurable timeout and custom fallback support
+  - `RequestTimingGatewayFilter` for metrics collection (request duration, status codes)
+  - `RouteBuilder` fluent API for programmatic route definition
+  - `RouteDefinition` record with predicates, filters, circuit breaker, timeout, metadata
+  - `DynamicRouteLocator` for runtime route management (add/remove/update routes)
+  - `GatewayProperties` configuration with nested classes for rate limiting, circuit breaker, auth, CORS
+  - `GatewayAutoConfiguration` for Spring Boot (`apigen.gateway.enabled=true`)
+  - Spring Cloud Gateway 2024.0.1, Resilience4j reactor integration
+  - Comprehensive test suite (63 tests) covering filters, rate limiting, circuit breaker, routes
 
 ### Changed
 - Updated .gitignore to exclude logs, .env, and .claude files

@@ -102,12 +102,7 @@ public class TenantAutoConfiguration {
 
         /** Paths to exclude from tenant resolution. */
         private Set<String> excludedPaths =
-                Set.of(
-                        "/actuator/**",
-                        "/swagger-ui/**",
-                        "/v3/api-docs/**",
-                        "/health",
-                        "/info");
+                Set.of("/actuator/**", "/swagger-ui/**", "/v3/api-docs/**", "/health", "/info");
 
         // Getters and setters
 

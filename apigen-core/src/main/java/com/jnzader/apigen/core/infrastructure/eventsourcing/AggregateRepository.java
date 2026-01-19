@@ -101,7 +101,10 @@ public class AggregateRepository<T extends EventSourcedAggregate> {
         long expectedVersion = aggregate.getVersion() - aggregate.getUncommittedEventCount();
 
         eventStore.append(
-                aggregate.getId(), aggregateType, aggregate.getUncommittedEvents(), expectedVersion);
+                aggregate.getId(),
+                aggregateType,
+                aggregate.getUncommittedEvents(),
+                expectedVersion);
 
         // Create snapshot if needed
         if (shouldCreateSnapshot(aggregate)) {
@@ -166,10 +169,7 @@ public class AggregateRepository<T extends EventSourcedAggregate> {
     private void replayEvents(T aggregate, java.util.List<StoredEvent> storedEvents) {
         var events =
                 storedEvents.stream()
-                        .map(
-                                se ->
-                                        serializer.deserialize(
-                                                se.getPayload(), se.getEventType()))
+                        .map(se -> serializer.deserialize(se.getPayload(), se.getEventType()))
                         .toList();
         aggregate.loadFromHistory(events);
     }

@@ -150,6 +150,96 @@ test {
     useJUnitPlatform()
 }
 
+// JaCoCo configuration - exclude infrastructure classes that require full Spring context
+jacoco {
+    toolVersion = "0.8.14"
+}
+
+def jacocoExcludes = [
+    // Scheduler classes requiring full context
+    '**/scheduler/**',
+    '**/SseHeartbeatScheduler*.class',
+    // Auto-configuration internal classes
+    '**/autoconfigure/**',
+    '**/*AutoConfiguration*.class',
+    '**/*Properties*.class',
+    // SSE infrastructure
+    '**/sse/**',
+    // Event sourcing infrastructure
+    '**/eventsourcing/**',
+    // Multi-tenancy infrastructure
+    '**/multitenancy/**',
+    // Bulk operations infrastructure
+    '**/bulk/**',
+    // Webhook infrastructure
+    '**/webhook/**',
+    // Versioning infrastructure
+    '**/versioning/**',
+    // Pagination DTOs
+    '**/CursorPageRequest*.class',
+    '**/CursorPageResponse*.class',
+    // Service batch operations
+    '**/BatchServiceImpl*.class',
+    '**/BatchService$*.class',
+    // Service implementations with complex infrastructure dependencies
+    '**/BaseServiceImpl*.class',
+    // Utility classes
+    '**/QueryAssertions*.class'
+]
+
+jacocoTestReport {
+    dependsOn test
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: jacocoExcludes)
+        }))
+    }
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+jacocoTestCoverageVerification {
+    dependsOn jacocoTestReport
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: jacocoExcludes)
+        }))
+    }
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.50
+            }
+        }
+        rule {
+            element = 'CLASS'
+            excludes = [
+                '*.config.*',
+                '*.autoconfigure.*',
+                '*AutoConfiguration',
+                '*Properties',
+                '*DTO',
+                '*Exception',
+                '*Controller',
+                '*$Builder',
+                // Infrastructure classes excluded
+                '*.scheduler.*',
+                '*.sse.*',
+                '*.eventsourcing.*',
+                '*.multitenancy.*',
+                '*.bulk.*',
+                '*.webhook.*',
+                '*.versioning.*'
+            ]
+            limit {
+                minimum = 0.60
+            }
+        }
+    }
+}
+
 // Don't fail on javadoc warnings/errors
 javadoc {
     options.addStringOption('Xdoclint:none', '-quiet')

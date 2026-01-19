@@ -97,7 +97,8 @@ class EventSourcedAggregateTest {
         @Test
         @DisplayName("should not add history events to uncommitted")
         void shouldNotAddHistoryEventsToUncommitted() {
-            List<DomainEvent> history = List.of(new TestCreatedEvent("agg-1", "Test", Instant.now()));
+            List<DomainEvent> history =
+                    List.of(new TestCreatedEvent("agg-1", "Test", Instant.now()));
 
             TestAggregate aggregate = new TestAggregate();
             aggregate.loadFromHistory(history);
@@ -138,7 +139,8 @@ class EventSourcedAggregateTest {
         @Test
         @DisplayName("should restore from snapshot")
         void shouldRestoreFromSnapshot() {
-            TestAggregate.SnapshotState snapshot = new TestAggregate.SnapshotState("agg-1", "Snapshot Name", false);
+            TestAggregate.SnapshotState snapshot =
+                    new TestAggregate.SnapshotState("agg-1", "Snapshot Name", false);
 
             TestAggregate aggregate = new TestAggregate();
             aggregate.restoreFromSnapshot(snapshot);
@@ -152,10 +154,12 @@ class EventSourcedAggregateTest {
         @DisplayName("should load from snapshot and subsequent events")
         void shouldLoadFromSnapshotAndSubsequentEvents() {
             TestAggregate aggregate = new TestAggregate();
-            TestAggregate.SnapshotState snapshot = new TestAggregate.SnapshotState("agg-1", "Snapshot Name", true);
+            TestAggregate.SnapshotState snapshot =
+                    new TestAggregate.SnapshotState("agg-1", "Snapshot Name", true);
             aggregate.restoreFromSnapshot(snapshot);
 
-            List<DomainEvent> subsequentEvents = List.of(new TestRenamedEvent("agg-1", "Final Name", Instant.now()));
+            List<DomainEvent> subsequentEvents =
+                    List.of(new TestRenamedEvent("agg-1", "Final Name", Instant.now()));
             aggregate.loadFromSnapshot(5, subsequentEvents);
 
             assertThat(aggregate.getName()).isEqualTo("Final Name");
@@ -239,7 +243,8 @@ class EventSourcedAggregateTest {
         public record SnapshotState(String id, String name, boolean active) {}
     }
 
-    record TestCreatedEvent(String aggregateId, String name, Instant occurredAt) implements DomainEvent {
+    record TestCreatedEvent(String aggregateId, String name, Instant occurredAt)
+            implements DomainEvent {
         @Override
         public String getAggregateId() {
             return aggregateId;
@@ -256,7 +261,8 @@ class EventSourcedAggregateTest {
         }
     }
 
-    record TestRenamedEvent(String aggregateId, String newName, Instant occurredAt) implements DomainEvent {
+    record TestRenamedEvent(String aggregateId, String newName, Instant occurredAt)
+            implements DomainEvent {
         @Override
         public String getAggregateId() {
             return aggregateId;

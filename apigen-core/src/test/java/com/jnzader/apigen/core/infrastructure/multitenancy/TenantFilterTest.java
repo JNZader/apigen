@@ -25,10 +25,7 @@ class TenantFilterTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        resolver =
-                TenantResolver.builder()
-                        .strategies(TenantResolutionStrategy.HEADER)
-                        .build();
+        resolver = TenantResolver.builder().strategies(TenantResolutionStrategy.HEADER).build();
 
         request = mock(HttpServletRequest.class);
         response = mock(HttpServletResponse.class);

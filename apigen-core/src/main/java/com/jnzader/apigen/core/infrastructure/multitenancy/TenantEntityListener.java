@@ -68,7 +68,9 @@ public class TenantEntityListener {
             String currentTenant = TenantContext.getTenantId();
             String entityTenant = tenantAware.getTenantId();
 
-            if (currentTenant != null && entityTenant != null && !currentTenant.equals(entityTenant)) {
+            if (currentTenant != null
+                    && entityTenant != null
+                    && !currentTenant.equals(entityTenant)) {
                 log.error(
                         "Tenant mismatch on update! Entity tenant: {}, Context tenant: {}",
                         entityTenant,

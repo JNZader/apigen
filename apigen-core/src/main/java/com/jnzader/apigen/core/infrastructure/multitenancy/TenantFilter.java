@@ -125,13 +125,13 @@ public class TenantFilter implements Filter {
         response.getWriter()
                 .write(
                         """
-                {
-                    "type": "https://api.example.com/problems/tenant-required",
-                    "title": "Tenant Required",
-                    "status": 400,
-                    "detail": "A tenant identifier is required for this request. Provide it via X-Tenant-ID header."
-                }
-                """);
+                        {
+                            "type": "https://api.example.com/problems/tenant-required",
+                            "title": "Tenant Required",
+                            "status": 400,
+                            "detail": "A tenant identifier is required for this request. Provide it via X-Tenant-ID header."
+                        }
+                        """);
     }
 
     private void sendInvalidTenantError(HttpServletResponse response, String tenantId)
@@ -142,13 +142,13 @@ public class TenantFilter implements Filter {
                 .write(
                         String.format(
                                 """
-                {
-                    "type": "https://api.example.com/problems/invalid-tenant",
-                    "title": "Invalid Tenant",
-                    "status": 400,
-                    "detail": "The tenant identifier '%s' is invalid. Use alphanumeric characters and hyphens."
-                }
-                """,
+                                {
+                                    "type": "https://api.example.com/problems/invalid-tenant",
+                                    "title": "Invalid Tenant",
+                                    "status": 400,
+                                    "detail": "The tenant identifier '%s' is invalid. Use alphanumeric characters and hyphens."
+                                }
+                                """,
                                 tenantId));
     }
 }

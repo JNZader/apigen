@@ -190,8 +190,7 @@ class TenantContextTest {
         @Test
         @DisplayName("should execute supplier with tenant context")
         void shouldExecuteSupplierWithTenantContext() {
-            String result =
-                    TenantContext.withTenant("supplier-tenant", TenantContext::getTenantId);
+            String result = TenantContext.withTenant("supplier-tenant", TenantContext::getTenantId);
 
             assertThat(result).isEqualTo("supplier-tenant");
             assertThat(TenantContext.getTenantId()).isNull();

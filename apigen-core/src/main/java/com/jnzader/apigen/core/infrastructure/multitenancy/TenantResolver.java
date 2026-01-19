@@ -40,10 +40,7 @@ public class TenantResolver {
         this.pathPrefix = builder.pathPrefix;
         this.subdomainPattern = Pattern.compile("^([a-zA-Z0-9-]+)\\..+");
         this.pathPattern =
-                Pattern.compile(
-                        "^/"
-                                + Pattern.quote(pathPrefix)
-                                + "/([a-zA-Z0-9-]+)(?:/.*)?$");
+                Pattern.compile("^/" + Pattern.quote(pathPrefix) + "/([a-zA-Z0-9-]+)(?:/.*)?$");
     }
 
     /**

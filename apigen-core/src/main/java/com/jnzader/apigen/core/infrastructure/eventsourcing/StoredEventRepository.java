@@ -30,7 +30,8 @@ public interface StoredEventRepository extends JpaRepository<StoredEvent, String
      * @param version the version to start from (exclusive)
      * @return events after the specified version
      */
-    List<StoredEvent> findByAggregateIdAndVersionGreaterThanOrderByVersionAsc(String aggregateId, long version);
+    List<StoredEvent> findByAggregateIdAndVersionGreaterThanOrderByVersionAsc(
+            String aggregateId, long version);
 
     /**
      * Finds events for an aggregate within a version range.
@@ -40,8 +41,9 @@ public interface StoredEventRepository extends JpaRepository<StoredEvent, String
      * @param toVersion the version to end at (inclusive)
      * @return events in the specified range
      */
-    List<StoredEvent> findByAggregateIdAndVersionGreaterThanAndVersionLessThanEqualOrderByVersionAsc(
-            String aggregateId, long fromVersion, long toVersion);
+    List<StoredEvent>
+            findByAggregateIdAndVersionGreaterThanAndVersionLessThanEqualOrderByVersionAsc(
+                    String aggregateId, long fromVersion, long toVersion);
 
     /**
      * Gets the current version of an aggregate's event stream.

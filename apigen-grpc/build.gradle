@@ -164,6 +164,11 @@ java {
     withJavadocJar()
 }
 
+// Handle duplicate sources from proto generation
+tasks.named('sourcesJar') {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 publishing {
     publications {
         mavenJava(MavenPublication) {

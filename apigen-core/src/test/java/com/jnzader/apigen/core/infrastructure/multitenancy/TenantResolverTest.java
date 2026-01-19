@@ -24,9 +24,7 @@ class TenantResolverTest {
             when(request.getHeader("X-Tenant-ID")).thenReturn("acme-corp");
 
             TenantResolver resolver =
-                    TenantResolver.builder()
-                            .strategies(TenantResolutionStrategy.HEADER)
-                            .build();
+                    TenantResolver.builder().strategies(TenantResolutionStrategy.HEADER).build();
 
             String tenant = resolver.resolve(request);
 
@@ -72,9 +70,7 @@ class TenantResolverTest {
             HttpServletRequest request = mock(HttpServletRequest.class);
 
             TenantResolver resolver =
-                    TenantResolver.builder()
-                            .strategies(TenantResolutionStrategy.HEADER)
-                            .build();
+                    TenantResolver.builder().strategies(TenantResolutionStrategy.HEADER).build();
 
             String tenant = resolver.resolve(request);
 
@@ -93,9 +89,7 @@ class TenantResolverTest {
             when(request.getServerName()).thenReturn("acme.example.com");
 
             TenantResolver resolver =
-                    TenantResolver.builder()
-                            .strategies(TenantResolutionStrategy.SUBDOMAIN)
-                            .build();
+                    TenantResolver.builder().strategies(TenantResolutionStrategy.SUBDOMAIN).build();
 
             String tenant = resolver.resolve(request);
 
@@ -148,9 +142,7 @@ class TenantResolverTest {
             when(request.getRequestURI()).thenReturn("/tenants/acme-corp/products");
 
             TenantResolver resolver =
-                    TenantResolver.builder()
-                            .strategies(TenantResolutionStrategy.PATH)
-                            .build();
+                    TenantResolver.builder().strategies(TenantResolutionStrategy.PATH).build();
 
             String tenant = resolver.resolve(request);
 
@@ -203,9 +195,7 @@ class TenantResolverTest {
             when(request.getAttribute("tenant.id")).thenReturn("jwt-tenant");
 
             TenantResolver resolver =
-                    TenantResolver.builder()
-                            .strategies(TenantResolutionStrategy.JWT_CLAIM)
-                            .build();
+                    TenantResolver.builder().strategies(TenantResolutionStrategy.JWT_CLAIM).build();
 
             String tenant = resolver.resolve(request);
 

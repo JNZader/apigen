@@ -27,7 +27,12 @@ class EventSerializerTest {
         @Test
         @DisplayName("should serialize domain event to JSON")
         void shouldSerializeDomainEventToJson() {
-            TestEvent event = new TestEvent("agg-1", "TestCreated", Instant.parse("2024-01-15T10:30:00Z"), "value1");
+            TestEvent event =
+                    new TestEvent(
+                            "agg-1",
+                            "TestCreated",
+                            Instant.parse("2024-01-15T10:30:00Z"),
+                            "value1");
 
             String json = serializer.serialize(event);
 

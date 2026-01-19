@@ -28,7 +28,9 @@ import java.time.Instant;
 @Entity
 @Table(
         name = "event_snapshots",
-        indexes = {@Index(name = "idx_snapshot_aggregate", columnList = "aggregate_id, version DESC")})
+        indexes = {
+            @Index(name = "idx_snapshot_aggregate", columnList = "aggregate_id, version DESC")
+        })
 public class Snapshot {
 
     @Id
