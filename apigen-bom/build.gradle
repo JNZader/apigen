@@ -44,6 +44,16 @@ dependencies {
         api 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
         api 'org.testcontainers:testcontainers-junit-jupiter:2.0.3'
         api 'org.testcontainers:testcontainers-postgresql:2.0.3'
+
+        // Feature Flags
+        api 'org.togglz:togglz-spring-boot-starter:4.4.0'
+        api 'org.togglz:togglz-console:4.4.0'
+
+        // Redis (distributed caching)
+        api 'org.springframework.boot:spring-boot-starter-data-redis'
+
+        // Hypersistence Utils (N+1 detection, query analysis)
+        api 'io.hypersistence:hypersistence-utils-hibernate-70:3.14.1'
     }
 }
 

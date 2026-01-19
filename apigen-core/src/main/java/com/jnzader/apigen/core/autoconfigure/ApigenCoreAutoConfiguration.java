@@ -2,6 +2,7 @@ package com.jnzader.apigen.core.autoconfigure;
 
 import com.jnzader.apigen.core.infrastructure.config.*;
 import com.jnzader.apigen.core.infrastructure.config.properties.AppProperties;
+import com.jnzader.apigen.core.infrastructure.feature.FeatureFlagConfig;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -38,6 +39,7 @@ import org.springframework.context.annotation.Import;
                 @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = JpaConfig.class))
 @Import({
     CacheConfig.class,
+    RedisCacheConfig.class,
     WebConfig.class,
     AsyncConfig.class,
     TracingConfig.class,
@@ -45,7 +47,9 @@ import org.springframework.context.annotation.Import;
     ETagConfig.class,
     ApiVersionConfig.class,
     ResilienceConfig.class,
-    ConfigurationValidator.class
+    ConfigurationValidator.class,
+    FeatureFlagConfig.class,
+    HikariMetricsConfig.class
 })
 public class ApigenCoreAutoConfiguration {
 

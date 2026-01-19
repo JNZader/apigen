@@ -38,6 +38,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ResultBenchmark demonstrating ~1M+ ops/ms for core operations
 - `jmhAll` aggregate task for all modules
 
+#### Fase 4: Rendimiento + Feature Flags
+- Togglz feature flags with manual configuration (Spring Boot 4 compatible)
+- Redis distributed cache support (RedisCacheConfig) as alternative to Caffeine
+- HikariCP metrics exposed to Prometheus (HikariMetricsConfig)
+- N+1 query detection via Hibernate Statistics (QueryAnalysisConfig)
+- Async batch operations with Virtual Threads (BatchService)
+- FeatureChecker utility for runtime feature state checks
+- QueryAssertions for test query count validation
+
 ### Changed
 - Updated .gitignore to exclude logs, .env, and .claude files
 - Optimized Docker CI (single platform for main, multi-platform for releases)

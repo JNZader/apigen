@@ -19,6 +19,8 @@ ext {
     logstashEncoderVersion = '9.0'
     lombokMapstructBindingVersion = '0.2.0'
     testcontainersVersion = '1.21.4'
+    togglzVersion = '4.4.0'
+    hypersistenceVersion = '3.14.1'
 }
 
 java {
@@ -56,6 +58,12 @@ dependencies {
     // Caching
     api "com.github.ben-manes.caffeine:caffeine:${caffeineVersion}"
 
+    // Redis Cache (optional - for distributed caching)
+    compileOnly 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    // Note: Query analysis uses Hibernate Statistics (built-in)
+    // For advanced N+1 detection, add: io.hypersistence:hypersistence-utils-hibernate-70
+
     // Mapping
     api "org.mapstruct:mapstruct:${mapstructVersion}"
 
@@ -74,6 +82,15 @@ dependencies {
 
     // API Documentation
     api "org.springdoc:springdoc-openapi-starter-webmvc-ui:${springdocVersion}"
+
+    // Feature Flags (Togglz)
+    // Note: togglz-spring-boot-starter excluded due to incompatibility with Spring Boot 4.0.0
+    // (references removed EndpointExposure.CLOUD_FOUNDRY enum)
+    // Using individual modules instead for manual configuration
+    api "org.togglz:togglz-core:${togglzVersion}"
+    api "org.togglz:togglz-spring-core:${togglzVersion}"
+    api "org.togglz:togglz-spring-web:${togglzVersion}"
+    api "org.togglz:togglz-console:${togglzVersion}"
 
     // Content Negotiation - XML support
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml'
