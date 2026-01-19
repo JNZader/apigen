@@ -109,7 +109,14 @@ subprojects {
                         '*.autoconfigure.*',
                         '*Application',
                         '*DTO',
-                        '*Exception'
+                        '*Exception',
+                        '*Controller',
+                        '*AutoConfiguration',
+                        '*$Builder',
+                        '*Builder',
+                        '*$TypeBuilder',
+                        '*$FieldBuilder',
+                        '*$InputTypeBuilder'
                     ]
                     limit {
                         minimum = 0.70

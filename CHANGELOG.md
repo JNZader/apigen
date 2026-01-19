@@ -133,6 +133,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `ConcurrencyException` for optimistic locking conflicts
   - `EventSourcingAutoConfiguration` for Spring Boot (`apigen.eventsourcing.enabled=true`)
   - Comprehensive test suite (37 tests) covering serialization, aggregates, and event store
+- **GraphQL Module (7.3)**: New `apigen-graphql` module for GraphQL API layer
+  - `SchemaBuilder` fluent API for constructing GraphQL schemas programmatically
+  - `GraphQLExecutor` for executing queries, mutations, and subscriptions
+  - `GraphQLContext` request-scoped context with user ID, locale, and custom attributes
+  - `BaseDataFetcher` base class for data fetchers with utility methods
+  - `DataLoaderRegistry` for N+1 query prevention with batched loading
+  - `DataLoaderRegistrar` interface for registering DataLoaders
+  - `GraphQLExceptionHandler` for RFC 7807-aligned error responses
+  - `ApiGenGraphQLError` custom error with type, status code, and extensions
+  - `GraphQLErrorType` enum for semantic error classification
+  - `GraphQLRequest` record for HTTP request parsing
+  - `GraphQLController` HTTP endpoint at `/graphql`
+  - `GraphQLAutoConfiguration` for Spring Boot (`apigen.graphql.enabled=true`)
+  - GraphQL Java 22.3 and Java DataLoader 3.4.0 integration
+  - Comprehensive test suite covering schema building, execution, errors, and data loading
 
 ### Changed
 - Updated .gitignore to exclude logs, .env, and .claude files
