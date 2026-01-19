@@ -103,6 +103,13 @@ dependencies {
     // Content Negotiation - XML support
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml'
 
+    // Jackson Java 8 date/time support (for webhooks and general serialization)
+    api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
+    // Bulk Import/Export - CSV and Excel support
+    api 'com.opencsv:opencsv:5.9'
+    api 'org.apache.poi:poi-ooxml:5.3.0'
+
     // Spring Security (optional - for AuditorAware and RevisionListener)
     compileOnly 'org.springframework.boot:spring-boot-starter-security'
 

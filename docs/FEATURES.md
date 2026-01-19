@@ -25,6 +25,9 @@ Esta guía documenta **todas las características** disponibles en APiGen, indep
 19. [Métricas HikariCP](#19-métricas-hikaricp)
 20. [Detección N+1](#20-detección-n1)
 21. [Batch Operations](#21-batch-operations)
+22. [Internacionalización (i18n)](#22-internacionalización-i18n)
+23. [Webhooks](#23-webhooks)
+24. [Bulk Import/Export](#24-bulk-importexport)
 
 ---
 
@@ -1017,30 +1020,6 @@ springdoc:
 
 ---
 
-## Resumen de Características por Módulo
-
-| Característica | apigen-core | apigen-security |
-|----------------|:-----------:|:---------------:|
-| Entidad Base | ✅ | - |
-| Repository Base | ✅ | - |
-| Servicio Base | ✅ | - |
-| Controller Base | ✅ | - |
-| Filtrado Dinámico | ✅ | - |
-| Paginación | ✅ | - |
-| HATEOAS | ✅ | - |
-| ETag/Caché | ✅ | - |
-| Soft Delete | ✅ | - |
-| Auditoría | ✅ | ✅ |
-| Validación | ✅ | ✅ |
-| Eventos | ✅ | ✅ |
-| Result Pattern | ✅ | ✅ |
-| Rate Limiting | ✅ | - |
-| JWT Auth | - | ✅ |
-| OAuth2 | - | ✅ |
-| OpenAPI/Swagger | ✅ | ✅ |
-
----
-
 ## 17. Feature Flags
 
 Sistema de feature flags usando Togglz para habilitar/deshabilitar funcionalidades en runtime.
@@ -1364,6 +1343,558 @@ apigen:
 
 ---
 
+## 22. Internacionalización (i18n)
+
+Soporte completo para mensajes de error localizados usando Accept-Language header.
+
+### Idiomas Soportados
+
+- **Inglés (en)** - Por defecto
+- **Español (es)**
+
+### Uso
+
+El sistema detecta automáticamente el idioma preferido del cliente:
+
+```bash
+# Respuesta en inglés (por defecto)
+GET /api/products/999
+Accept-Language: en
+
+# Respuesta en español
+GET /api/products/999
+Accept-Language: es
+```
+
+### Respuestas Localizadas (RFC 7807)
+
+**Inglés:**
+```json
+{
+  "type": "https://api.example.com/problems/not-found",
+  "title": "Resource Not Found",
+  "status": 404,
+  "detail": "The requested resource could not be found",
+  "instance": "/api/products/999"
+}
+```
+
+**Español:**
+```json
+{
+  "type": "https://api.example.com/problems/not-found",
+  "title": "Recurso No Encontrado",
+  "status": 404,
+  "detail": "El recurso solicitado no pudo ser encontrado",
+  "instance": "/api/products/999"
+}
+```
+
+### Query Parameter Alternativo
+
+También se puede cambiar el idioma via query parameter:
+
+```bash
+GET /api/products?lang=es
+```
+
+### MessageService
+
+Para usar mensajes localizados en tu código:
+
+```java
+@Service
+public class MyService {
+
+    private final MessageService messageService;
+
+    public void validate(Product product) {
+        if (product.getPrice() == null) {
+            throw new ValidationException(
+                messageService.getValidationTitle(),
+                messageService.getValidationDetail(1)
+            );
+        }
+    }
+}
+```
+
+### Agregar Nuevos Idiomas
+
+1. Crear archivo `messages_XX.properties` (ej: `messages_fr.properties`)
+2. Agregar locale a la configuración:
+
+```java
+@Configuration
+public class I18nConfig {
+    @Bean
+    public LocaleResolver localeResolver() {
+        AcceptHeaderLocaleResolver resolver = new AcceptHeaderLocaleResolver();
+        resolver.setSupportedLocales(List.of(
+            Locale.ENGLISH,
+            Locale.forLanguageTag("es"),
+            Locale.FRENCH  // Nuevo idioma
+        ));
+        return resolver;
+    }
+}
+```
+
+---
+
+## 23. Webhooks
+
+Sistema de notificaciones webhook para eventos del sistema con entrega asíncrona y reintentos.
+
+### Eventos Disponibles
+
+| Evento | Descripción |
+|--------|-------------|
+| `entity.created` | Entidad creada |
+| `entity.updated` | Entidad actualizada |
+| `entity.deleted` | Entidad eliminada (soft delete) |
+| `entity.restored` | Entidad restaurada |
+| `entity.purged` | Entidad eliminada permanentemente |
+| `batch.import_completed` | Importación batch completada |
+| `batch.export_completed` | Exportación batch completada |
+| `user.login` | Usuario inició sesión |
+| `user.logout` | Usuario cerró sesión |
+| `user.login_failed` | Intento de login fallido |
+| `security.rate_limit_exceeded` | Rate limit excedido |
+| `security.unauthorized_access` | Acceso no autorizado |
+| `system.ping` | Ping de prueba |
+
+### Configuración
+
+```yaml
+apigen:
+  webhooks:
+    enabled: true
+    connect-timeout: 5s
+    request-timeout: 30s
+    max-retries: 3
+    retry-base-delay: 1s
+    retry-max-delay: 5m
+```
+
+### Registrar Suscripción
+
+```java
+WebhookSubscription subscription = WebhookSubscription.builder()
+    .name("Order Notifications")
+    .url("https://myapp.com/webhooks/orders")
+    .secret("my-webhook-secret")
+    .events(Set.of(
+        WebhookEvent.ENTITY_CREATED,
+        WebhookEvent.ENTITY_UPDATED
+    ))
+    .build();
+
+webhookRepository.save(subscription);
+```
+
+### Payload de Webhook
+
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "event": "entity.created",
+  "timestamp": "2026-01-19T10:30:00Z",
+  "resourceType": "Product",
+  "resourceId": 123,
+  "data": {
+    "name": "New Product",
+    "price": 99.99
+  },
+  "metadata": {
+    "userId": "admin",
+    "correlationId": "abc-123"
+  }
+}
+```
+
+### Headers de Webhook
+
+| Header | Descripción |
+|--------|-------------|
+| `X-Webhook-Id` | ID único del payload |
+| `X-Webhook-Event` | Tipo de evento (ej: `entity.created`) |
+| `X-Webhook-Timestamp` | Timestamp Unix |
+| `X-Webhook-Signature` | Firma HMAC-SHA256 |
+| `Content-Type` | `application/json` |
+
+### Verificar Firma
+
+El receptor debe verificar la firma para autenticar el webhook:
+
+```java
+// Header: X-Webhook-Signature: t=1705664200,v1=5257a869e7ecebeda32affa62cdca3fa51...
+
+String payload = request.getBody();
+String signature = request.getHeader("X-Webhook-Signature");
+String secret = "my-webhook-secret";
+
+boolean valid = WebhookSignature.verify(payload, secret, signature);
+if (!valid) {
+    return ResponseEntity.status(401).build();
+}
+```
+
+### Formato de Firma
+
+```
+t=timestamp,v1=signature
+```
+
+- `t`: Timestamp Unix cuando se generó la firma
+- `v1`: HMAC-SHA256 de `{timestamp}.{payload}` usando el secret
+
+### Tolerancia de Tiempo
+
+Por defecto, las firmas son válidas por 5 minutos. Configurar tolerancia personalizada:
+
+```java
+boolean valid = WebhookSignature.verify(
+    payload,
+    secret,
+    signature,
+    600  // 10 minutos de tolerancia
+);
+```
+
+### Reintentos
+
+Los webhooks se reintentan automáticamente con backoff exponencial:
+
+- **Errores 5xx**: Se reintenta
+- **Error 429**: Se reintenta (rate limited)
+- **Errores 4xx**: No se reintenta (error del cliente)
+- **Timeout**: Se reintenta
+
+### Enviar Webhooks Programáticamente
+
+```java
+@Service
+public class OrderService {
+
+    private final WebhookService webhookService;
+
+    public Order createOrder(OrderDTO dto) {
+        Order order = orderRepository.save(toEntity(dto));
+
+        WebhookPayload payload = WebhookPayload.builder()
+            .event(WebhookEvent.ENTITY_CREATED)
+            .resourceType("Order")
+            .resourceId(order.getId())
+            .data(order)
+            .build();
+
+        webhookService.dispatch(WebhookEvent.ENTITY_CREATED, payload);
+
+        return order;
+    }
+}
+```
+
+### Ping de Prueba
+
+Enviar un ping para probar la conexión:
+
+```java
+CompletableFuture<WebhookDelivery> result =
+    webhookService.sendPing(subscriptionId);
+
+WebhookDelivery delivery = result.join();
+if (delivery.status() == DeliveryStatus.SUCCESS) {
+    log.info("Webhook endpoint is reachable");
+}
+```
+
+### Callback de Entrega
+
+Registrar un callback para ser notificado después de cada entrega:
+
+```java
+webhookService.setDeliveryCallback(delivery -> {
+    log.info("Webhook delivered: {} -> {}",
+        delivery.subscriptionId(),
+        delivery.status());
+
+    if (delivery.status() == DeliveryStatus.FAILED_PERMANENT) {
+        // Notificar al admin, deshabilitar suscripción, etc.
+        alertService.sendAlert("Webhook failed permanently");
+    }
+});
+```
+
+---
+
+## 24. Bulk Import/Export
+
+Sistema de importación y exportación masiva de datos en formatos CSV y Excel (XLSX).
+
+### Formatos Soportados
+
+| Formato | Extensión | Content-Type |
+|---------|-----------|--------------|
+| CSV | `.csv` | `text/csv` |
+| Excel | `.xlsx` | `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` |
+
+### Configuración
+
+```yaml
+apigen:
+  bulk:
+    enabled: true
+```
+
+### Importar Datos CSV
+
+```java
+@Service
+public class ProductImportService {
+
+    private final BulkOperationsService bulkOperationsService;
+    private final ProductRepository productRepository;
+
+    public BulkOperationResult importProducts(InputStream csvFile) {
+        return bulkOperationsService.importData(
+            csvFile,
+            BulkFormat.CSV,
+            ProductDTO.class,
+            dto -> {
+                Product product = mapper.toEntity(dto);
+                return productRepository.save(product);
+            }
+        );
+    }
+}
+```
+
+### Importar con Configuración Personalizada
+
+```java
+BulkImportService.ImportConfig config = BulkImportService.ImportConfig.builder()
+    .skipHeader(true)           // Saltar primera fila (header)
+    .stopOnError(false)         // Continuar en errores
+    .batchSize(100)             // Tamaño de lote
+    .csvSeparator(';')          // Separador personalizado
+    .dateFormat("dd/MM/yyyy")   // Formato de fecha
+    .sheetName("Products")      // Nombre de hoja Excel
+    .build();
+
+BulkOperationResult result = bulkOperationsService.importData(
+    inputStream,
+    BulkFormat.CSV,
+    ProductDTO.class,
+    this::processProduct,
+    config
+);
+```
+
+### Exportar Datos CSV
+
+```java
+List<ProductDTO> products = productService.findAll();
+
+// Exportar a byte array
+byte[] csvData = bulkOperationsService.exportData(
+    products,
+    ProductDTO.class,
+    BulkFormat.CSV
+);
+
+// Exportar a stream
+ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+BulkOperationResult result = bulkOperationsService.exportToStream(
+    products,
+    ProductDTO.class,
+    BulkFormat.CSV,
+    outputStream
+);
+```
+
+### Exportar a Excel
+
+```java
+List<ProductDTO> products = productService.findAll();
+
+// Configuración de exportación
+BulkExportService.ExportConfig config = BulkExportService.ExportConfig.builder()
+    .includeHeader(true)
+    .sheetName("Productos")
+    .autoSizeColumns(true)
+    .excludeFields(List.of("internalId", "secretField"))
+    .build();
+
+byte[] excelData = bulkOperationsService.exportData(
+    products,
+    ProductDTO.class,
+    BulkFormat.EXCEL,
+    config
+);
+```
+
+### Export con Streaming (Datasets Grandes)
+
+Para datasets muy grandes, usa export con streaming para evitar problemas de memoria:
+
+```java
+// Stream-based export
+BulkOperationResult result = bulkOperationsService.exportStream(
+    () -> productRepository.streamAll(),  // Supplier de Stream
+    ProductDTO.class,
+    BulkFormat.EXCEL,
+    outputStream
+);
+```
+
+### DTO con Anotaciones CSV
+
+```java
+public record ProductDTO(
+    @CsvBindByName(column = "id")
+    Long id,
+
+    @CsvBindByName(column = "name")
+    String name,
+
+    @CsvBindByName(column = "price")
+    BigDecimal price,
+
+    @CsvBindByName(column = "quantity")
+    Integer quantity
+) {}
+```
+
+### BulkOperationResult
+
+El resultado contiene estadísticas completas de la operación:
+
+```java
+BulkOperationResult result = bulkOperationsService.importData(...);
+
+// Estadísticas
+int total = result.totalRecords();
+int success = result.successCount();
+int failures = result.failureCount();
+double successRate = result.getSuccessRate();  // 0-100%
+
+// Verificaciones
+boolean fullySuccessful = result.isFullySuccessful();  // Sin errores
+boolean hasFailures = result.hasFailures();
+boolean hasSuccesses = result.hasSuccesses();
+
+// Errores detallados
+List<RecordError> errors = result.errors();
+for (RecordError error : errors) {
+    int row = error.rowNumber();
+    String field = error.fieldName();
+    String message = error.errorMessage();
+    String rawValue = error.rawValue();
+    log.warn("Error en fila {}: {} = {} - {}",
+        row, field, rawValue, message);
+}
+
+// Tiempos
+Instant start = result.startTime();
+Instant end = result.endTime();
+Duration duration = result.duration();
+```
+
+### Detección de Formato
+
+El formato se detecta automáticamente:
+
+```java
+// Por nombre de archivo
+BulkFormat format = BulkFormat.fromFilename("products.xlsx");  // EXCEL
+BulkFormat format = BulkFormat.fromFilename("data.csv");       // CSV
+
+// Por content-type
+BulkFormat format = BulkFormat.fromContentType("text/csv");    // CSV
+BulkFormat format = BulkFormat.fromContentType(
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+);  // EXCEL
+```
+
+### Obtener Headers
+
+```java
+// Desde una clase DTO (usa @CsvBindByName)
+List<String> headers = bulkOperationsService.getHeaders(ProductDTO.class);
+// ["id", "name", "price", "quantity"]
+
+// Desde un record (usa nombres de componentes)
+List<String> headers = bulkOperationsService.getHeaders(SimpleRecord.class);
+```
+
+### Ejemplo Completo: Endpoint de Importación
+
+```java
+@RestController
+@RequestMapping("/api/products")
+public class ProductController {
+
+    private final BulkOperationsService bulkOperationsService;
+    private final ProductRepository productRepository;
+
+    @PostMapping("/import")
+    public ResponseEntity<BulkOperationResult> importProducts(
+            @RequestParam("file") MultipartFile file) throws IOException {
+
+        BulkFormat format = BulkFormat.fromFilename(file.getOriginalFilename());
+
+        BulkOperationResult result = bulkOperationsService.importData(
+            file.getInputStream(),
+            format,
+            ProductDTO.class,
+            dto -> productRepository.save(mapper.toEntity(dto))
+        );
+
+        if (result.isFullySuccessful()) {
+            return ResponseEntity.ok(result);
+        } else {
+            return ResponseEntity.status(207).body(result);  // Multi-Status
+        }
+    }
+
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> exportProducts(
+            @RequestParam(defaultValue = "csv") String format) {
+
+        List<ProductDTO> products = productService.findAll()
+            .stream()
+            .map(mapper::toDTO)
+            .toList();
+
+        BulkFormat bulkFormat = format.equalsIgnoreCase("excel")
+            ? BulkFormat.EXCEL
+            : BulkFormat.CSV;
+
+        byte[] data = bulkOperationsService.exportData(
+            products,
+            ProductDTO.class,
+            bulkFormat
+        );
+
+        return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION,
+                "attachment; filename=products" + bulkFormat.getExtension())
+            .contentType(MediaType.parseMediaType(bulkFormat.getContentType()))
+            .body(data);
+    }
+}
+```
+
+### Dependencias
+
+El módulo usa:
+- **OpenCSV 5.9** para CSV parsing y generación
+- **Apache POI 5.3.0** para Excel (con SXSSFWorkbook para streaming)
+
+---
+
 ## Resumen de Características por Módulo
 
 | Característica | apigen-core | apigen-security |
@@ -1390,6 +1921,9 @@ apigen:
 | HikariCP Metrics | ✅ | - |
 | N+1 Detection | ✅ | - |
 | Batch Operations | ✅ | - |
+| i18n | ✅ | - |
+| Webhooks | ✅ | - |
+| Bulk Import/Export | ✅ | - |
 
 ---
 

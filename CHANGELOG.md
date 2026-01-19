@@ -56,6 +56,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated FEATURES.md with Phase 4 features documentation (sections 17-21)
 - Added docs/architecture folder with C4_ARCHITECTURE.md
 
+#### Fase 6: Features Adicionales (Partial)
+- **Internationalization (i18n)**: Full i18n support for error messages
+  - `MessageService` for retrieving localized messages
+  - `I18nConfig` with Accept-Language header locale resolution
+  - Support for English (default) and Spanish locales
+  - Message bundles: `messages.properties`, `messages_es.properties`
+  - LocaleChangeInterceptor for `?lang=` query parameter
+  - GlobalExceptionHandler integration for localized RFC 7807 responses
+  - Comprehensive test coverage for both locales
+- **Webhooks System**: Event-driven webhook notifications
+  - `WebhookEvent` enum with 13 event types (entity lifecycle, batch, user, security, system)
+  - `WebhookPayload` record with builder pattern for event data
+  - `WebhookSubscription` record for managing webhook endpoints
+  - `WebhookDelivery` record for tracking delivery status (SUCCESS, FAILED_WILL_RETRY, FAILED_PERMANENT)
+  - `WebhookSignature` utility with HMAC-SHA256 signatures for request authentication
+  - `WebhookService` with async delivery using virtual threads
+  - Configurable retry logic with exponential backoff (base delay, max delay, max retries)
+  - `WebhookSubscriptionRepository` interface with `InMemoryWebhookSubscriptionRepository` implementation
+  - `WebhookAutoConfiguration` for Spring Boot auto-configuration (`apigen.webhooks.enabled=true`)
+  - Ping functionality for testing webhook endpoints
+  - Delivery callback support for custom delivery handling
+  - Comprehensive test suite (79 tests) covering dispatch, retry logic, signatures, and callbacks
+- **Bulk Import/Export**: CSV and Excel support for mass data operations
+  - `BulkFormat` enum supporting CSV and EXCEL (XLSX) formats
+  - Format detection from filename and content-type
+  - `BulkOperationResult` record with operation statistics (success/failure counts, duration)
+  - `RecordError` for detailed error tracking (row number, field name, raw value)
+  - `BulkImportService` interface with configurable import options
+    - `ImportConfig`: skipHeader, stopOnError, batchSize, csvSeparator, dateFormat, sheetName
+    - Support for custom processing functions with error handling
+    - Validation mode for dry-run imports
+  - `BulkExportService` interface with flexible export options
+    - `ExportConfig`: includeHeader, csvSeparator, dateFormat, sheetName, autoSizeColumns
+    - Field inclusion/exclusion support
+    - Stream-based export for large datasets
+  - `BulkOperationsService` implementation
+    - CSV parsing with OpenCSV 5.9 (CsvToBean/StatefulBeanToCsv)
+    - Excel export with Apache POI 5.3.0 (SXSSFWorkbook streaming for memory efficiency)
+    - Support for both Record types and POJOs via reflection
+    - Automatic header extraction from @CsvBindByName annotations
+  - `BulkAutoConfiguration` for Spring Boot auto-configuration (`apigen.bulk.enabled=true`)
+  - Comprehensive test suite (26 tests) covering import, export, configurations
+
 ### Changed
 - Updated .gitignore to exclude logs, .env, and .claude files
 - Optimized Docker CI (single platform for main, multi-platform for releases)
