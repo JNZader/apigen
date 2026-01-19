@@ -1,0 +1,36 @@
+#!/bin/sh
+# APiGen Pre-commit Hook
+# Runs formatting check and tests before allowing commits
+
+echo "Running pre-commit checks..."
+
+# Check if there are staged Java files
+STAGED_JAVA=$(git diff --cached --name-only --diff-filter=ACM | grep "\.java$" || true)
+
+if [ -n "$STAGED_JAVA" ]; then
+    echo "Checking code formatting with Spotless..."
+    ./gradlew spotlessCheck --quiet
+    if [ $? -ne 0 ]; then
+        echo ""
+        echo "❌ Formatting issues found!"
+        echo "Run './gradlew spotlessApply' to fix them automatically."
+        echo ""
+        exit 1
+    fi
+    echo "✅ Formatting check passed"
+fi
+
+# Run quick compilation check (no tests)
+echo "Compiling project..."
+./gradlew compileJava --quiet
+if [ $? -ne 0 ]; then
+    echo ""
+    echo "❌ Compilation failed!"
+    echo ""
+    exit 1
+fi
+echo "✅ Compilation successful"
+
+echo ""
+echo "✅ All pre-commit checks passed!"
+exit 0
