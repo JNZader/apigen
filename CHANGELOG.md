@@ -37,6 +37,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - JMH benchmark infrastructure with plugin v0.7.3
 - ResultBenchmark demonstrating ~1M+ ops/ms for core operations
 - `jmhAll` aggregate task for all modules
+- **Contract Testing (3.2)**: Spring Cloud Contract consumer-driven contract tests
+  - Spring Cloud Contract Verifier 5.0.1 (Gradle plugin)
+  - Spring Cloud Dependencies 2025.1.0 BOM for Spring Boot 4.0 compatibility
+  - REST-Assured spring-mock-mvc 5.5.7 (Spring Framework 7 compatible)
+  - Groovy DSL contracts for REST endpoint validation
+  - Contracts for pagination (`findAll`), count headers, error responses (400, 404, 412)
+  - RFC 7807 Problem Detail format validation (`application/problem+json`)
+  - Optimistic concurrency control testing (If-Match/ETag headers)
+  - `BaseContractTest` base class with test entity setup
+  - `contractTest` source set and Gradle task integration
+  - 6 contract tests covering REST API compliance
 
 #### Fase 4: Rendimiento + Feature Flags
 - Togglz feature flags with manual configuration (Spring Boot 4 compatible)
