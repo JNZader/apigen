@@ -319,3 +319,60 @@ wrapper {
     gradleVersion = '9.3.0'
     distributionType = Wrapper.DistributionType.ALL
 }
+
+// ==========================================
+// Semantic Release Tasks
+// ==========================================
+
+// Task to set version in all modules (used by semantic-release)
+tasks.register('setVersion') {
+    group = 'release'
+    description = 'Sets the version in all modules (used by semantic-release)'
+
+    doLast {
+        def newVersion = project.findProperty('version') ?: project.version
+        println "Setting version to: $newVersion"
+
+        // Update root build.gradle
+        def rootBuildFile = file('build.gradle')
+        def rootContent = rootBuildFile.text
+        rootContent = rootContent.replaceAll(
+            /version\s*=\s*['"][\d\w.\-SNAPSHOT]+['"]/,
+            "version = '${newVersion}'"
+        )
+        rootBuildFile.text = rootContent
+        println "Updated: build.gradle"
+
+        // Update subproject build.gradle files
+        subprojects { subproject ->
+            def buildFile = subproject.file('build.gradle')
+            if (buildFile.exists()) {
+                def content = buildFile.text
+                if (content.contains("version =") || content.contains("version=")) {
+                    content = content.replaceAll(
+                        /version\s*=\s*['"][\d\w.\-SNAPSHOT]+['"]/,
+                        "version = '${newVersion}'"
+                    )
+                    buildFile.text = content
+                    println "Updated: ${subproject.name}/build.gradle"
+                }
+            }
+        }
+
+        // Update gradle.properties if exists
+        def propsFile = file('gradle.properties')
+        if (propsFile.exists()) {
+            def propsContent = propsFile.text
+            if (propsContent.contains("version=")) {
+                propsContent = propsContent.replaceAll(
+                    /version\s*=\s*[\d\w.\-SNAPSHOT]+/,
+                    "version=${newVersion}"
+                )
+                propsFile.text = propsContent
+                println "Updated: gradle.properties"
+            }
+        }
+
+        println "Version updated to $newVersion in all modules"
+    }
+}

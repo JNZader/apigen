@@ -62,6 +62,9 @@ public class SecurityProperties {
     /** Configuración de rate limiting. */
     private RateLimitProperties rateLimit = new RateLimitProperties();
 
+    /** Configuración de PKCE OAuth2. */
+    private PkceProperties pkce = new PkceProperties();
+
     /** Modos de autenticación soportados. */
     public enum AuthMode {
         /** JWT propio con secret compartido (HS256) */
@@ -182,6 +185,14 @@ public class SecurityProperties {
 
     public void setRateLimit(RateLimitProperties rateLimit) {
         this.rateLimit = rateLimit;
+    }
+
+    public PkceProperties getPkce() {
+        return pkce;
+    }
+
+    public void setPkce(PkceProperties pkce) {
+        this.pkce = pkce;
     }
 
     /** Determina si está en modo JWT propio. */
@@ -675,6 +686,92 @@ public class SecurityProperties {
         /** Determina si está configurado para usar Redis. */
         public boolean isRedisMode() {
             return storageMode == StorageMode.REDIS;
+        }
+    }
+
+    /**
+     * Propiedades de configuración para PKCE OAuth2.
+     *
+     * <p>PKCE (Proof Key for Code Exchange) es una extensión de OAuth 2.0 que mejora la seguridad
+     * para clientes públicos como SPAs y aplicaciones móviles.
+     *
+     * <p>Uso en application.yml:
+     *
+     * <pre>
+     * apigen:
+     *   security:
+     *     pkce:
+     *       enabled: true
+     *       code-expiration-minutes: 10
+     *       require-s256: true
+     * </pre>
+     */
+    public static class PkceProperties {
+
+        /** Habilitar PKCE OAuth2 flow. Default: true. */
+        private boolean enabled = true;
+
+        /**
+         * Tiempo de expiración del authorization code en minutos. Default: 10 minutos (según RFC
+         * 6749, los códigos deben tener vida corta).
+         */
+        private int codeExpirationMinutes = 10;
+
+        /**
+         * Requerir método S256 (SHA-256). Si es false, también se permite 'plain'. Default: true.
+         */
+        private boolean requireS256 = true;
+
+        /**
+         * Longitud mínima del code_verifier. Default: 43 (mínimo RFC 7636). El máximo siempre es
+         * 128.
+         */
+        private int minCodeVerifierLength = 43;
+
+        /**
+         * Permitir el endpoint /oauth2/pkce/generate para desarrollo. Debe estar deshabilitado en
+         * producción. Default: false.
+         */
+        private boolean allowPkceHelperEndpoint = false;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public int getCodeExpirationMinutes() {
+            return codeExpirationMinutes;
+        }
+
+        public void setCodeExpirationMinutes(int codeExpirationMinutes) {
+            this.codeExpirationMinutes = codeExpirationMinutes;
+        }
+
+        public boolean isRequireS256() {
+            return requireS256;
+        }
+
+        public void setRequireS256(boolean requireS256) {
+            this.requireS256 = requireS256;
+        }
+
+        public int getMinCodeVerifierLength() {
+            return minCodeVerifierLength;
+        }
+
+        public void setMinCodeVerifierLength(int minCodeVerifierLength) {
+            this.minCodeVerifierLength = minCodeVerifierLength;
+        }
+
+        public boolean isAllowPkceHelperEndpoint() {
+            return allowPkceHelperEndpoint;
+        }
+
+        public void setAllowPkceHelperEndpoint(boolean allowPkceHelperEndpoint) {
+            this.allowPkceHelperEndpoint = allowPkceHelperEndpoint;
         }
     }
 }
