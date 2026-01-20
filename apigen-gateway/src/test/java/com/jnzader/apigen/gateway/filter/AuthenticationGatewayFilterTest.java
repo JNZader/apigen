@@ -6,11 +6,15 @@ import static org.mockito.Mockito.*;
 
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -51,36 +55,18 @@ class AuthenticationGatewayFilterTest {
     @DisplayName("Excluded Paths")
     class ExcludedPathsTests {
 
-        @Test
+        static Stream<Arguments> excludedPaths() {
+            return Stream.of(
+                    Arguments.of("/public/resource", "public resource path"),
+                    Arguments.of("/health", "health endpoint"),
+                    Arguments.of("/actuator/health", "actuator endpoint"));
+        }
+
+        @ParameterizedTest(name = "should allow {1} without authentication")
+        @MethodSource("excludedPaths")
         @DisplayName("should allow excluded paths without authentication")
-        void shouldAllowExcludedPathsWithoutAuthentication() {
-            MockServerHttpRequest request = MockServerHttpRequest.get("/public/resource").build();
-            MockServerWebExchange exchange = MockServerWebExchange.from(request);
-
-            when(chain.filter(any())).thenReturn(Mono.empty());
-
-            StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
-
-            verify(chain).filter(exchange);
-        }
-
-        @Test
-        @DisplayName("should allow health endpoint without authentication")
-        void shouldAllowHealthEndpointWithoutAuthentication() {
-            MockServerHttpRequest request = MockServerHttpRequest.get("/health").build();
-            MockServerWebExchange exchange = MockServerWebExchange.from(request);
-
-            when(chain.filter(any())).thenReturn(Mono.empty());
-
-            StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
-
-            verify(chain).filter(exchange);
-        }
-
-        @Test
-        @DisplayName("should allow actuator endpoints without authentication")
-        void shouldAllowActuatorEndpointsWithoutAuthentication() {
-            MockServerHttpRequest request = MockServerHttpRequest.get("/actuator/health").build();
+        void shouldAllowExcludedPathsWithoutAuthentication(String path, String description) {
+            MockServerHttpRequest request = MockServerHttpRequest.get(path).build();
             MockServerWebExchange exchange = MockServerWebExchange.from(request);
 
             when(chain.filter(any())).thenReturn(Mono.empty());

@@ -2,7 +2,15 @@ package com.jnzader.apigen.core.domain.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.jnzader.apigen.core.domain.event.DomainEvent;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Transient;
+import jakarta.persistence.Version;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Collections;

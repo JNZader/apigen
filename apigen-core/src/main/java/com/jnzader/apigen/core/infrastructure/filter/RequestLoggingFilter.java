@@ -48,6 +48,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
     private static final String MDC_REQUEST_URI = "requestUri";
 
     private static final int MAX_PAYLOAD_LENGTH = 1000;
+    private static final String UNKNOWN_IP = "unknown";
 
     // Patrones para sanitizar información sensible
     private static final Pattern JWT_PATTERN =
@@ -243,10 +244,10 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
 
     private String getClientIp(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");
-        if (ip == null || ip.isBlank() || "unknown".equalsIgnoreCase(ip)) {
+        if (ip == null || ip.isBlank() || UNKNOWN_IP.equalsIgnoreCase(ip)) {
             ip = request.getHeader("X-Real-IP");
         }
-        if (ip == null || ip.isBlank() || "unknown".equalsIgnoreCase(ip)) {
+        if (ip == null || ip.isBlank() || UNKNOWN_IP.equalsIgnoreCase(ip)) {
             ip = request.getRemoteAddr();
         }
         // Si hay múltiples IPs, tomar la primera (cliente original)

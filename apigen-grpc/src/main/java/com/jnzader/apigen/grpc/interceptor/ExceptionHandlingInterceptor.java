@@ -27,6 +27,7 @@ public class ExceptionHandlingInterceptor implements ServerInterceptor {
             Metadata.Key.of("error-detail", Metadata.ASCII_STRING_MARSHALLER);
 
     @Override
+    @SuppressWarnings("java:S119") // ReqT/RespT are standard gRPC generic type names
     public <ReqT, RespT> ServerCall.Listener<ReqT> interceptCall(
             ServerCall<ReqT, RespT> call, Metadata headers, ServerCallHandler<ReqT, RespT> next) {
 
@@ -53,6 +54,7 @@ public class ExceptionHandlingInterceptor implements ServerInterceptor {
         };
     }
 
+    @SuppressWarnings("java:S119") // ReqT/RespT are standard gRPC generic type names
     private <ReqT, RespT> void handleException(ServerCall<ReqT, RespT> call, Exception e) {
         Status status = mapExceptionToStatus(e);
         Metadata trailers = createErrorMetadata(e);

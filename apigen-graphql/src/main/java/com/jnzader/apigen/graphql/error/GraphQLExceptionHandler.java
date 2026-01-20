@@ -109,7 +109,7 @@ public class GraphQLExceptionHandler implements DataFetcherExceptionHandler {
                     .build();
         }
 
-        if (exception instanceof OptimisticLockException e) {
+        if (exception instanceof OptimisticLockException _) {
             return builder.errorType(GraphQLErrorType.CONFLICT)
                     .statusCode(409)
                     .message("Concurrent modification detected")

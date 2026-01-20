@@ -35,12 +35,12 @@ public class ApiGenGraphQLError implements GraphQLError {
 
     private final String message;
     private final List<SourceLocation> locations;
-    private final List<Object> path;
+    private final transient List<Object> path;
     private final GraphQLErrorType errorType;
     private final int statusCode;
     private final String detail;
     private final String instance;
-    private final Map<String, Object> additionalExtensions;
+    private final transient Map<String, Object> additionalExtensions;
 
     private ApiGenGraphQLError(Builder builder) {
         this.message = builder.message;

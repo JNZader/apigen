@@ -40,85 +40,94 @@ public class DynamicRouteLocator implements RouteLocator {
         RouteLocatorBuilder.Builder builder = routeLocatorBuilder.routes();
 
         for (RouteBuilder.RouteDefinition definition : routeDefinitions.values()) {
-            builder =
-                    builder.route(
-                            definition.id(),
-                            r -> {
-                                var predicateSpec =
-                                        r.path(definition.pathPredicates().toArray(new String[0]));
-
-                                // Apply method predicates
-                                if (definition.hasMethodPredicates()) {
-                                    for (String method : definition.methodPredicates()) {
-                                        predicateSpec = predicateSpec.and().method(method);
-                                    }
-                                }
-
-                                // Apply header predicates
-                                for (String header : definition.headerPredicates()) {
-                                    String[] parts = header.split(",", 2);
-                                    if (parts.length == 2) {
-                                        predicateSpec =
-                                                predicateSpec.and().header(parts[0], parts[1]);
-                                    } else {
-                                        predicateSpec = predicateSpec.and().header(parts[0]);
-                                    }
-                                }
-
-                                return predicateSpec
-                                        .filters(
-                                                f -> {
-                                                    var spec = f;
-
-                                                    // Apply strip prefix
-                                                    if (definition.stripPrefix()) {
-                                                        spec =
-                                                                spec.stripPrefix(
-                                                                        definition
-                                                                                .stripPrefixParts());
-                                                    }
-
-                                                    // Apply rewrite path
-                                                    if (definition.hasRewritePath()) {
-                                                        spec =
-                                                                spec.rewritePath(
-                                                                        definition.rewritePath(),
-                                                                        definition
-                                                                                .rewritePathReplacement());
-                                                    }
-
-                                                    // Apply add request header
-                                                    if (definition.addRequestHeader()) {
-                                                        spec =
-                                                                spec.addRequestHeader(
-                                                                        definition
-                                                                                .requestHeaderName(),
-                                                                        definition
-                                                                                .requestHeaderValue());
-                                                    }
-
-                                                    // Apply circuit breaker
-                                                    if (definition.hasCircuitBreaker()) {
-                                                        spec =
-                                                                spec.circuitBreaker(
-                                                                        config ->
-                                                                                config.setName(
-                                                                                        definition
-                                                                                                .circuitBreakerId()));
-                                                    }
-
-                                                    // Apply custom filters
-                                                    for (var filter : definition.filters()) {
-                                                        spec = spec.filter(filter);
-                                                    }
-
-                                                    return spec;
-                                                })
-                                        .uri(definition.uri());
-                            });
+            builder = builder.route(definition.id(), r -> buildRoute(r, definition));
         }
 
         return builder.build().getRoutes();
+    }
+
+    private org.springframework.cloud.gateway.route.builder.Buildable<Route> buildRoute(
+            org.springframework.cloud.gateway.route.builder.PredicateSpec r,
+            RouteBuilder.RouteDefinition definition) {
+        var predicateSpec = r.path(definition.pathPredicates().toArray(new String[0]));
+        predicateSpec = applyMethodPredicates(predicateSpec, definition);
+        predicateSpec = applyHeaderPredicates(predicateSpec, definition);
+        return predicateSpec.filters(f -> applyFilters(f, definition)).uri(definition.uri());
+    }
+
+    private org.springframework.cloud.gateway.route.builder.BooleanSpec applyMethodPredicates(
+            org.springframework.cloud.gateway.route.builder.BooleanSpec predicateSpec,
+            RouteBuilder.RouteDefinition definition) {
+        if (!definition.hasMethodPredicates()) {
+            return predicateSpec;
+        }
+        for (String method : definition.methodPredicates()) {
+            predicateSpec = predicateSpec.and().method(method);
+        }
+        return predicateSpec;
+    }
+
+    private org.springframework.cloud.gateway.route.builder.BooleanSpec applyHeaderPredicates(
+            org.springframework.cloud.gateway.route.builder.BooleanSpec predicateSpec,
+            RouteBuilder.RouteDefinition definition) {
+        for (String header : definition.headerPredicates()) {
+            String[] parts = header.split(",", 2);
+            predicateSpec =
+                    parts.length == 2
+                            ? predicateSpec.and().header(parts[0], parts[1])
+                            : predicateSpec.and().header(parts[0]);
+        }
+        return predicateSpec;
+    }
+
+    private org.springframework.cloud.gateway.route.builder.GatewayFilterSpec applyFilters(
+            org.springframework.cloud.gateway.route.builder.GatewayFilterSpec spec,
+            RouteBuilder.RouteDefinition definition) {
+        spec = applyStripPrefix(spec, definition);
+        spec = applyRewritePath(spec, definition);
+        spec = applyRequestHeader(spec, definition);
+        spec = applyCircuitBreaker(spec, definition);
+        return applyCustomFilters(spec, definition);
+    }
+
+    private org.springframework.cloud.gateway.route.builder.GatewayFilterSpec applyStripPrefix(
+            org.springframework.cloud.gateway.route.builder.GatewayFilterSpec spec,
+            RouteBuilder.RouteDefinition definition) {
+        return definition.stripPrefix() ? spec.stripPrefix(definition.stripPrefixParts()) : spec;
+    }
+
+    private org.springframework.cloud.gateway.route.builder.GatewayFilterSpec applyRewritePath(
+            org.springframework.cloud.gateway.route.builder.GatewayFilterSpec spec,
+            RouteBuilder.RouteDefinition definition) {
+        return definition.hasRewritePath()
+                ? spec.rewritePath(definition.rewritePath(), definition.rewritePathReplacement())
+                : spec;
+    }
+
+    private org.springframework.cloud.gateway.route.builder.GatewayFilterSpec applyRequestHeader(
+            org.springframework.cloud.gateway.route.builder.GatewayFilterSpec spec,
+            RouteBuilder.RouteDefinition definition) {
+        return definition.addRequestHeader()
+                ? spec.addRequestHeader(
+                        definition.requestHeaderName(), definition.requestHeaderValue())
+                : spec;
+    }
+
+    private org.springframework.cloud.gateway.route.builder.GatewayFilterSpec applyCircuitBreaker(
+            org.springframework.cloud.gateway.route.builder.GatewayFilterSpec spec,
+            RouteBuilder.RouteDefinition definition) {
+        return definition.hasCircuitBreaker()
+                ? spec.circuitBreaker(config -> config.setName(definition.circuitBreakerId()))
+                : spec;
+    }
+
+    private org.springframework.cloud.gateway.route.builder.GatewayFilterSpec applyCustomFilters(
+            org.springframework.cloud.gateway.route.builder.GatewayFilterSpec spec,
+            RouteBuilder.RouteDefinition definition) {
+        for (var filter : definition.filters()) {
+            spec = spec.filter(filter);
+        }
+        return spec;
     }
 
     /** Adds a new route dynamically. */

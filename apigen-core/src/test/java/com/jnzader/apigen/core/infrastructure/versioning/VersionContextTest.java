@@ -118,13 +118,13 @@ class VersionContextTest {
         void shouldCompareVersionsCorrectly() {
             assertThat(VersionContext.compareVersions("1.0", "2.0")).isLessThan(0);
             assertThat(VersionContext.compareVersions("2.0", "1.0")).isGreaterThan(0);
-            assertThat(VersionContext.compareVersions("1.0", "1.0")).isEqualTo(0);
+            assertThat(VersionContext.compareVersions("1.0", "1.0")).isZero();
         }
 
         @Test
         @DisplayName("should compare versions with different segment counts")
         void shouldCompareVersionsWithDifferentSegmentCounts() {
-            assertThat(VersionContext.compareVersions("1", "1.0")).isEqualTo(0);
+            assertThat(VersionContext.compareVersions("1", "1.0")).isZero();
             assertThat(VersionContext.compareVersions("1.0", "1.0.1")).isLessThan(0);
             assertThat(VersionContext.compareVersions("2", "1.9.9")).isGreaterThan(0);
         }
@@ -132,7 +132,7 @@ class VersionContextTest {
         @Test
         @DisplayName("should compare versions with suffixes")
         void shouldCompareVersionsWithSuffixes() {
-            assertThat(VersionContext.compareVersions("1.0-beta", "1.0")).isEqualTo(0);
+            assertThat(VersionContext.compareVersions("1.0-beta", "1.0")).isZero();
             assertThat(VersionContext.compareVersions("2.0-alpha", "1.0")).isGreaterThan(0);
         }
 

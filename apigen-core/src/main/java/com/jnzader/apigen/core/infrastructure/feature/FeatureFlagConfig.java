@@ -105,11 +105,13 @@ public class FeatureFlagConfig {
                 ApigenFeatures.values().length);
 
         // Log initial feature states
-        for (Feature feature : featureProvider.getFeatures()) {
-            log.debug(
-                    "Feature '{}' initial state: {}",
-                    feature.name(),
-                    featureManager.isActive(feature) ? "ENABLED" : "DISABLED");
+        if (log.isDebugEnabled()) {
+            for (Feature feature : featureProvider.getFeatures()) {
+                log.debug(
+                        "Feature '{}' initial state: {}",
+                        feature.name(),
+                        featureManager.isActive(feature) ? "ENABLED" : "DISABLED");
+            }
         }
 
         return featureManager;

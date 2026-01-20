@@ -24,15 +24,13 @@ public class LoggingGatewayFilter implements GlobalFilter, Ordered {
     public static final String REQUEST_START_TIME = "requestStartTime";
 
     private final boolean includeHeaders;
-    private final boolean includeBody;
 
     public LoggingGatewayFilter() {
-        this(false, false);
+        this(false);
     }
 
-    public LoggingGatewayFilter(boolean includeHeaders, boolean includeBody) {
+    public LoggingGatewayFilter(boolean includeHeaders) {
         this.includeHeaders = includeHeaders;
-        this.includeBody = includeBody;
     }
 
     @Override
@@ -94,10 +92,15 @@ public class LoggingGatewayFilter implements GlobalFilter, Ordered {
             sb.append(" headers=").append(sanitizeHeaders(request.getHeaders()));
         }
 
-        log.info(sb.toString());
+        if (log.isInfoEnabled()) {
+            log.info(sb.toString());
+        }
     }
 
     private void logResponse(ServerHttpResponse response, String correlationId, long duration) {
+        if (!log.isInfoEnabled()) {
+            return;
+        }
         StringBuilder sb = new StringBuilder();
         sb.append("Outgoing response: ")
                 .append(response.getStatusCode())

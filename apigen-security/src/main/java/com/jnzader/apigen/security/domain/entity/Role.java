@@ -1,7 +1,13 @@
 package com.jnzader.apigen.security.domain.entity;
 
 import com.jnzader.apigen.core.domain.entity.Base;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.Table;
 import java.util.HashSet;
 import java.util.Set;
 import org.hibernate.annotations.BatchSize;

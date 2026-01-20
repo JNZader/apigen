@@ -45,9 +45,7 @@ public class GatewayAutoConfiguration {
             matchIfMissing = true)
     public LoggingGatewayFilter loggingGatewayFilter(GatewayProperties properties) {
         log.info("Configuring logging gateway filter");
-        return new LoggingGatewayFilter(
-                properties.getLogging().isIncludeHeaders(),
-                properties.getLogging().isIncludeBody());
+        return new LoggingGatewayFilter(properties.getLogging().isIncludeHeaders());
     }
 
     @Bean

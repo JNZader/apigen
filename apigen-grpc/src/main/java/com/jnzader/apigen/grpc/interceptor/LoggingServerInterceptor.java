@@ -20,6 +20,7 @@ public class LoggingServerInterceptor implements ServerInterceptor {
     private static final Logger log = LoggerFactory.getLogger(LoggingServerInterceptor.class);
 
     @Override
+    @SuppressWarnings("java:S119") // ReqT/RespT are standard gRPC generic type names
     public <ReqT, RespT> ServerCall.Listener<ReqT> interceptCall(
             ServerCall<ReqT, RespT> call, Metadata headers, ServerCallHandler<ReqT, RespT> next) {
 

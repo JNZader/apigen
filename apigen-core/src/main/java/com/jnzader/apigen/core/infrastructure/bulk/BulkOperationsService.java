@@ -1,6 +1,7 @@
 package com.jnzader.apigen.core.infrastructure.bulk;
 
 import com.opencsv.CSVWriter;
+import com.opencsv.ICSVWriter;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
 import com.opencsv.bean.StatefulBeanToCsv;
@@ -22,10 +23,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -90,13 +91,13 @@ public class BulkOperationsService implements BulkImportService, BulkExportServi
             int failureCount = 0;
             int rowNumber = config.skipHeader() ? 2 : 1;
 
-            for (T record : records) {
-                try {
-                    processor.apply(record);
+            for (T item : records) {
+                BulkOperationResult.Builder tempResult =
+                        processRecord(item, processor, rowNumber, resultBuilder);
+                if (tempResult != null) {
                     successCount++;
-                } catch (Exception e) {
+                } else {
                     failureCount++;
-                    resultBuilder.addError(rowNumber, e.getMessage());
                     if (config.stopOnError()) {
                         break;
                     }
@@ -134,8 +135,21 @@ public class BulkOperationsService implements BulkImportService, BulkExportServi
     @Override
     public <T> BulkOperationResult validateData(
             InputStream inputStream, BulkFormat format, Class<T> targetClass) {
-        return importData(
-                inputStream, format, targetClass, record -> null, ImportConfig.defaults());
+        return importData(inputStream, format, targetClass, item -> null, ImportConfig.defaults());
+    }
+
+    private <T> BulkOperationResult.Builder processRecord(
+            T item,
+            Function<T, Object> processor,
+            int rowNumber,
+            BulkOperationResult.Builder resultBuilder) {
+        try {
+            processor.apply(item);
+            return resultBuilder;
+        } catch (Exception ex) {
+            resultBuilder.addError(rowNumber, ex.getMessage());
+            return null;
+        }
     }
 
     private <T> List<T> parseCsv(
@@ -189,9 +203,9 @@ public class BulkOperationsService implements BulkImportService, BulkExportServi
             // Parse data rows
             while (rowIterator.hasNext()) {
                 Row row = rowIterator.next();
-                T record = createInstance(targetClass, row, fieldMappings, formatter, config);
-                if (record != null) {
-                    results.add(record);
+                T item = createInstance(targetClass, row, fieldMappings, formatter, config);
+                if (item != null) {
+                    results.add(item);
                 }
             }
 
@@ -229,7 +243,7 @@ public class BulkOperationsService implements BulkImportService, BulkExportServi
             BulkFormat format,
             OutputStream outputStream,
             ExportConfig config) {
-        return exportStream(() -> records.stream(), recordClass, format, outputStream, config);
+        return exportStream(records::stream, recordClass, format, outputStream, config);
     }
 
     @Override
@@ -256,13 +270,10 @@ public class BulkOperationsService implements BulkImportService, BulkExportServi
         List<BulkOperationResult.RecordError> errors = new ArrayList<>();
 
         try {
-            switch (format) {
-                case CSV ->
-                        exportToCsv(
-                                recordSupplier, recordClass, outputStream, config, successCount);
-                case EXCEL ->
-                        exportToExcel(
-                                recordSupplier, recordClass, outputStream, config, successCount);
+            if (format == BulkFormat.CSV) {
+                exportToCsv(recordSupplier, recordClass, outputStream, config, successCount);
+            } else if (format == BulkFormat.EXCEL) {
+                exportToExcel(recordSupplier, recordClass, outputStream, config, successCount);
             }
         } catch (Exception e) {
             log.error("Export failed", e);
@@ -287,12 +298,12 @@ public class BulkOperationsService implements BulkImportService, BulkExportServi
         if (recordClass.isRecord()) {
             return Arrays.stream(recordClass.getRecordComponents())
                     .map(RecordComponent::getName)
-                    .collect(Collectors.toList());
+                    .toList();
         }
         return Arrays.stream(recordClass.getDeclaredFields())
                 .filter(f -> !java.lang.reflect.Modifier.isStatic(f.getModifiers()))
                 .map(Field::getName)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private <T> void exportToCsv(
@@ -308,9 +319,9 @@ public class BulkOperationsService implements BulkImportService, BulkExportServi
                         new CSVWriter(
                                 writer,
                                 config.csvSeparator(),
-                                CSVWriter.DEFAULT_QUOTE_CHARACTER,
-                                CSVWriter.DEFAULT_ESCAPE_CHARACTER,
-                                CSVWriter.DEFAULT_LINE_END)) {
+                                ICSVWriter.DEFAULT_QUOTE_CHARACTER,
+                                ICSVWriter.DEFAULT_ESCAPE_CHARACTER,
+                                ICSVWriter.DEFAULT_LINE_END)) {
 
             // Write header
             if (config.includeHeader()) {
@@ -327,12 +338,12 @@ public class BulkOperationsService implements BulkImportService, BulkExportServi
 
             try (Stream<T> stream = recordSupplier.get()) {
                 stream.forEach(
-                        record -> {
+                        item -> {
                             try {
-                                beanToCsv.write(record);
+                                beanToCsv.write(item);
                                 successCount.incrementAndGet();
-                            } catch (Exception e) {
-                                log.warn("Failed to write record: {}", e.getMessage());
+                            } catch (Exception ex) {
+                                log.warn("Failed to write record: {}", ex.getMessage());
                             }
                         });
             }
@@ -373,9 +384,9 @@ public class BulkOperationsService implements BulkImportService, BulkExportServi
             try (Stream<T> stream = recordSupplier.get()) {
                 Iterator<T> iterator = stream.iterator();
                 while (iterator.hasNext()) {
-                    T record = iterator.next();
+                    T item = iterator.next();
                     Row row = sheet.createRow(rowNum++);
-                    writeRecordToRow(record, row, headers, dateFormatter);
+                    writeRecordToRow(item, row, headers, dateFormatter);
                     successCount.incrementAndGet();
                 }
             }
@@ -390,20 +401,14 @@ public class BulkOperationsService implements BulkImportService, BulkExportServi
     // ========== HELPER METHODS ==========
 
     private <T> List<String> getFilteredHeaders(Class<T> recordClass, ExportConfig config) {
-        List<String> headers = getHeaders(recordClass);
+        List<String> headers = new ArrayList<>(getHeaders(recordClass));
 
         if (!config.includeFields().isEmpty()) {
-            headers =
-                    headers.stream()
-                            .filter(config.includeFields()::contains)
-                            .collect(Collectors.toList());
+            headers = headers.stream().filter(config.includeFields()::contains).toList();
         }
 
         if (!config.excludeFields().isEmpty()) {
-            headers =
-                    headers.stream()
-                            .filter(h -> !config.excludeFields().contains(h))
-                            .collect(Collectors.toList());
+            headers = headers.stream().filter(h -> !config.excludeFields().contains(h)).toList();
         }
 
         return headers;
@@ -418,33 +423,35 @@ public class BulkOperationsService implements BulkImportService, BulkExportServi
     }
 
     private <T> void writeRecordToRow(
-            T record, Row row, List<String> headers, DateTimeFormatter dateFormatter) {
+            T entity, Row row, List<String> headers, DateTimeFormatter dateFormatter) {
 
-        Class<?> clazz = record.getClass();
+        Class<?> clazz = entity.getClass();
         for (int i = 0; i < headers.size(); i++) {
             Cell cell = row.createCell(i);
             String fieldName = headers.get(i);
 
             try {
-                Object value = getFieldValue(record, clazz, fieldName);
+                Object value = getFieldValue(entity, clazz, fieldName);
                 setCellValue(cell, value, dateFormatter);
-            } catch (Exception e) {
+            } catch (Exception _) {
                 cell.setCellValue("");
             }
         }
     }
 
-    private Object getFieldValue(Object record, Class<?> clazz, String fieldName) throws Exception {
+    @SuppressWarnings("java:S3011") // Reflection is required for generic field access
+    private Object getFieldValue(Object entity, Class<?> clazz, String fieldName)
+            throws ReflectiveOperationException {
         if (clazz.isRecord()) {
             for (RecordComponent component : clazz.getRecordComponents()) {
                 if (component.getName().equals(fieldName)) {
-                    return component.getAccessor().invoke(record);
+                    return component.getAccessor().invoke(entity);
                 }
             }
         } else {
             Field field = clazz.getDeclaredField(fieldName);
             field.setAccessible(true);
-            return field.get(record);
+            return field.get(entity);
         }
         return null;
     }
@@ -473,29 +480,41 @@ public class BulkOperationsService implements BulkImportService, BulkExportServi
         List<FieldMapping> mappings = new ArrayList<>();
 
         for (String header : headers) {
-            String normalizedHeader = header.toLowerCase().replace("_", "").replace(" ", "");
-
-            if (targetClass.isRecord()) {
-                for (RecordComponent component : targetClass.getRecordComponents()) {
-                    String normalizedField = component.getName().toLowerCase();
-                    if (normalizedField.equals(normalizedHeader)) {
-                        mappings.add(
-                                new FieldMapping(header, component.getName(), component.getType()));
-                        break;
-                    }
-                }
-            } else {
-                for (Field field : targetClass.getDeclaredFields()) {
-                    String normalizedField = field.getName().toLowerCase();
-                    if (normalizedField.equals(normalizedHeader)) {
-                        mappings.add(new FieldMapping(header, field.getName(), field.getType()));
-                        break;
-                    }
-                }
+            String normalizedHeader = normalizeFieldName(header);
+            FieldMapping mapping =
+                    targetClass.isRecord()
+                            ? findRecordFieldMapping(header, normalizedHeader, targetClass)
+                            : findClassFieldMapping(header, normalizedHeader, targetClass);
+            if (mapping != null) {
+                mappings.add(mapping);
             }
         }
 
         return mappings;
+    }
+
+    private String normalizeFieldName(String name) {
+        return name.toLowerCase(Locale.ROOT).replace("_", "").replace(" ", "");
+    }
+
+    private <T> FieldMapping findRecordFieldMapping(
+            String header, String normalizedHeader, Class<T> targetClass) {
+        for (RecordComponent component : targetClass.getRecordComponents()) {
+            if (component.getName().toLowerCase(Locale.ROOT).equals(normalizedHeader)) {
+                return new FieldMapping(header, component.getName(), component.getType());
+            }
+        }
+        return null;
+    }
+
+    private <T> FieldMapping findClassFieldMapping(
+            String header, String normalizedHeader, Class<T> targetClass) {
+        for (Field field : targetClass.getDeclaredFields()) {
+            if (field.getName().toLowerCase(Locale.ROOT).equals(normalizedHeader)) {
+                return new FieldMapping(header, field.getName(), field.getType());
+            }
+        }
+        return null;
     }
 
     @SuppressWarnings("unchecked")
@@ -532,7 +551,7 @@ public class BulkOperationsService implements BulkImportService, BulkExportServi
             List<FieldMapping> fieldMappings,
             DataFormatter formatter,
             ImportConfig config)
-            throws Exception {
+            throws ReflectiveOperationException {
 
         RecordComponent[] components = targetClass.getRecordComponents();
         Object[] args = new Object[components.length];
@@ -568,30 +587,68 @@ public class BulkOperationsService implements BulkImportService, BulkExportServi
 
         if (targetType == String.class) {
             return stringValue;
-        } else if (targetType == Integer.class || targetType == int.class) {
-            return cell.getCellType() == CellType.NUMERIC
-                    ? (int) cell.getNumericCellValue()
-                    : Integer.parseInt(stringValue);
-        } else if (targetType == Long.class || targetType == long.class) {
-            return cell.getCellType() == CellType.NUMERIC
-                    ? (long) cell.getNumericCellValue()
-                    : Long.parseLong(stringValue);
-        } else if (targetType == Double.class || targetType == double.class) {
-            return cell.getCellType() == CellType.NUMERIC
-                    ? cell.getNumericCellValue()
-                    : Double.parseDouble(stringValue);
-        } else if (targetType == Boolean.class || targetType == boolean.class) {
-            return cell.getCellType() == CellType.BOOLEAN
-                    ? cell.getBooleanCellValue()
-                    : Boolean.parseBoolean(stringValue);
-        } else if (targetType == LocalDate.class) {
+        }
+        if (isIntegerType(targetType)) {
+            return convertToInteger(cell, stringValue);
+        }
+        if (isLongType(targetType)) {
+            return convertToLong(cell, stringValue);
+        }
+        if (isDoubleType(targetType)) {
+            return convertToDouble(cell, stringValue);
+        }
+        if (isBooleanType(targetType)) {
+            return convertToBoolean(cell, stringValue);
+        }
+        if (targetType == LocalDate.class) {
             DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(config.dateFormat());
             return LocalDate.parse(stringValue, dateFormatter);
-        } else if (targetType == LocalDateTime.class) {
+        }
+        if (targetType == LocalDateTime.class) {
             return LocalDateTime.parse(stringValue);
         }
 
         return stringValue;
+    }
+
+    private boolean isIntegerType(Class<?> type) {
+        return type == Integer.class || type == int.class;
+    }
+
+    private boolean isLongType(Class<?> type) {
+        return type == Long.class || type == long.class;
+    }
+
+    private boolean isDoubleType(Class<?> type) {
+        return type == Double.class || type == double.class;
+    }
+
+    private boolean isBooleanType(Class<?> type) {
+        return type == Boolean.class || type == boolean.class;
+    }
+
+    private Object convertToInteger(Cell cell, String stringValue) {
+        return cell.getCellType() == CellType.NUMERIC
+                ? (int) cell.getNumericCellValue()
+                : Integer.parseInt(stringValue);
+    }
+
+    private Object convertToLong(Cell cell, String stringValue) {
+        return cell.getCellType() == CellType.NUMERIC
+                ? (long) cell.getNumericCellValue()
+                : Long.parseLong(stringValue);
+    }
+
+    private Object convertToDouble(Cell cell, String stringValue) {
+        return cell.getCellType() == CellType.NUMERIC
+                ? cell.getNumericCellValue()
+                : Double.parseDouble(stringValue);
+    }
+
+    private Object convertToBoolean(Cell cell, String stringValue) {
+        return cell.getCellType() == CellType.BOOLEAN
+                ? cell.getBooleanCellValue()
+                : Boolean.parseBoolean(stringValue);
     }
 
     private Object getDefaultValue(Class<?> type) {
@@ -602,7 +659,9 @@ public class BulkOperationsService implements BulkImportService, BulkExportServi
         return null;
     }
 
-    private void setFieldValue(Object instance, String fieldName, Object value) throws Exception {
+    @SuppressWarnings("java:S3011") // Reflection is required for generic field access
+    private void setFieldValue(Object instance, String fieldName, Object value)
+            throws ReflectiveOperationException {
         Field field = instance.getClass().getDeclaredField(fieldName);
         field.setAccessible(true);
         field.set(instance, value);

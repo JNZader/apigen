@@ -18,9 +18,9 @@ import java.util.function.Function;
  *
  * <p>Uses Java 21+ Virtual Threads for efficient I/O-bound batch processing.
  *
- * @param <ID> the entity identifier type
+ * @param <I> the entity identifier type
  */
-public interface BatchService<ID> {
+public interface BatchService<I> {
 
     /**
      * Creates multiple entities in parallel.
@@ -51,7 +51,7 @@ public interface BatchService<ID> {
      * @param deleteFunction the function to delete each entity
      * @return a result containing successfully deleted IDs and any failures
      */
-    BatchResult<ID> batchDelete(List<ID> ids, Function<ID, Result<ID, String>> deleteFunction);
+    BatchResult<I> batchDelete(List<I> ids, Function<I, Result<I, String>> deleteFunction);
 
     /**
      * Processes items in parallel using virtual threads.

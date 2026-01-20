@@ -1,6 +1,19 @@
 package com.jnzader.apigen.graphql.schema;
 
-import graphql.schema.*;
+import graphql.schema.DataFetcher;
+import graphql.schema.GraphQLArgument;
+import graphql.schema.GraphQLCodeRegistry;
+import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLInputObjectField;
+import graphql.schema.GraphQLInputObjectType;
+import graphql.schema.GraphQLInputType;
+import graphql.schema.GraphQLList;
+import graphql.schema.GraphQLNonNull;
+import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLOutputType;
+import graphql.schema.GraphQLScalarType;
+import graphql.schema.GraphQLSchema;
+import graphql.schema.GraphQLTypeReference;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -42,6 +55,7 @@ public class SchemaBuilder {
 
     private final Map<String, GraphQLObjectType.Builder> types = new LinkedHashMap<>();
     private final Map<String, GraphQLInputObjectType.Builder> inputTypes = new LinkedHashMap<>();
+    private final Map<FetcherKey, DataFetcher<?>> fetchers = new LinkedHashMap<>();
     private final GraphQLObjectType.Builder queryBuilder;
     private final GraphQLObjectType.Builder mutationBuilder;
     private final GraphQLObjectType.Builder subscriptionBuilder;
@@ -51,6 +65,9 @@ public class SchemaBuilder {
         this.mutationBuilder = GraphQLObjectType.newObject().name("Mutation");
         this.subscriptionBuilder = GraphQLObjectType.newObject().name("Subscription");
     }
+
+    /** Key for storing data fetchers by parent type and field name. */
+    private record FetcherKey(String parentType, String fieldName) {}
 
     public static SchemaBuilder newSchema() {
         return new SchemaBuilder();
@@ -87,7 +104,7 @@ public class SchemaBuilder {
      * @return a FieldBuilder for fluent API
      */
     public FieldBuilder query(String name) {
-        return new FieldBuilder(this, queryBuilder, name, FieldBuilder.FieldType.QUERY);
+        return new FieldBuilder(this, queryBuilder, name);
     }
 
     /**
@@ -97,7 +114,7 @@ public class SchemaBuilder {
      * @return a FieldBuilder for fluent API
      */
     public FieldBuilder mutation(String name) {
-        return new FieldBuilder(this, mutationBuilder, name, FieldBuilder.FieldType.MUTATION);
+        return new FieldBuilder(this, mutationBuilder, name);
     }
 
     /**
@@ -107,8 +124,7 @@ public class SchemaBuilder {
      * @return a FieldBuilder for fluent API
      */
     public FieldBuilder subscription(String name) {
-        return new FieldBuilder(
-                this, subscriptionBuilder, name, FieldBuilder.FieldType.SUBSCRIPTION);
+        return new FieldBuilder(this, subscriptionBuilder, name);
     }
 
     /**
@@ -149,7 +165,19 @@ public class SchemaBuilder {
             schemaBuilder.additionalType(inputBuilder.build());
         }
 
+        // Register data fetchers in the code registry
+        for (Map.Entry<FetcherKey, DataFetcher<?>> entry : fetchers.entrySet()) {
+            FetcherKey key = entry.getKey();
+            codeRegistryBuilder.dataFetcher(
+                    graphql.schema.FieldCoordinates.coordinates(key.parentType(), key.fieldName()),
+                    entry.getValue());
+        }
+
         return schemaBuilder.codeRegistry(codeRegistryBuilder.build()).build();
+    }
+
+    void registerFetcher(String parentType, String fieldName, DataFetcher<?> fetcher) {
+        fetchers.put(new FetcherKey(parentType, fieldName), fetcher);
     }
 
     GraphQLTypeReference getTypeReference(String typeName) {
@@ -159,15 +187,15 @@ public class SchemaBuilder {
     /** Builder for object types. */
     public static class TypeBuilder {
         private final SchemaBuilder schemaBuilder;
-        private final GraphQLObjectType.Builder typeBuilder;
+        private final GraphQLObjectType.Builder objectTypeBuilder;
 
-        TypeBuilder(SchemaBuilder schemaBuilder, GraphQLObjectType.Builder typeBuilder) {
+        TypeBuilder(SchemaBuilder schemaBuilder, GraphQLObjectType.Builder objectTypeBuilder) {
             this.schemaBuilder = schemaBuilder;
-            this.typeBuilder = typeBuilder;
+            this.objectTypeBuilder = objectTypeBuilder;
         }
 
         public TypeBuilder description(String description) {
-            typeBuilder.description(description);
+            objectTypeBuilder.description(description);
             return this;
         }
 
@@ -177,7 +205,7 @@ public class SchemaBuilder {
 
         public TypeBuilder field(String name, GraphQLScalarType type, boolean nonNull) {
             GraphQLOutputType outputType = nonNull ? GraphQLNonNull.nonNull(type) : type;
-            typeBuilder.field(
+            objectTypeBuilder.field(
                     GraphQLFieldDefinition.newFieldDefinition().name(name).type(outputType));
             return this;
         }
@@ -191,13 +219,13 @@ public class SchemaBuilder {
                     nonNull
                             ? GraphQLNonNull.nonNull(schemaBuilder.getTypeReference(typeName))
                             : schemaBuilder.getTypeReference(typeName);
-            typeBuilder.field(
+            objectTypeBuilder.field(
                     GraphQLFieldDefinition.newFieldDefinition().name(name).type(outputType));
             return this;
         }
 
         public TypeBuilder listField(String name, GraphQLScalarType type) {
-            typeBuilder.field(
+            objectTypeBuilder.field(
                     GraphQLFieldDefinition.newFieldDefinition()
                             .name(name)
                             .type(GraphQLList.list(type)));
@@ -205,7 +233,7 @@ public class SchemaBuilder {
         }
 
         public TypeBuilder listField(String name, String typeName) {
-            typeBuilder.field(
+            objectTypeBuilder.field(
                     GraphQLFieldDefinition.newFieldDefinition()
                             .name(name)
                             .type(GraphQLList.list(schemaBuilder.getTypeReference(typeName))));
@@ -250,30 +278,24 @@ public class SchemaBuilder {
 
     /** Builder for query, mutation, and subscription fields. */
     public static class FieldBuilder {
-        enum FieldType {
-            QUERY,
-            MUTATION,
-            SUBSCRIPTION
-        }
 
         private final SchemaBuilder schemaBuilder;
         private final GraphQLObjectType.Builder parentBuilder;
-        private final GraphQLFieldDefinition.Builder fieldBuilder;
-        private final FieldType fieldType;
+        private final String parentTypeName;
+        private final String fieldName;
+        private final GraphQLFieldDefinition.Builder fieldDefinitionBuilder;
 
         FieldBuilder(
-                SchemaBuilder schemaBuilder,
-                GraphQLObjectType.Builder parentBuilder,
-                String name,
-                FieldType fieldType) {
+                SchemaBuilder schemaBuilder, GraphQLObjectType.Builder parentBuilder, String name) {
             this.schemaBuilder = schemaBuilder;
             this.parentBuilder = parentBuilder;
-            this.fieldBuilder = GraphQLFieldDefinition.newFieldDefinition().name(name);
-            this.fieldType = fieldType;
+            this.parentTypeName = parentBuilder.build().getName();
+            this.fieldName = name;
+            this.fieldDefinitionBuilder = GraphQLFieldDefinition.newFieldDefinition().name(name);
         }
 
         public FieldBuilder description(String description) {
-            fieldBuilder.description(description);
+            fieldDefinitionBuilder.description(description);
             return this;
         }
 
@@ -283,7 +305,8 @@ public class SchemaBuilder {
 
         public FieldBuilder argument(String name, GraphQLScalarType type, boolean required) {
             GraphQLInputType inputType = required ? GraphQLNonNull.nonNull(type) : type;
-            fieldBuilder.argument(GraphQLArgument.newArgument().name(name).type(inputType));
+            fieldDefinitionBuilder.argument(
+                    GraphQLArgument.newArgument().name(name).type(inputType));
             return this;
         }
 
@@ -292,48 +315,52 @@ public class SchemaBuilder {
                     required
                             ? GraphQLNonNull.nonNull(schemaBuilder.getTypeReference(typeName))
                             : schemaBuilder.getTypeReference(typeName);
-            fieldBuilder.argument(GraphQLArgument.newArgument().name(name).type(inputType));
+            fieldDefinitionBuilder.argument(
+                    GraphQLArgument.newArgument().name(name).type(inputType));
             return this;
         }
 
         public FieldBuilder returns(GraphQLScalarType type) {
-            fieldBuilder.type(type);
+            fieldDefinitionBuilder.type(type);
             return this;
         }
 
         public FieldBuilder returns(String typeName) {
-            fieldBuilder.type(schemaBuilder.getTypeReference(typeName));
+            fieldDefinitionBuilder.type(schemaBuilder.getTypeReference(typeName));
             return this;
         }
 
         public FieldBuilder returnsList(String typeName) {
-            fieldBuilder.type(GraphQLList.list(schemaBuilder.getTypeReference(typeName)));
+            fieldDefinitionBuilder.type(GraphQLList.list(schemaBuilder.getTypeReference(typeName)));
             return this;
         }
 
         public FieldBuilder returnsNonNull(String typeName) {
-            fieldBuilder.type(GraphQLNonNull.nonNull(schemaBuilder.getTypeReference(typeName)));
+            fieldDefinitionBuilder.type(
+                    GraphQLNonNull.nonNull(schemaBuilder.getTypeReference(typeName)));
             return this;
         }
 
         public FieldBuilder fetcher(DataFetcher<?> fetcher) {
-            fieldBuilder.dataFetcher(fetcher);
+            schemaBuilder.registerFetcher(parentTypeName, fieldName, fetcher);
             return this;
         }
 
-        public SchemaBuilder endQuery() {
-            parentBuilder.field(fieldBuilder);
+        private SchemaBuilder endField() {
+            parentBuilder.field(fieldDefinitionBuilder);
             return schemaBuilder;
+        }
+
+        public SchemaBuilder endQuery() {
+            return endField();
         }
 
         public SchemaBuilder endMutation() {
-            parentBuilder.field(fieldBuilder);
-            return schemaBuilder;
+            return endField();
         }
 
         public SchemaBuilder endSubscription() {
-            parentBuilder.field(fieldBuilder);
-            return schemaBuilder;
+            return endField();
         }
     }
 }

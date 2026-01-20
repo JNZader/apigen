@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import org.dataloader.BatchLoader;
 import org.dataloader.DataLoader;
+import org.dataloader.DataLoaderFactory;
 import org.dataloader.DataLoaderOptions;
 
 /**
@@ -62,7 +63,7 @@ public class DataLoaderRegistry {
 
         DataLoaderOptions options = DataLoaderOptions.newOptions().setCachingEnabled(true);
 
-        DataLoader<K, V> dataLoader = DataLoader.newDataLoader(batchLoader, options);
+        DataLoader<K, V> dataLoader = DataLoaderFactory.newDataLoader(batchLoader, options);
         loaders.put(name, dataLoader);
         delegateRegistry.register(name, dataLoader);
     }
@@ -77,7 +78,7 @@ public class DataLoaderRegistry {
      */
     public <K, V> void registerAsync(String name, BatchLoader<K, V> batchLoader) {
         DataLoaderOptions options = DataLoaderOptions.newOptions().setCachingEnabled(true);
-        DataLoader<K, V> dataLoader = DataLoader.newDataLoader(batchLoader, options);
+        DataLoader<K, V> dataLoader = DataLoaderFactory.newDataLoader(batchLoader, options);
         loaders.put(name, dataLoader);
         delegateRegistry.register(name, dataLoader);
     }

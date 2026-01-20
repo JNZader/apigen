@@ -103,7 +103,7 @@ public class GrpcChannelFactory {
                     log.warn("Channel {} did not terminate in time", entry.getKey());
                     channel.shutdownNow();
                 }
-            } catch (InterruptedException e) {
+            } catch (InterruptedException _) {
                 Thread.currentThread().interrupt();
                 entry.getValue().shutdownNow();
             }

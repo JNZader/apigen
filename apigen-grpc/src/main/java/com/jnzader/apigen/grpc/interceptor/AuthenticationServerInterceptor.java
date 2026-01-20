@@ -56,6 +56,7 @@ public class AuthenticationServerInterceptor implements ServerInterceptor {
     }
 
     @Override
+    @SuppressWarnings("java:S119") // ReqT/RespT are standard gRPC generic type names
     public <ReqT, RespT> ServerCall.Listener<ReqT> interceptCall(
             ServerCall<ReqT, RespT> call, Metadata headers, ServerCallHandler<ReqT, RespT> next) {
 

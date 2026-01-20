@@ -31,16 +31,20 @@ public class ApiVersionResolver {
     private final Pattern pathVersionPattern;
     private final Pattern mediaTypeVersionPattern;
 
+    @SuppressWarnings("java:S1075") // "/" is correct for URL paths (not file system paths)
     private ApiVersionResolver(Builder builder) {
         this.strategies = builder.strategies;
         this.defaultVersion = builder.defaultVersion;
         this.versionHeader = builder.versionHeader;
         this.versionParam = builder.versionParam;
         this.pathPrefix = builder.pathPrefix;
+        // Use atomic groups/possessive quantifiers where safe to prevent ReDoS attacks
         this.pathVersionPattern =
-                Pattern.compile("/" + Pattern.quote(pathPrefix) + "([\\d.]+[-\\w]*)/");
+                Pattern.compile("/" + Pattern.quote(pathPrefix) + "([\\d.]++[-\\w]*+)/");
+        // Media type pattern: application/vnd.{vendor}.v{version}+{format} - non-greedy vendor,
+        // possessive version
         this.mediaTypeVersionPattern =
-                Pattern.compile("application/vnd\\.[\\w.-]+\\.v([\\d.]+[-\\w]*)\\+\\w+");
+                Pattern.compile("application/vnd\\.([\\w.-]+?)\\.v([\\d.]++[-\\w]*+)\\+\\w++");
     }
 
     /**
@@ -114,7 +118,7 @@ public class ApiVersionResolver {
         }
         Matcher matcher = mediaTypeVersionPattern.matcher(accept);
         if (matcher.find()) {
-            return Optional.of(matcher.group(1));
+            return Optional.of(matcher.group(2)); // group(1) is vendor, group(2) is version
         }
         return Optional.empty();
     }

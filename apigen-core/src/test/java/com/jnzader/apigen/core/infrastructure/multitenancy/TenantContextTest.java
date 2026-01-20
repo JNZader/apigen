@@ -181,7 +181,8 @@ class TenantContextTest {
                         () -> {
                             throw new RuntimeException("Test exception");
                         });
-            } catch (RuntimeException ignored) {
+            } catch (RuntimeException _) {
+                // Expected exception - testing that tenant context is cleared after exception
             }
 
             assertThat(TenantContext.getTenantId()).isNull();

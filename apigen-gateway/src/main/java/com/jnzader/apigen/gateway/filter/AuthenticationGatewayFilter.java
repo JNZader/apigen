@@ -63,7 +63,7 @@ public class AuthenticationGatewayFilter implements GlobalFilter, Ordered {
         String authHeader = request.getHeaders().getFirst(headerName);
         if (authHeader == null || !authHeader.startsWith(tokenPrefix)) {
             log.warn("Missing or invalid {} header for path {}", headerName, path);
-            return unauthorizedResponse(exchange, "Missing or invalid authentication token");
+            return unauthorizedResponse(exchange);
         }
 
         String token = authHeader.substring(tokenPrefix.length());
@@ -71,12 +71,13 @@ public class AuthenticationGatewayFilter implements GlobalFilter, Ordered {
         // Validate token
         AuthResult result = tokenValidator.apply(token);
         if (!result.isAuthenticated()) {
-            log.warn(
-                    "Authentication failed for path {}: {}",
-                    path,
-                    result.getErrorMessage().orElse("Unknown error"));
-            return unauthorizedResponse(
-                    exchange, result.getErrorMessage().orElse("Authentication failed"));
+            if (log.isWarnEnabled()) {
+                log.warn(
+                        "Authentication failed for path {}: {}",
+                        path,
+                        result.getErrorMessage().orElse("Unknown error"));
+            }
+            return unauthorizedResponse(exchange);
         }
 
         // Add user info to headers for downstream services
@@ -86,10 +87,12 @@ public class AuthenticationGatewayFilter implements GlobalFilter, Ordered {
                         .header(USER_ROLES_HEADER, String.join(",", result.roles()))
                         .build();
 
-        log.debug(
-                "Authentication successful for user {} on path {}",
-                result.getUserId().orElse("unknown"),
-                path);
+        if (log.isDebugEnabled()) {
+            log.debug(
+                    "Authentication successful for user {} on path {}",
+                    result.getUserId().orElse("unknown"),
+                    path);
+        }
 
         return chain.filter(exchange.mutate().request(mutatedRequest).build());
     }
@@ -98,7 +101,7 @@ public class AuthenticationGatewayFilter implements GlobalFilter, Ordered {
         return excludedPaths.stream().anyMatch(pattern -> pathMatcher.match(pattern, path));
     }
 
-    private Mono<Void> unauthorizedResponse(ServerWebExchange exchange, String message) {
+    private Mono<Void> unauthorizedResponse(ServerWebExchange exchange) {
         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
         exchange.getResponse().getHeaders().add(HttpHeaders.WWW_AUTHENTICATE, "Bearer");
         return exchange.getResponse().setComplete();

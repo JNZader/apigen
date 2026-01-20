@@ -94,7 +94,7 @@ public class ApiVersionInterceptor implements HandlerInterceptor {
             String httpDate =
                     HTTP_DATE_FORMAT.format(sinceDate.atStartOfDay().atZone(ZoneOffset.UTC));
             response.setHeader(DEPRECATION_HEADER, httpDate);
-        } catch (DateTimeParseException e) {
+        } catch (DateTimeParseException _) {
             // Use "true" as fallback per RFC 8594
             response.setHeader(DEPRECATION_HEADER, "true");
         }
@@ -111,7 +111,7 @@ public class ApiVersionInterceptor implements HandlerInterceptor {
             String httpDate =
                     HTTP_DATE_FORMAT.format(sunsetDate.atStartOfDay().atZone(ZoneOffset.UTC));
             response.setHeader(SUNSET_HEADER, httpDate);
-        } catch (DateTimeParseException e) {
+        } catch (DateTimeParseException _) {
             log.warn("Invalid sunset date format: {}", sunset);
         }
     }
@@ -151,7 +151,8 @@ public class ApiVersionInterceptor implements HandlerInterceptor {
 
     private String transformPathToVersion(String currentPath, String newVersion) {
         // Transform /api/v1/products to /api/v2/products
-        return currentPath.replaceFirst("/v[\\d.]+[-\\w]*/", "/v" + newVersion + "/");
+        // Use possessive quantifiers to prevent ReDoS attacks
+        return currentPath.replaceFirst("/v[\\d.]++[-\\w]*+/", "/v" + newVersion + "/");
     }
 
     private void logDeprecationWarning(HttpServletRequest request, DeprecatedVersion deprecation) {
@@ -175,7 +176,9 @@ public class ApiVersionInterceptor implements HandlerInterceptor {
             warning.append(" [sunset: ").append(sunset).append("]");
         }
 
-        log.warn(warning.toString());
+        if (log.isWarnEnabled()) {
+            log.warn(warning.toString());
+        }
     }
 
     /**

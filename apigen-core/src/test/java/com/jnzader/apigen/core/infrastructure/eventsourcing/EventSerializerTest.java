@@ -36,9 +36,10 @@ class EventSerializerTest {
 
             String json = serializer.serialize(event);
 
-            assertThat(json).contains("\"aggregateId\":\"agg-1\"");
-            assertThat(json).contains("\"eventType\":\"TestCreated\"");
-            assertThat(json).contains("\"data\":\"value1\"");
+            assertThat(json)
+                    .contains("\"aggregateId\":\"agg-1\"")
+                    .contains("\"eventType\":\"TestCreated\"")
+                    .contains("\"data\":\"value1\"");
         }
 
         @Test
@@ -53,6 +54,7 @@ class EventSerializerTest {
             assertThat(event).isInstanceOf(TestEvent.class);
             assertThat(event.getAggregateId()).isEqualTo("agg-1");
             assertThat(((TestEvent) event).getData()).isEqualTo("value1");
+            // Note: Different types - cannot chain
         }
 
         @Test
@@ -65,6 +67,7 @@ class EventSerializerTest {
 
             assertThat(event.getAggregateId()).isEqualTo("agg-1");
             assertThat(event.getData()).isEqualTo("value1");
+            // Note: Different subjects - cannot chain
         }
 
         @Test
@@ -101,13 +104,15 @@ class EventSerializerTest {
 
             String json = serializer.serializeMetadata(metadata);
 
-            assertThat(json).contains("\"userId\":\"user-1\"");
-            assertThat(json).contains("\"correlationId\":\"corr-123\"");
+            assertThat(json)
+                    .contains("\"userId\":\"user-1\"")
+                    .contains("\"correlationId\":\"corr-123\"");
         }
 
         @Test
         @DisplayName("should return null for null or empty metadata")
         void shouldReturnNullForNullOrEmptyMetadata() {
+            // These are separate verifications for different inputs
             assertThat(serializer.serializeMetadata(null)).isNull();
             assertThat(serializer.serializeMetadata(Map.of())).isNull();
         }
@@ -119,13 +124,15 @@ class EventSerializerTest {
 
             Map<String, String> metadata = serializer.deserializeMetadata(json);
 
-            assertThat(metadata).containsEntry("userId", "user-1");
-            assertThat(metadata).containsEntry("correlationId", "corr-123");
+            assertThat(metadata)
+                    .containsEntry("userId", "user-1")
+                    .containsEntry("correlationId", "corr-123");
         }
 
         @Test
         @DisplayName("should return empty map for null or blank JSON")
         void shouldReturnEmptyMapForNullOrBlankJson() {
+            // These are separate verifications for different inputs
             assertThat(serializer.deserializeMetadata(null)).isEmpty();
             assertThat(serializer.deserializeMetadata("")).isEmpty();
             assertThat(serializer.deserializeMetadata("   ")).isEmpty();
@@ -143,9 +150,10 @@ class EventSerializerTest {
 
             String json = serializer.serializeState(state);
 
-            assertThat(json).contains("\"id\":\"product-1\"");
-            assertThat(json).contains("\"name\":\"Test Product\"");
-            assertThat(json).contains("\"quantity\":100");
+            assertThat(json)
+                    .contains("\"id\":\"product-1\"")
+                    .contains("\"name\":\"Test Product\"")
+                    .contains("\"quantity\":100");
         }
 
         @Test
@@ -158,6 +166,7 @@ class EventSerializerTest {
             assertThat(state.id()).isEqualTo("product-1");
             assertThat(state.name()).isEqualTo("Test Product");
             assertThat(state.quantity()).isEqualTo(100);
+            // Note: Different record accessors - cannot chain
         }
     }
 

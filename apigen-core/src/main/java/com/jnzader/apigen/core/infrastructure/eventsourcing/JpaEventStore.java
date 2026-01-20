@@ -61,7 +61,8 @@ public class JpaEventStore implements EventStore {
         }
 
         // Check for concurrency conflicts
-        long currentVersion = getCurrentVersion(aggregateId);
+        // Note: Using repository directly to avoid self-invocation of @Transactional method
+        long currentVersion = eventRepository.findMaxVersionByAggregateId(aggregateId).orElse(-1L);
         if (expectedVersion != -1 && currentVersion != expectedVersion) {
             throw new ConcurrencyException(aggregateId, expectedVersion, currentVersion);
         }

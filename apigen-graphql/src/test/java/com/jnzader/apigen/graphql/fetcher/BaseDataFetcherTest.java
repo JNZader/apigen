@@ -41,7 +41,7 @@ class BaseDataFetcherTest {
 
             assertThat(result.getErrors()).isEmpty();
             Map<String, Object> data = result.getData();
-            assertThat(data.get("test")).isEqualTo("Hello, World");
+            assertThat(data).containsEntry("test", "Hello, World");
         }
 
         @Test
@@ -64,13 +64,13 @@ class BaseDataFetcherTest {
             ExecutionResult result1 = graphQL.execute("{ test(name: \"World\") }");
             assertThat(result1.getErrors()).isEmpty();
             Map<String, Object> data1 = result1.getData();
-            assertThat(data1.get("test")).isEqualTo("Hello, World");
+            assertThat(data1).containsEntry("test", "Hello, World");
 
             // Without argument
             ExecutionResult result2 = graphQL.execute("{ test }");
             assertThat(result2.getErrors()).isEmpty();
             Map<String, Object> data2 = result2.getData();
-            assertThat(data2.get("test")).isEqualTo("Hello, Guest");
+            assertThat(data2).containsEntry("test", "Hello, Guest");
         }
 
         @Test
@@ -113,7 +113,7 @@ class BaseDataFetcherTest {
 
             assertThat(result.getErrors()).isEmpty();
             Map<String, Object> data = result.getData();
-            assertThat(data.get("test")).isEqualTo("a=hello, b=42");
+            assertThat(data).containsEntry("test", "a=hello, b=42");
         }
     }
 
@@ -152,7 +152,7 @@ class BaseDataFetcherTest {
 
             assertThat(result.getErrors()).isEmpty();
             Map<String, Object> data = result.getData();
-            assertThat(data.get("test")).isEqualTo("user-123");
+            assertThat(data).containsEntry("test", "user-123");
         }
 
         @Test
@@ -173,7 +173,7 @@ class BaseDataFetcherTest {
 
             assertThat(result.getErrors()).isEmpty();
             Map<String, Object> data = result.getData();
-            assertThat(data.get("test")).isEqualTo("anonymous");
+            assertThat(data).containsEntry("test", "anonymous");
         }
     }
 

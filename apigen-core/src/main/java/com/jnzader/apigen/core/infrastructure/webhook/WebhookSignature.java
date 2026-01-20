@@ -168,7 +168,7 @@ public final class WebhookSignature {
             }
 
             return new ParsedSignature(timestamp, signature);
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException _) {
             return null;
         }
     }

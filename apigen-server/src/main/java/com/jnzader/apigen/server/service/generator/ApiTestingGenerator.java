@@ -1,7 +1,9 @@
 package com.jnzader.apigen.server.service.generator;
 
 import static com.jnzader.apigen.server.service.generator.util.SampleDataGenerator.getSampleValue;
-import static com.jnzader.apigen.server.service.generator.util.StringTransformationUtil.*;
+import static com.jnzader.apigen.server.service.generator.util.StringTransformationUtil.capitalize;
+import static com.jnzader.apigen.server.service.generator.util.StringTransformationUtil.escapeJsonString;
+import static com.jnzader.apigen.server.service.generator.util.StringTransformationUtil.toCamelCase;
 
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlSchema;
@@ -67,15 +69,20 @@ public class ApiTestingGenerator {
             String endpoint = BASE_URL_VAR + moduleName;
 
             sb.append(
-                    "\n"
-                        + "# =============================================================================\n");
+                    """
+
+                    # =============================================================================
+                    """);
             sb.append("# ")
                     .append(entityName.toUpperCase())
                     .append(" ENDPOINTS (")
                     .append(moduleName)
                     .append(")\n");
             sb.append(
-                    "# =============================================================================\n\n");
+                    """
+                    # =============================================================================
+
+                    """);
 
             // 1. GET / - List all with pagination
             sb.append("### 1. List all ").append(moduleName).append(" (paginated)\n");

@@ -68,7 +68,7 @@ public class GrpcServer {
                 server.shutdownNow();
                 return false;
             }
-        } catch (InterruptedException e) {
+        } catch (InterruptedException _) {
             Thread.currentThread().interrupt();
             server.shutdownNow();
             return false;

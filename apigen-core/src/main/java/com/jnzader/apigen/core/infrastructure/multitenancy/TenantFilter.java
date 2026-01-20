@@ -32,6 +32,7 @@ public class TenantFilter implements Filter {
     private static final Logger log = LoggerFactory.getLogger(TenantFilter.class);
 
     private static final String TENANT_HEADER = "X-Tenant-ID";
+    private static final String CONTENT_TYPE_PROBLEM_JSON = "application/problem+json";
 
     private final TenantResolver tenantResolver;
     private final boolean requireTenant;
@@ -121,7 +122,7 @@ public class TenantFilter implements Filter {
 
     private void sendTenantRequiredError(HttpServletResponse response) throws IOException {
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        response.setContentType("application/problem+json");
+        response.setContentType(CONTENT_TYPE_PROBLEM_JSON);
         response.getWriter()
                 .write(
                         """
@@ -137,7 +138,7 @@ public class TenantFilter implements Filter {
     private void sendInvalidTenantError(HttpServletResponse response, String tenantId)
             throws IOException {
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        response.setContentType("application/problem+json");
+        response.setContentType(CONTENT_TYPE_PROBLEM_JSON);
         response.getWriter()
                 .write(
                         String.format(

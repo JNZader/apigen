@@ -6,9 +6,13 @@ import static org.mockito.Mockito.when;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 @DisplayName("ApiVersionResolver Tests")
 class ApiVersionResolverTest {
@@ -110,28 +114,19 @@ class ApiVersionResolverTest {
     @DisplayName("Path Resolution")
     class PathResolutionTests {
 
-        @Test
-        @DisplayName("should resolve version from path")
-        void shouldResolveFromPath() {
-            HttpServletRequest request = mock(HttpServletRequest.class);
-            when(request.getRequestURI()).thenReturn("/api/v2/products");
-
-            ApiVersionResolver resolver =
-                    ApiVersionResolver.builder()
-                            .strategies(VersioningStrategy.PATH)
-                            .defaultVersion("1.0")
-                            .build();
-
-            String version = resolver.resolve(request);
-
-            assertThat(version).isEqualTo("2");
+        static Stream<Arguments> pathVersionTestCases() {
+            return Stream.of(
+                    Arguments.of("/api/v2/products", "2", "major version from path"),
+                    Arguments.of("/api/v2.1/products", "2.1", "minor version from path"),
+                    Arguments.of("/api/products", "1.0", "default when no version in path"));
         }
 
-        @Test
-        @DisplayName("should resolve version with minor number from path")
-        void shouldResolveVersionWithMinorFromPath() {
+        @ParameterizedTest(name = "should resolve {2}")
+        @MethodSource("pathVersionTestCases")
+        @DisplayName("should resolve version from path")
+        void shouldResolveVersionFromPath(String uri, String expectedVersion, String description) {
             HttpServletRequest request = mock(HttpServletRequest.class);
-            when(request.getRequestURI()).thenReturn("/api/v2.1/products");
+            when(request.getRequestURI()).thenReturn(uri);
 
             ApiVersionResolver resolver =
                     ApiVersionResolver.builder()
@@ -141,7 +136,7 @@ class ApiVersionResolverTest {
 
             String version = resolver.resolve(request);
 
-            assertThat(version).isEqualTo("2.1");
+            assertThat(version).isEqualTo(expectedVersion);
         }
 
         @Test
@@ -160,23 +155,6 @@ class ApiVersionResolverTest {
             String version = resolver.resolve(request);
 
             assertThat(version).isEqualTo("3");
-        }
-
-        @Test
-        @DisplayName("should return default when no version in path")
-        void shouldReturnDefaultWhenNoVersionInPath() {
-            HttpServletRequest request = mock(HttpServletRequest.class);
-            when(request.getRequestURI()).thenReturn("/api/products");
-
-            ApiVersionResolver resolver =
-                    ApiVersionResolver.builder()
-                            .strategies(VersioningStrategy.PATH)
-                            .defaultVersion("1.0")
-                            .build();
-
-            String version = resolver.resolve(request);
-
-            assertThat(version).isEqualTo("1.0");
         }
     }
 

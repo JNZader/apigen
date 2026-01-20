@@ -223,7 +223,7 @@ class RouteBuilderTest {
                             .buildDefinition();
 
             assertThat(definition.id()).isEqualTo("full-route");
-            assertThat(definition.uri().toString()).isEqualTo("http://backend:8080");
+            assertThat(definition.uri()).hasToString("http://backend:8080");
             assertThat(definition.pathPredicates()).containsExactly("/api/v1/**");
             assertThat(definition.methodPredicates())
                     .containsExactly("GET", "POST", "PUT", "DELETE");

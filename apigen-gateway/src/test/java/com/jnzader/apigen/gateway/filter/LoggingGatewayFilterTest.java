@@ -105,8 +105,7 @@ class LoggingGatewayFilterTest {
             StepVerifier.create(filter.filter(exchange, chain)).verifyComplete();
 
             Object startTime = exchange.getAttribute(LoggingGatewayFilter.REQUEST_START_TIME);
-            assertThat(startTime).isNotNull();
-            assertThat(startTime).isInstanceOf(Long.class);
+            assertThat(startTime).isNotNull().isInstanceOf(Long.class);
         }
     }
 
@@ -135,7 +134,7 @@ class LoggingGatewayFilterTest {
         @Test
         @DisplayName("should create filter with custom configuration")
         void shouldCreateFilterWithCustomConfiguration() {
-            LoggingGatewayFilter customFilter = new LoggingGatewayFilter(true, true);
+            LoggingGatewayFilter customFilter = new LoggingGatewayFilter(true);
             assertThat(customFilter).isNotNull();
         }
     }

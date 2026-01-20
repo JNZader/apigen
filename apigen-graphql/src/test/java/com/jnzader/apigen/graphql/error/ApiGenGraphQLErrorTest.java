@@ -28,6 +28,7 @@ class ApiGenGraphQLErrorTest {
             assertThat(error.getMessage()).isEqualTo("Test error");
             assertThat(error.getErrorType()).isEqualTo(GraphQLErrorType.VALIDATION_ERROR);
             assertThat(error.getStatusCode()).isEqualTo(400);
+            // Note: Different assertion subjects - cannot chain without losing type safety
         }
 
         @Test
@@ -44,10 +45,11 @@ class ApiGenGraphQLErrorTest {
 
             Map<String, Object> extensions = error.getExtensions();
 
-            assertThat(extensions).containsEntry("type", "NOT_FOUND");
-            assertThat(extensions).containsEntry("status", 404);
-            assertThat(extensions).containsEntry("detail", "Resource not found");
-            assertThat(extensions).containsEntry("instance", "/products/123");
+            assertThat(extensions)
+                    .containsEntry("type", "NOT_FOUND")
+                    .containsEntry("status", 404)
+                    .containsEntry("detail", "Resource not found")
+                    .containsEntry("instance", "/products/123");
         }
 
         @Test
@@ -64,8 +66,9 @@ class ApiGenGraphQLErrorTest {
 
             Map<String, Object> extensions = error.getExtensions();
 
-            assertThat(extensions).containsEntry("field", "email");
-            assertThat(extensions).containsEntry("constraint", "must be valid email");
+            assertThat(extensions)
+                    .containsEntry("field", "email")
+                    .containsEntry("constraint", "must be valid email");
         }
 
         @Test

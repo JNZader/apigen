@@ -1,12 +1,20 @@
 package com.jnzader.apigen.core.domain.specification;
 
 import com.jnzader.apigen.core.domain.entity.Base;
-import jakarta.persistence.criteria.*;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.domain.Specification;
@@ -101,7 +109,7 @@ public class FilterSpecificationBuilder {
 
         List<FilterCriteria> criteria =
                 filters.entrySet().stream()
-                        .filter(e -> !systemParams.contains(e.getKey().toLowerCase()))
+                        .filter(e -> !systemParams.contains(e.getKey().toLowerCase(Locale.ROOT)))
                         .filter(e -> e.getValue() != null && !e.getValue().isBlank())
                         .map(this::parseMapEntry)
                         .filter(Objects::nonNull)
@@ -136,7 +144,7 @@ public class FilterSpecificationBuilder {
         }
 
         String field = parts[0].trim();
-        String operatorStr = parts[1].trim().toLowerCase();
+        String operatorStr = parts[1].trim().toLowerCase(Locale.ROOT);
         String value = parts.length > 2 ? parts[2].trim() : null;
 
         FilterOperator operator;
@@ -168,7 +176,8 @@ public class FilterSpecificationBuilder {
         if (value.contains(OPERATOR_SEPARATOR)) {
             String[] parts = value.split(OPERATOR_SEPARATOR, 2);
             try {
-                FilterOperator op = FilterOperator.fromString(parts[0].trim().toLowerCase());
+                FilterOperator op =
+                        FilterOperator.fromString(parts[0].trim().toLowerCase(Locale.ROOT));
                 return new FilterCriteria(field, op, parts.length > 1 ? parts[1].trim() : null);
             } catch (IllegalArgumentException _) {
                 // No es un operador, usar valor completo con eq/like
@@ -217,10 +226,17 @@ public class FilterSpecificationBuilder {
                 case EQ -> cb.equal(path, typedValue);
                 case NEQ -> cb.notEqual(path, typedValue);
                 case LIKE ->
-                        cb.like(cb.lower((Path<String>) path), "%" + c.value().toLowerCase() + "%");
+                        cb.like(
+                                cb.lower((Path<String>) path),
+                                "%" + c.value().toLowerCase(Locale.ROOT) + "%");
                 case STARTS ->
-                        cb.like(cb.lower((Path<String>) path), c.value().toLowerCase() + "%");
-                case ENDS -> cb.like(cb.lower((Path<String>) path), "%" + c.value().toLowerCase());
+                        cb.like(
+                                cb.lower((Path<String>) path),
+                                c.value().toLowerCase(Locale.ROOT) + "%");
+                case ENDS ->
+                        cb.like(
+                                cb.lower((Path<String>) path),
+                                "%" + c.value().toLowerCase(Locale.ROOT));
                 case GT -> cb.greaterThan((Path<Comparable>) path, (Comparable) typedValue);
                 case GTE ->
                         cb.greaterThanOrEqualTo((Path<Comparable>) path, (Comparable) typedValue);
@@ -310,7 +326,8 @@ public class FilterSpecificationBuilder {
             return Boolean.parseBoolean(value);
         if (targetType == LocalDateTime.class) return parseLocalDateTime(value);
         if (targetType == LocalDate.class) return LocalDate.parse(value);
-        if (targetType.isEnum()) return Enum.valueOf((Class<Enum>) targetType, value.toUpperCase());
+        if (targetType.isEnum())
+            return Enum.valueOf((Class<Enum>) targetType, value.toUpperCase(Locale.ROOT));
         return value;
     }
 

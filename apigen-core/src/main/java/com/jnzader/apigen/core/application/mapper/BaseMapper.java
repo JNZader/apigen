@@ -3,7 +3,11 @@ package com.jnzader.apigen.core.application.mapper;
 import com.jnzader.apigen.core.application.dto.BaseDTO;
 import com.jnzader.apigen.core.domain.entity.Base;
 import java.util.List;
-import org.mapstruct.*;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.InheritInverseConfiguration;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 
 /**
  * Interfaz de mapeo genérica para la conversión entre una entidad y su DTO correspondiente. Utiliza

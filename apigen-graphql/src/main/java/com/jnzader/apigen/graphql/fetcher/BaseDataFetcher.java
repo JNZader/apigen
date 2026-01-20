@@ -38,18 +38,20 @@ import org.dataloader.DataLoader;
 public abstract class BaseDataFetcher<T> implements DataFetcher<T> {
 
     @Override
-    public T get(DataFetchingEnvironment environment) throws Exception {
+    public T get(DataFetchingEnvironment environment) {
         return fetch(environment);
     }
 
     /**
      * Fetches the data for this query/mutation.
      *
+     * <p>Implementations should throw unchecked exceptions (RuntimeException subclasses) for error
+     * conditions, which will be properly handled by the GraphQL error handling infrastructure.
+     *
      * @param env the data fetching environment
      * @return the fetched data
-     * @throws Exception if an error occurs during fetching
      */
-    protected abstract T fetch(DataFetchingEnvironment env) throws Exception;
+    protected abstract T fetch(DataFetchingEnvironment env);
 
     /**
      * Gets the GraphQL context from the environment.

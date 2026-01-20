@@ -39,20 +39,18 @@ public class TenantEntityListener {
      */
     @PrePersist
     public void setTenantOnCreate(Object entity) {
-        if (entity instanceof TenantAware tenantAware) {
-            if (tenantAware.getTenantId() == null) {
-                String tenantId = TenantContext.getTenantId();
-                if (tenantId != null) {
-                    tenantAware.setTenantId(tenantId);
-                    log.debug(
-                            "Set tenant ID '{}' on new entity: {}",
-                            tenantId,
-                            entity.getClass().getSimpleName());
-                } else {
-                    log.warn(
-                            "No tenant context available when creating entity: {}",
-                            entity.getClass().getSimpleName());
-                }
+        if (entity instanceof TenantAware tenantAware && tenantAware.getTenantId() == null) {
+            String tenantId = TenantContext.getTenantId();
+            if (tenantId != null) {
+                tenantAware.setTenantId(tenantId);
+                log.debug(
+                        "Set tenant ID '{}' on new entity: {}",
+                        tenantId,
+                        entity.getClass().getSimpleName());
+            } else {
+                log.warn(
+                        "No tenant context available when creating entity: {}",
+                        entity.getClass().getSimpleName());
             }
         }
     }

@@ -22,6 +22,7 @@ public class LoggingClientInterceptor implements ClientInterceptor {
     private static final Logger log = LoggerFactory.getLogger(LoggingClientInterceptor.class);
 
     @Override
+    @SuppressWarnings("java:S119") // ReqT/RespT are standard gRPC generic type names
     public <ReqT, RespT> ClientCall<ReqT, RespT> interceptCall(
             MethodDescriptor<ReqT, RespT> method, CallOptions callOptions, Channel next) {
 

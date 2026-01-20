@@ -88,7 +88,7 @@ class SchemaBuilderTest {
 
             assertThat(result.getErrors()).isEmpty();
             Map<String, Object> data = result.getData();
-            assertThat(data.get("greeting")).isEqualTo("Hello, World");
+            assertThat(data).containsEntry("greeting", "Hello, World");
         }
 
         @Test
@@ -118,7 +118,7 @@ class SchemaBuilderTest {
             @SuppressWarnings("unchecked")
             List<Map<String, Object>> products = (List<Map<String, Object>>) data.get("products");
             assertThat(products).hasSize(2);
-            assertThat(products.get(0).get("name")).isEqualTo("Product 1");
+            assertThat(products.get(0)).containsEntry("name", "Product 1");
         }
 
         @Test
@@ -144,13 +144,13 @@ class SchemaBuilderTest {
             ExecutionResult result1 = graphQL.execute("{ search(query: \"test\") }");
             assertThat(result1.getErrors()).isEmpty();
             Map<String, Object> data1 = result1.getData();
-            assertThat(data1.get("search")).isEqualTo("Found 10 results");
+            assertThat(data1).containsEntry("search", "Found 10 results");
 
             // With optional argument
             ExecutionResult result2 = graphQL.execute("{ search(query: \"test\", limit: 5) }");
             assertThat(result2.getErrors()).isEmpty();
             Map<String, Object> data2 = result2.getData();
-            assertThat(data2.get("search")).isEqualTo("Found 5 results");
+            assertThat(data2).containsEntry("search", "Found 5 results");
         }
     }
 
@@ -187,8 +187,7 @@ class SchemaBuilderTest {
             Map<String, Object> data = result.getData();
             @SuppressWarnings("unchecked")
             Map<String, Object> product = (Map<String, Object>) data.get("createProduct");
-            assertThat(product.get("id")).isEqualTo("new-1");
-            assertThat(product.get("name")).isEqualTo("New Product");
+            assertThat(product).containsEntry("id", "new-1").containsEntry("name", "New Product");
         }
     }
 

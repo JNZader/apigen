@@ -172,7 +172,7 @@ public class AuthService {
                         user.getRole().getName(),
                         user.getRole().getPermissions().stream()
                                 .map(Permission::getName)
-                                .collect(Collectors.toSet()));
+                                .collect(Collectors.toUnmodifiableSet()));
 
         return new AuthResponseDTO(
                 accessToken, refreshToken, jwtService.extractExpiration(accessToken), userInfo);

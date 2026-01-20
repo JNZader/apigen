@@ -69,8 +69,9 @@ class JpaEventStoreTest {
             when(eventRepository.findMaxVersionByAggregateId("agg-1")).thenReturn(Optional.of(5L));
 
             TestEvent event = new TestEvent("agg-1", "TestCreated", Instant.now(), "data");
+            List<DomainEvent> events = List.of(event);
 
-            assertThatThrownBy(() -> eventStore.append("agg-1", "TestAggregate", List.of(event), 3))
+            assertThatThrownBy(() -> eventStore.append("agg-1", "TestAggregate", events, 3))
                     .isInstanceOf(ConcurrencyException.class)
                     .hasMessageContaining("expected version 3 but found 5");
         }

@@ -16,6 +16,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -85,7 +86,7 @@ public class SecurityConfig {
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 // Headers de seguridad (configurables via apigen.security.headers.*)
-                .headers(headers -> configureSecurityHeaders(headers))
+                .headers(this::configureSecurityHeaders)
 
                 // Autorización de endpoints
                 .authorizeHttpRequests(
@@ -141,7 +142,7 @@ public class SecurityConfig {
                             xss.headerValue(
                                     XXssProtectionHeaderWriter.HeaderValue.ENABLED_MODE_BLOCK));
         } else {
-            headers.xssProtection(xss -> xss.disable());
+            headers.xssProtection(HeadersConfigurer.XXssConfig::disable);
         }
 
         // X-Frame-Options
@@ -172,7 +173,7 @@ public class SecurityConfig {
                                     .maxAgeInSeconds(headersConfig.getHstsMaxAgeSeconds())
                                     .preload(headersConfig.isHstsPreload()));
         } else {
-            headers.httpStrictTransportSecurity(hsts -> hsts.disable());
+            headers.httpStrictTransportSecurity(HeadersConfigurer.HstsConfig::disable);
         }
 
         // Referrer-Policy

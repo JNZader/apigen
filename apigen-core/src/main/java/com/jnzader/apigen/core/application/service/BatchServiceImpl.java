@@ -33,7 +33,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @ConditionalOnProperty(name = "apigen.batch.enabled", havingValue = "true", matchIfMissing = true)
-public class BatchServiceImpl<ID> implements BatchService<ID> {
+public class BatchServiceImpl<I> implements BatchService<I> {
 
     private static final Logger log = LoggerFactory.getLogger(BatchServiceImpl.class);
 
@@ -59,8 +59,7 @@ public class BatchServiceImpl<ID> implements BatchService<ID> {
     }
 
     @Override
-    public BatchResult<ID> batchDelete(
-            List<ID> ids, Function<ID, Result<ID, String>> deleteFunction) {
+    public BatchResult<I> batchDelete(List<I> ids, Function<I, Result<I, String>> deleteFunction) {
         return batchProcess(ids, deleteFunction);
     }
 
@@ -104,55 +103,15 @@ public class BatchServiceImpl<ID> implements BatchService<ID> {
 
                 Future<?> future =
                         executor.submit(
-                                () -> {
-                                    try {
-                                        semaphore.acquire();
-                                        try {
-                                            Result<R, String> result = processor.apply(item);
-                                            if (result.isSuccess()) {
-                                                successes.add(result.orElseThrow());
-                                            } else {
-                                                failures.add(
-                                                        new BatchFailure(
-                                                                index,
-                                                                item,
-                                                                result.fold(
-                                                                        v -> "Unknown error",
-                                                                        e -> e)));
-                                            }
-                                        } finally {
-                                            semaphore.release();
-                                        }
-                                    } catch (InterruptedException e) {
-                                        Thread.currentThread().interrupt();
-                                        failures.add(
-                                                new BatchFailure(
-                                                        index,
-                                                        item,
-                                                        "Interrupted: " + e.getMessage()));
-                                    } catch (Exception e) {
-                                        failures.add(
-                                                new BatchFailure(
-                                                        index, item, "Error: " + e.getMessage()));
-                                        log.error(
-                                                "Error processing batch item at index {}: {}",
-                                                index,
-                                                e.getMessage(),
-                                                e);
-                                    }
-                                });
+                                () ->
+                                        processItem(
+                                                item, index, processor, semaphore, successes,
+                                                failures));
 
                 futures.add(future);
             }
 
-            // Wait for all tasks to complete
-            for (Future<?> future : futures) {
-                try {
-                    future.get(SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-                } catch (Exception e) {
-                    log.error("Error waiting for batch task completion: {}", e.getMessage());
-                }
-            }
+            awaitAllFutures(futures);
         }
 
         long durationMs = System.currentTimeMillis() - startTime;
@@ -164,6 +123,59 @@ public class BatchServiceImpl<ID> implements BatchService<ID> {
                 durationMs);
 
         return new BatchResult<>(successes, failures, durationMs);
+    }
+
+    /** Processes a single item with semaphore-controlled parallelism. */
+    private <T, R> void processItem(
+            T item,
+            int index,
+            Function<T, Result<R, String>> processor,
+            Semaphore semaphore,
+            List<R> successes,
+            List<BatchFailure> failures) {
+        try {
+            semaphore.acquire();
+            try {
+                Result<R, String> result = processor.apply(item);
+                handleProcessorResult(result, index, item, successes, failures);
+            } finally {
+                semaphore.release();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            failures.add(new BatchFailure(index, item, "Interrupted: " + e.getMessage()));
+        } catch (Exception e) {
+            failures.add(new BatchFailure(index, item, "Error: " + e.getMessage()));
+            log.error("Error processing batch item at index {}: {}", index, e.getMessage(), e);
+        }
+    }
+
+    /** Handles the result of processing a single item. */
+    private <T, R> void handleProcessorResult(
+            Result<R, String> result,
+            int index,
+            T item,
+            List<R> successes,
+            List<BatchFailure> failures) {
+        if (result.isSuccess()) {
+            successes.add(result.orElseThrow());
+        } else {
+            failures.add(new BatchFailure(index, item, result.fold(v -> "Unknown error", e -> e)));
+        }
+    }
+
+    /** Waits for all futures to complete with timeout handling. */
+    private void awaitAllFutures(List<Future<?>> futures) {
+        for (Future<?> future : futures) {
+            try {
+                future.get(SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                log.error("Batch task interrupted: {}", e.getMessage());
+            } catch (Exception e) {
+                log.error("Error waiting for batch task completion: {}", e.getMessage());
+            }
+        }
     }
 
     /** Processes items sequentially when batch operations feature is disabled. */

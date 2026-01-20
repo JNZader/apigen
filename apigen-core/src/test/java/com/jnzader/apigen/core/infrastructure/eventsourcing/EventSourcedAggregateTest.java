@@ -33,7 +33,7 @@ class EventSourcedAggregateTest {
             TestAggregate aggregate = new TestAggregate();
 
             aggregate.create("agg-1", "Test");
-            assertThat(aggregate.getVersion()).isEqualTo(0);
+            assertThat(aggregate.getVersion()).isZero();
 
             aggregate.rename("New Name");
             assertThat(aggregate.getVersion()).isEqualTo(1);
@@ -176,7 +176,7 @@ class EventSourcedAggregateTest {
         void shouldCountUncommittedEvents() {
             TestAggregate aggregate = new TestAggregate();
 
-            assertThat(aggregate.getUncommittedEventCount()).isEqualTo(0);
+            assertThat(aggregate.getUncommittedEventCount()).isZero();
 
             aggregate.create("agg-1", "Test");
             assertThat(aggregate.getUncommittedEventCount()).isEqualTo(1);
@@ -213,8 +213,10 @@ class EventSourcedAggregateTest {
                     this.active = true;
                 }
                 case TestRenamedEvent e -> this.name = e.newName();
-                case TestDeactivatedEvent e -> this.active = false;
-                default -> {}
+                case TestDeactivatedEvent _ -> this.active = false;
+                default -> {
+                    // No action needed for unknown event types
+                }
             }
         }
 

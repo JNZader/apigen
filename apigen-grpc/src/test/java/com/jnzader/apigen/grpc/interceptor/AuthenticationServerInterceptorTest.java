@@ -61,9 +61,8 @@ class AuthenticationServerInterceptorTest {
         @Test
         @DisplayName("should reject invalid token")
         void shouldRejectInvalidToken() {
-            AuthenticationServerInterceptor interceptor =
-                    new AuthenticationServerInterceptor(
-                            token -> AuthResult.failure("Invalid token"));
+            // Verify that the interceptor can be created with a validator that rejects tokens
+            new AuthenticationServerInterceptor(token -> AuthResult.failure("Invalid token"));
 
             // Token validation is done via the function
             AuthResult result = AuthResult.failure("Invalid token");
@@ -76,9 +75,9 @@ class AuthenticationServerInterceptorTest {
         @DisplayName("should exclude specific methods")
         void shouldExcludeSpecificMethods() {
             Set<String> excluded = Set.of("health.HealthService/Check");
-            AuthenticationServerInterceptor interceptor =
-                    new AuthenticationServerInterceptor(
-                            token -> AuthResult.failure("Should not be called"), excluded);
+            // Verify that the interceptor can be created with excluded methods
+            new AuthenticationServerInterceptor(
+                    token -> AuthResult.failure("Should not be called"), excluded);
 
             // Excluded methods should not trigger validation
             assertThat(excluded).contains("health.HealthService/Check");

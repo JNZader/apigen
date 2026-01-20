@@ -48,7 +48,7 @@ class GraphQLExceptionHandlerTest {
 
         @Test
         @DisplayName("should handle EntityNotFoundException")
-        void shouldHandleEntityNotFoundException() throws Exception {
+        void shouldHandleEntityNotFoundException() {
             EntityNotFoundException exception = new EntityNotFoundException("Product not found");
             DataFetcherExceptionHandlerParameters params = createParams(exception);
 
@@ -59,12 +59,12 @@ class GraphQLExceptionHandlerTest {
             assertThat(result.getErrors()).hasSize(1);
             GraphQLError error = result.getErrors().get(0);
             assertThat(error.getErrorType()).isEqualTo(GraphQLErrorType.NOT_FOUND);
-            assertThat(error.getExtensions().get("status")).isEqualTo(404);
+            assertThat(error.getExtensions()).containsEntry("status", 404);
         }
 
         @Test
         @DisplayName("should handle ConstraintViolationException")
-        void shouldHandleConstraintViolationException() throws Exception {
+        void shouldHandleConstraintViolationException() {
             ConstraintViolation<?> violation = mock(ConstraintViolation.class);
             Path path = mock(Path.class);
             when(path.toString()).thenReturn("email");
@@ -82,12 +82,12 @@ class GraphQLExceptionHandlerTest {
             assertThat(result.getErrors()).hasSize(1);
             GraphQLError error = result.getErrors().get(0);
             assertThat(error.getErrorType()).isEqualTo(GraphQLErrorType.VALIDATION_ERROR);
-            assertThat(error.getExtensions().get("status")).isEqualTo(400);
+            assertThat(error.getExtensions()).containsEntry("status", 400);
         }
 
         @Test
         @DisplayName("should handle IllegalArgumentException")
-        void shouldHandleIllegalArgumentException() throws Exception {
+        void shouldHandleIllegalArgumentException() {
             IllegalArgumentException exception = new IllegalArgumentException("Invalid value");
             DataFetcherExceptionHandlerParameters params = createParams(exception);
 
@@ -98,12 +98,12 @@ class GraphQLExceptionHandlerTest {
             assertThat(result.getErrors()).hasSize(1);
             GraphQLError error = result.getErrors().get(0);
             assertThat(error.getErrorType()).isEqualTo(GraphQLErrorType.VALIDATION_ERROR);
-            assertThat(error.getExtensions().get("status")).isEqualTo(400);
+            assertThat(error.getExtensions()).containsEntry("status", 400);
         }
 
         @Test
         @DisplayName("should handle AuthenticationCredentialsNotFoundException")
-        void shouldHandleAuthenticationCredentialsNotFoundException() throws Exception {
+        void shouldHandleAuthenticationCredentialsNotFoundException() {
             AuthenticationCredentialsNotFoundException exception =
                     new AuthenticationCredentialsNotFoundException("Not authenticated");
             DataFetcherExceptionHandlerParameters params = createParams(exception);
@@ -115,12 +115,12 @@ class GraphQLExceptionHandlerTest {
             assertThat(result.getErrors()).hasSize(1);
             GraphQLError error = result.getErrors().get(0);
             assertThat(error.getErrorType()).isEqualTo(GraphQLErrorType.UNAUTHORIZED);
-            assertThat(error.getExtensions().get("status")).isEqualTo(401);
+            assertThat(error.getExtensions()).containsEntry("status", 401);
         }
 
         @Test
         @DisplayName("should handle AccessDeniedException")
-        void shouldHandleAccessDeniedException() throws Exception {
+        void shouldHandleAccessDeniedException() {
             AccessDeniedException exception = new AccessDeniedException("Access denied");
             DataFetcherExceptionHandlerParameters params = createParams(exception);
 
@@ -131,12 +131,12 @@ class GraphQLExceptionHandlerTest {
             assertThat(result.getErrors()).hasSize(1);
             GraphQLError error = result.getErrors().get(0);
             assertThat(error.getErrorType()).isEqualTo(GraphQLErrorType.FORBIDDEN);
-            assertThat(error.getExtensions().get("status")).isEqualTo(403);
+            assertThat(error.getExtensions()).containsEntry("status", 403);
         }
 
         @Test
         @DisplayName("should handle OptimisticLockException")
-        void shouldHandleOptimisticLockException() throws Exception {
+        void shouldHandleOptimisticLockException() {
             OptimisticLockException exception =
                     new OptimisticLockException("Concurrent modification");
             DataFetcherExceptionHandlerParameters params = createParams(exception);
@@ -148,12 +148,12 @@ class GraphQLExceptionHandlerTest {
             assertThat(result.getErrors()).hasSize(1);
             GraphQLError error = result.getErrors().get(0);
             assertThat(error.getErrorType()).isEqualTo(GraphQLErrorType.CONFLICT);
-            assertThat(error.getExtensions().get("status")).isEqualTo(409);
+            assertThat(error.getExtensions()).containsEntry("status", 409);
         }
 
         @Test
         @DisplayName("should handle generic exception as internal error")
-        void shouldHandleGenericExceptionAsInternalError() throws Exception {
+        void shouldHandleGenericExceptionAsInternalError() {
             RuntimeException exception = new RuntimeException("Unexpected error");
             DataFetcherExceptionHandlerParameters params = createParams(exception);
 
@@ -164,7 +164,7 @@ class GraphQLExceptionHandlerTest {
             assertThat(result.getErrors()).hasSize(1);
             GraphQLError error = result.getErrors().get(0);
             assertThat(error.getErrorType()).isEqualTo(GraphQLErrorType.INTERNAL_ERROR);
-            assertThat(error.getExtensions().get("status")).isEqualTo(500);
+            assertThat(error.getExtensions()).containsEntry("status", 500);
         }
     }
 }

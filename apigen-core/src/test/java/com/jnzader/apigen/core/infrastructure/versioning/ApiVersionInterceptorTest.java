@@ -136,20 +136,27 @@ class ApiVersionInterceptorTest {
             return new HandlerMethod(controller, method);
         }
 
-        // Test controller classes
+        // Test controller classes - methods are empty because only the annotation metadata is
+        // tested
         @DeprecatedVersion(since = "2024-01-01")
         static class DeprecatedController {
-            public void handle() {}
+            public void handle() {
+                // No-op: method exists only for annotation testing
+            }
         }
 
         @DeprecatedVersion(since = "2024-01-01", sunset = "2025-01-01")
         static class DeprecatedWithSunsetController {
-            public void handle() {}
+            public void handle() {
+                // No-op: method exists only for annotation testing
+            }
         }
 
         @DeprecatedVersion(since = "2024-01-01", successor = "2.0")
         static class DeprecatedWithSuccessorController {
-            public void handle() {}
+            public void handle() {
+                // No-op: method exists only for annotation testing
+            }
         }
 
         @DeprecatedVersion(
@@ -157,7 +164,9 @@ class ApiVersionInterceptorTest {
                 successor = "2.0",
                 migrationGuide = "https://docs.example.com/migration")
         static class DeprecatedWithMigrationController {
-            public void handle() {}
+            public void handle() {
+                // No-op: method exists only for annotation testing
+            }
         }
     }
 

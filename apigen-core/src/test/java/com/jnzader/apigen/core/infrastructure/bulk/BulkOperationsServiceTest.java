@@ -114,8 +114,9 @@ class BulkOperationsServiceTest {
             assertThat(result.format()).isEqualTo(BulkFormat.CSV);
             assertThat(result.totalRecords()).isEqualTo(3);
             assertThat(result.successCount()).isEqualTo(3);
-            assertThat(result.failureCount()).isEqualTo(0);
+            assertThat(result.failureCount()).isZero();
             assertThat(result.isFullySuccessful()).isTrue();
+            // Note: Different subjects (result vs imported) - cannot chain
             assertThat(imported).hasSize(3);
         }
 
@@ -136,6 +137,7 @@ class BulkOperationsServiceTest {
                     bulkOperationsService.parseData(inputStream, BulkFormat.CSV, ProductDTO.class);
 
             assertThat(parsed).hasSize(2);
+            // Note: Different subjects - cannot chain
             assertThat(parsed.get(0).getName()).isEqualTo("Laptop");
             assertThat(parsed.get(1).getName()).isEqualTo("Mouse");
         }
@@ -170,6 +172,7 @@ class BulkOperationsServiceTest {
             assertThat(result.successCount()).isEqualTo(2);
             assertThat(result.failureCount()).isEqualTo(1);
             assertThat(result.hasFailures()).isTrue();
+            // Note: Different result accessor types - cannot chain
             assertThat(result.errors()).hasSize(1);
         }
 
@@ -204,7 +207,7 @@ class BulkOperationsServiceTest {
                             },
                             config);
 
-            assertThat(result.successCount()).isEqualTo(0);
+            assertThat(result.successCount()).isZero();
             assertThat(result.failureCount()).isEqualTo(1);
         }
     }
@@ -226,8 +229,7 @@ class BulkOperationsServiceTest {
 
             assertThat(csvData).isNotEmpty();
             String csvString = new String(csvData, StandardCharsets.UTF_8);
-            assertThat(csvString).contains("Laptop");
-            assertThat(csvString).contains("Mouse");
+            assertThat(csvString).contains("Laptop").contains("Mouse");
         }
 
         @Test
@@ -250,8 +252,7 @@ class BulkOperationsServiceTest {
             assertThat(result.isFullySuccessful()).isTrue();
 
             String csvString = outputStream.toString(StandardCharsets.UTF_8);
-            assertThat(csvString).contains("Keyboard");
-            assertThat(csvString).contains("Monitor");
+            assertThat(csvString).contains("Keyboard").contains("Monitor");
         }
 
         @Test
@@ -283,6 +284,7 @@ class BulkOperationsServiceTest {
 
             assertThat(excelData).isNotEmpty();
             // Excel files start with PK (ZIP format)
+            // Note: Separate indexes - cannot chain
             assertThat(excelData[0]).isEqualTo((byte) 0x50); // P
             assertThat(excelData[1]).isEqualTo((byte) 0x4B); // K
         }
@@ -409,6 +411,7 @@ class BulkOperationsServiceTest {
             assertThat(config.batchSize()).isEqualTo(100);
             assertThat(config.csvSeparator()).isEqualTo(',');
             assertThat(config.dateFormat()).isEqualTo("yyyy-MM-dd");
+            // Note: Different config accessor types - cannot chain
         }
     }
 
@@ -426,6 +429,7 @@ class BulkOperationsServiceTest {
             assertThat(config.dateFormat()).isEqualTo("yyyy-MM-dd");
             assertThat(config.sheetName()).isEqualTo("Data");
             assertThat(config.autoSizeColumns()).isTrue();
+            // Note: Different config accessor types - cannot chain
         }
 
         @Test

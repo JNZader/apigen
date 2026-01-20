@@ -71,9 +71,9 @@ public interface DomainEvent {
     /**
      * Returns optional metadata associated with this event.
      *
-     * @return metadata map, or null if no metadata
+     * @return metadata map, or empty map if no metadata
      */
     default java.util.Map<String, String> getMetadata() {
-        return null;
+        return java.util.Collections.emptyMap();
     }
 }

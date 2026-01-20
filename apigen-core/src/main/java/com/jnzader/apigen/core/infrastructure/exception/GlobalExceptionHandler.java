@@ -1,6 +1,12 @@
 package com.jnzader.apigen.core.infrastructure.exception;
 
-import com.jnzader.apigen.core.domain.exception.*;
+import com.jnzader.apigen.core.domain.exception.DuplicateResourceException;
+import com.jnzader.apigen.core.domain.exception.IdMismatchException;
+import com.jnzader.apigen.core.domain.exception.OperationFailedException;
+import com.jnzader.apigen.core.domain.exception.PreconditionFailedException;
+import com.jnzader.apigen.core.domain.exception.ResourceNotFoundException;
+import com.jnzader.apigen.core.domain.exception.UnauthorizedActionException;
+import com.jnzader.apigen.core.domain.exception.ValidationException;
 import com.jnzader.apigen.core.infrastructure.i18n.MessageService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;

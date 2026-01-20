@@ -81,8 +81,7 @@ class GraphQLExecutorTest {
             Map<String, Object> data = result.getData();
             @SuppressWarnings("unchecked")
             Map<String, Object> product = (Map<String, Object>) data.get("product");
-            assertThat(product.get("id")).isEqualTo("123");
-            assertThat(product.get("name")).isEqualTo("Product 123");
+            assertThat(product).containsEntry("id", "123").containsEntry("name", "Product 123");
         }
 
         @Test
@@ -98,7 +97,7 @@ class GraphQLExecutorTest {
             Map<String, Object> data = result.getData();
             @SuppressWarnings("unchecked")
             Map<String, Object> product = (Map<String, Object>) data.get("product");
-            assertThat(product.get("id")).isEqualTo("456");
+            assertThat(product).containsEntry("id", "456");
         }
 
         @Test
@@ -127,7 +126,7 @@ class GraphQLExecutorTest {
 
             assertThat(result.getErrors()).isEmpty();
             Map<String, Object> data = result.getData();
-            assertThat(data.get("contextUser")).isEqualTo("user-123");
+            assertThat(data).containsEntry("contextUser", "user-123");
         }
 
         @Test
@@ -139,7 +138,7 @@ class GraphQLExecutorTest {
 
             assertThat(result.getErrors()).isEmpty();
             Map<String, Object> data = result.getData();
-            assertThat(data.get("contextUser")).isEqualTo("anonymous");
+            assertThat(data).containsEntry("contextUser", "anonymous");
         }
 
         @Test
@@ -171,7 +170,7 @@ class GraphQLExecutorTest {
             Map<String, Object> data = result.getData();
             @SuppressWarnings("unchecked")
             Map<String, Object> product = (Map<String, Object>) data.get("product");
-            assertThat(product.get("id")).isEqualTo("async-1");
+            assertThat(product).containsEntry("id", "async-1");
         }
     }
 }

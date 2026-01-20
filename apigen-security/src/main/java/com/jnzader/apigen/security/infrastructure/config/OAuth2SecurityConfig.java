@@ -79,7 +79,7 @@ public class OAuth2SecurityConfig {
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 // Headers de seguridad (configurables via apigen.security.headers.*)
-                .headers(headers -> configureSecurityHeaders(headers))
+                .headers(this::configureSecurityHeaders)
 
                 // Autorizacion de endpoints
                 .authorizeHttpRequests(
@@ -135,7 +135,7 @@ public class OAuth2SecurityConfig {
                             xss.headerValue(
                                     XXssProtectionHeaderWriter.HeaderValue.ENABLED_MODE_BLOCK));
         } else {
-            headers.xssProtection(xss -> xss.disable());
+            headers.xssProtection(HeadersConfigurer.XXssConfig::disable);
         }
 
         // X-Frame-Options
@@ -166,7 +166,7 @@ public class OAuth2SecurityConfig {
                                     .maxAgeInSeconds(headersConfig.getHstsMaxAgeSeconds())
                                     .preload(headersConfig.isHstsPreload()));
         } else {
-            headers.httpStrictTransportSecurity(hsts -> hsts.disable());
+            headers.httpStrictTransportSecurity(HeadersConfigurer.HstsConfig::disable);
         }
 
         // Referrer-Policy
