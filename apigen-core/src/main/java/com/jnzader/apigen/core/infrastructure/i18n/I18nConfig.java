@@ -1,6 +1,7 @@
 package com.jnzader.apigen.core.infrastructure.i18n;
 
 import java.util.Locale;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -43,6 +44,7 @@ public class I18nConfig implements WebMvcConfigurer {
      * @return configured MessageSource bean
      */
     @Bean
+    @ConditionalOnMissingBean
     public MessageSource messageSource() {
         ReloadableResourceBundleMessageSource messageSource =
                 new ReloadableResourceBundleMessageSource();
@@ -69,6 +71,7 @@ public class I18nConfig implements WebMvcConfigurer {
      * @return configured LocaleResolver bean
      */
     @Bean
+    @ConditionalOnMissingBean
     public LocaleResolver localeResolver() {
         AcceptHeaderLocaleResolver resolver = new AcceptHeaderLocaleResolver();
         resolver.setDefaultLocale(DEFAULT_LOCALE);

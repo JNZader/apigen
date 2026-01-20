@@ -5,6 +5,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.jnzader.apigen.core.infrastructure.config.JpaConfig;
+import com.jnzader.apigen.security.domain.repository.UserRepository;
+import com.jnzader.apigen.security.infrastructure.jwt.JwtService;
+import com.jnzader.apigen.security.infrastructure.oauth2.PKCEAuthorizationStore;
+import com.jnzader.apigen.security.infrastructure.oauth2.PKCEService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -17,6 +21,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 /**
@@ -38,6 +43,13 @@ class SecurityConfigTest {
     // sin autenticación. Para tests con security enabled, ver integration tests.
 
     @Autowired private MockMvc mockMvc;
+
+    // Mock beans required for OAuth2Controller (not needed for these tests but required for
+    // context)
+    @MockitoBean private JwtService jwtService;
+    @MockitoBean private PKCEService pkceService;
+    @MockitoBean private PKCEAuthorizationStore pkceAuthorizationStore;
+    @MockitoBean private UserRepository userRepository;
 
     // ==================== Public Endpoints Tests ====================
 

@@ -1,0 +1,20 @@
+{
+  "resources": {
+    "includes": [
+      {"pattern": "\\Qapplication.properties\\E"},
+      {"pattern": "\\Qapplication.yml\\E"},
+      {"pattern": "\\Qapplication.yaml\\E"},
+      {"pattern": "\\Qmessages.properties\\E"},
+      {"pattern": "\\Qmessages_es.properties\\E"},
+      {"pattern": "META-INF/spring/.*"},
+      {"pattern": "META-INF/services/.*"},
+      {"pattern": "org/hibernate/.*"},
+      {"pattern": "ValidationMessages.properties"},
+      {"pattern": "ValidationMessages_es.properties"}
+    ]
+  },
+  "bundles": [
+    {"name": "messages"},
+    {"name": "ValidationMessages"}
+  ]
+}

@@ -110,6 +110,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `BulkAutoConfiguration` for Spring Boot auto-configuration (`apigen.bulk.enabled=true`)
   - Comprehensive test suite (26 tests) covering import, export, configurations
 
+#### Fase 8: Release & Deploy
+- **Semantic-release (8.1)**: Automated versioning and release workflow
+  - GitHub Actions workflow `.github/workflows/release.yml`
+  - Conventional Commits parsing for automatic version bumps
+  - Automatic CHANGELOG generation on release
+  - GitHub Releases with release notes
+- **GraalVM Native Image (8.2)**: Ahead-of-time compilation support
+  - `org.graalvm.buildtools.native` plugin 0.10.6 in apigen-example
+  - Spring AOT processing enabled
+  - Native image build configuration with URL protocols, charsets
+  - GraalVM JDK 25 toolchain support
+- **PKCE OAuth2 (8.3)**: Enhanced OAuth2 security for public clients
+  - `PKCEService` implementing RFC 7636 (Proof Key for Code Exchange)
+  - Code verifier generation (43-128 chars, URL-safe)
+  - S256 (SHA-256) and plain code challenge methods
+  - `PKCEAuthorizationStore` for authorization code lifecycle (single-use, expiration)
+  - `OAuth2Controller` with `/oauth2/authorize`, `/oauth2/token`, `/oauth2/revoke` endpoints
+  - `PKCETokenRequestDTO` supporting authorization_code and refresh_token grants
+  - PKCE helper endpoint `/oauth2/pkce/generate` for development
+  - `PkceProperties` configuration class for customization
+  - Comprehensive test suite (21 PKCEService tests, store tests)
+
 #### Fase 7: Arquitectura Avanzada (Partial)
 - **API Versioning (7.6)**: Complete API versioning infrastructure
   - `@ApiVersion` annotation for marking API versions on controllers/methods
