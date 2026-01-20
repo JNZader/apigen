@@ -34,6 +34,9 @@ COPY apigen-security/build.gradle apigen-security/
 COPY apigen-codegen/build.gradle apigen-codegen/
 COPY apigen-server/build.gradle apigen-server/
 COPY apigen-example/build.gradle apigen-example/
+COPY apigen-graphql/build.gradle apigen-graphql/
+COPY apigen-grpc/build.gradle apigen-grpc/
+COPY apigen-gateway/build.gradle apigen-gateway/
 
 # Descargar dependencias (cacheado si no cambian)
 RUN ./gradlew dependencies --no-daemon
@@ -45,6 +48,9 @@ COPY apigen-security/ apigen-security/
 COPY apigen-codegen/ apigen-codegen/
 COPY apigen-server/ apigen-server/
 COPY apigen-example/ apigen-example/
+COPY apigen-graphql/ apigen-graphql/
+COPY apigen-grpc/ apigen-grpc/
+COPY apigen-gateway/ apigen-gateway/
 
 # Build de la aplicación example (sin tests para velocidad)
 RUN ./gradlew :apigen-example:bootJar --no-daemon -x test
