@@ -320,4 +320,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 Built with Java 25, Spring Boot 4.0, and Virtual Threads.
 
-**Version:** 3.0.0 (Multi-module)
+**Version:** 1.0.0 (Multi-module)

@@ -240,22 +240,27 @@ tasks.register('jmhAll') {
     dependsOn subprojects.findAll { it.name != 'apigen-bom' && it.name != 'apigen-example' }.collect { "${it.path}:jmh" }
 }
 
-// Aggregate task to publish all modules (except example which is an application, not a library)
+// Aggregate task to publish all modules (except applications which are not libraries)
 tasks.register('publishAll') {
     group = 'publishing'
-    description = 'Publishes all modules to Maven Local'
+    description = 'Publishes all library modules to Maven Local'
 
-    dependsOn subprojects.findAll { it.name != 'apigen-example' }.collect { "${it.path}:publishToMavenLocal" }
+    // Exclude applications: apigen-example (demo), apigen-server (HTTP server)
+    def excludedModules = ['apigen-example', 'apigen-server']
+    dependsOn subprojects.findAll { !excludedModules.contains(it.name) }.collect { "${it.path}:publishToMavenLocal" }
 
     doLast {
         println "\n=========================================="
-        println "All modules published to Maven Local!"
+        println "All library modules published to Maven Local!"
         println "=========================================="
         println "Published artifacts:"
         println "  - com.jnzader:apigen-bom:${version}"
         println "  - com.jnzader:apigen-core:${version}"
         println "  - com.jnzader:apigen-security:${version}"
         println "  - com.jnzader:apigen-codegen:${version}"
+        println "  - com.jnzader:apigen-graphql:${version}"
+        println "  - com.jnzader:apigen-grpc:${version}"
+        println "  - com.jnzader:apigen-gateway:${version}"
         println ""
         println "Usage in other projects:"
         println "  implementation platform('com.jnzader:apigen-bom:${version}')"
