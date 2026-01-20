@@ -178,16 +178,18 @@ class DataLoaderRegistryTest {
 
             DataLoader<String, String> loader = registry.getDataLoader("clearable");
 
-            // First load
-            loader.load("key");
+            // First load - wait for async completion
+            CompletableFuture<String> f1 = loader.load("key");
             registry.dispatchAll();
+            f1.join();
 
             // Clear cache
             registry.clearAll();
 
             // Load again - should hit source
-            loader.load("key");
+            CompletableFuture<String> f2 = loader.load("key");
             registry.dispatchAll();
+            f2.join();
 
             assertThat(loadCount.get()).isEqualTo(2);
         }
