@@ -5,6 +5,60 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 1.0.0 (2026-01-20)
+
+### Features
+
+* add code quality tools (Spotless, Errorprone, JaCoCo, ArchUnit) ([3b231d3](https://github.com/JNZader/apigen/commit/3b231d33207037efed36fae4a3082041ff3e8771))
+* **core:** Phase 6 - Additional Features ([#21](https://github.com/JNZader/apigen/issues/21)) ([2930355](https://github.com/JNZader/apigen/commit/2930355346d0308deaad073dccb07295272b8749))
+* Phase 3 - Advanced Testing (PIT + JMH) ([#18](https://github.com/JNZader/apigen/issues/18)) ([074297e](https://github.com/JNZader/apigen/commit/074297e6aafd3936f319fbb55a115aa65090de0b))
+* Phase 4 - Performance & Feature Flags ([#19](https://github.com/JNZader/apigen/issues/19)) ([7f0469b](https://github.com/JNZader/apigen/commit/7f0469b3d8424878f9d5952f06f2b4ea2edf8ec9))
+* Phase 7 - Advanced Architecture ([#27](https://github.com/JNZader/apigen/issues/27)) ([5394cec](https://github.com/JNZader/apigen/commit/5394ceccb069e73a95a9fec46a9f16e67e0606ac))
+* Phase 8 - Release & Deploy ([#28](https://github.com/JNZader/apigen/issues/28)) ([f1a42de](https://github.com/JNZader/apigen/commit/f1a42de65c0a3cb3f2d8def25ab3372f62dcb5e1))
+* **security:** add configurable headers and Bucket4j rate limiting ([6daac47](https://github.com/JNZader/apigen/commit/6daac475ef9c8bc0f24d298f7607e28f8e70eead))
+* **security:** add JWT key rotation support ([50cc0a7](https://github.com/JNZader/apigen/commit/50cc0a7ff803044adbab322faa4366bd82b46a71))
+
+### Bug Fixes
+
+* **ci:** convert image name to lowercase for registry ([1fa10c8](https://github.com/JNZader/apigen/commit/1fa10c8236d4a2c4047ef847b82116239be97fd6))
+* **ci:** optimize Docker build and fix attestation ([aeb462e](https://github.com/JNZader/apigen/commit/aeb462e303dc2bcec62a30c4ce11df1af5475273))
+* **docker:** update Dockerfile for multi-module project structure ([fc934eb](https://github.com/JNZader/apigen/commit/fc934eb6a2697a0578007e4436abedbd64c0d155))
+* **gateway:** update to Spring Cloud 2025.1.0 artifact names ([1ae546a](https://github.com/JNZader/apigen/commit/1ae546ab80106ea07ddf837ae732372db704a1bb))
+* **test:** fix CI test failures ([7564546](https://github.com/JNZader/apigen/commit/756454638dff42bf72dc00a9fae9078d62073bd8))
+
+### Documentation
+
+* add CHANGELOG.md and update gitignore ([6069add](https://github.com/JNZader/apigen/commit/6069add24d8c8b7a4de6dc6bb012dcf537b50c67))
+* Phase 5 - Documentation improvements ([#20](https://github.com/JNZader/apigen/issues/20)) ([e48bcb1](https://github.com/JNZader/apigen/commit/e48bcb1f376161286d2e72588b49fcc4b62e5a67))
+* update CHANGELOG and ROADMAP with Phase 0-2 completion ([bb48f07](https://github.com/JNZader/apigen/commit/bb48f07539a599f948fcea089eec1aac54a9b72c))
+* update CHANGELOG with Spring Cloud 2025.1.0 artifact name fix ([b25268c](https://github.com/JNZader/apigen/commit/b25268c768fe44d7b6a0928386e26e2fd9e4e469))
+
+### Build System
+
+* **deps:** bump ch.qos.logback:logback-classic from 1.5.16 to 1.5.25 ([#17](https://github.com/JNZader/apigen/issues/17)) ([1b7bb5b](https://github.com/JNZader/apigen/commit/1b7bb5bfb1d61c5496a701d6d7203fbb40deb025))
+* **deps:** bump com.diffplug.spotless from 7.0.2 to 8.1.0 ([#11](https://github.com/JNZader/apigen/issues/11)) ([a5237c6](https://github.com/JNZader/apigen/commit/a5237c6e92db5417788b664a1673b4482e4d8148))
+* **deps:** bump com.google.errorprone:error_prone_core ([#22](https://github.com/JNZader/apigen/issues/22)) ([0b36b87](https://github.com/JNZader/apigen/commit/0b36b872a8fd4dd4ea4cf4240e570512c726723f))
+* **deps:** bump com.tngtech.archunit:archunit-junit5 from 1.4.0 to 1.4.1 ([#24](https://github.com/JNZader/apigen/issues/24)) ([7ac47d0](https://github.com/JNZader/apigen/commit/7ac47d0445d9c6583e000f6f825e062e078cc668))
+* **deps:** bump io.micrometer:micrometer-tracing-bridge-otel ([4ab4d18](https://github.com/JNZader/apigen/commit/4ab4d1846bf767427458449fe7178a798c88edc1))
+* **deps:** bump net.ltgt.errorprone from 4.1.0 to 4.4.0 ([#16](https://github.com/JNZader/apigen/issues/16)) ([75de3ec](https://github.com/JNZader/apigen/commit/75de3ec7830dcb0a0b384cc90a8df632ea57d457))
+* **deps:** bump org.mockito:mockito-junit-jupiter ([#26](https://github.com/JNZader/apigen/issues/26)) ([68b25c1](https://github.com/JNZader/apigen/commit/68b25c18e4d55a1ea97db04c511878139a379349))
+* **deps:** bump org.slf4j:slf4j-api from 2.0.16 to 2.0.17 ([#12](https://github.com/JNZader/apigen/issues/12)) ([8dbd57b](https://github.com/JNZader/apigen/commit/8dbd57b95a636b2dda95cf90515542d4b3bd60a4))
+* **deps:** bump org.sonarqube from 6.3.1.5724 to 7.2.2.6593 ([b8316de](https://github.com/JNZader/apigen/commit/b8316de6b17e9d3a06013a0564af4bbf365e0265))
+* **deps:** bump org.springdoc:springdoc-openapi-starter-webmvc-ui ([09fe95e](https://github.com/JNZader/apigen/commit/09fe95ed04264410042121927b4810aee4907873))
+* **deps:** bump org.springframework.boot from 4.0.0 to 4.0.1 ([b4fa7c0](https://github.com/JNZader/apigen/commit/b4fa7c012079ef8b8fb2e0230912fb30dbc3588e))
+* **deps:** bump org.springframework.cloud:spring-cloud-dependencies ([#25](https://github.com/JNZader/apigen/issues/25)) ([4b920f5](https://github.com/JNZader/apigen/commit/4b920f585f2f6f17fca7fe3db83ffe163fc96a58))
+* **deps:** bump org.testcontainers:testcontainers-junit-jupiter ([daf8a3f](https://github.com/JNZader/apigen/commit/daf8a3f5231d5ec594860dca38d750f5c30c651d))
+* **deps:** bump testcontainersVersion from 1.20.4 to 1.21.4 ([#14](https://github.com/JNZader/apigen/issues/14)) ([5b77870](https://github.com/JNZader/apigen/commit/5b778708704dff149edf80721bcc1c7ed60e6932))
+
+### CI/CD
+
+* **deps:** bump actions/attest-build-provenance from 1 to 3 ([#13](https://github.com/JNZader/apigen/issues/13)) ([a557623](https://github.com/JNZader/apigen/commit/a5576233024491b17681972b12dac95a22e11336))
+* **deps:** bump actions/checkout from 4 to 6 ([c2ee47d](https://github.com/JNZader/apigen/commit/c2ee47dadf5cf23cfbef4d1317da1038a6bc4534))
+* **deps:** bump actions/setup-java from 4 to 5 ([c5b5e89](https://github.com/JNZader/apigen/commit/c5b5e89c19aa3ca371b8f22c42de4ad3a11dd78f))
+* **deps:** bump actions/upload-artifact from 4 to 6 ([90a9c8c](https://github.com/JNZader/apigen/commit/90a9c8c3fdbc631a5157a9b3db1fe27c3a23bab0))
+* **deps:** bump github/codeql-action from 3 to 4 ([#15](https://github.com/JNZader/apigen/issues/15)) ([34c0df0](https://github.com/JNZader/apigen/commit/34c0df03bfd5418e20dfb01d2ded0f63fae8fc0a))
+* **deps:** bump gradle/actions from 4 to 5 ([2b270e1](https://github.com/JNZader/apigen/commit/2b270e107d08f8731ed4016e66eeca47edf6d88a))
+
 ## [Unreleased]
 
 ### Added
