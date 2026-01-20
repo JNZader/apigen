@@ -71,6 +71,7 @@ public class I18nConfig implements WebMvcConfigurer {
      * @return configured LocaleResolver bean
      */
     @Bean
+    @ConditionalOnMissingBean
     public LocaleResolver localeResolver() {
         AcceptHeaderLocaleResolver resolver = new AcceptHeaderLocaleResolver();
         resolver.setDefaultLocale(DEFAULT_LOCALE);

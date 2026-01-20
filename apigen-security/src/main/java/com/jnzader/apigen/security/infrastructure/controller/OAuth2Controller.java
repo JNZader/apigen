@@ -132,7 +132,7 @@ public class OAuth2Controller {
         } catch (IllegalArgumentException _) {
             return redirectWithError(
                     redirectUri,
-                    "ERROR_INVALID_REQUEST",
+                    ERROR_INVALID_REQUEST,
                     "code_challenge_method must be 'S256' or 'plain'",
                     state);
         }
@@ -141,7 +141,7 @@ public class OAuth2Controller {
         if (codeChallenge == null || codeChallenge.length() < 43 || codeChallenge.length() > 128) {
             return redirectWithError(
                     redirectUri,
-                    "ERROR_INVALID_REQUEST",
+                    ERROR_INVALID_REQUEST,
                     "code_challenge must be 43-128 characters",
                     state);
         }
@@ -263,11 +263,11 @@ public class OAuth2Controller {
         // Validate required fields
         if (request.code() == null || request.code().isEmpty()) {
             return errorResponse(
-                    "ERROR_INVALID_REQUEST", "code is required for authorization_code grant");
+                    ERROR_INVALID_REQUEST, "code is required for authorization_code grant");
         }
         if (request.codeVerifier() == null || request.codeVerifier().isEmpty()) {
             return errorResponse(
-                    "ERROR_INVALID_REQUEST",
+                    ERROR_INVALID_REQUEST,
                     "code_verifier is required for authorization_code grant");
         }
 
@@ -332,7 +332,7 @@ public class OAuth2Controller {
     private ResponseEntity<Object> handleRefreshTokenGrant(PKCETokenRequestDTO request) {
         if (request.refreshToken() == null || request.refreshToken().isEmpty()) {
             return errorResponse(
-                    "ERROR_INVALID_REQUEST", "refresh_token is required for refresh_token grant");
+                    ERROR_INVALID_REQUEST, "refresh_token is required for refresh_token grant");
         }
 
         // Validate refresh token
