@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1](https://github.com/JNZader/apigen/compare/v1.0.0...v1.0.1) (2026-01-20)
+
+### Bug Fixes
+
+* **docs:** remove non-existent doc references from sidebar ([aaef87a](https://github.com/JNZader/apigen/commit/aaef87a5e275978695e6f86ae4cfc4f10cdc6763))
+* **docs:** simplify to use only Redocusaurus for API reference ([2d1523b](https://github.com/JNZader/apigen/commit/2d1523b024063157d9230e3c809d5dd0f12070f8))
+
+### Documentation
+
+* add Docusaurus documentation site and JitPack configuration ([d3f3153](https://github.com/JNZader/apigen/commit/d3f3153bcf7eb137e29eec7844b1fc969fc700e4))
+
 ## 1.0.0 (2026-01-20)
 
 ### Features
