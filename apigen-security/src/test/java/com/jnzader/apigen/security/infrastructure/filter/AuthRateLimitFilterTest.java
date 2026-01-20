@@ -2,6 +2,7 @@ package com.jnzader.apigen.security.infrastructure.filter;
 
 import static org.mockito.Mockito.*;
 
+import com.jnzader.apigen.security.infrastructure.network.ClientIpResolver;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -28,11 +29,13 @@ class AuthRateLimitFilterTest {
 
     @Mock private FilterChain filterChain;
 
+    @Mock private ClientIpResolver clientIpResolver;
+
     private AuthRateLimitFilter filter;
 
     @BeforeEach
     void setUp() {
-        filter = new AuthRateLimitFilter(3, 15); // 3 attempts per 15 minutes
+        filter = new AuthRateLimitFilter(3, 15, clientIpResolver); // 3 attempts per 15 minutes
     }
 
     @Nested
@@ -44,7 +47,7 @@ class AuthRateLimitFilterTest {
         void shouldAllowRequestUnderLimit() throws Exception {
             when(request.getRequestURI()).thenReturn("/api/auth/login");
             when(request.getMethod()).thenReturn("POST");
-            when(request.getRemoteAddr()).thenReturn("192.168.1.1");
+            when(clientIpResolver.resolveClientIp(request)).thenReturn("192.168.1.1");
             when(response.getStatus()).thenReturn(HttpStatus.OK.value());
 
             filter.doFilterInternal(request, response, filterChain);
@@ -59,7 +62,7 @@ class AuthRateLimitFilterTest {
         void shouldBlockRequestOverLimit() throws Exception {
             when(request.getRequestURI()).thenReturn("/api/auth/login");
             when(request.getMethod()).thenReturn("POST");
-            when(request.getRemoteAddr()).thenReturn("192.168.1.2");
+            when(clientIpResolver.resolveClientIp(request)).thenReturn("192.168.1.2");
             when(response.getStatus()).thenReturn(HttpStatus.UNAUTHORIZED.value());
             StringWriter stringWriter = new StringWriter();
             PrintWriter writer = new PrintWriter(stringWriter);
@@ -79,7 +82,7 @@ class AuthRateLimitFilterTest {
         void shouldIncrementCounterOnFailedLogin() throws Exception {
             when(request.getRequestURI()).thenReturn("/api/auth/login");
             when(request.getMethod()).thenReturn("POST");
-            when(request.getRemoteAddr()).thenReturn("192.168.1.3");
+            when(clientIpResolver.resolveClientIp(request)).thenReturn("192.168.1.3");
             when(response.getStatus()).thenReturn(HttpStatus.UNAUTHORIZED.value());
 
             filter.doFilterInternal(request, response, filterChain);
@@ -93,7 +96,7 @@ class AuthRateLimitFilterTest {
         void shouldResetCounterOnSuccessfulLogin() throws Exception {
             when(request.getRequestURI()).thenReturn("/api/auth/login");
             when(request.getMethod()).thenReturn("POST");
-            when(request.getRemoteAddr()).thenReturn("192.168.1.4");
+            when(clientIpResolver.resolveClientIp(request)).thenReturn("192.168.1.4");
 
             // First fail 2 times
             when(response.getStatus()).thenReturn(HttpStatus.UNAUTHORIZED.value());
@@ -116,7 +119,7 @@ class AuthRateLimitFilterTest {
         void shouldApplyToRegisterEndpoint() throws Exception {
             when(request.getRequestURI()).thenReturn("/api/auth/register");
             when(request.getMethod()).thenReturn("POST");
-            when(request.getRemoteAddr()).thenReturn("192.168.1.5");
+            when(clientIpResolver.resolveClientIp(request)).thenReturn("192.168.1.5");
             when(response.getStatus()).thenReturn(HttpStatus.OK.value());
 
             filter.doFilterInternal(request, response, filterChain);
@@ -130,7 +133,7 @@ class AuthRateLimitFilterTest {
         void shouldIncrementCounterOnForbiddenResponse() throws Exception {
             when(request.getRequestURI()).thenReturn("/api/auth/login");
             when(request.getMethod()).thenReturn("POST");
-            when(request.getRemoteAddr()).thenReturn("192.168.1.6");
+            when(clientIpResolver.resolveClientIp(request)).thenReturn("192.168.1.6");
             when(response.getStatus()).thenReturn(HttpStatus.FORBIDDEN.value());
 
             filter.doFilterInternal(request, response, filterChain);
@@ -163,76 +166,36 @@ class AuthRateLimitFilterTest {
     class ClientIpDetectionTests {
 
         @Test
-        @DisplayName("should use X-Forwarded-For header")
-        void shouldUseXForwardedForHeader() throws Exception {
+        @DisplayName("should delegate IP resolution to ClientIpResolver")
+        void shouldDelegateIpResolutionToClientIpResolver() throws Exception {
             when(request.getRequestURI()).thenReturn("/api/auth/login");
             when(request.getMethod()).thenReturn("POST");
-            when(request.getHeader("X-Forwarded-For")).thenReturn("10.0.0.1");
+            when(clientIpResolver.resolveClientIp(request)).thenReturn("10.0.0.1");
             when(response.getStatus()).thenReturn(HttpStatus.OK.value());
 
             filter.doFilterInternal(request, response, filterChain);
 
+            verify(clientIpResolver).resolveClientIp(request);
             verify(filterChain).doFilter(request, response);
         }
 
         @Test
-        @DisplayName("should use X-Real-IP header when X-Forwarded-For is missing")
-        void shouldUseXRealIpHeader() throws Exception {
+        @DisplayName("should use resolved IP for rate limiting")
+        void shouldUseResolvedIpForRateLimiting() throws Exception {
             when(request.getRequestURI()).thenReturn("/api/auth/login");
             when(request.getMethod()).thenReturn("POST");
-            when(request.getHeader("X-Forwarded-For")).thenReturn(null);
-            when(request.getHeader("X-Real-IP")).thenReturn("10.0.0.2");
-            when(response.getStatus()).thenReturn(HttpStatus.OK.value());
+            when(clientIpResolver.resolveClientIp(request)).thenReturn("10.0.0.1");
+            when(response.getStatus()).thenReturn(HttpStatus.UNAUTHORIZED.value());
 
+            // First request
             filter.doFilterInternal(request, response, filterChain);
 
-            verify(filterChain).doFilter(request, response);
-        }
-
-        @Test
-        @DisplayName("should extract first IP from comma-separated list")
-        void shouldExtractFirstIpFromList() throws Exception {
-            when(request.getRequestURI()).thenReturn("/api/auth/login");
-            when(request.getMethod()).thenReturn("POST");
-            when(request.getHeader("X-Forwarded-For"))
-                    .thenReturn("10.0.0.3, 192.168.1.1, 172.16.0.1");
-            when(response.getStatus()).thenReturn(HttpStatus.OK.value());
-
+            // Change resolved IP - should have fresh limit
+            when(clientIpResolver.resolveClientIp(request)).thenReturn("10.0.0.2");
             filter.doFilterInternal(request, response, filterChain);
 
-            verify(filterChain).doFilter(request, response);
-        }
-
-        @Test
-        @DisplayName("should skip unknown IP header values")
-        void shouldSkipUnknownIpHeaderValues() throws Exception {
-            when(request.getRequestURI()).thenReturn("/api/auth/login");
-            when(request.getMethod()).thenReturn("POST");
-            when(request.getHeader("X-Forwarded-For")).thenReturn("unknown");
-            when(request.getHeader("X-Real-IP")).thenReturn("unknown");
-            when(request.getHeader("Proxy-Client-IP")).thenReturn(null);
-            when(request.getHeader("WL-Proxy-Client-IP")).thenReturn(null);
-            when(request.getRemoteAddr()).thenReturn("127.0.0.1");
-            when(response.getStatus()).thenReturn(HttpStatus.OK.value());
-
-            filter.doFilterInternal(request, response, filterChain);
-
-            verify(filterChain).doFilter(request, response);
-        }
-
-        @Test
-        @DisplayName("should use Proxy-Client-IP when previous headers are blank")
-        void shouldUseProxyClientIpHeader() throws Exception {
-            when(request.getRequestURI()).thenReturn("/api/auth/login");
-            when(request.getMethod()).thenReturn("POST");
-            when(request.getHeader("X-Forwarded-For")).thenReturn("   ");
-            when(request.getHeader("X-Real-IP")).thenReturn(null);
-            when(request.getHeader("Proxy-Client-IP")).thenReturn("10.0.0.4");
-            when(response.getStatus()).thenReturn(HttpStatus.OK.value());
-
-            filter.doFilterInternal(request, response, filterChain);
-
-            verify(filterChain).doFilter(request, response);
+            // Both should pass since different IPs
+            verify(filterChain, times(2)).doFilter(request, response);
         }
     }
 
@@ -245,7 +208,7 @@ class AuthRateLimitFilterTest {
         void shouldSetRetryAfterHeaderWhenBlocked() throws Exception {
             when(request.getRequestURI()).thenReturn("/api/auth/login");
             when(request.getMethod()).thenReturn("POST");
-            when(request.getRemoteAddr()).thenReturn("192.168.1.10");
+            when(clientIpResolver.resolveClientIp(request)).thenReturn("192.168.1.10");
             when(response.getStatus()).thenReturn(HttpStatus.UNAUTHORIZED.value());
             StringWriter stringWriter = new StringWriter();
             PrintWriter writer = new PrintWriter(stringWriter);
@@ -264,7 +227,7 @@ class AuthRateLimitFilterTest {
         void shouldReturnJsonErrorResponseWhenBlocked() throws Exception {
             when(request.getRequestURI()).thenReturn("/api/auth/login");
             when(request.getMethod()).thenReturn("POST");
-            when(request.getRemoteAddr()).thenReturn("192.168.1.11");
+            when(clientIpResolver.resolveClientIp(request)).thenReturn("192.168.1.11");
             when(response.getStatus()).thenReturn(HttpStatus.UNAUTHORIZED.value());
             StringWriter stringWriter = new StringWriter();
             PrintWriter writer = new PrintWriter(stringWriter);

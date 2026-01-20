@@ -2,6 +2,7 @@ package com.jnzader.apigen.security.infrastructure.filter;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.jnzader.apigen.security.infrastructure.network.ClientIpResolver;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,6 +12,7 @@ import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.Ordered;
@@ -35,18 +37,21 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class AuthRateLimitFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(AuthRateLimitFilter.class);
-    private static final String UNKNOWN_IP = "unknown";
 
     private final int maxLoginAttempts;
     private final Duration lockoutDuration;
     private final Cache<String, AtomicInteger> loginAttempts;
+    private final ClientIpResolver clientIpResolver;
 
+    @Autowired
     public AuthRateLimitFilter(
             @Value("${app.security.auth-rate-limit.max-attempts:5}") int maxLoginAttempts,
-            @Value("${app.security.auth-rate-limit.lockout-minutes:15}") int lockoutMinutes) {
+            @Value("${app.security.auth-rate-limit.lockout-minutes:15}") int lockoutMinutes,
+            ClientIpResolver clientIpResolver) {
 
         this.maxLoginAttempts = maxLoginAttempts;
         this.lockoutDuration = Duration.ofMinutes(lockoutMinutes);
+        this.clientIpResolver = clientIpResolver;
 
         this.loginAttempts =
                 Caffeine.newBuilder()
@@ -116,20 +121,7 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
     }
 
     private String getClientIp(HttpServletRequest request) {
-        // Verificar headers de proxy en orden de preferencia
-        String[] headerNames = {
-            "X-Forwarded-For", "X-Real-IP", "Proxy-Client-IP", "WL-Proxy-Client-IP"
-        };
-
-        for (String header : headerNames) {
-            String ip = request.getHeader(header);
-            if (ip != null && !ip.isBlank() && !UNKNOWN_IP.equalsIgnoreCase(ip)) {
-                // X-Forwarded-For puede contener múltiples IPs, tomar la primera
-                return ip.split(",")[0].trim();
-            }
-        }
-
-        return request.getRemoteAddr();
+        return clientIpResolver.resolveClientIp(request);
     }
 
     private void sendRateLimitResponse(HttpServletResponse response) throws IOException {

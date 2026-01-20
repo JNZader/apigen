@@ -89,27 +89,7 @@ public class SecurityConfig {
                 .headers(this::configureSecurityHeaders)
 
                 // Autorización de endpoints
-                .authorizeHttpRequests(
-                        auth ->
-                                auth
-                                        // Endpoints de autenticación públicos
-                                        .requestMatchers("/api/auth/**")
-                                        .permitAll()
-                                        // Actuator health/info públicos
-                                        .requestMatchers("/actuator/health", "/actuator/info")
-                                        .permitAll()
-                                        // Swagger/OpenAPI públicos
-                                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**")
-                                        .permitAll()
-                                        // CORS preflight
-                                        .requestMatchers(HttpMethod.OPTIONS, "/**")
-                                        .permitAll()
-                                        // Actuator completo solo para ADMIN
-                                        .requestMatchers("/actuator/**")
-                                        .hasRole("ADMIN")
-                                        // El resto requiere autenticación
-                                        .anyRequest()
-                                        .authenticated())
+                .authorizeHttpRequests(this::configureAuthorizationRules)
 
                 // Proveedor de autenticación
                 .authenticationProvider(authenticationProvider())
@@ -118,6 +98,82 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    /**
+     * Configura las reglas de autorización para los endpoints HTTP.
+     *
+     * <p>Incluye configuración condicional para Swagger/OpenAPI basada en
+     * apigen.security.swagger.protection-mode.
+     */
+    private void configureAuthorizationRules(
+            org.springframework.security.config.annotation.web.configurers
+                                            .AuthorizeHttpRequestsConfigurer<
+                                    org.springframework.security.config.annotation.web.builders
+                                            .HttpSecurity>
+                            .AuthorizationManagerRequestMatcherRegistry
+                    auth) {
+
+        // Endpoints de autenticación siempre públicos
+        auth.requestMatchers("/api/auth/**").permitAll();
+
+        // Actuator health/info públicos para health checks
+        auth.requestMatchers("/actuator/health", "/actuator/info").permitAll();
+
+        // Configurar Swagger según el modo de protección
+        configureSwaggerAuthorization(auth);
+
+        // CORS preflight siempre permitido
+        auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
+
+        // Actuator completo solo para ADMIN
+        auth.requestMatchers("/actuator/**").hasRole("ADMIN");
+
+        // El resto requiere autenticación
+        auth.anyRequest().authenticated();
+    }
+
+    /**
+     * Configura la autorización para Swagger/OpenAPI según el modo de protección.
+     *
+     * <p>Modos soportados:
+     *
+     * <ul>
+     *   <li>PUBLIC: Acceso sin autenticación (default para desarrollo)
+     *   <li>AUTHENTICATED: Requiere cualquier usuario autenticado
+     *   <li>ADMIN: Requiere rol ADMIN
+     *   <li>ROLES: Requiere uno de los roles especificados
+     *   <li>DISABLED: Swagger completamente bloqueado (denyAll)
+     * </ul>
+     */
+    private void configureSwaggerAuthorization(
+            org.springframework.security.config.annotation.web.configurers
+                                            .AuthorizeHttpRequestsConfigurer<
+                                    org.springframework.security.config.annotation.web.builders
+                                            .HttpSecurity>
+                            .AuthorizationManagerRequestMatcherRegistry
+                    auth) {
+
+        SecurityProperties.SwaggerProperties swaggerConfig = securityProperties.getSwagger();
+        String[] swaggerPaths = {"/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html"};
+
+        switch (swaggerConfig.getProtectionMode()) {
+            case PUBLIC -> auth.requestMatchers(swaggerPaths).permitAll();
+
+            case AUTHENTICATED -> auth.requestMatchers(swaggerPaths).authenticated();
+
+            case ADMIN -> auth.requestMatchers(swaggerPaths).hasRole("ADMIN");
+
+            case ROLES -> {
+                String[] roles =
+                        swaggerConfig.getAllowedRoles().stream()
+                                .map(role -> role.startsWith("ROLE_") ? role.substring(5) : role)
+                                .toArray(String[]::new);
+                auth.requestMatchers(swaggerPaths).hasAnyRole(roles);
+            }
+
+            case DISABLED -> auth.requestMatchers(swaggerPaths).denyAll();
+        }
     }
 
     /**
