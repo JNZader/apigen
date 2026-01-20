@@ -25,6 +25,9 @@ COPY apigen-bom apigen-bom
 COPY apigen-core apigen-core
 COPY apigen-security apigen-security
 COPY apigen-codegen apigen-codegen
+COPY apigen-graphql apigen-graphql
+COPY apigen-grpc apigen-grpc
+COPY apigen-gateway apigen-gateway
 COPY apigen-server apigen-server
 COPY apigen-example apigen-example
 
