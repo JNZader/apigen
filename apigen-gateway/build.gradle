@@ -23,8 +23,8 @@ dependencies {
     // Core module
     api project(':apigen-core')
 
-    // Spring Cloud Gateway (reactive)
-    api 'org.springframework.cloud:spring-cloud-starter-gateway'
+    // Spring Cloud Gateway (reactive) - new artifact name in Spring Cloud 2025.1.0
+    api 'org.springframework.cloud:spring-cloud-gateway-server-webflux'
 
     // Circuit Breaker (Resilience4j)
     api 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j'

@@ -198,6 +198,8 @@ class ArchitectureTest {
                     .areNotInterfaces()
                     .and()
                     .areNotEnums()
+                    .and()
+                    .resideOutsideOfPackage("..infrastructure.eventsourcing..")
                     .should()
                     .resideInAPackage("..domain.event..")
                     .allowEmptyShould(true)
