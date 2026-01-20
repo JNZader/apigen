@@ -1,6 +1,7 @@
 package com.jnzader.apigen.security.infrastructure.ratelimit;
 
 import com.jnzader.apigen.security.infrastructure.config.SecurityProperties;
+import com.jnzader.apigen.security.infrastructure.network.ClientIpResolver;
 import io.github.bucket4j.ConsumptionProbe;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -39,15 +40,18 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class ApiRateLimitFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(ApiRateLimitFilter.class);
-    private static final String UNKNOWN_IP = "unknown";
 
     private final RateLimitService rateLimitService;
     private final SecurityProperties securityProperties;
+    private final ClientIpResolver clientIpResolver;
 
     public ApiRateLimitFilter(
-            RateLimitService rateLimitService, SecurityProperties securityProperties) {
+            RateLimitService rateLimitService,
+            SecurityProperties securityProperties,
+            ClientIpResolver clientIpResolver) {
         this.rateLimitService = rateLimitService;
         this.securityProperties = securityProperties;
+        this.clientIpResolver = clientIpResolver;
         log.info(
                 "API Rate Limit Filter initialized (storage: {})",
                 securityProperties.getRateLimit().getStorageMode());
@@ -114,20 +118,7 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
     }
 
     private String getClientIp(HttpServletRequest request) {
-        String[] headerNames = {
-            "X-Forwarded-For", "X-Real-IP", "Proxy-Client-IP", "WL-Proxy-Client-IP"
-        };
-
-        for (String header : headerNames) {
-            String ip = request.getHeader(header);
-            if (ip != null && !ip.isBlank() && !UNKNOWN_IP.equalsIgnoreCase(ip)) {
-                // X-Forwarded-For puede tener múltiples IPs
-                int commaIndex = ip.indexOf(',');
-                return commaIndex > 0 ? ip.substring(0, commaIndex).trim() : ip.trim();
-            }
-        }
-
-        return request.getRemoteAddr();
+        return clientIpResolver.resolveClientIp(request);
     }
 
     private void addRateLimitHeaders(

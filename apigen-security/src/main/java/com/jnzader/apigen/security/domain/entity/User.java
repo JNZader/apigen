@@ -69,6 +69,20 @@ public class User extends Base implements UserDetails {
 
     @Column private String lastLoginIp;
 
+    /** Número de intentos de login fallidos consecutivos. */
+    @Column(nullable = false)
+    private int failedAttemptCount = 0;
+
+    /** Timestamp hasta cuando la cuenta está bloqueada. Null si no está bloqueada. */
+    @Column private Instant lockedUntil;
+
+    /** Timestamp del último intento fallido. Para resetear contador tras inactividad. */
+    @Column private Instant lastFailedAttemptAt;
+
+    /** Número de veces que la cuenta ha sido bloqueada. Para bloqueo permanente. */
+    @Column(nullable = false)
+    private int lockoutCount = 0;
+
     /**
      * Cache de authorities para evitar N+1 queries. Se invalida automáticamente cuando cambia el
      * rol.
@@ -124,7 +138,15 @@ public class User extends Base implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return accountNonLocked;
+        // Check permanent lock flag
+        if (!accountNonLocked) {
+            return false;
+        }
+        // Check temporary lockout
+        if (lockedUntil != null && Instant.now().isBefore(lockedUntil)) {
+            return false;
+        }
+        return true;
     }
 
     @Override
@@ -211,6 +233,38 @@ public class User extends Base implements UserDetails {
 
     public void setLastLoginIp(String lastLoginIp) {
         this.lastLoginIp = lastLoginIp;
+    }
+
+    public int getFailedAttemptCount() {
+        return failedAttemptCount;
+    }
+
+    public void setFailedAttemptCount(int failedAttemptCount) {
+        this.failedAttemptCount = failedAttemptCount;
+    }
+
+    public Instant getLockedUntil() {
+        return lockedUntil;
+    }
+
+    public void setLockedUntil(Instant lockedUntil) {
+        this.lockedUntil = lockedUntil;
+    }
+
+    public Instant getLastFailedAttemptAt() {
+        return lastFailedAttemptAt;
+    }
+
+    public void setLastFailedAttemptAt(Instant lastFailedAttemptAt) {
+        this.lastFailedAttemptAt = lastFailedAttemptAt;
+    }
+
+    public int getLockoutCount() {
+        return lockoutCount;
+    }
+
+    public void setLockoutCount(int lockoutCount) {
+        this.lockoutCount = lockoutCount;
     }
 
     // ==================== Helper Methods ====================

@@ -65,6 +65,15 @@ public class SecurityProperties {
     /** Configuración de PKCE OAuth2. */
     private PkceProperties pkce = new PkceProperties();
 
+    /** Configuración de bloqueo de cuentas por intentos fallidos. */
+    private AccountLockoutProperties accountLockout = new AccountLockoutProperties();
+
+    /** Configuración de protección de Swagger/OpenAPI UI. */
+    private SwaggerProperties swagger = new SwaggerProperties();
+
+    /** Configuración de proxies de confianza para X-Forwarded-For. */
+    private TrustedProxiesProperties trustedProxies = new TrustedProxiesProperties();
+
     /** Modos de autenticación soportados. */
     public enum AuthMode {
         /** JWT propio con secret compartido (HS256) */
@@ -193,6 +202,30 @@ public class SecurityProperties {
 
     public void setPkce(PkceProperties pkce) {
         this.pkce = pkce;
+    }
+
+    public AccountLockoutProperties getAccountLockout() {
+        return accountLockout;
+    }
+
+    public void setAccountLockout(AccountLockoutProperties accountLockout) {
+        this.accountLockout = accountLockout;
+    }
+
+    public SwaggerProperties getSwagger() {
+        return swagger;
+    }
+
+    public void setSwagger(SwaggerProperties swagger) {
+        this.swagger = swagger;
+    }
+
+    public TrustedProxiesProperties getTrustedProxies() {
+        return trustedProxies;
+    }
+
+    public void setTrustedProxies(TrustedProxiesProperties trustedProxies) {
+        this.trustedProxies = trustedProxies;
     }
 
     /** Determina si está en modo JWT propio. */
@@ -772,6 +805,355 @@ public class SecurityProperties {
 
         public void setAllowPkceHelperEndpoint(boolean allowPkceHelperEndpoint) {
             this.allowPkceHelperEndpoint = allowPkceHelperEndpoint;
+        }
+    }
+
+    /**
+     * Propiedades de configuración para bloqueo de cuentas por intentos fallidos.
+     *
+     * <p>Protege contra ataques de fuerza bruta bloqueando temporalmente las cuentas después de
+     * múltiples intentos de login fallidos.
+     *
+     * <p>Uso en application.yml:
+     *
+     * <pre>
+     * apigen:
+     *   security:
+     *     account-lockout:
+     *       enabled: true
+     *       max-failed-attempts: 5
+     *       lockout-duration-minutes: 15
+     *       reset-after-minutes: 30
+     * </pre>
+     */
+    public static class AccountLockoutProperties {
+
+        /** Habilitar bloqueo de cuentas por intentos fallidos. Default: true. */
+        private boolean enabled = true;
+
+        /**
+         * Número máximo de intentos fallidos antes de bloquear la cuenta. Default: 5 intentos.
+         * Recomendación OWASP: 3-5 intentos.
+         */
+        private int maxFailedAttempts = 5;
+
+        /**
+         * Duración del bloqueo en minutos después de exceder los intentos. Default: 15 minutos.
+         * Recomendación: incrementar exponencialmente en bloqueos repetidos.
+         */
+        private int lockoutDurationMinutes = 15;
+
+        /**
+         * Tiempo en minutos después del cual se resetean los intentos fallidos si no hay más
+         * intentos. Default: 30 minutos. Previene acumulación de intentos en ataques lentos.
+         */
+        private int resetAfterMinutes = 30;
+
+        /**
+         * Notificar al usuario por email cuando su cuenta es bloqueada. Default: false. Requiere
+         * configuración de email.
+         */
+        private boolean notifyOnLockout = false;
+
+        /**
+         * Habilitar desbloqueo permanente después de múltiples bloqueos. Requiere intervención de
+         * admin. Default: false.
+         */
+        private boolean permanentLockoutEnabled = false;
+
+        /**
+         * Número de bloqueos temporales antes de bloqueo permanente. Solo aplica si
+         * permanentLockoutEnabled=true. Default: 3.
+         */
+        private int lockoutsBeforePermanent = 3;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public int getMaxFailedAttempts() {
+            return maxFailedAttempts;
+        }
+
+        public void setMaxFailedAttempts(int maxFailedAttempts) {
+            this.maxFailedAttempts = maxFailedAttempts;
+        }
+
+        public int getLockoutDurationMinutes() {
+            return lockoutDurationMinutes;
+        }
+
+        public void setLockoutDurationMinutes(int lockoutDurationMinutes) {
+            this.lockoutDurationMinutes = lockoutDurationMinutes;
+        }
+
+        public int getResetAfterMinutes() {
+            return resetAfterMinutes;
+        }
+
+        public void setResetAfterMinutes(int resetAfterMinutes) {
+            this.resetAfterMinutes = resetAfterMinutes;
+        }
+
+        public boolean isNotifyOnLockout() {
+            return notifyOnLockout;
+        }
+
+        public void setNotifyOnLockout(boolean notifyOnLockout) {
+            this.notifyOnLockout = notifyOnLockout;
+        }
+
+        public boolean isPermanentLockoutEnabled() {
+            return permanentLockoutEnabled;
+        }
+
+        public void setPermanentLockoutEnabled(boolean permanentLockoutEnabled) {
+            this.permanentLockoutEnabled = permanentLockoutEnabled;
+        }
+
+        public int getLockoutsBeforePermanent() {
+            return lockoutsBeforePermanent;
+        }
+
+        public void setLockoutsBeforePermanent(int lockoutsBeforePermanent) {
+            this.lockoutsBeforePermanent = lockoutsBeforePermanent;
+        }
+    }
+
+    /**
+     * Propiedades de configuración para protección de Swagger/OpenAPI UI.
+     *
+     * <p>En producción, es recomendable proteger o deshabilitar la documentación de la API para
+     * evitar exponer información sensible sobre la estructura de la API.
+     *
+     * <p>Uso en application.yml:
+     *
+     * <pre>
+     * apigen:
+     *   security:
+     *     swagger:
+     *       protection-mode: admin  # 'public', 'authenticated', 'admin', 'disabled'
+     *       allowed-roles:          # Solo si protection-mode=roles
+     *         - ADMIN
+     *         - API_DOCS
+     * </pre>
+     */
+    public static class SwaggerProperties {
+
+        /**
+         * Modo de protección para Swagger UI y OpenAPI docs. Default: public (desarrollo). En
+         * producción se recomienda 'admin' o 'disabled'.
+         */
+        private SwaggerProtectionMode protectionMode = SwaggerProtectionMode.PUBLIC;
+
+        /** Roles permitidos para acceder a Swagger cuando protection-mode=roles. Default: ADMIN. */
+        private java.util.List<String> allowedRoles = java.util.List.of("ADMIN");
+
+        /**
+         * Deshabilitar en perfiles de producción automáticamente. Si está habilitado, cambia a
+         * 'admin' cuando el perfil activo es 'prod' o 'production'. Default: true.
+         */
+        private boolean autoProtectInProduction = true;
+
+        /** Modos de protección para Swagger/OpenAPI. */
+        public enum SwaggerProtectionMode {
+            /** Acceso público sin autenticación. Recomendado solo para desarrollo. */
+            PUBLIC,
+            /** Requiere autenticación (cualquier usuario autenticado). */
+            AUTHENTICATED,
+            /** Requiere rol ADMIN. */
+            ADMIN,
+            /** Requiere uno de los roles especificados en allowedRoles. */
+            ROLES,
+            /** Swagger completamente deshabilitado. Los endpoints devuelven 404. */
+            DISABLED
+        }
+
+        public SwaggerProtectionMode getProtectionMode() {
+            return protectionMode;
+        }
+
+        public void setProtectionMode(SwaggerProtectionMode protectionMode) {
+            this.protectionMode = protectionMode;
+        }
+
+        public java.util.List<String> getAllowedRoles() {
+            return allowedRoles;
+        }
+
+        public void setAllowedRoles(java.util.List<String> allowedRoles) {
+            this.allowedRoles = allowedRoles;
+        }
+
+        public boolean isAutoProtectInProduction() {
+            return autoProtectInProduction;
+        }
+
+        public void setAutoProtectInProduction(boolean autoProtectInProduction) {
+            this.autoProtectInProduction = autoProtectInProduction;
+        }
+
+        /** Helper: determina si Swagger está completamente deshabilitado. */
+        public boolean isDisabled() {
+            return protectionMode == SwaggerProtectionMode.DISABLED;
+        }
+
+        /** Helper: determina si Swagger es público (sin autenticación). */
+        public boolean isPublic() {
+            return protectionMode == SwaggerProtectionMode.PUBLIC;
+        }
+
+        /** Helper: determina si requiere autenticación. */
+        public boolean requiresAuthentication() {
+            return protectionMode == SwaggerProtectionMode.AUTHENTICATED
+                    || protectionMode == SwaggerProtectionMode.ADMIN
+                    || protectionMode == SwaggerProtectionMode.ROLES;
+        }
+
+        /** Helper: determina si requiere rol ADMIN específicamente. */
+        public boolean requiresAdmin() {
+            return protectionMode == SwaggerProtectionMode.ADMIN;
+        }
+    }
+
+    /**
+     * Propiedades de configuración para validación de proxies de confianza.
+     *
+     * <p>Controla cómo se determina la IP real del cliente cuando la aplicación está detrás de un
+     * proxy o load balancer que establece headers como X-Forwarded-For.
+     *
+     * <p>IMPORTANTE: Sin una configuración adecuada, un atacante podría falsificar su IP enviando
+     * headers X-Forwarded-For directamente. Esto afecta:
+     *
+     * <ul>
+     *   <li>Rate limiting (bypass de límites por IP)
+     *   <li>Account lockout (bloqueo de IPs incorrectas)
+     *   <li>Logs de auditoría (registro de IPs falsas)
+     * </ul>
+     *
+     * <p>Uso en application.yml:
+     *
+     * <pre>
+     * apigen:
+     *   security:
+     *     trusted-proxies:
+     *       mode: configured  # 'trust-all', 'trust-direct', 'configured'
+     *       addresses:
+     *         - 10.0.0.0/8    # Red interna
+     *         - 172.16.0.0/12
+     *         - 192.168.0.0/16
+     *         - 127.0.0.1     # Localhost
+     * </pre>
+     */
+    public static class TrustedProxiesProperties {
+
+        /**
+         * Modo de confianza para proxies. - TRUST_ALL: Confía en cualquier X-Forwarded-For
+         * (INSEGURO, solo para desarrollo) - TRUST_DIRECT: Solo usa remoteAddr, ignora headers de
+         * proxy (más seguro si no hay proxy) - CONFIGURED: Solo confía en proxies de la lista
+         * configurada (RECOMENDADO para producción)
+         *
+         * <p>Default: TRUST_ALL para compatibilidad con versiones anteriores. En producción se
+         * recomienda CONFIGURED.
+         */
+        private TrustMode mode = TrustMode.TRUST_ALL;
+
+        /**
+         * Lista de direcciones IP o rangos CIDR de proxies de confianza. Solo aplica cuando
+         * mode=CONFIGURED.
+         *
+         * <p>Ejemplos: - 127.0.0.1 (localhost) - 10.0.0.0/8 (rango CIDR clase A privada) - ::1
+         * (IPv6 localhost)
+         *
+         * <p>Valores comunes para cloud providers: - AWS ALB: IPs del VPC - GCP GLB:
+         * 130.211.0.0/22, 35.191.0.0/16 - Cloudflare: Ver https://www.cloudflare.com/ips/
+         */
+        private java.util.List<String> addresses =
+                java.util.List.of(
+                        "127.0.0.1", // IPv4 localhost
+                        "::1", // IPv6 localhost
+                        "10.0.0.0/8", // Private Class A
+                        "172.16.0.0/12", // Private Class B
+                        "192.168.0.0/16" // Private Class C
+                        );
+
+        /**
+         * Nombre del header a usar para obtener la IP del cliente. Default: X-Forwarded-For
+         * (estándar de facto).
+         */
+        private String forwardedForHeader = "X-Forwarded-For";
+
+        /**
+         * Si usar el primer o último IP en la cadena X-Forwarded-For. - true: Toma el primer IP
+         * (cliente original, asumiendo proxies confiables) - false: Toma el último IP añadido antes
+         * del proxy de confianza
+         *
+         * <p>Default: true (comportamiento estándar).
+         */
+        private boolean useFirstInChain = true;
+
+        /** Modos de confianza para proxies. */
+        public enum TrustMode {
+            /**
+             * Confía en cualquier header X-Forwarded-For. INSEGURO para producción, solo usar en
+             * desarrollo.
+             */
+            TRUST_ALL,
+            /**
+             * Ignora todos los headers de proxy, solo usa la IP directa (remoteAddr). Usar si la
+             * aplicación no está detrás de un proxy.
+             */
+            TRUST_DIRECT,
+            /**
+             * Solo confía en proxies con IPs en la lista configurada. RECOMENDADO para producción.
+             */
+            CONFIGURED
+        }
+
+        public TrustMode getMode() {
+            return mode;
+        }
+
+        public void setMode(TrustMode mode) {
+            this.mode = mode;
+        }
+
+        public java.util.List<String> getAddresses() {
+            return addresses;
+        }
+
+        public void setAddresses(java.util.List<String> addresses) {
+            this.addresses = addresses;
+        }
+
+        public String getForwardedForHeader() {
+            return forwardedForHeader;
+        }
+
+        public void setForwardedForHeader(String forwardedForHeader) {
+            this.forwardedForHeader = forwardedForHeader;
+        }
+
+        public boolean isUseFirstInChain() {
+            return useFirstInChain;
+        }
+
+        public void setUseFirstInChain(boolean useFirstInChain) {
+            this.useFirstInChain = useFirstInChain;
+        }
+
+        /** Helper: determina si se deben validar los proxies. */
+        public boolean shouldValidateProxies() {
+            return mode == TrustMode.CONFIGURED;
+        }
+
+        /** Helper: determina si se ignoran los headers de proxy. */
+        public boolean shouldIgnoreProxyHeaders() {
+            return mode == TrustMode.TRUST_DIRECT;
         }
     }
 }
