@@ -13,7 +13,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.net.URI;
@@ -58,6 +57,10 @@ public class OAuth2Controller {
 
     private static final Logger log = LoggerFactory.getLogger(OAuth2Controller.class);
 
+    // OAuth2 error codes (RFC 6749)
+    private static final String ERROR_INVALID_GRANT = "invalid_grant";
+    private static final String ERROR_INVALID_REQUEST = "invalid_request";
+
     private final PKCEService pkceService;
     private final PKCEAuthorizationStore authorizationStore;
     private final JwtService jwtService;
@@ -99,13 +102,9 @@ public class OAuth2Controller {
             description =
                     "Initiates the OAuth2 authorization code flow with PKCE. Requires user"
                             + " authentication. Returns a redirect with authorization code.")
-    @ApiResponses({
-        @ApiResponse(
-                responseCode = "302",
-                description = "Redirect to callback with authorization code"),
-        @ApiResponse(responseCode = "400", description = "Invalid request parameters"),
-        @ApiResponse(responseCode = "401", description = "User not authenticated")
-    })
+    @ApiResponse(responseCode = "302", description = "Redirect to callback with authorization code")
+    @ApiResponse(responseCode = "400", description = "Invalid request parameters")
+    @ApiResponse(responseCode = "401", description = "User not authenticated")
     public ResponseEntity<Void> authorize(
             @RequestParam("client_id") String clientId,
             @RequestParam("redirect_uri") String redirectUri,
@@ -130,10 +129,10 @@ public class OAuth2Controller {
         CodeChallengeMethod method;
         try {
             method = CodeChallengeMethod.valueOf(codeChallengeMethod.toUpperCase());
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException _) {
             return redirectWithError(
                     redirectUri,
-                    "invalid_request",
+                    "ERROR_INVALID_REQUEST",
                     "code_challenge_method must be 'S256' or 'plain'",
                     state);
         }
@@ -142,7 +141,7 @@ public class OAuth2Controller {
         if (codeChallenge == null || codeChallenge.length() < 43 || codeChallenge.length() > 128) {
             return redirectWithError(
                     redirectUri,
-                    "invalid_request",
+                    "ERROR_INVALID_REQUEST",
                     "code_challenge must be 43-128 characters",
                     state);
         }
@@ -190,17 +189,13 @@ public class OAuth2Controller {
                     "Exchanges an authorization code for access and refresh tokens. "
                             + "For authorization_code grant, code and code_verifier are required. "
                             + "For refresh_token grant, refresh_token is required.")
-    @ApiResponses({
-        @ApiResponse(
-                responseCode = "200",
-                description = "Tokens issued successfully",
-                content = @Content(schema = @Schema(implementation = OAuth2TokenResponse.class))),
-        @ApiResponse(
-                responseCode = "400",
-                description = "Invalid request or PKCE verification failed"),
-        @ApiResponse(responseCode = "401", description = "Invalid or expired authorization code")
-    })
-    public ResponseEntity<?> token(@Valid PKCETokenRequestDTO request) {
+    @ApiResponse(
+            responseCode = "200",
+            description = "Tokens issued successfully",
+            content = @Content(schema = @Schema(implementation = OAuth2TokenResponse.class)))
+    @ApiResponse(responseCode = "400", description = "Invalid request or PKCE verification failed")
+    @ApiResponse(responseCode = "401", description = "Invalid or expired authorization code")
+    public ResponseEntity<Object> token(@Valid PKCETokenRequestDTO request) {
         if (request.isAuthorizationCodeGrant()) {
             return handleAuthorizationCodeGrant(request);
         } else if (request.isRefreshTokenGrant()) {
@@ -212,7 +207,7 @@ public class OAuth2Controller {
 
     /** Alternative token endpoint accepting JSON. */
     @PostMapping(value = "/token", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> tokenJson(@Valid @RequestBody PKCETokenRequestDTO request) {
+    public ResponseEntity<Object> tokenJson(@Valid @RequestBody PKCETokenRequestDTO request) {
         return token(request);
     }
 
@@ -225,10 +220,8 @@ public class OAuth2Controller {
      */
     @PostMapping(value = "/revoke", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     @Operation(summary = "Revoke a token", description = "Revokes an access or refresh token")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Token revoked successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid request")
-    })
+    @ApiResponse(responseCode = "200", description = "Token revoked successfully")
+    @ApiResponse(responseCode = "400", description = "Invalid request")
     public ResponseEntity<Void> revoke(
             @RequestParam("token") String token,
             @RequestParam(value = "token_type_hint", required = false) String tokenTypeHint) {
@@ -266,15 +259,16 @@ public class OAuth2Controller {
         return ResponseEntity.ok(response);
     }
 
-    private ResponseEntity<?> handleAuthorizationCodeGrant(PKCETokenRequestDTO request) {
+    private ResponseEntity<Object> handleAuthorizationCodeGrant(PKCETokenRequestDTO request) {
         // Validate required fields
         if (request.code() == null || request.code().isEmpty()) {
             return errorResponse(
-                    "invalid_request", "code is required for authorization_code grant");
+                    "ERROR_INVALID_REQUEST", "code is required for authorization_code grant");
         }
         if (request.codeVerifier() == null || request.codeVerifier().isEmpty()) {
             return errorResponse(
-                    "invalid_request", "code_verifier is required for authorization_code grant");
+                    "ERROR_INVALID_REQUEST",
+                    "code_verifier is required for authorization_code grant");
         }
 
         // Consume authorization code (single-use)
@@ -282,20 +276,20 @@ public class OAuth2Controller {
                 authorizationStore.consumeAuthorizationCode(request.code());
 
         if (authDataOpt.isEmpty()) {
-            return errorResponse("invalid_grant", "Invalid or expired authorization code");
+            return errorResponse(ERROR_INVALID_GRANT, "Invalid or expired authorization code");
         }
 
         AuthorizationData authData = authDataOpt.get();
 
         // Validate client_id matches
         if (!authData.clientId().equals(request.clientId())) {
-            return errorResponse("invalid_grant", "client_id does not match");
+            return errorResponse(ERROR_INVALID_GRANT, "client_id does not match");
         }
 
         // Validate redirect_uri matches (if provided)
         if (request.redirectUri() != null
                 && !authData.redirectUri().equals(request.redirectUri())) {
-            return errorResponse("invalid_grant", "redirect_uri does not match");
+            return errorResponse(ERROR_INVALID_GRANT, "redirect_uri does not match");
         }
 
         // Verify PKCE code challenge
@@ -310,13 +304,13 @@ public class OAuth2Controller {
                     "PKCE verification failed for user {} with client {}",
                     authData.userId(),
                     authData.clientId());
-            return errorResponse("invalid_grant", "PKCE verification failed");
+            return errorResponse(ERROR_INVALID_GRANT, "PKCE verification failed");
         }
 
         // Load user and generate tokens
         Optional<User> userOpt = userRepository.findActiveByUsername(authData.userId());
         if (userOpt.isEmpty()) {
-            return errorResponse("invalid_grant", "User not found");
+            return errorResponse(ERROR_INVALID_GRANT, "User not found");
         }
 
         User user = userOpt.get();
@@ -335,28 +329,28 @@ public class OAuth2Controller {
                         accessToken, "Bearer", expiresIn, refreshToken, authData.scopes()));
     }
 
-    private ResponseEntity<?> handleRefreshTokenGrant(PKCETokenRequestDTO request) {
+    private ResponseEntity<Object> handleRefreshTokenGrant(PKCETokenRequestDTO request) {
         if (request.refreshToken() == null || request.refreshToken().isEmpty()) {
             return errorResponse(
-                    "invalid_request", "refresh_token is required for refresh_token grant");
+                    "ERROR_INVALID_REQUEST", "refresh_token is required for refresh_token grant");
         }
 
         // Validate refresh token
         String username = jwtService.extractUsername(request.refreshToken());
         if (username == null || !jwtService.isRefreshToken(request.refreshToken())) {
-            return errorResponse("invalid_grant", "Invalid refresh token");
+            return errorResponse(ERROR_INVALID_GRANT, "Invalid refresh token");
         }
 
         Optional<User> userOpt = userRepository.findActiveByUsername(username);
         if (userOpt.isEmpty()) {
-            return errorResponse("invalid_grant", "User not found");
+            return errorResponse(ERROR_INVALID_GRANT, "User not found");
         }
 
         User user = userOpt.get();
 
         // Validate token is not expired (structure check)
         if (!jwtService.isTokenStructureValid(request.refreshToken())) {
-            return errorResponse("invalid_grant", "Expired or invalid refresh token");
+            return errorResponse(ERROR_INVALID_GRANT, "Expired or invalid refresh token");
         }
 
         // Generate new tokens
@@ -386,7 +380,7 @@ public class OAuth2Controller {
                 .build();
     }
 
-    private ResponseEntity<OAuth2ErrorResponse> errorResponse(String error, String description) {
+    private ResponseEntity<Object> errorResponse(String error, String description) {
         return ResponseEntity.badRequest().body(new OAuth2ErrorResponse(error, description));
     }
 

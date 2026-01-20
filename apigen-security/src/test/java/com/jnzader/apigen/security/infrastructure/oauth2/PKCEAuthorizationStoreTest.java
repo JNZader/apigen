@@ -1,6 +1,7 @@
 package com.jnzader.apigen.security.infrastructure.oauth2;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 import com.jnzader.apigen.security.infrastructure.oauth2.PKCEAuthorizationStore.AuthorizationData;
 import com.jnzader.apigen.security.infrastructure.oauth2.PKCEService.CodeChallengeMethod;
@@ -161,12 +162,10 @@ class PKCEAuthorizationStoreTest {
                             "uri",
                             "scope");
 
-            // Wait for expiration
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+            // Wait for expiration using Awaitility
+            await().atMost(Duration.ofMillis(100))
+                    .pollInterval(Duration.ofMillis(5))
+                    .until(() -> !store.isValidCode(code));
 
             Optional<AuthorizationData> result = store.consumeAuthorizationCode(code);
 
@@ -237,11 +236,10 @@ class PKCEAuthorizationStoreTest {
                             "uri",
                             "scope");
 
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+            // Wait for expiration using Awaitility
+            await().atMost(Duration.ofMillis(100))
+                    .pollInterval(Duration.ofMillis(5))
+                    .until(() -> !store.isValidCode(code));
 
             assertThat(store.isValidCode(code)).isFalse();
         }
@@ -316,14 +314,19 @@ class PKCEAuthorizationStoreTest {
         void shouldRemoveExpiredCodesDuringCleanup() {
             store.setCodeExpiration(Duration.ofMillis(1));
 
-            store.createAuthorizationCode(
-                    "user", "challenge", CodeChallengeMethod.S256, "client", "uri", "scope");
+            String code =
+                    store.createAuthorizationCode(
+                            "user",
+                            "challenge",
+                            CodeChallengeMethod.S256,
+                            "client",
+                            "uri",
+                            "scope");
 
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+            // Wait for expiration using Awaitility
+            await().atMost(Duration.ofMillis(100))
+                    .pollInterval(Duration.ofMillis(5))
+                    .until(() -> !store.isValidCode(code));
 
             int countBeforeCleanup = store.getStoredCodeCount();
             store.cleanupExpiredCodes();
@@ -367,13 +370,10 @@ class PKCEAuthorizationStoreTest {
                             "uri",
                             "scope");
 
-            // Immediately after creation, it should not be expired (based on isValidCode)
-            // But after waiting, it should be expired
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+            // Wait for expiration using Awaitility
+            await().atMost(Duration.ofMillis(100))
+                    .pollInterval(Duration.ofMillis(5))
+                    .until(() -> !store.isValidCode(code));
 
             // The data is expired, so isValidCode should return false
             assertThat(store.isValidCode(code)).isFalse();
