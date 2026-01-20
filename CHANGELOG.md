@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2](https://github.com/JNZader/apigen/compare/v1.0.1...v1.0.2) (2026-01-20)
+
+### Bug Fixes
+
+* **docker:** add missing modules to Dockerfile ([adfa328](https://github.com/JNZader/apigen/commit/adfa3281dae23bb468a214616a6eaf1e770055ab))
+
+### Documentation
+
+* switch from Docusaurus to Docsify for simpler documentation ([e0f0d6c](https://github.com/JNZader/apigen/commit/e0f0d6cf4cad71afe02c1ec3cfbc0d7036de4208))
+
 ## [1.0.1](https://github.com/JNZader/apigen/compare/v1.0.0...v1.0.1) (2026-01-20)
 
 ### Bug Fixes
