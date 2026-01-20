@@ -1,0 +1,108 @@
+package com.jnzader.apigen.gateway.filter;
+
+import java.time.Duration;
+import java.util.function.Function;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
+
+/**
+ * Gateway filter that provides circuit breaker functionality. Wraps downstream calls with timeout
+ * and fallback capabilities.
+ */
+public class CircuitBreakerGatewayFilter implements GatewayFilter {
+
+    private static final Logger log = LoggerFactory.getLogger(CircuitBreakerGatewayFilter.class);
+
+    private final String circuitBreakerId;
+    private final Duration timeout;
+    private final Function<ServerWebExchange, Mono<Void>> fallback;
+
+    public CircuitBreakerGatewayFilter(String circuitBreakerId, Duration timeout) {
+        this(circuitBreakerId, timeout, null);
+    }
+
+    public CircuitBreakerGatewayFilter(
+            String circuitBreakerId,
+            Duration timeout,
+            Function<ServerWebExchange, Mono<Void>> fallback) {
+        this.circuitBreakerId = circuitBreakerId;
+        this.timeout = timeout;
+        this.fallback = fallback;
+    }
+
+    @Override
+    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        return chain.filter(exchange)
+                .timeout(timeout)
+                .onErrorResume(
+                        throwable -> {
+                            log.warn(
+                                    "Circuit breaker [{}] triggered for {}: {}",
+                                    circuitBreakerId,
+                                    exchange.getRequest().getURI().getPath(),
+                                    throwable.getMessage());
+
+                            if (fallback != null) {
+                                return fallback.apply(exchange);
+                            }
+
+                            return defaultFallback(exchange, throwable);
+                        });
+    }
+
+    private Mono<Void> defaultFallback(ServerWebExchange exchange, Throwable throwable) {
+        if (isTimeout(throwable)) {
+            exchange.getResponse().setStatusCode(HttpStatus.GATEWAY_TIMEOUT);
+        } else {
+            exchange.getResponse().setStatusCode(HttpStatus.SERVICE_UNAVAILABLE);
+        }
+        return exchange.getResponse().setComplete();
+    }
+
+    private boolean isTimeout(Throwable throwable) {
+        return throwable instanceof java.util.concurrent.TimeoutException
+                || throwable.getCause() instanceof java.util.concurrent.TimeoutException;
+    }
+
+    public String getCircuitBreakerId() {
+        return circuitBreakerId;
+    }
+
+    public Duration getTimeout() {
+        return timeout;
+    }
+
+    /** Builder for creating CircuitBreakerGatewayFilter instances. */
+    public static Builder builder(String circuitBreakerId) {
+        return new Builder(circuitBreakerId);
+    }
+
+    public static class Builder {
+        private final String circuitBreakerId;
+        private Duration timeout = Duration.ofSeconds(10);
+        private Function<ServerWebExchange, Mono<Void>> fallback;
+
+        private Builder(String circuitBreakerId) {
+            this.circuitBreakerId = circuitBreakerId;
+        }
+
+        public Builder timeout(Duration timeout) {
+            this.timeout = timeout;
+            return this;
+        }
+
+        public Builder fallback(Function<ServerWebExchange, Mono<Void>> fallback) {
+            this.fallback = fallback;
+            return this;
+        }
+
+        public CircuitBreakerGatewayFilter build() {
+            return new CircuitBreakerGatewayFilter(circuitBreakerId, timeout, fallback);
+        }
+    }
+}

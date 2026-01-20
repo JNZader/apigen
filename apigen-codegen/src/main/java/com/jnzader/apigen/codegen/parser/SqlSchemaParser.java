@@ -1,10 +1,17 @@
 package com.jnzader.apigen.codegen.parser;
 
-import com.jnzader.apigen.codegen.model.*;
+import com.jnzader.apigen.codegen.model.SqlColumn;
+import com.jnzader.apigen.codegen.model.SqlForeignKey;
+import com.jnzader.apigen.codegen.model.SqlFunction;
+import com.jnzader.apigen.codegen.model.SqlIndex;
+import com.jnzader.apigen.codegen.model.SqlSchema;
+import com.jnzader.apigen.codegen.model.SqlTable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.sf.jsqlparser.JSQLParserException;

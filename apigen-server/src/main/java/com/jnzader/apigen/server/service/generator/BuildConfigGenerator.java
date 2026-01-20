@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class BuildConfigGenerator {
 
+    private static final String PRODUCTION_DB_COMMENT = " // Production database\n";
+
     /**
      * Generates the build.gradle file content.
      *
@@ -138,24 +140,20 @@ test {
 
         switch (dbType) {
             case "mysql" ->
-                    deps.append(
-                            "    runtimeOnly 'com.mysql:mysql-connector-j' // Production"
-                                    + " database\n");
+                    deps.append("    runtimeOnly 'com.mysql:mysql-connector-j'")
+                            .append(PRODUCTION_DB_COMMENT);
             case "mariadb" ->
-                    deps.append(
-                            "    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client' // Production"
-                                    + " database\n");
+                    deps.append("    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'")
+                            .append(PRODUCTION_DB_COMMENT);
             case "sqlserver" ->
-                    deps.append(
-                            "    runtimeOnly 'com.microsoft.sqlserver:mssql-jdbc' // Production"
-                                    + " database\n");
+                    deps.append("    runtimeOnly 'com.microsoft.sqlserver:mssql-jdbc'")
+                            .append(PRODUCTION_DB_COMMENT);
             case "oracle" ->
-                    deps.append(
-                            "    runtimeOnly 'com.oracle.database.jdbc:ojdbc11' // Production"
-                                    + " database\n");
+                    deps.append("    runtimeOnly 'com.oracle.database.jdbc:ojdbc11'")
+                            .append(PRODUCTION_DB_COMMENT);
             default ->
-                    deps.append(
-                            "    runtimeOnly 'org.postgresql:postgresql' // Production database\n");
+                    deps.append("    runtimeOnly 'org.postgresql:postgresql'")
+                            .append(PRODUCTION_DB_COMMENT);
         }
 
         return deps.toString();

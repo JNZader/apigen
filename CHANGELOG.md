@@ -37,6 +37,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - JMH benchmark infrastructure with plugin v0.7.3
 - ResultBenchmark demonstrating ~1M+ ops/ms for core operations
 - `jmhAll` aggregate task for all modules
+- **Contract Testing (3.2)**: Spring Cloud Contract consumer-driven contract tests
+  - Spring Cloud Contract Verifier 5.0.1 (Gradle plugin)
+  - Spring Cloud Dependencies 2025.1.0 BOM for Spring Boot 4.0 compatibility
+  - REST-Assured spring-mock-mvc 5.5.7 (Spring Framework 7 compatible)
+  - Groovy DSL contracts for REST endpoint validation
+  - Contracts for pagination (`findAll`), count headers, error responses (400, 404, 412)
+  - RFC 7807 Problem Detail format validation (`application/problem+json`)
+  - Optimistic concurrency control testing (If-Match/ETag headers)
+  - `BaseContractTest` base class with test entity setup
+  - `contractTest` source set and Gradle task integration
+  - 6 contract tests covering REST API compliance
 
 #### Fase 4: Rendimiento + Feature Flags
 - Togglz feature flags with manual configuration (Spring Boot 4 compatible)
@@ -98,6 +109,85 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Automatic header extraction from @CsvBindByName annotations
   - `BulkAutoConfiguration` for Spring Boot auto-configuration (`apigen.bulk.enabled=true`)
   - Comprehensive test suite (26 tests) covering import, export, configurations
+
+#### Fase 7: Arquitectura Avanzada (Partial)
+- **API Versioning (7.6)**: Complete API versioning infrastructure
+  - `@ApiVersion` annotation for marking API versions on controllers/methods
+  - `@DeprecatedVersion` annotation with RFC 8594 support (since, sunset, successor, migrationGuide)
+  - `VersioningStrategy` enum: PATH, HEADER, QUERY_PARAM, MEDIA_TYPE
+  - `ApiVersionResolver` with builder pattern for configuring resolution strategies
+  - `ApiVersionInterceptor` for automatic deprecation headers (Deprecation, Sunset, Link)
+  - `VersionContext` thread-local holder for current API version with comparison utilities
+  - `ApiVersionAutoConfiguration` for Spring Boot (`apigen.versioning.enabled=true`)
+  - Comprehensive test suite (45 tests) covering all resolution strategies and deprecation headers
+- **Multi-tenancy (7.1)**: Native SaaS multi-tenancy support
+  - `TenantContext` using InheritableThreadLocal for tenant propagation
+  - `TenantResolver` with multiple resolution strategies (HEADER, SUBDOMAIN, PATH, JWT_CLAIM)
+  - `TenantResolutionStrategy` enum for configurable tenant identification
+  - `TenantFilter` servlet filter with excluded paths support and tenant validation
+  - `TenantAware` interface for tenant-aware entities
+  - `TenantEntityListener` JPA listener for automatic tenant assignment on @PrePersist/@PreUpdate
+  - `TenantMismatchException` for cross-tenant access attempts
+  - `TenantAutoConfiguration` for Spring Boot (`apigen.multitenancy.enabled=true`)
+  - Tenant ID validation with configurable patterns
+  - Custom header name support (default: X-Tenant-ID)
+  - Comprehensive test suite covering all resolution strategies and filter behavior
+- **Event Sourcing (7.2)**: Event sourcing infrastructure for aggregates
+  - `DomainEvent` interface for all domain events with metadata support
+  - `StoredEvent` JPA entity for persisting events with indexes
+  - `EventStore` interface for append-only event storage with optimistic concurrency
+  - `JpaEventStore` JPA implementation with Spring event publishing
+  - `Snapshot` JPA entity for aggregate state snapshots
+  - `EventSourcedAggregate` base class for event-sourced aggregates
+  - `AggregateRepository` for loading/saving aggregates with snapshot support
+  - `EventSerializer` JSON serializer with Jackson and Java Time support
+  - `ConcurrencyException` for optimistic locking conflicts
+  - `EventSourcingAutoConfiguration` for Spring Boot (`apigen.eventsourcing.enabled=true`)
+  - Comprehensive test suite (37 tests) covering serialization, aggregates, and event store
+- **GraphQL Module (7.3)**: New `apigen-graphql` module for GraphQL API layer
+  - `SchemaBuilder` fluent API for constructing GraphQL schemas programmatically
+  - `GraphQLExecutor` for executing queries, mutations, and subscriptions
+  - `GraphQLContext` request-scoped context with user ID, locale, and custom attributes
+  - `BaseDataFetcher` base class for data fetchers with utility methods
+  - `DataLoaderRegistry` for N+1 query prevention with batched loading
+  - `DataLoaderRegistrar` interface for registering DataLoaders
+  - `GraphQLExceptionHandler` for RFC 7807-aligned error responses
+  - `ApiGenGraphQLError` custom error with type, status code, and extensions
+  - `GraphQLErrorType` enum for semantic error classification
+  - `GraphQLRequest` record for HTTP request parsing
+  - `GraphQLController` HTTP endpoint at `/graphql`
+  - `GraphQLAutoConfiguration` for Spring Boot (`apigen.graphql.enabled=true`)
+  - GraphQL Java 22.3 and Java DataLoader 3.4.0 integration
+  - Comprehensive test suite covering schema building, execution, errors, and data loading
+- **gRPC Module (7.4)**: New `apigen-grpc` module for inter-service communication
+  - `GrpcServer` wrapper with fluent builder API for server lifecycle management
+  - `GrpcChannelFactory` for creating and managing client channels with caching
+  - `LoggingServerInterceptor` / `LoggingClientInterceptor` for call logging with timing
+  - `ExceptionHandlingInterceptor` mapping exceptions to gRPC status codes
+  - `AuthenticationServerInterceptor` for token-based authentication with excluded methods
+  - `AuthenticationClientInterceptor` for adding Bearer tokens to outgoing requests
+  - `HealthServiceManager` for aggregating health checks from multiple components
+  - `HealthCheck` interface with Result record for health status reporting
+  - Proto definitions: common.proto (Timestamp, PageRequest, OperationResult, ErrorDetail, EntityId, AuditInfo)
+  - Proto definitions: health.proto (HealthService with Check and Watch RPCs)
+  - `GrpcAutoConfiguration` for Spring Boot (`apigen.grpc.enabled=true`)
+  - gRPC Java 1.72.0, Protobuf 4.31.1, gRPC Spring Boot Starter 3.1.0.RELEASE
+  - Comprehensive test suite (37 tests) covering server, client, interceptors, and health checks
+- **API Gateway Module (7.5)**: New `apigen-gateway` module for API Gateway functionality
+  - `LoggingGatewayFilter` global filter with correlation ID generation and request/response logging
+  - `AuthenticationGatewayFilter` JWT-based authentication filter with configurable paths
+  - `AuthResult` record for authentication results (success/failure with user details)
+  - `RateLimitKeyResolver` with multiple strategies (IP, USER_ID, API_KEY, COMPOSITE, PATH)
+  - Path normalization for rate limiting (replaces numeric IDs and UUIDs with placeholders)
+  - `CircuitBreakerGatewayFilter` with configurable timeout and custom fallback support
+  - `RequestTimingGatewayFilter` for metrics collection (request duration, status codes)
+  - `RouteBuilder` fluent API for programmatic route definition
+  - `RouteDefinition` record with predicates, filters, circuit breaker, timeout, metadata
+  - `DynamicRouteLocator` for runtime route management (add/remove/update routes)
+  - `GatewayProperties` configuration with nested classes for rate limiting, circuit breaker, auth, CORS
+  - `GatewayAutoConfiguration` for Spring Boot (`apigen.gateway.enabled=true`)
+  - Spring Cloud Gateway 2024.0.1, Resilience4j reactor integration
+  - Comprehensive test suite (63 tests) covering filters, rate limiting, circuit breaker, routes
 
 ### Changed
 - Updated .gitignore to exclude logs, .env, and .claude files

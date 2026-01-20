@@ -216,7 +216,7 @@ class FieldAccessorCacheTest {
 
             Object result = FieldAccessorCache.getFieldValue(pojo, "active");
 
-            assertThat(result).isEqualTo(true);
+            assertThat(result).isEqualTo(Boolean.TRUE);
         }
     }
 

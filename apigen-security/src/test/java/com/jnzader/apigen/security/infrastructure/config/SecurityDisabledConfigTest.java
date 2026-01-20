@@ -138,7 +138,7 @@ class SecurityDisabledConfigTest {
             assertThat(corsConfig)
                     .isNotNull()
                     .extracting(CorsConfiguration::getAllowCredentials)
-                    .isEqualTo(true);
+                    .isEqualTo(Boolean.TRUE);
         }
 
         @Test

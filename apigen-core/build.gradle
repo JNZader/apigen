@@ -2,6 +2,7 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.springframework.cloud.contract' version '5.0.1'
 }
 
 group = 'com.jnzader'
@@ -38,6 +39,7 @@ repositories {
 dependencyManagement {
     imports {
         mavenBom 'org.springframework.boot:spring-boot-dependencies:4.0.0'
+        mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2025.1.0'
     }
 }
 
@@ -135,6 +137,11 @@ dependencies {
     testCompileOnly 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
     testAnnotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+
+    // Contract Testing (Spring Cloud Contract) - versions managed by Spring Cloud BOM
+    testImplementation 'org.springframework.cloud:spring-cloud-contract-verifier'
+    testImplementation 'org.springframework.cloud:spring-cloud-starter-contract-verifier'
+    testImplementation 'io.rest-assured:spring-mock-mvc:5.5.7'  // Spring Boot 4.0 compatible
 }
 
 // Java compiler configuration
@@ -148,6 +155,96 @@ tasks.withType(JavaCompile).configureEach {
 
 test {
     useJUnitPlatform()
+}
+
+// JaCoCo configuration - exclude infrastructure classes that require full Spring context
+jacoco {
+    toolVersion = "0.8.14"
+}
+
+def jacocoExcludes = [
+    // Scheduler classes requiring full context
+    '**/scheduler/**',
+    '**/SseHeartbeatScheduler*.class',
+    // Auto-configuration internal classes
+    '**/autoconfigure/**',
+    '**/*AutoConfiguration*.class',
+    '**/*Properties*.class',
+    // SSE infrastructure
+    '**/sse/**',
+    // Event sourcing infrastructure
+    '**/eventsourcing/**',
+    // Multi-tenancy infrastructure
+    '**/multitenancy/**',
+    // Bulk operations infrastructure
+    '**/bulk/**',
+    // Webhook infrastructure
+    '**/webhook/**',
+    // Versioning infrastructure
+    '**/versioning/**',
+    // Pagination DTOs
+    '**/CursorPageRequest*.class',
+    '**/CursorPageResponse*.class',
+    // Service batch operations
+    '**/BatchServiceImpl*.class',
+    '**/BatchService$*.class',
+    // Service implementations with complex infrastructure dependencies
+    '**/BaseServiceImpl*.class',
+    // Utility classes
+    '**/QueryAssertions*.class'
+]
+
+jacocoTestReport {
+    dependsOn test
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: jacocoExcludes)
+        }))
+    }
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+jacocoTestCoverageVerification {
+    dependsOn jacocoTestReport
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: jacocoExcludes)
+        }))
+    }
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.50
+            }
+        }
+        rule {
+            element = 'CLASS'
+            excludes = [
+                '*.config.*',
+                '*.autoconfigure.*',
+                '*AutoConfiguration',
+                '*Properties',
+                '*DTO',
+                '*Exception',
+                '*Controller',
+                '*$Builder',
+                // Infrastructure classes excluded
+                '*.scheduler.*',
+                '*.sse.*',
+                '*.eventsourcing.*',
+                '*.multitenancy.*',
+                '*.bulk.*',
+                '*.webhook.*',
+                '*.versioning.*'
+            ]
+            limit {
+                minimum = 0.60
+            }
+        }
+    }
 }
 
 // Don't fail on javadoc warnings/errors
@@ -186,4 +283,28 @@ publishing {
     repositories {
         mavenLocal()
     }
+}
+
+// Spring Cloud Contract configuration
+contracts {
+    // Base package for generated tests
+    basePackageForTests = 'com.jnzader.apigen.core.contracts'
+
+    // Base class for generated contract tests
+    baseClassForTests = 'com.jnzader.apigen.core.contracts.BaseContractTest'
+
+    // Contract directory
+    contractsDslDir = file("src/contractTest/resources/contracts")
+
+    // Test mode (MockMvc for web controllers)
+    testMode = 'MOCKMVC'
+
+    // Generate tests from contracts
+    testFramework = 'JUNIT5'
+}
+
+// Contract tests inherit test dependencies
+configurations {
+    contractTestImplementation.extendsFrom testImplementation
+    contractTestRuntimeOnly.extendsFrom testRuntimeOnly
 }

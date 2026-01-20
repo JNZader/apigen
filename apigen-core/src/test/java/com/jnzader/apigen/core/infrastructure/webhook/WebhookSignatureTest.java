@@ -3,9 +3,13 @@ package com.jnzader.apigen.core.infrastructure.webhook;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Instant;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 @DisplayName("WebhookSignature Tests")
 class WebhookSignatureTest {
@@ -24,8 +28,7 @@ class WebhookSignatureTest {
 
             String signature = WebhookSignature.sign(PAYLOAD, SECRET, timestamp);
 
-            assertThat(signature).startsWith("t=1700000000,v1=");
-            assertThat(signature).matches("t=\\d+,v1=[a-f0-9]{64}");
+            assertThat(signature).startsWith("t=1700000000,v1=").matches("t=\\d+,v1=[a-f0-9]{64}");
         }
 
         @Test
@@ -70,6 +73,7 @@ class WebhookSignatureTest {
 
             Instant extractedTimestamp = WebhookSignature.extractTimestamp(signature);
             assertThat(extractedTimestamp).isNotNull();
+            // Note: Different accessor - cannot chain
             assertThat(extractedTimestamp.getEpochSecond()).isBetween(before, after);
         }
     }
@@ -150,42 +154,20 @@ class WebhookSignatureTest {
             assertThat(valid).isTrue();
         }
 
-        @Test
-        @DisplayName("should reject null signature header")
-        void shouldRejectNullSignatureHeader() {
-            boolean valid = WebhookSignature.verify(PAYLOAD, SECRET, null);
-
-            assertThat(valid).isFalse();
+        static Stream<Arguments> invalidSignatureHeaders() {
+            return Stream.of(
+                    Arguments.of(null, "null signature header"),
+                    Arguments.of("", "empty signature header"),
+                    Arguments.of("invalid-format", "malformed signature header"),
+                    Arguments.of("v1=abc123", "signature header missing timestamp"),
+                    Arguments.of("t=1700000000", "signature header missing signature"));
         }
 
-        @Test
-        @DisplayName("should reject empty signature header")
-        void shouldRejectEmptySignatureHeader() {
-            boolean valid = WebhookSignature.verify(PAYLOAD, SECRET, "");
-
-            assertThat(valid).isFalse();
-        }
-
-        @Test
-        @DisplayName("should reject malformed signature header")
-        void shouldRejectMalformedSignatureHeader() {
-            boolean valid = WebhookSignature.verify(PAYLOAD, SECRET, "invalid-format");
-
-            assertThat(valid).isFalse();
-        }
-
-        @Test
-        @DisplayName("should reject signature header missing timestamp")
-        void shouldRejectSignatureHeaderMissingTimestamp() {
-            boolean valid = WebhookSignature.verify(PAYLOAD, SECRET, "v1=abc123");
-
-            assertThat(valid).isFalse();
-        }
-
-        @Test
-        @DisplayName("should reject signature header missing signature")
-        void shouldRejectSignatureHeaderMissingSignature() {
-            boolean valid = WebhookSignature.verify(PAYLOAD, SECRET, "t=1700000000");
+        @ParameterizedTest(name = "should reject {1}")
+        @MethodSource("invalidSignatureHeaders")
+        @DisplayName("should reject invalid signature headers")
+        void shouldRejectInvalidSignatureHeader(String signatureHeader, String description) {
+            boolean valid = WebhookSignature.verify(PAYLOAD, SECRET, signatureHeader);
 
             assertThat(valid).isFalse();
         }

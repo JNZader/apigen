@@ -9,11 +9,19 @@ import com.jnzader.apigen.codegen.generator.migration.MigrationGenerator;
 import com.jnzader.apigen.codegen.generator.repository.RepositoryGenerator;
 import com.jnzader.apigen.codegen.generator.service.ServiceGenerator;
 import com.jnzader.apigen.codegen.generator.test.TestGenerator;
-import com.jnzader.apigen.codegen.model.*;
+import com.jnzader.apigen.codegen.model.SqlForeignKey;
+import com.jnzader.apigen.codegen.model.SqlFunction;
+import com.jnzader.apigen.codegen.model.SqlSchema;
+import com.jnzader.apigen.codegen.model.SqlTable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Stream;
 
 /**
@@ -207,7 +215,8 @@ public class CodeGenerator {
         // 4. Generate Repository (with function methods if any)
         List<SqlFunction> tableFunctions =
                 schema.getFunctionsByTable()
-                        .getOrDefault(table.getName().toLowerCase(), Collections.emptyList());
+                        .getOrDefault(
+                                table.getName().toLowerCase(Locale.ROOT), Collections.emptyList());
         String repoCode = repositoryGenerator.generate(table, tableFunctions);
         Path repoPath =
                 writeFile(

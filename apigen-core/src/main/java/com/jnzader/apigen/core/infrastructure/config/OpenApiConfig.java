@@ -25,6 +25,35 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class OpenApiConfig {
 
+    // Schema type constants
+    private static final String TYPE_OBJECT = "object";
+    private static final String TYPE_STRING = "string";
+    private static final String TYPE_INTEGER = "integer";
+
+    // Property name constants
+    private static final String PROP_TYPE = "type";
+    private static final String PROP_TITLE = "title";
+    private static final String PROP_STATUS = "status";
+    private static final String PROP_DETAIL = "detail";
+    private static final String PROP_INSTANCE = "instance";
+
+    // Media type constant
+    private static final String MEDIA_TYPE_PROBLEM_JSON = "application/problem+json";
+
+    // Schema reference constants
+    private static final String SCHEMA_REF_PROBLEM_DETAIL = "#/components/schemas/ProblemDetail";
+    private static final String SCHEMA_REF_VALIDATION_ERROR =
+            "#/components/schemas/ValidationError";
+
+    // Problem type constants
+    private static final String PROBLEM_TYPE_VALIDATION = "urn:problem-type:validation-error";
+
+    // Example instance constant
+    private static final String EXAMPLE_INSTANCE = "/api/products";
+
+    // Spanish text constants
+    private static final String VALIDATION_ERROR_TITLE = "Error de validación";
+
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
@@ -90,40 +119,46 @@ public class OpenApiConfig {
     @SuppressWarnings("rawtypes")
     private Schema problemDetailSchema() {
         return new Schema<>()
-                .type("object")
+                .type(TYPE_OBJECT)
                 .description("RFC 7807 Problem Details for HTTP APIs")
                 .addProperty(
-                        "type",
-                        new Schema<>().type("string").example("urn:problem-type:validation-error"))
-                .addProperty("title", new Schema<>().type("string").example("Error de validación"))
-                .addProperty("status", new Schema<>().type("integer").example(400))
+                        PROP_TYPE,
+                        new Schema<>().type(TYPE_STRING).example(PROBLEM_TYPE_VALIDATION))
                 .addProperty(
-                        "detail",
-                        new Schema<>().type("string").example("El campo 'name' es requerido"))
-                .addProperty("instance", new Schema<>().type("string").example("/api/products"));
+                        PROP_TITLE,
+                        new Schema<>().type(TYPE_STRING).example(VALIDATION_ERROR_TITLE))
+                .addProperty(PROP_STATUS, new Schema<>().type(TYPE_INTEGER).example(400))
+                .addProperty(
+                        PROP_DETAIL,
+                        new Schema<>().type(TYPE_STRING).example("El campo 'name' es requerido"))
+                .addProperty(
+                        PROP_INSTANCE, new Schema<>().type(TYPE_STRING).example(EXAMPLE_INSTANCE));
     }
 
     @SuppressWarnings("rawtypes")
     private Schema validationErrorSchema() {
         return new Schema<>()
-                .type("object")
-                .description("Error de validación con detalle de campos")
+                .type(TYPE_OBJECT)
+                .description("VALIDATION_ERROR_TITLE con detalle de campos")
                 .addProperty(
-                        "type",
-                        new Schema<>().type("string").example("urn:problem-type:validation-error"))
-                .addProperty("title", new Schema<>().type("string").example("Error de validación"))
-                .addProperty("status", new Schema<>().type("integer").example(400))
+                        PROP_TYPE,
+                        new Schema<>().type(TYPE_STRING).example(PROBLEM_TYPE_VALIDATION))
                 .addProperty(
-                        "detail",
+                        PROP_TITLE,
+                        new Schema<>().type(TYPE_STRING).example(VALIDATION_ERROR_TITLE))
+                .addProperty(PROP_STATUS, new Schema<>().type(TYPE_INTEGER).example(400))
+                .addProperty(
+                        PROP_DETAIL,
                         new Schema<>()
-                                .type("string")
-                                .example("Error de validación en los datos enviados"))
-                .addProperty("instance", new Schema<>().type("string").example("/api/products"))
+                                .type(TYPE_STRING)
+                                .example("VALIDATION_ERROR_TITLE en los datos enviados"))
+                .addProperty(
+                        PROP_INSTANCE, new Schema<>().type(TYPE_STRING).example(EXAMPLE_INSTANCE))
                 .addProperty(
                         "fieldErrors",
                         new Schema<>()
-                                .type("object")
-                                .additionalProperties(new Schema<>().type("string"))
+                                .type(TYPE_OBJECT)
+                                .additionalProperties(new Schema<>().type(TYPE_STRING))
                                 .example(
                                         Map.of(
                                                 "name",
@@ -138,36 +173,32 @@ public class OpenApiConfig {
                 .content(
                         new Content()
                                 .addMediaType(
-                                        "application/problem+json",
+                                        MEDIA_TYPE_PROBLEM_JSON,
                                         new MediaType()
                                                 .schema(
                                                         new Schema<>()
-                                                                .$ref(
-                                                                        "#/components/schemas/ValidationError"))
+                                                                .$ref(SCHEMA_REF_VALIDATION_ERROR))
                                                 .examples(
                                                         Map.of(
                                                                 "validation",
                                                                 new Example()
                                                                         .summary(
-                                                                                "Error de"
-                                                                                    + " validación")
+                                                                                VALIDATION_ERROR_TITLE)
                                                                         .value(
                                                                                 Map.of(
-                                                                                        "type",
-                                                                                        "urn:problem-type:validation-error",
-                                                                                        "title",
-                                                                                        "Error de"
-                                                                                            + " validación",
-                                                                                        "status",
+                                                                                        PROP_TYPE,
+                                                                                        PROBLEM_TYPE_VALIDATION,
+                                                                                        PROP_TITLE,
+                                                                                        "VALIDATION_ERROR_TITLE",
+                                                                                        PROP_STATUS,
                                                                                         400,
-                                                                                        "detail",
-                                                                                        "Error de"
-                                                                                            + " validación"
+                                                                                        PROP_DETAIL,
+                                                                                        "VALIDATION_ERROR_TITLE"
                                                                                             + " en los"
                                                                                             + " datos"
                                                                                             + " enviados",
-                                                                                        "instance",
-                                                                                        "/api/products",
+                                                                                        PROP_INSTANCE,
+                                                                                        EXAMPLE_INSTANCE,
                                                                                         "fieldErrors",
                                                                                         Map.of(
                                                                                                 "name",
@@ -178,14 +209,14 @@ public class OpenApiConfig {
                                                                         .summary("IDs no coinciden")
                                                                         .value(
                                                                                 Map.of(
-                                                                                        "type",
+                                                                                        PROP_TYPE,
                                                                                         "urn:problem-type:id-mismatch",
-                                                                                        "title",
+                                                                                        PROP_TITLE,
                                                                                         "IDs no"
                                                                                             + " coinciden",
-                                                                                        "status",
+                                                                                        PROP_STATUS,
                                                                                         400,
-                                                                                        "detail",
+                                                                                        PROP_DETAIL,
                                                                                         "El ID del"
                                                                                             + " path"
                                                                                             + " (1) no"
@@ -194,7 +225,7 @@ public class OpenApiConfig {
                                                                                             + " ID del"
                                                                                             + " body"
                                                                                             + " (2)",
-                                                                                        "instance",
+                                                                                        PROP_INSTANCE,
                                                                                         "/api/products/1",
                                                                                         "pathId",
                                                                                         1,
@@ -208,22 +239,24 @@ public class OpenApiConfig {
                 .content(
                         new Content()
                                 .addMediaType(
-                                        "application/problem+json",
+                                        MEDIA_TYPE_PROBLEM_JSON,
                                         new MediaType()
                                                 .schema(
                                                         new Schema<>()
-                                                                .$ref(
-                                                                        "#/components/schemas/ProblemDetail"))
+                                                                .$ref(SCHEMA_REF_PROBLEM_DETAIL))
                                                 .example(
                                                         Map.of(
-                                                                "type",
-                                                                        "urn:problem-type:unauthorized",
-                                                                "title", "No autenticado",
-                                                                "status", 401,
-                                                                "detail",
-                                                                        "Token JWT inválido o"
-                                                                                + " expirado",
-                                                                "instance", "/api/products"))));
+                                                                PROP_TYPE,
+                                                                "urn:problem-type:unauthorized",
+                                                                PROP_TITLE,
+                                                                "No autenticado",
+                                                                PROP_STATUS,
+                                                                401,
+                                                                PROP_DETAIL,
+                                                                "Token JWT inválido o"
+                                                                        + " expirado",
+                                                                PROP_INSTANCE,
+                                                                EXAMPLE_INSTANCE))));
     }
 
     private ApiResponse forbiddenResponse() {
@@ -232,23 +265,25 @@ public class OpenApiConfig {
                 .content(
                         new Content()
                                 .addMediaType(
-                                        "application/problem+json",
+                                        MEDIA_TYPE_PROBLEM_JSON,
                                         new MediaType()
                                                 .schema(
                                                         new Schema<>()
-                                                                .$ref(
-                                                                        "#/components/schemas/ProblemDetail"))
+                                                                .$ref(SCHEMA_REF_PROBLEM_DETAIL))
                                                 .example(
                                                         Map.of(
-                                                                "type",
-                                                                        "urn:problem-type:forbidden",
-                                                                "title", "Acción no permitida",
-                                                                "status", 403,
-                                                                "detail",
-                                                                        "No tienes permisos para"
-                                                                                + " realizar esta"
-                                                                                + " acción",
-                                                                "instance", "/api/products"))));
+                                                                PROP_TYPE,
+                                                                "urn:problem-type:forbidden",
+                                                                PROP_TITLE,
+                                                                "Acción no permitida",
+                                                                PROP_STATUS,
+                                                                403,
+                                                                PROP_DETAIL,
+                                                                "No tienes permisos para"
+                                                                        + " realizar esta"
+                                                                        + " acción",
+                                                                PROP_INSTANCE,
+                                                                EXAMPLE_INSTANCE))));
     }
 
     private ApiResponse notFoundResponse() {
@@ -257,22 +292,22 @@ public class OpenApiConfig {
                 .content(
                         new Content()
                                 .addMediaType(
-                                        "application/problem+json",
+                                        MEDIA_TYPE_PROBLEM_JSON,
                                         new MediaType()
                                                 .schema(
                                                         new Schema<>()
-                                                                .$ref(
-                                                                        "#/components/schemas/ProblemDetail"))
+                                                                .$ref(SCHEMA_REF_PROBLEM_DETAIL))
                                                 .example(
                                                         Map.of(
-                                                                "type",
+                                                                PROP_TYPE,
                                                                         "urn:problem-type:resource-not-found",
-                                                                "title", "Recurso no encontrado",
-                                                                "status", 404,
-                                                                "detail",
+                                                                PROP_TITLE, "Recurso no encontrado",
+                                                                PROP_STATUS, 404,
+                                                                PROP_DETAIL,
                                                                         "Producto con ID '999' no"
                                                                                 + " encontrado",
-                                                                "instance", "/api/products/999"))));
+                                                                PROP_INSTANCE,
+                                                                        "/api/products/999"))));
     }
 
     private ApiResponse conflictResponse() {
@@ -281,24 +316,26 @@ public class OpenApiConfig {
                 .content(
                         new Content()
                                 .addMediaType(
-                                        "application/problem+json",
+                                        MEDIA_TYPE_PROBLEM_JSON,
                                         new MediaType()
                                                 .schema(
                                                         new Schema<>()
-                                                                .$ref(
-                                                                        "#/components/schemas/ProblemDetail"))
+                                                                .$ref(SCHEMA_REF_PROBLEM_DETAIL))
                                                 .example(
                                                         Map.of(
-                                                                "type",
-                                                                        "urn:problem-type:resource-conflict",
-                                                                "title", "Conflicto de recursos",
-                                                                "status", 409,
-                                                                "detail",
-                                                                        "Ya existe un producto con"
-                                                                            + " el SKU 'ABC-123'",
-                                                                "instance", "/api/products",
+                                                                PROP_TYPE,
+                                                                "urn:problem-type:resource-conflict",
+                                                                PROP_TITLE,
+                                                                "Conflicto de recursos",
+                                                                PROP_STATUS,
+                                                                409,
+                                                                PROP_DETAIL,
+                                                                "Ya existe un producto con el SKU"
+                                                                        + " 'ABC-123'",
+                                                                PROP_INSTANCE,
+                                                                EXAMPLE_INSTANCE,
                                                                 "conflictType",
-                                                                        "DUPLICATE_RESOURCE"))));
+                                                                "DUPLICATE_RESOURCE"))));
     }
 
     private ApiResponse preconditionFailedResponse() {
@@ -307,24 +344,28 @@ public class OpenApiConfig {
                 .content(
                         new Content()
                                 .addMediaType(
-                                        "application/problem+json",
+                                        MEDIA_TYPE_PROBLEM_JSON,
                                         new MediaType()
                                                 .schema(
                                                         new Schema<>()
-                                                                .$ref(
-                                                                        "#/components/schemas/ProblemDetail"))
+                                                                .$ref(SCHEMA_REF_PROBLEM_DETAIL))
                                                 .example(
                                                         Map.of(
-                                                                "type",
-                                                                        "urn:problem-type:precondition-failed",
-                                                                "title", "Precondición fallida",
-                                                                "status", 412,
-                                                                "detail",
-                                                                        "El recurso fue modificado"
-                                                                            + " por otro usuario",
-                                                                "instance", "/api/products/1",
-                                                                "expectedEtag", "\"v2\"",
-                                                                "providedEtag", "\"v1\""))));
+                                                                PROP_TYPE,
+                                                                "urn:problem-type:precondition-failed",
+                                                                PROP_TITLE,
+                                                                "Precondición fallida",
+                                                                PROP_STATUS,
+                                                                412,
+                                                                PROP_DETAIL,
+                                                                "El recurso fue modificado por otro"
+                                                                        + " usuario",
+                                                                PROP_INSTANCE,
+                                                                "/api/products/1",
+                                                                "expectedEtag",
+                                                                "\"v2\"",
+                                                                "providedEtag",
+                                                                "\"v1\""))));
     }
 
     private ApiResponse internalErrorResponse() {
@@ -333,24 +374,23 @@ public class OpenApiConfig {
                 .content(
                         new Content()
                                 .addMediaType(
-                                        "application/problem+json",
+                                        MEDIA_TYPE_PROBLEM_JSON,
                                         new MediaType()
                                                 .schema(
                                                         new Schema<>()
-                                                                .$ref(
-                                                                        "#/components/schemas/ProblemDetail"))
+                                                                .$ref(SCHEMA_REF_PROBLEM_DETAIL))
                                                 .example(
                                                         Map.of(
-                                                                "type",
+                                                                PROP_TYPE,
                                                                 "urn:problem-type:internal-error",
-                                                                "title",
+                                                                PROP_TITLE,
                                                                 "Error interno del" + " servidor",
-                                                                "status",
+                                                                PROP_STATUS,
                                                                 500,
-                                                                "detail",
+                                                                PROP_DETAIL,
                                                                 "Ha ocurrido un error"
                                                                         + " inesperado",
-                                                                "instance",
-                                                                "/api/products"))));
+                                                                PROP_INSTANCE,
+                                                                EXAMPLE_INSTANCE))));
     }
 }

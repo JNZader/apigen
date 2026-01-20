@@ -31,6 +31,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class RateLimitingFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(RateLimitingFilter.class);
+    private static final String UNKNOWN_IP = "unknown";
 
     private final int maxRequestsPerWindow;
     private final Duration windowDuration;
@@ -99,10 +100,10 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 
     private String getClientIp(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");
-        if (ip == null || ip.isBlank() || "unknown".equalsIgnoreCase(ip)) {
+        if (ip == null || ip.isBlank() || UNKNOWN_IP.equalsIgnoreCase(ip)) {
             ip = request.getHeader("X-Real-IP");
         }
-        if (ip == null || ip.isBlank() || "unknown".equalsIgnoreCase(ip)) {
+        if (ip == null || ip.isBlank() || UNKNOWN_IP.equalsIgnoreCase(ip)) {
             ip = request.getRemoteAddr();
         }
         if (ip != null && ip.contains(",")) {

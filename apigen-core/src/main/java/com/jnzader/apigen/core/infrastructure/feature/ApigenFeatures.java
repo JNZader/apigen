@@ -92,6 +92,7 @@ public enum ApigenFeatures implements Feature {
      *
      * @return true if the feature is enabled
      */
+    @Override
     public boolean isActive() {
         return FeatureContext.getFeatureManager().isActive(this);
     }

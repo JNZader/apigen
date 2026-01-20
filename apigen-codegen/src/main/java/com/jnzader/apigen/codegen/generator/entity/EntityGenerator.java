@@ -1,9 +1,15 @@
 package com.jnzader.apigen.codegen.generator.entity;
 
-import static com.jnzader.apigen.codegen.generator.util.CodeGenerationUtils.*;
+import static com.jnzader.apigen.codegen.generator.util.CodeGenerationUtils.pluralize;
+import static com.jnzader.apigen.codegen.generator.util.CodeGenerationUtils.safeFieldName;
+import static com.jnzader.apigen.codegen.generator.util.CodeGenerationUtils.toSnakeCase;
 
 import com.jnzader.apigen.codegen.generator.util.ImportManager;
-import com.jnzader.apigen.codegen.model.*;
+import com.jnzader.apigen.codegen.model.RelationType;
+import com.jnzader.apigen.codegen.model.SqlColumn;
+import com.jnzader.apigen.codegen.model.SqlIndex;
+import com.jnzader.apigen.codegen.model.SqlSchema;
+import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.List;
 
 /** Generates JPA Entity classes from SQL table definitions. */

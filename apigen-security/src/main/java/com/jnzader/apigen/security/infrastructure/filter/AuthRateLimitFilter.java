@@ -35,6 +35,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class AuthRateLimitFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(AuthRateLimitFilter.class);
+    private static final String UNKNOWN_IP = "unknown";
 
     private final int maxLoginAttempts;
     private final Duration lockoutDuration;
@@ -122,7 +123,7 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
 
         for (String header : headerNames) {
             String ip = request.getHeader(header);
-            if (ip != null && !ip.isBlank() && !"unknown".equalsIgnoreCase(ip)) {
+            if (ip != null && !ip.isBlank() && !UNKNOWN_IP.equalsIgnoreCase(ip)) {
                 // X-Forwarded-For puede contener múltiples IPs, tomar la primera
                 return ip.split(",")[0].trim();
             }

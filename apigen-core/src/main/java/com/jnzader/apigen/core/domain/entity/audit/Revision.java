@@ -1,7 +1,12 @@
 package com.jnzader.apigen.core.domain.entity.audit;
 
 import com.jnzader.apigen.core.infrastructure.config.CustomRevisionListener;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.util.Date;
 import lombok.Data;

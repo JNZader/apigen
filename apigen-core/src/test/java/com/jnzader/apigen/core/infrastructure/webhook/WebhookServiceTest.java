@@ -193,9 +193,10 @@ class WebhookServiceTest {
             List<WebhookDelivery> deliveries =
                     webhookService.dispatchAndWait(WebhookEvent.ENTITY_CREATED, payload);
 
-            assertThat(deliveries).hasSize(2);
             assertThat(deliveries)
+                    .hasSize(2)
                     .allMatch(d -> d.status() == WebhookDelivery.DeliveryStatus.SUCCESS);
+            // Note: Different subjects - cannot chain
             assertThat(requestCount1.get()).isEqualTo(1);
             assertThat(requestCount2.get()).isEqualTo(1);
         }
@@ -438,6 +439,7 @@ class WebhookServiceTest {
 
             assertThat(delivery.status())
                     .isEqualTo(WebhookDelivery.DeliveryStatus.FAILED_PERMANENT);
+            // Note: Different accessor types - cannot chain
             assertThat(delivery.errorMessage()).contains("not found");
         }
     }

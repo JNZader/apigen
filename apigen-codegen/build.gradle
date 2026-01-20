@@ -52,6 +52,61 @@ test {
     useJUnitPlatform()
 }
 
+// JaCoCo configuration - exclude classes that are not fully implemented yet
+jacoco {
+    toolVersion = "0.8.14"
+}
+
+def jacocoExcludes = [
+    '**/SqlToApiGenerator*.class',
+    '**/generator/CodeGenerator*.class',
+    '**/model/SqlFunction*.class'
+]
+
+jacocoTestReport {
+    dependsOn test
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: jacocoExcludes)
+        }))
+    }
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+jacocoTestCoverageVerification {
+    dependsOn jacocoTestReport
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: jacocoExcludes)
+        }))
+    }
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.50
+            }
+        }
+        rule {
+            element = 'CLASS'
+            excludes = [
+                '*.config.*',
+                '*AutoConfiguration',
+                '*Properties',
+                // Classes not fully implemented
+                'com.jnzader.apigen.codegen.SqlToApiGenerator',
+                'com.jnzader.apigen.codegen.generator.CodeGenerator',
+                'com.jnzader.apigen.codegen.model.SqlFunction'
+            ]
+            limit {
+                minimum = 0.60
+            }
+        }
+    }
+}
+
 // Don't fail on javadoc warnings/errors
 javadoc {
     options.addStringOption('Xdoclint:none', '-quiet')

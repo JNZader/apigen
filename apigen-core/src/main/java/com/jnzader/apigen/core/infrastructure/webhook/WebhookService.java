@@ -280,7 +280,7 @@ public class WebhookService {
 
             try {
                 Thread.sleep(delayMs);
-            } catch (InterruptedException e) {
+            } catch (InterruptedException _) {
                 Thread.currentThread().interrupt();
                 return createFailedDelivery(
                         subscription,

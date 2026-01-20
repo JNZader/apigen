@@ -39,6 +39,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class ApiRateLimitFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(ApiRateLimitFilter.class);
+    private static final String UNKNOWN_IP = "unknown";
 
     private final RateLimitService rateLimitService;
     private final SecurityProperties securityProperties;
@@ -119,7 +120,7 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
 
         for (String header : headerNames) {
             String ip = request.getHeader(header);
-            if (ip != null && !ip.isBlank() && !"unknown".equalsIgnoreCase(ip)) {
+            if (ip != null && !ip.isBlank() && !UNKNOWN_IP.equalsIgnoreCase(ip)) {
                 // X-Forwarded-For puede tener múltiples IPs
                 int commaIndex = ip.indexOf(',');
                 return commaIndex > 0 ? ip.substring(0, commaIndex).trim() : ip.trim();
