@@ -186,7 +186,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `DynamicRouteLocator` for runtime route management (add/remove/update routes)
   - `GatewayProperties` configuration with nested classes for rate limiting, circuit breaker, auth, CORS
   - `GatewayAutoConfiguration` for Spring Boot (`apigen.gateway.enabled=true`)
-  - Spring Cloud Gateway 2024.0.1, Resilience4j reactor integration
+  - Spring Cloud Gateway 2025.1.0 (spring-cloud-gateway-server-webflux), Resilience4j reactor integration
   - Comprehensive test suite (63 tests) covering filters, rate limiting, circuit breaker, routes
 
 ### Changed
@@ -202,6 +202,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Stricter rate limits on authentication endpoints (10 req/min vs 100 req/s)
 - Fixed CVE-2020-8908, CVE-2023-2976: Upgraded Guava from 30.1-jre to 33.5.0-jre (insecure temp directory)
 - Fixed Docker image CVEs: Added `apk upgrade` for libpng, libtasn1, BusyBox vulnerabilities
+
+### Fixed
+- Updated apigen-gateway to use `spring-cloud-gateway-server-webflux` (replaces deprecated `spring-cloud-starter-gateway` in Spring Cloud 2025.1.0)
+- Excluded eventsourcing infrastructure package from domain event architecture test (StoredEvent is infrastructure, not domain)
 
 ---
 
