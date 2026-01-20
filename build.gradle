@@ -41,7 +41,7 @@ subprojects {
 
         dependencies {
             // Errorprone for static analysis
-            errorprone 'com.google.errorprone:error_prone_core:2.36.0'
+            errorprone 'com.google.errorprone:error_prone_core:2.46.0'
         }
 
         // Spotless configuration for code formatting
