@@ -25,23 +25,9 @@ npm run serve
 
 ## API Documentation
 
-The site uses two complementary plugins for API documentation:
+The site uses **Redocusaurus** for API documentation, providing a beautiful three-panel API reference at `/api/reference`.
 
-### 1. docusaurus-plugin-openapi-docs (Palo Alto Networks)
-
-Generates MDX pages from OpenAPI specs that integrate with the documentation.
-
-```bash
-# Generate API docs from OpenAPI spec
-npm run gen-api-docs
-
-# Clean generated API docs
-npm run clean-api-docs
-```
-
-### 2. Redocusaurus
-
-Provides a beautiful three-panel API reference at `/api/reference`.
+The OpenAPI specification is located at `openapi/apigen-openapi.yaml`.
 
 ## Project Structure
 

@@ -74,17 +74,6 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: 'API Reference',
-      link: {
-        type: 'generated-index',
-        title: 'API Reference',
-        description: 'APiGen REST API Documentation',
-        slug: '/category/api-reference',
-      },
-      items: require('./docs/api/sidebar.js'),
-    },
-    {
-      type: 'category',
       label: 'Deployment',
       items: [
         'deployment/docker',

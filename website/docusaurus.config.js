@@ -29,7 +29,6 @@ const config = {
         docs: {
           sidebarPath: './sidebars.js',
           editUrl: 'https://github.com/jnzader/apigen/tree/main/website/',
-          docItemComponent: "@theme/ApiItem", // For OpenAPI docs
         },
         blog: false, // Disable blog
         theme: {
@@ -60,28 +59,9 @@ const config = {
     ],
   ],
 
-  plugins: [
-    // Palo Alto Networks OpenAPI plugin for MDX-based API docs
-    [
-      'docusaurus-plugin-openapi-docs',
-      {
-        id: 'api',
-        docsPluginId: 'default',
-        config: {
-          apigen: {
-            specPath: 'openapi/apigen-openapi.yaml',
-            outputDir: 'docs/api',
-            sidebarOptions: {
-              groupPathsBy: 'tag',
-              categoryLinkSource: 'tag',
-            },
-          },
-        },
-      },
-    ],
-  ],
+  plugins: [],
 
-  themes: ['docusaurus-theme-openapi-docs'],
+  themes: [],
 
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
@@ -101,13 +81,8 @@ const config = {
             label: 'Docs',
           },
           {
-            to: '/docs/category/api-reference',
-            label: 'API (MDX)',
-            position: 'left',
-          },
-          {
             to: '/api/reference',
-            label: 'API (Redoc)',
+            label: 'API Reference',
             position: 'left',
           },
           {
