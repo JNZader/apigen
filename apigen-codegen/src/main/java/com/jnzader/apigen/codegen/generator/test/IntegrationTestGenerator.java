@@ -107,7 +107,7 @@ class %sIntegrationTest {
     }
 
     @Test
-    @Order(1)
+    @org.junit.jupiter.api.Order(1)
     @DisplayName("1. POST - Should create new %s")
     void shouldCreateNew%s() throws Exception {
         MvcResult result = mockMvc.perform(post(BASE_URL)
@@ -127,7 +127,7 @@ class %sIntegrationTest {
     }
 
     @Test
-    @Order(2)
+    @org.junit.jupiter.api.Order(2)
     @DisplayName("2. GET /{id} - Should find %s by ID")
     void shouldFind%sById() throws Exception {
         assertThat(createdId).isNotNull();
@@ -139,7 +139,7 @@ class %sIntegrationTest {
     }
 
     @Test
-    @Order(3)
+    @org.junit.jupiter.api.Order(3)
     @DisplayName("3. GET - Should list all %s with pagination")
     void shouldListAllWithPagination() throws Exception {
         mockMvc.perform(get(BASE_URL)
@@ -153,7 +153,7 @@ class %sIntegrationTest {
     }
 
     @Test
-    @Order(4)
+    @org.junit.jupiter.api.Order(4)
     @DisplayName("4. HEAD /{id} - Should check %s exists")
     void shouldCheckExists() throws Exception {
         assertThat(createdId).isNotNull();
@@ -163,7 +163,7 @@ class %sIntegrationTest {
     }
 
     @Test
-    @Order(5)
+    @org.junit.jupiter.api.Order(5)
     @DisplayName("5. HEAD - Should return count in header")
     void shouldReturnCount() throws Exception {
         mockMvc.perform(head(BASE_URL))
@@ -172,7 +172,7 @@ class %sIntegrationTest {
     }
 
     @Test
-    @Order(6)
+    @org.junit.jupiter.api.Order(6)
     @DisplayName("6. PUT /{id} - Should update %s")
     void shouldUpdate%s() throws Exception {
         assertThat(createdId).isNotNull();
@@ -192,7 +192,7 @@ class %sIntegrationTest {
     }
 
     @Test
-    @Order(7)
+    @org.junit.jupiter.api.Order(7)
     @DisplayName("7. PATCH /{id} - Should partial update %s")
     void shouldPartialUpdate%s() throws Exception {
         assertThat(createdId).isNotNull();
@@ -207,7 +207,7 @@ class %sIntegrationTest {
     }
 
     @Test
-    @Order(8)
+    @org.junit.jupiter.api.Order(8)
     @DisplayName("8. DELETE /{id} - Should soft delete %s")
     void shouldSoftDelete%s() throws Exception {
         assertThat(createdId).isNotNull();
@@ -221,7 +221,7 @@ class %sIntegrationTest {
     }
 
     @Test
-    @Order(9)
+    @org.junit.jupiter.api.Order(9)
     @DisplayName("9. POST /{id}/restore - Should restore soft-deleted %s")
     void shouldRestore%s() throws Exception {
         assertThat(createdId).isNotNull();
@@ -237,7 +237,7 @@ class %sIntegrationTest {
     }
 
     @Test
-    @Order(10)
+    @org.junit.jupiter.api.Order(10)
     @DisplayName("10. DELETE /{id}?permanent=true - Should permanently delete %s")
     void shouldPermanentlyDelete%s() throws Exception {
         assertThat(createdId).isNotNull();
@@ -255,7 +255,7 @@ class %sIntegrationTest {
     }
 
     @Test
-    @Order(11)
+    @org.junit.jupiter.api.Order(11)
     @DisplayName("11. GET /{id} - Should return 404 for non-existent %s")
     void shouldReturn404ForNonExistent() throws Exception {
         mockMvc.perform(get(BASE_URL + "/999999"))
@@ -263,7 +263,7 @@ class %sIntegrationTest {
     }
 
     @Test
-    @Order(12)
+    @org.junit.jupiter.api.Order(12)
     @DisplayName("12. POST - Should validate required fields")
     void shouldValidateRequiredFields() throws Exception {
         %sDTO invalidDto = %sDTO.builder().build();
@@ -275,7 +275,7 @@ class %sIntegrationTest {
     }
 
     @Test
-    @Order(13)
+    @org.junit.jupiter.api.Order(13)
     @DisplayName("13. GET /cursor - Should support cursor pagination")
     void shouldSupportCursorPagination() throws Exception {
         // First, create a few entities for pagination
@@ -298,7 +298,7 @@ class %sIntegrationTest {
     }
 
     @Test
-    @Order(14)
+    @org.junit.jupiter.api.Order(14)
     @DisplayName("14. GET with filter - Should filter results")
     void shouldFilterResults() throws Exception {
         mockMvc.perform(get(BASE_URL)

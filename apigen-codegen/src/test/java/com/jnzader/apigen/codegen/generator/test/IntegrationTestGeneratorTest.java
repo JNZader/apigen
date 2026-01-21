@@ -139,7 +139,7 @@ class IntegrationTestGeneratorTest {
             String result = generator.generate(table);
 
             assertThat(result)
-                    .contains("@Order(1)")
+                    .contains("@org.junit.jupiter.api.Order(1)")
                     .contains("@DisplayName(\"1. POST - Should create new Product\")")
                     .contains("void shouldCreateNewProduct()")
                     .contains("mockMvc.perform(post(BASE_URL)")
@@ -154,7 +154,7 @@ class IntegrationTestGeneratorTest {
             String result = generator.generate(table);
 
             assertThat(result)
-                    .contains("@Order(2)")
+                    .contains("@org.junit.jupiter.api.Order(2)")
                     .contains("@DisplayName(\"2. GET /{id} - Should find Category by ID\")")
                     .contains("void shouldFindCategoryById()");
         }
@@ -167,7 +167,7 @@ class IntegrationTestGeneratorTest {
             String result = generator.generate(table);
 
             assertThat(result)
-                    .contains("@Order(3)")
+                    .contains("@org.junit.jupiter.api.Order(3)")
                     .contains("@DisplayName(\"3. GET - Should list all Order with pagination\")")
                     .contains(".param(\"page\", \"0\")")
                     .contains(".param(\"size\", \"10\")");
@@ -181,7 +181,7 @@ class IntegrationTestGeneratorTest {
             String result = generator.generate(table);
 
             assertThat(result)
-                    .contains("@Order(4)")
+                    .contains("@org.junit.jupiter.api.Order(4)")
                     .contains("@DisplayName(\"4. HEAD /{id} - Should check Product exists\")")
                     .contains("mockMvc.perform(head(BASE_URL + \"/\" + createdId))");
         }
@@ -194,7 +194,7 @@ class IntegrationTestGeneratorTest {
             String result = generator.generate(table);
 
             assertThat(result)
-                    .contains("@Order(5)")
+                    .contains("@org.junit.jupiter.api.Order(5)")
                     .contains("@DisplayName(\"5. HEAD - Should return count in header\")")
                     .contains(".andExpect(header().exists(\"X-Total-Count\"))");
         }
@@ -207,7 +207,7 @@ class IntegrationTestGeneratorTest {
             String result = generator.generate(table);
 
             assertThat(result)
-                    .contains("@Order(6)")
+                    .contains("@org.junit.jupiter.api.Order(6)")
                     .contains("@DisplayName(\"6. PUT /{id} - Should update Category\")")
                     .contains("void shouldUpdateCategory()")
                     .contains("mockMvc.perform(put(BASE_URL + \"/\" + createdId)");
@@ -221,7 +221,7 @@ class IntegrationTestGeneratorTest {
             String result = generator.generate(table);
 
             assertThat(result)
-                    .contains("@Order(7)")
+                    .contains("@org.junit.jupiter.api.Order(7)")
                     .contains("@DisplayName(\"7. PATCH /{id} - Should partial update Product\")")
                     .contains("void shouldPartialUpdateProduct()")
                     .contains("mockMvc.perform(patch(BASE_URL + \"/\" + createdId)");
@@ -235,7 +235,7 @@ class IntegrationTestGeneratorTest {
             String result = generator.generate(table);
 
             assertThat(result)
-                    .contains("@Order(8)")
+                    .contains("@org.junit.jupiter.api.Order(8)")
                     .contains("@DisplayName(\"8. DELETE /{id} - Should soft delete Order\")")
                     .contains("void shouldSoftDeleteOrder()")
                     .contains("mockMvc.perform(delete(BASE_URL + \"/\" + createdId))");
@@ -249,7 +249,7 @@ class IntegrationTestGeneratorTest {
             String result = generator.generate(table);
 
             assertThat(result)
-                    .contains("@Order(9)")
+                    .contains("@org.junit.jupiter.api.Order(9)")
                     .contains(
                             "@DisplayName(\"9. POST /{id}/restore - Should restore soft-deleted"
                                     + " Product\")")
@@ -265,7 +265,7 @@ class IntegrationTestGeneratorTest {
             String result = generator.generate(table);
 
             assertThat(result)
-                    .contains("@Order(10)")
+                    .contains("@org.junit.jupiter.api.Order(10)")
                     .contains(
                             "@DisplayName(\"10. DELETE /{id}?permanent=true - Should permanently"
                                     + " delete Category\")")
@@ -282,7 +282,7 @@ class IntegrationTestGeneratorTest {
             String result = generator.generate(table);
 
             assertThat(result)
-                    .contains("@Order(11)")
+                    .contains("@org.junit.jupiter.api.Order(11)")
                     .contains(
                             "@DisplayName(\"11. GET /{id} - Should return 404 for non-existent"
                                     + " Product\")")
@@ -297,7 +297,7 @@ class IntegrationTestGeneratorTest {
             String result = generator.generate(table);
 
             assertThat(result)
-                    .contains("@Order(12)")
+                    .contains("@org.junit.jupiter.api.Order(12)")
                     .contains("@DisplayName(\"12. POST - Should validate required fields\")")
                     .contains("OrderDTO invalidDto = OrderDTO.builder().build();")
                     .contains(".andExpect(status().isBadRequest())");
@@ -311,7 +311,7 @@ class IntegrationTestGeneratorTest {
             String result = generator.generate(table);
 
             assertThat(result)
-                    .contains("@Order(13)")
+                    .contains("@org.junit.jupiter.api.Order(13)")
                     .contains(
                             "@DisplayName(\"13. GET /cursor - Should support cursor pagination\")")
                     .contains("mockMvc.perform(get(BASE_URL + \"/cursor\")")
@@ -326,7 +326,7 @@ class IntegrationTestGeneratorTest {
             String result = generator.generate(table);
 
             assertThat(result)
-                    .contains("@Order(14)")
+                    .contains("@org.junit.jupiter.api.Order(14)")
                     .contains("@DisplayName(\"14. GET with filter - Should filter results\")")
                     .contains(".param(\"filter\", \"id:gt:0\")");
         }
@@ -390,7 +390,7 @@ class IntegrationTestGeneratorTest {
                 assertThat(result)
                         .as("Table: " + tableName)
                         .contains("@SpringBootTest")
-                        .contains("@Order(1)")
+                        .contains("@org.junit.jupiter.api.Order(1)")
                         .contains("MockMvc");
             }
         }
