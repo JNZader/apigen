@@ -83,11 +83,7 @@ public class OpenApiConfig {
                         Incluye el token en el header: `Authorization: Bearer <token>`
                         """)
                 .termsOfService("https://github.com/JNZader/apigen")
-                .contact(
-                        new Contact()
-                                .name("Javier N. Zader")
-                                .url("https://github.com/JNZader")
-                                .email("jnzader@example.com"))
+                .contact(new Contact().name("Javier N. Zader").url("https://github.com/JNZader"))
                 .license(
                         new License()
                                 .name("MIT License")

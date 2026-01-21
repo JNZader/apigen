@@ -35,8 +35,7 @@ class ProblemDetailTest {
 
             assertThat(detail.status()).isEqualTo(400);
             assertThat(detail.title()).isEqualTo("Error de validación");
-            assertThat(detail.type())
-                    .hasToString("https://api.example.com/problems/validation-error");
+            assertThat(detail.type()).hasToString("urn:apigen:problem:validation-error");
             assertThat(detail.extensions()).containsEntry("field", "error message");
         }
 
@@ -48,7 +47,7 @@ class ProblemDetailTest {
             assertThat(detail.status()).isEqualTo(404);
             assertThat(detail.title()).isEqualTo("Recurso no encontrado");
             assertThat(detail.detail()).isEqualTo("User con ID '123' no fue encontrado");
-            assertThat(detail.type()).hasToString("https://api.example.com/problems/not-found");
+            assertThat(detail.type()).hasToString("urn:apigen:problem:not-found");
         }
 
         @Test
@@ -58,7 +57,7 @@ class ProblemDetailTest {
 
             assertThat(detail.status()).isEqualTo(409);
             assertThat(detail.title()).isEqualTo("Conflicto de recurso");
-            assertThat(detail.type()).hasToString("https://api.example.com/problems/conflict");
+            assertThat(detail.type()).hasToString("urn:apigen:problem:conflict");
         }
 
         @Test
@@ -68,8 +67,7 @@ class ProblemDetailTest {
 
             assertThat(detail.status()).isEqualTo(500);
             assertThat(detail.title()).isEqualTo("Error interno del servidor");
-            assertThat(detail.type())
-                    .hasToString("https://api.example.com/problems/internal-error");
+            assertThat(detail.type()).hasToString("urn:apigen:problem:internal-error");
         }
 
         @Test
@@ -79,7 +77,7 @@ class ProblemDetailTest {
 
             assertThat(detail.status()).isEqualTo(403);
             assertThat(detail.title()).isEqualTo("Acceso denegado");
-            assertThat(detail.type()).hasToString("https://api.example.com/problems/forbidden");
+            assertThat(detail.type()).hasToString("urn:apigen:problem:forbidden");
         }
 
         @Test
@@ -89,8 +87,7 @@ class ProblemDetailTest {
 
             assertThat(detail.status()).isEqualTo(412);
             assertThat(detail.title()).isEqualTo("Precondición fallida");
-            assertThat(detail.type())
-                    .hasToString("https://api.example.com/problems/precondition-failed");
+            assertThat(detail.type()).hasToString("urn:apigen:problem:precondition-failed");
         }
 
         @Test
@@ -100,7 +97,7 @@ class ProblemDetailTest {
 
             assertThat(detail.status()).isEqualTo(400);
             assertThat(detail.title()).isEqualTo("Solicitud inválida");
-            assertThat(detail.type()).hasToString("https://api.example.com/problems/bad-request");
+            assertThat(detail.type()).hasToString("urn:apigen:problem:bad-request");
         }
     }
 
@@ -168,8 +165,7 @@ class ProblemDetailTest {
             ProblemDetail detail =
                     ProblemDetail.builder().status(400).title("Custom Error Title").build();
 
-            assertThat(detail.type())
-                    .hasToString("https://api.example.com/problems/custom-error-title");
+            assertThat(detail.type()).hasToString("urn:apigen:problem:custom-error-title");
         }
 
         @Test

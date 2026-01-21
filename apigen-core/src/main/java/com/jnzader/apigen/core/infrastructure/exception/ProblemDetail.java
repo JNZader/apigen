@@ -33,7 +33,13 @@ public record ProblemDetail(
         String requestId,
         Map<String, Object> extensions) {
 
-    private static final String BASE_TYPE_URI = "https://api.example.com/problems/";
+    /**
+     * Base URI for problem types following RFC 7807.
+     *
+     * <p>Uses URN namespace for self-documenting problem types that don't depend on external
+     * domains.
+     */
+    private static final String BASE_TYPE_URI = "urn:apigen:problem:";
 
     /** Crea un ProblemDetail con los campos básicos requeridos. */
     public static ProblemDetail of(int status, String title, String detail) {

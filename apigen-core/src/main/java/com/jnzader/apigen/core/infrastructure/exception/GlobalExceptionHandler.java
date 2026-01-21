@@ -60,7 +60,7 @@ public class GlobalExceptionHandler {
 
         ProblemDetail problem =
                 ProblemDetail.builder()
-                        .type(URI.create("https://api.example.com/problems/not-found"))
+                        .type(URI.create("urn:apigen:problem:not-found"))
                         .title(messageService.getNotFoundTitle())
                         .status(HttpStatus.NOT_FOUND.value())
                         .detail(ex.getMessage())
@@ -81,7 +81,7 @@ public class GlobalExceptionHandler {
 
         ProblemDetail problem =
                 ProblemDetail.builder()
-                        .type(URI.create("https://api.example.com/problems/conflict"))
+                        .type(URI.create("urn:apigen:problem:conflict"))
                         .title(messageService.getConflictTitle())
                         .status(HttpStatus.CONFLICT.value())
                         .detail(ex.getMessage())
@@ -102,7 +102,7 @@ public class GlobalExceptionHandler {
 
         ProblemDetail problem =
                 ProblemDetail.builder()
-                        .type(URI.create("https://api.example.com/problems/validation-error"))
+                        .type(URI.create("urn:apigen:problem:validation-error"))
                         .title(messageService.getValidationTitle())
                         .status(HttpStatus.BAD_REQUEST.value())
                         .detail(ex.getMessage())
@@ -123,7 +123,7 @@ public class GlobalExceptionHandler {
 
         ProblemDetail problem =
                 ProblemDetail.builder()
-                        .type(URI.create("https://api.example.com/problems/id-mismatch"))
+                        .type(URI.create("urn:apigen:problem:id-mismatch"))
                         .title(messageService.getIdMismatchTitle())
                         .status(HttpStatus.BAD_REQUEST.value())
                         .detail(messageService.getIdMismatchDetail(ex.getPathId(), ex.getBodyId()))
@@ -149,7 +149,7 @@ public class GlobalExceptionHandler {
 
         ProblemDetail problem =
                 ProblemDetail.builder()
-                        .type(URI.create("https://api.example.com/problems/precondition-failed"))
+                        .type(URI.create("urn:apigen:problem:precondition-failed"))
                         .title(messageService.getPreconditionFailedTitle())
                         .status(HttpStatus.PRECONDITION_FAILED.value())
                         .detail(ex.getMessage())
@@ -170,7 +170,7 @@ public class GlobalExceptionHandler {
 
         ProblemDetail problem =
                 ProblemDetail.builder()
-                        .type(URI.create("https://api.example.com/problems/operation-failed"))
+                        .type(URI.create("urn:apigen:problem:operation-failed"))
                         .title(messageService.getOperationFailedTitle())
                         .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                         .detail(ex.getMessage())
@@ -191,7 +191,7 @@ public class GlobalExceptionHandler {
 
         ProblemDetail problem =
                 ProblemDetail.builder()
-                        .type(URI.create("https://api.example.com/problems/forbidden"))
+                        .type(URI.create("urn:apigen:problem:forbidden"))
                         .title(messageService.getForbiddenTitle())
                         .status(HttpStatus.FORBIDDEN.value())
                         .detail(ex.getMessage())
@@ -242,7 +242,7 @@ public class GlobalExceptionHandler {
 
         ProblemDetail problem =
                 ProblemDetail.builder()
-                        .type(URI.create("https://api.example.com/problems/validation-error"))
+                        .type(URI.create("urn:apigen:problem:validation-error"))
                         .title(messageService.getMessage("error.title.validation-input"))
                         .status(HttpStatus.BAD_REQUEST.value())
                         .detail(
@@ -266,7 +266,7 @@ public class GlobalExceptionHandler {
 
         ProblemDetail problem =
                 ProblemDetail.builder()
-                        .type(URI.create("https://api.example.com/problems/bad-request"))
+                        .type(URI.create("urn:apigen:problem:bad-request"))
                         .title(messageService.getBadRequestTitle())
                         .status(HttpStatus.BAD_REQUEST.value())
                         .detail(ex.getMessage())
@@ -290,7 +290,7 @@ public class GlobalExceptionHandler {
 
         ProblemDetail problem =
                 ProblemDetail.builder()
-                        .type(URI.create("https://api.example.com/problems/malformed-json"))
+                        .type(URI.create("urn:apigen:problem:malformed-json"))
                         .title(messageService.getMalformedJsonTitle())
                         .status(HttpStatus.BAD_REQUEST.value())
                         .detail(messageService.getMalformedJsonDetail())
@@ -323,7 +323,7 @@ public class GlobalExceptionHandler {
 
         ProblemDetail problem =
                 ProblemDetail.builder()
-                        .type(URI.create("https://api.example.com/problems/constraint-violation"))
+                        .type(URI.create("urn:apigen:problem:constraint-violation"))
                         .title(messageService.getConstraintViolationTitle())
                         .status(HttpStatus.BAD_REQUEST.value())
                         .detail(messageService.getConstraintViolationDetail())
@@ -348,7 +348,7 @@ public class GlobalExceptionHandler {
 
         ProblemDetail problem =
                 ProblemDetail.builder()
-                        .type(URI.create("https://api.example.com/problems/type-mismatch"))
+                        .type(URI.create("urn:apigen:problem:type-mismatch"))
                         .title(messageService.getTypeMismatchTitle())
                         .status(HttpStatus.BAD_REQUEST.value())
                         .detail(messageService.getTypeMismatchDetail(ex.getName(), ex.getValue()))
@@ -373,7 +373,7 @@ public class GlobalExceptionHandler {
 
         ProblemDetail problem =
                 ProblemDetail.builder()
-                        .type(URI.create("https://api.example.com/problems/internal-error"))
+                        .type(URI.create("urn:apigen:problem:internal-error"))
                         .title(messageService.getInternalErrorTitle())
                         .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                         .detail(messageService.getInternalErrorDetail())
