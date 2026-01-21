@@ -32,10 +32,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import jakarta.persistence.EntityManager;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.AuditorAware;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -67,6 +69,9 @@ class %sServiceImplTest {
     @Mock
     private AuditorAware<String> auditorAware;
 
+    @Mock
+    private EntityManager entityManager;
+
     private %sServiceImpl service;
 
     private %s %s;
@@ -74,6 +79,8 @@ class %sServiceImplTest {
     @BeforeEach
     void setUp() {
         service = new %sServiceImpl(repository, cacheEvictionService, eventPublisher, auditorAware);
+        // Inject mock EntityManager for batch operations (saveAll uses flush/clear)
+        ReflectionTestUtils.setField(service, "entityManager", entityManager);
         %s = new %s();
         %s.setId(1L);
         %s.setEstado(true);
