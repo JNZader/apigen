@@ -97,11 +97,10 @@ public class GradleWrapperGenerator {
         if (executable) {
             try {
                 Set<PosixFilePermission> perms = Files.getPosixFilePermissions(targetPath);
+                // Only add execute permission for owner (most restrictive)
                 perms.add(PosixFilePermission.OWNER_EXECUTE);
-                perms.add(PosixFilePermission.GROUP_EXECUTE);
-                perms.add(PosixFilePermission.OTHERS_EXECUTE);
                 Files.setPosixFilePermissions(targetPath, perms);
-            } catch (UnsupportedOperationException e) {
+            } catch (UnsupportedOperationException _) {
                 // Windows doesn't support POSIX permissions, ignore
                 log.trace("POSIX file permissions not supported on this system");
             }

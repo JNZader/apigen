@@ -225,9 +225,9 @@ class IntegrationTestGeneratorTest {
                     .contains("@DisplayName(\"7. PATCH /{id} - Should partial update Product\")")
                     .contains("void shouldPartialUpdateProduct()")
                     .contains("mockMvc.perform(patch(BASE_URL + \"/\" + createdId)")
-                    // Verify proper JSON escaping (should be valid JSON, not double-escaped)
-                    .contains("{\"activo\": true}")
-                    .doesNotContain("{\\\"activo\\\": true}");
+                    // Verify proper JSON escaping - output should have escaped quotes for valid
+                    // Java
+                    .contains("{\\\"activo\\\": true}");
         }
 
         @Test
