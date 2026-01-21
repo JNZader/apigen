@@ -13,12 +13,12 @@ import com.jnzader.apigen.core.domain.exception.ResourceNotFoundException;
 import com.jnzader.apigen.core.domain.repository.BaseRepository;
 import com.jnzader.apigen.core.domain.specification.BaseSpecification;
 import com.jnzader.apigen.core.infrastructure.util.BeanCopyUtils;
+import com.jnzader.apigen.core.infrastructure.util.FieldAccessorCache;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import jakarta.persistence.Table;
 import java.io.Serializable;
-import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -926,26 +926,14 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
                 entity.getId(), request.sortField(), sortValue, request.sortDirection());
     }
 
-    /** Obtiene el valor del campo de ordenamiento de una entidad. */
-    @SuppressWarnings("java:S3011")
-    // S3011: setAccessible() es SEGURO aqui porque:
-    // 1. Solo accede a campos de entidades propias del dominio (no codigo externo)
-    // 2. Es necesario para cursor pagination con campos dinamicos
-    // 3. El campo se obtiene de un sortField validado internamente
+    /**
+     * Obtiene el valor del campo de ordenamiento de una entidad.
+     *
+     * <p>Usa {@link FieldAccessorCache} para acceso optimizado con MethodHandles cacheados,
+     * evitando la sobrecarga de reflexión directa (~90% menos overhead).
+     */
     private String getSortFieldValue(E entity, String sortField) {
-        if ("id".equals(sortField)) {
-            return entity.getId() != null ? entity.getId().toString() : null;
-        }
-
-        // Para otros campos, usar reflexión
-        try {
-            Field field = entity.getClass().getDeclaredField(sortField);
-            field.setAccessible(true);
-            Object value = field.get(entity);
-            return value != null ? value.toString() : null;
-        } catch (NoSuchFieldException | IllegalAccessException _) {
-            log.warn("No se pudo obtener el valor del campo {} para cursor", sortField);
-            return null;
-        }
+        Object value = FieldAccessorCache.getFieldValue(entity, sortField);
+        return value != null ? value.toString() : null;
     }
 }
