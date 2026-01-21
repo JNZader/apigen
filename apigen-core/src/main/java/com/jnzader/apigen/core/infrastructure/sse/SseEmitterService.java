@@ -190,21 +190,30 @@ public class SseEmitterService {
     /**
      * Envía un heartbeat a todos los clientes conectados. Útil para mantener conexiones vivas y
      * detectar clientes muertos.
+     *
+     * <p>Usa procesamiento paralelo para no bloquear cuando hay muchos clientes conectados.
      */
     public void sendHeartbeatToAll() {
         long timestamp = System.currentTimeMillis();
-        for (Set<SseClient> subscribers : topicSubscribers.values()) {
-            for (SseClient client : subscribers) {
-                try {
-                    client.emitter()
-                            .send(
-                                    SseEmitter.event()
-                                            .name("heartbeat")
-                                            .data(Map.of("timestamp", timestamp)));
-                } catch (IOException _) {
-                    removeClient(client);
-                }
-            }
+        var heartbeatEvent = Map.of("timestamp", timestamp);
+
+        // Collect all clients first to use parallelStream effectively
+        topicSubscribers.values().parallelStream()
+                .flatMap(Set::stream)
+                .forEach(client -> sendHeartbeatToClient(client, heartbeatEvent));
+    }
+
+    /**
+     * Envía un heartbeat a un cliente específico.
+     *
+     * @param client Cliente destino
+     * @param heartbeatEvent Datos del heartbeat
+     */
+    private void sendHeartbeatToClient(SseClient client, Map<String, Long> heartbeatEvent) {
+        try {
+            client.emitter().send(SseEmitter.event().name("heartbeat").data(heartbeatEvent));
+        } catch (IOException _) {
+            removeClient(client);
         }
     }
 
