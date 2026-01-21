@@ -1,2 +1,3 @@
 com.jnzader.apigen.core.autoconfigure.ApigenCoreAutoConfiguration
 com.jnzader.apigen.core.autoconfigure.ApigenJpaAutoConfiguration
+com.jnzader.apigen.core.infrastructure.batch.BatchAutoConfiguration

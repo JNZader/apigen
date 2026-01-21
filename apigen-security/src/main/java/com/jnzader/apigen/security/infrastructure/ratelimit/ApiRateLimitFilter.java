@@ -1,6 +1,7 @@
 package com.jnzader.apigen.security.infrastructure.ratelimit;
 
 import com.jnzader.apigen.security.infrastructure.config.SecurityProperties;
+import com.jnzader.apigen.security.infrastructure.config.SecurityProperties.RateLimitProperties.TierConfig;
 import com.jnzader.apigen.security.infrastructure.network.ClientIpResolver;
 import io.github.bucket4j.ConsumptionProbe;
 import jakarta.servlet.FilterChain;
@@ -17,18 +18,31 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.lang.Nullable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
  * Filtro de Rate Limiting para la API usando Bucket4j.
  *
- * <p>Aplica rate limiting basado en IP a todos los endpoints de la API. Usa diferentes límites para
- * endpoints de autenticación (más restrictivos) vs. endpoints generales.
+ * <p>Aplica rate limiting basado en IP o usuario a todos los endpoints de la API. Soporta:
  *
- * <p>Headers de respuesta: - X-RateLimit-Limit: Límite total de requests - X-RateLimit-Remaining:
- * Requests restantes - X-RateLimit-Reset: Segundos hasta reset del límite - Retry-After: Segundos a
- * esperar (solo en 429)
+ * <ul>
+ *   <li>Rate limiting tradicional por IP (general y auth endpoints)
+ *   <li>Rate limiting basado en tiers de usuario (ANONYMOUS, FREE, BASIC, PRO)
+ * </ul>
+ *
+ * <p>Headers de respuesta:
+ *
+ * <ul>
+ *   <li>X-RateLimit-Limit: Límite total de requests
+ *   <li>X-RateLimit-Remaining: Requests restantes
+ *   <li>X-RateLimit-Reset: Segundos hasta reset del límite
+ *   <li>X-RateLimit-Tier: Tier actual del usuario (si tiers habilitados)
+ *   <li>Retry-After: Segundos a esperar (solo en 429)
+ * </ul>
  */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE + 2)
@@ -40,21 +54,28 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class ApiRateLimitFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(ApiRateLimitFilter.class);
+    private static final String TIER_HEADER = "X-RateLimit-Tier";
 
     private final RateLimitService rateLimitService;
     private final SecurityProperties securityProperties;
     private final ClientIpResolver clientIpResolver;
+    private final RateLimitTierResolver tierResolver;
 
     public ApiRateLimitFilter(
             RateLimitService rateLimitService,
             SecurityProperties securityProperties,
-            ClientIpResolver clientIpResolver) {
+            ClientIpResolver clientIpResolver,
+            @Nullable RateLimitTierResolver tierResolver) {
         this.rateLimitService = rateLimitService;
         this.securityProperties = securityProperties;
         this.clientIpResolver = clientIpResolver;
+        this.tierResolver = tierResolver;
+
+        String mode = rateLimitService.isTiersEnabled() ? "tier-based" : "ip-based";
         log.info(
-                "API Rate Limit Filter initialized (storage: {})",
-                securityProperties.getRateLimit().getStorageMode());
+                "API Rate Limit Filter initialized (storage: {}, mode: {})",
+                securityProperties.getRateLimit().getStorageMode(),
+                mode);
     }
 
     @Override
@@ -69,6 +90,53 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
         }
 
         String clientIp = getClientIp(request);
+
+        // Use tier-based rate limiting if enabled
+        if (rateLimitService.isTiersEnabled() && tierResolver != null) {
+            handleTierBasedRateLimiting(request, response, filterChain, clientIp);
+        } else {
+            handleIpBasedRateLimiting(request, response, filterChain, clientIp);
+        }
+    }
+
+    private void handleTierBasedRateLimiting(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain,
+            String clientIp)
+            throws ServletException, IOException {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        RateLimitTier tier = tierResolver.resolve(authentication, request);
+        String userIdentifier = tierResolver.getUserIdentifier(authentication, clientIp);
+
+        ConsumptionProbe probe =
+                rateLimitService.tryConsumeForTierAndReturnRemaining(userIdentifier, tier);
+
+        // Add rate limit headers with tier info
+        addTierRateLimitHeaders(response, probe, tier);
+
+        if (probe.isConsumed()) {
+            filterChain.doFilter(request, response);
+        } else {
+            long waitSeconds = TimeUnit.NANOSECONDS.toSeconds(probe.getNanosToWaitForRefill());
+            log.warn(
+                    "Rate limit exceeded for {} (tier: {}) on {}, wait: {}s",
+                    userIdentifier,
+                    tier,
+                    request.getRequestURI(),
+                    waitSeconds);
+            sendTierRateLimitResponse(response, waitSeconds, tier);
+        }
+    }
+
+    private void handleIpBasedRateLimiting(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain,
+            String clientIp)
+            throws ServletException, IOException {
+
         boolean isAuthEndpoint = isAuthEndpoint(request);
 
         ConsumptionProbe probe =
@@ -78,10 +146,8 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
         addRateLimitHeaders(response, probe, isAuthEndpoint);
 
         if (probe.isConsumed()) {
-            // Request allowed
             filterChain.doFilter(request, response);
         } else {
-            // Rate limit exceeded
             long waitSeconds = TimeUnit.NANOSECONDS.toSeconds(probe.getNanosToWaitForRefill());
             log.warn(
                     "Rate limit exceeded for IP: {} on {} endpoint, wait: {}s",
@@ -134,6 +200,20 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
         response.setHeader("X-RateLimit-Reset", String.valueOf(resetSeconds));
     }
 
+    private void addTierRateLimitHeaders(
+            HttpServletResponse response, ConsumptionProbe probe, RateLimitTier tier) {
+        TierConfig tierConfig = rateLimitService.getTierConfig(tier);
+
+        long limit = tierConfig.getBurstCapacity();
+        long remaining = probe.getRemainingTokens();
+        long resetSeconds = TimeUnit.NANOSECONDS.toSeconds(probe.getNanosToWaitForRefill());
+
+        response.setHeader("X-RateLimit-Limit", String.valueOf(limit));
+        response.setHeader("X-RateLimit-Remaining", String.valueOf(remaining));
+        response.setHeader("X-RateLimit-Reset", String.valueOf(resetSeconds));
+        response.setHeader(TIER_HEADER, tier.getName());
+    }
+
     private void sendRateLimitResponse(
             HttpServletResponse response, long waitSeconds, boolean isAuthEndpoint)
             throws IOException {
@@ -155,6 +235,36 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
                         }
                         """,
                         endpointType, waitSeconds, isAuthEndpoint ? "/auth" : "/api");
+
+        response.getWriter().write(jsonResponse);
+    }
+
+    private void sendTierRateLimitResponse(
+            HttpServletResponse response, long waitSeconds, RateLimitTier tier) throws IOException {
+
+        response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setHeader("Retry-After", String.valueOf(waitSeconds));
+        response.setHeader(TIER_HEADER, tier.getName());
+
+        TierConfig tierConfig = rateLimitService.getTierConfig(tier);
+        String jsonResponse =
+                String.format(
+                        """
+                        {
+                            "type": "urn:apigen:problem:rate-limit-exceeded",
+                            "title": "Too Many Requests",
+                            "status": 429,
+                            "detail": "Rate limit exceeded for tier '%s'. Retry in %d seconds.",
+                            "tier": "%s",
+                            "limit": %d,
+                            "upgradeUrl": "/api/plans"
+                        }
+                        """,
+                        tier.getName(),
+                        waitSeconds,
+                        tier.getName(),
+                        tierConfig.getRequestsPerSecond());
 
         response.getWriter().write(jsonResponse);
     }

@@ -180,6 +180,8 @@ def jacocoExcludes = [
     '**/multitenancy/**',
     // Bulk operations infrastructure
     '**/bulk/**',
+    // Batch API infrastructure
+    '**/batch/**',
     // Webhook infrastructure
     '**/webhook/**',
     // Versioning infrastructure
@@ -239,6 +241,7 @@ jacocoTestCoverageVerification {
                 '*.eventsourcing.*',
                 '*.multitenancy.*',
                 '*.bulk.*',
+                '*.batch.*',
                 '*.webhook.*',
                 '*.versioning.*'
             ]
@@ -305,8 +308,21 @@ contracts {
     testFramework = 'JUNIT5'
 }
 
-// Contract tests inherit test dependencies
+// Contract tests inherit test dependencies and have access to test classes
 configurations {
     contractTestImplementation.extendsFrom testImplementation
     contractTestRuntimeOnly.extendsFrom testRuntimeOnly
+}
+
+// Add test source set output to contractTest classpath
+sourceSets {
+    contractTest {
+        compileClasspath += sourceSets.test.output
+        runtimeClasspath += sourceSets.test.output
+    }
+}
+
+// Ensure test classes are compiled before contractTest
+tasks.named('compileContractTestJava') {
+    dependsOn tasks.named('compileTestJava')
 }
