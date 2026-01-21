@@ -51,7 +51,7 @@ class IntegrationTestGeneratorTest {
                     .contains("import org.springframework.boot.test.context.SpringBootTest;")
                     .contains(
                             "import"
-                                + " org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;")
+                                + " org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;")
                     .contains("import org.springframework.test.context.ActiveProfiles;");
         }
 

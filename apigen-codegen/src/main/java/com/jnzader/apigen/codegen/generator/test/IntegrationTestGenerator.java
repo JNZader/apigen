@@ -57,6 +57,7 @@ public class IntegrationTestGenerator {
 package %s.%s;
 
 import %s.%s.application.dto.%sDTO;
+import %s.%s.domain.entity.%s;
 import %s.%s.infrastructure.repository.%sRepository;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.*;
@@ -310,6 +311,9 @@ class %sIntegrationTest {
                 .formatted(
                         basePackage,
                         moduleName,
+                        basePackage,
+                        moduleName,
+                        entityName,
                         basePackage,
                         moduleName,
                         entityName,
