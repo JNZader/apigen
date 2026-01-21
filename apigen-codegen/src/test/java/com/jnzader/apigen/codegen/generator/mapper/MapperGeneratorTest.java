@@ -38,7 +38,10 @@ class MapperGeneratorTest {
 
             String result =
                     mapperGenerator.generate(
-                            table, Collections.emptyList(), Collections.emptyList());
+                            table,
+                            Collections.emptyList(),
+                            Collections.emptyList(),
+                            Collections.emptyList());
 
             assertThat(result).contains("package com.example.products.application.mapper;");
         }
@@ -50,7 +53,10 @@ class MapperGeneratorTest {
 
             String result =
                     mapperGenerator.generate(
-                            table, Collections.emptyList(), Collections.emptyList());
+                            table,
+                            Collections.emptyList(),
+                            Collections.emptyList(),
+                            Collections.emptyList());
 
             assertThat(result)
                     .contains("import com.jnzader.apigen.core.application.mapper.BaseMapper;")
@@ -66,7 +72,10 @@ class MapperGeneratorTest {
 
             String result =
                     mapperGenerator.generate(
-                            table, Collections.emptyList(), Collections.emptyList());
+                            table,
+                            Collections.emptyList(),
+                            Collections.emptyList(),
+                            Collections.emptyList());
 
             assertThat(result).contains("@Mapper(componentModel = \"spring\")");
         }
@@ -78,7 +87,10 @@ class MapperGeneratorTest {
 
             String result =
                     mapperGenerator.generate(
-                            table, Collections.emptyList(), Collections.emptyList());
+                            table,
+                            Collections.emptyList(),
+                            Collections.emptyList(),
+                            Collections.emptyList());
 
             assertThat(result)
                     .contains(
@@ -93,10 +105,15 @@ class MapperGeneratorTest {
 
             String result =
                     mapperGenerator.generate(
-                            table, Collections.emptyList(), Collections.emptyList());
+                            table,
+                            Collections.emptyList(),
+                            Collections.emptyList(),
+                            Collections.emptyList());
 
             assertThat(result)
-                    .contains("// Inherits toDTO, toEntity, updateEntityFromDTO from BaseMapper");
+                    .contains(
+                            "// Inherits toDTO, toEntity, updateEntityFromDTO, updateDTOFromEntity"
+                                    + " from BaseMapper");
         }
 
         @ParameterizedTest(name = "Should handle table {0} -> {1}Mapper")
@@ -113,7 +130,10 @@ class MapperGeneratorTest {
 
             String result =
                     mapperGenerator.generate(
-                            table, Collections.emptyList(), Collections.emptyList());
+                            table,
+                            Collections.emptyList(),
+                            Collections.emptyList(),
+                            Collections.emptyList());
 
             assertThat(result)
                     .contains("package com.example." + moduleName + ".application.mapper;")
@@ -162,14 +182,22 @@ class MapperGeneratorTest {
                             .build();
 
             String result =
-                    mapperGenerator.generate(orderTable, List.of(rel), Collections.emptyList());
+                    mapperGenerator.generate(
+                            orderTable,
+                            List.of(rel),
+                            Collections.emptyList(),
+                            Collections.emptyList());
 
             assertThat(result)
                     .contains("@Override")
+                    .contains("@Mapping(source = \"estado\", target = \"activo\")")
                     .contains("@Mapping(source = \"customer.id\", target = \"customerId\")")
                     .contains("OrderDTO toDTO(Order entity)")
                     .contains("@Mapping(target = \"customer\", ignore = true)")
-                    .contains("Order toEntity(OrderDTO dto)");
+                    .contains("Order toEntity(OrderDTO dto)")
+                    .contains("void updateEntityFromDTO(OrderDTO dto, @MappingTarget Order entity)")
+                    .contains(
+                            "void updateDTOFromEntity(Order entity, @MappingTarget OrderDTO dto)");
         }
 
         @Test
@@ -184,14 +212,61 @@ class MapperGeneratorTest {
 
             String result =
                     mapperGenerator.generate(
-                            productTable, Collections.emptyList(), List.of(m2mRel));
+                            productTable,
+                            Collections.emptyList(),
+                            Collections.emptyList(),
+                            List.of(m2mRel));
 
             assertThat(result)
                     .contains("@Override")
                     .contains("@Mapping(target = \"categoriesIds\", ignore = true)")
                     .contains("ProductDTO toDTO(Product entity)")
                     .contains("@Mapping(target = \"categories\", ignore = true)")
-                    .contains("Product toEntity(ProductDTO dto)");
+                    .contains("Product toEntity(ProductDTO dto)")
+                    .contains(
+                            "void updateEntityFromDTO(ProductDTO dto, @MappingTarget Product"
+                                    + " entity)")
+                    .contains(
+                            "void updateDTOFromEntity(Product entity, @MappingTarget ProductDTO"
+                                    + " dto)");
+        }
+
+        @Test
+        @DisplayName("Should generate mappings for inverse OneToMany relationships")
+        void shouldGenerateMappingsForInverseRelationships() {
+            SqlTable customerTable = createSimpleTable("customers");
+            SqlTable orderTable = createSimpleTable("orders");
+
+            SqlForeignKey fk =
+                    SqlForeignKey.builder()
+                            .columnName("customer_id")
+                            .referencedTable("customers")
+                            .referencedColumn("id")
+                            .build();
+
+            // Incoming relationship: orders -> customers (customer has many orders)
+            SqlSchema.TableRelationship incomingRel =
+                    SqlSchema.TableRelationship.builder()
+                            .sourceTable(orderTable)
+                            .targetTable(customerTable)
+                            .foreignKey(fk)
+                            .relationType(RelationType.MANY_TO_ONE)
+                            .build();
+
+            String result =
+                    mapperGenerator.generate(
+                            customerTable,
+                            Collections.emptyList(),
+                            List.of(incomingRel),
+                            Collections.emptyList());
+
+            // Should ignore the inverse collection "orders" in toEntity and updateEntityFromDTO
+            assertThat(result)
+                    .contains("@Mapping(target = \"orders\", ignore = true)")
+                    .contains("Customer toEntity(CustomerDTO dto)")
+                    .contains(
+                            "void updateEntityFromDTO(CustomerDTO dto, @MappingTarget Customer"
+                                    + " entity)");
         }
     }
 

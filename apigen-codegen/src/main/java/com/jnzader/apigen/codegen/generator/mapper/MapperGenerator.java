@@ -12,6 +12,7 @@ public class MapperGenerator {
 
     private static final String APIGEN_CORE_PKG = "com.jnzader.apigen.core";
     private static final String MAPPING_TARGET = "\n    @Mapping(target = \"";
+    private static final String MAPPING_SOURCE = "\n    @Mapping(source = \"";
     private static final String IGNORE_TRUE = "\", ignore = true)";
 
     private final String basePackage;
@@ -23,22 +24,25 @@ public class MapperGenerator {
     /** Generates the Mapper interface code. */
     public String generate(
             SqlTable table,
-            List<SqlSchema.TableRelationship> relations,
+            List<SqlSchema.TableRelationship> outgoingRelations,
+            List<SqlSchema.TableRelationship> incomingRelations,
             List<ManyToManyRelation> manyToManyRelations) {
         String entityName = table.getEntityName();
         String moduleName = table.getModuleName();
 
         StringBuilder toDTOMappings = new StringBuilder();
         StringBuilder toEntityMappings = new StringBuilder();
+        StringBuilder updateEntityMappings = new StringBuilder();
+        StringBuilder updateDTOMappings = new StringBuilder();
 
-        // Generate mappings for ManyToOne/OneToOne relationships
-        for (SqlSchema.TableRelationship rel : relations) {
+        // Generate mappings for ManyToOne/OneToOne relationships (outgoing)
+        for (SqlSchema.TableRelationship rel : outgoingRelations) {
             String fieldName = rel.getForeignKey().getJavaFieldName();
             String dtoFieldName = fieldName + "Id";
 
             // Entity -> DTO: Extract ID from relationship
             toDTOMappings
-                    .append("\n    @Mapping(source = \"")
+                    .append(MAPPING_SOURCE)
                     .append(fieldName)
                     .append(".id\", target = \"")
                     .append(dtoFieldName)
@@ -46,6 +50,29 @@ public class MapperGenerator {
 
             // DTO -> Entity: Ignore relationship (handled by service)
             toEntityMappings.append(MAPPING_TARGET).append(fieldName).append(IGNORE_TRUE);
+
+            // updateEntityFromDTO: Ignore relationship
+            updateEntityMappings.append(MAPPING_TARGET).append(fieldName).append(IGNORE_TRUE);
+
+            // updateDTOFromEntity: Map relationship ID
+            updateDTOMappings
+                    .append(MAPPING_SOURCE)
+                    .append(fieldName)
+                    .append(".id\", target = \"")
+                    .append(dtoFieldName)
+                    .append("\")");
+        }
+
+        // Generate mappings for inverse OneToMany relationships (incoming)
+        for (SqlSchema.TableRelationship rel : incomingRelations) {
+            String sourceEntityVar = rel.getSourceTable().getEntityVariableName();
+            String fieldName = pluralize(sourceEntityVar);
+
+            // toEntity: Ignore inverse collections
+            toEntityMappings.append(MAPPING_TARGET).append(fieldName).append(IGNORE_TRUE);
+
+            // updateEntityFromDTO: Ignore inverse collections
+            updateEntityMappings.append(MAPPING_TARGET).append(fieldName).append(IGNORE_TRUE);
         }
 
         // Generate mappings for ManyToMany relationships
@@ -58,25 +85,54 @@ public class MapperGenerator {
 
             // DTO -> Entity: Ignore relationship (handled by service)
             toEntityMappings.append(MAPPING_TARGET).append(fieldName).append(IGNORE_TRUE);
+
+            // updateEntityFromDTO: Ignore relationship
+            updateEntityMappings.append(MAPPING_TARGET).append(fieldName).append(IGNORE_TRUE);
+
+            // updateDTOFromEntity: Ignore collection IDs
+            updateDTOMappings.append(MAPPING_TARGET).append(dtoFieldName).append(IGNORE_TRUE);
         }
 
-        // Only generate custom methods if there are relationships
+        // Build methods section - always generate if there are any relationships
+        boolean hasRelationships =
+                !outgoingRelations.isEmpty()
+                        || !incomingRelations.isEmpty()
+                        || !manyToManyRelations.isEmpty();
+
         String methods = "";
-        if (!relations.isEmpty() || !manyToManyRelations.isEmpty()) {
+        if (hasRelationships) {
             methods =
 """
 
-    @Override%s
+    @Override
+    @Mapping(source = "estado", target = "activo")%s
     %sDTO toDTO(%s entity);
 
-    @Override%s
+    @Override
+    @Mapping(source = "activo", target = "estado")%s
     %s toEntity(%sDTO dto);
+
+    @Override
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(source = "activo", target = "estado")%s
+    void updateEntityFromDTO(%sDTO dto, @MappingTarget %s entity);
+
+    @Override
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(source = "estado", target = "activo")%s
+    void updateDTOFromEntity(%s entity, @MappingTarget %sDTO dto);
 """
                             .formatted(
                                     toDTOMappings,
                                     entityName,
                                     entityName,
                                     toEntityMappings,
+                                    entityName,
+                                    entityName,
+                                    updateEntityMappings,
+                                    entityName,
+                                    entityName,
+                                    updateDTOMappings,
                                     entityName,
                                     entityName);
         }
@@ -92,7 +148,7 @@ import org.mapstruct.*;
 
 @Mapper(componentModel = "spring")
 public interface %sMapper extends BaseMapper<%s, %sDTO> {
-    // Inherits toDTO, toEntity, updateEntityFromDTO from BaseMapper
+    // Inherits toDTO, toEntity, updateEntityFromDTO, updateDTOFromEntity from BaseMapper
     // MapStruct will generate implementations automatically%s
 }
 """

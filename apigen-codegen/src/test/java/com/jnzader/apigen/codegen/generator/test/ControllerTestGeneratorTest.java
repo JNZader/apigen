@@ -153,7 +153,9 @@ class ControllerTestGeneratorTest {
             String result = generator.generate(table);
 
             assertThat(result)
-                    .contains("Page<Product> page = new PageImpl<>(List.of(product))")
+                    .contains(
+                            "Page<Product> page = new PageImpl<>(new"
+                                    + " ArrayList<>(List.of(product)))")
                     .contains(
                             "when(service.findAll(any(Specification.class),"
                                     + " any(Pageable.class))).thenReturn(Result.success(page));")
