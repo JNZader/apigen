@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.8](https://github.com/JNZader/apigen/compare/v2.1.7...v2.1.8) (2026-01-21)
+
+### Bug Fixes
+
+* **codegen:** resolve generated test failures and MapStruct warnings ([#42](https://github.com/JNZader/apigen/issues/42)) ([eee6d32](https://github.com/JNZader/apigen/commit/eee6d32e1d2191a6cbb8fe6689dcdb6853b13be4))
+
 ## [2.1.7](https://github.com/JNZader/apigen/compare/v2.1.6...v2.1.7) (2026-01-21)
 
 ### Bug Fixes
