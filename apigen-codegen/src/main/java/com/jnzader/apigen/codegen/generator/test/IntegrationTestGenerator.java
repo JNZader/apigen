@@ -198,7 +198,7 @@ class %sIntegrationTest {
         assertThat(createdId).isNotNull();
 
         // Only update activo field
-        String patchJson = "{\"activo\": true}";
+        String patchJson = "{\\\"activo\\\": true}";
 
         mockMvc.perform(patch(BASE_URL + "/" + createdId)
                         .contentType(MediaType.APPLICATION_JSON)
