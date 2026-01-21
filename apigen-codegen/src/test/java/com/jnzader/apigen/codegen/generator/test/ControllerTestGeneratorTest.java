@@ -241,16 +241,21 @@ class ControllerTestGeneratorTest {
     class PatchOperationsTests {
 
         @Test
-        @DisplayName("Should generate partial update test")
+        @DisplayName("Should generate partial update test using findById and save")
         void shouldGeneratePartialUpdateTest() {
             SqlTable table = createSimpleTable("products");
 
             String result = generator.generate(table);
 
+            // PATCH controller calls: findById -> updateEntityFromDTO -> save (not partialUpdate)
             assertThat(result)
                     .contains("@DisplayName(\"Should partial update Product\")")
-                    .contains("service.partialUpdate(anyLong(), any(Product.class))")
-                    .contains("patch(\"/api/v1/products/1\")");
+                    .contains("when(service.findById(1L)).thenReturn(Result.success(product));")
+                    .contains(
+                            "when(service.save(any(Product.class))).thenReturn(Result.success(product));")
+                    .contains("patch(\"/api/v1/products/1\")")
+                    .contains("verify(service).findById(1L);")
+                    .contains("verify(service).save(any(Product.class));");
         }
     }
 

@@ -214,7 +214,7 @@ class IntegrationTestGeneratorTest {
         }
 
         @Test
-        @DisplayName("Should generate partial update test (Order 7)")
+        @DisplayName("Should generate partial update test (Order 7) with valid JSON")
         void shouldGeneratePartialUpdateTest() {
             SqlTable table = createSimpleTable("products");
 
@@ -224,7 +224,10 @@ class IntegrationTestGeneratorTest {
                     .contains("@org.junit.jupiter.api.Order(7)")
                     .contains("@DisplayName(\"7. PATCH /{id} - Should partial update Product\")")
                     .contains("void shouldPartialUpdateProduct()")
-                    .contains("mockMvc.perform(patch(BASE_URL + \"/\" + createdId)");
+                    .contains("mockMvc.perform(patch(BASE_URL + \"/\" + createdId)")
+                    // Verify proper JSON escaping (should be valid JSON, not double-escaped)
+                    .contains("{\"activo\": true}")
+                    .doesNotContain("{\\\"activo\\\": true}");
         }
 
         @Test

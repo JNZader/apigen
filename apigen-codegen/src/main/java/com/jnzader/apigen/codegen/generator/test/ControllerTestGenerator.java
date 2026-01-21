@@ -188,8 +188,10 @@ class %sControllerImplTest {
         @Test
         @DisplayName("Should partial update %s")
         void shouldPartialUpdate() throws Exception {
-            when(mapper.toEntity(any(%sDTO.class))).thenReturn(%s);
-            when(service.partialUpdate(anyLong(), any(%s.class))).thenReturn(Result.success(%s));
+            // Controller PATCH calls: findById -> updateEntityFromDTO -> save
+            when(service.findById(1L)).thenReturn(Result.success(%s));
+            // updateEntityFromDTO is void, no need to mock return
+            when(service.save(any(%s.class))).thenReturn(Result.success(%s));
             when(mapper.toDTO(any(%s.class))).thenReturn(dto);
 
             mockMvc.perform(patch("/api/v1/%s/1")
@@ -197,7 +199,8 @@ class %sControllerImplTest {
                             .content(objectMapper.writeValueAsString(dto)))
                     .andExpect(status().isOk());
 
-            verify(service).partialUpdate(eq(1L), any(%s.class));
+            verify(service).findById(1L);
+            verify(service).save(any(%s.class));
         }
     }
 
@@ -295,7 +298,6 @@ class %sControllerImplTest {
                         moduleName,
                         entityName,
                         // PATCH Operations
-                        entityName,
                         entityName,
                         entityVarName,
                         entityName,

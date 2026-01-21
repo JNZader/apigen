@@ -36,7 +36,8 @@ class ServiceTestGeneratorTest {
         }
 
         @Test
-        @DisplayName("Should generate correct imports")
+        @DisplayName(
+                "Should generate correct imports including EntityManager and ReflectionTestUtils")
         void shouldGenerateCorrectImports() {
             SqlTable table = createSimpleTable("products");
 
@@ -53,7 +54,9 @@ class ServiceTestGeneratorTest {
                                 + " com.example.products.infrastructure.repository.ProductRepository;")
                     .contains("import org.junit.jupiter.api.BeforeEach;")
                     .contains("import org.junit.jupiter.api.Test;")
-                    .contains("import org.mockito.Mock;");
+                    .contains("import org.mockito.Mock;")
+                    .contains("import jakarta.persistence.EntityManager;")
+                    .contains("import org.springframework.test.util.ReflectionTestUtils;");
         }
 
         @Test
@@ -69,7 +72,7 @@ class ServiceTestGeneratorTest {
         }
 
         @Test
-        @DisplayName("Should generate mock fields")
+        @DisplayName("Should generate mock fields including EntityManager")
         void shouldGenerateMockFields() {
             SqlTable table = createSimpleTable("products");
 
@@ -80,7 +83,8 @@ class ServiceTestGeneratorTest {
                     .contains("private ProductRepository repository;")
                     .contains("private CacheEvictionService cacheEvictionService;")
                     .contains("private ApplicationEventPublisher eventPublisher;")
-                    .contains("private AuditorAware<String> auditorAware;");
+                    .contains("private AuditorAware<String> auditorAware;")
+                    .contains("private EntityManager entityManager;");
         }
 
         @Test
@@ -96,7 +100,7 @@ class ServiceTestGeneratorTest {
         }
 
         @Test
-        @DisplayName("Should generate setUp method")
+        @DisplayName("Should generate setUp method with EntityManager injection")
         void shouldGenerateSetUpMethod() {
             SqlTable table = createSimpleTable("products");
 
@@ -108,6 +112,9 @@ class ServiceTestGeneratorTest {
                     .contains(
                             "service = new ProductServiceImpl(repository, cacheEvictionService,"
                                     + " eventPublisher, auditorAware);")
+                    .contains(
+                            "ReflectionTestUtils.setField(service, \"entityManager\","
+                                    + " entityManager);")
                     .contains("product = new Product();")
                     .contains("product.setId(1L);")
                     .contains("product.setEstado(true);");
