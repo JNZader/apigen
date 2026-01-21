@@ -20,10 +20,12 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 /**
  * Unit tests for GlobalExceptionHandler.
@@ -57,6 +59,13 @@ class GlobalExceptionHandlerTest {
     private static final String MSG_INTERNAL_ERROR_TITLE = "Internal server error";
     private static final String MSG_INTERNAL_ERROR_DETAIL =
             "An unexpected error occurred. Please try again later.";
+    private static final String MSG_MALFORMED_JSON_TITLE = "Malformed JSON";
+    private static final String MSG_MALFORMED_JSON_DETAIL =
+            "The request body contains invalid JSON";
+    private static final String MSG_CONSTRAINT_VIOLATION_TITLE = "Constraint violation";
+    private static final String MSG_CONSTRAINT_VIOLATION_DETAIL =
+            "Request parameters violate validation constraints";
+    private static final String MSG_TYPE_MISMATCH_TITLE = "Type mismatch";
 
     @BeforeEach
     void setUp() {
@@ -74,6 +83,13 @@ class GlobalExceptionHandlerTest {
         when(messageService.getBadRequestTitle()).thenReturn(MSG_BAD_REQUEST_TITLE);
         when(messageService.getInternalErrorTitle()).thenReturn(MSG_INTERNAL_ERROR_TITLE);
         when(messageService.getInternalErrorDetail()).thenReturn(MSG_INTERNAL_ERROR_DETAIL);
+        when(messageService.getMalformedJsonTitle()).thenReturn(MSG_MALFORMED_JSON_TITLE);
+        when(messageService.getMalformedJsonDetail()).thenReturn(MSG_MALFORMED_JSON_DETAIL);
+        when(messageService.getConstraintViolationTitle())
+                .thenReturn(MSG_CONSTRAINT_VIOLATION_TITLE);
+        when(messageService.getConstraintViolationDetail())
+                .thenReturn(MSG_CONSTRAINT_VIOLATION_DETAIL);
+        when(messageService.getTypeMismatchTitle()).thenReturn(MSG_TYPE_MISMATCH_TITLE);
     }
 
     // ==================== ResourceNotFoundException Tests ====================
@@ -387,6 +403,229 @@ class GlobalExceptionHandlerTest {
             assertThat(response.getBody().status()).isEqualTo(400);
             assertThat(response.getBody().title()).isEqualTo(MSG_BAD_REQUEST_TITLE);
             assertThat(response.getBody().detail()).isEqualTo(TEST_MESSAGE);
+        }
+    }
+
+    // ==================== HttpMessageNotReadableException Tests ====================
+
+    @Nested
+    @DisplayName("HttpMessageNotReadableException Handler")
+    class HttpMessageNotReadableExceptionTests {
+
+        @Test
+        @DisplayName("should return 400 BAD_REQUEST with malformed JSON details")
+        void shouldReturn400WithMalformedJsonDetails() {
+            // Given
+            HttpMessageNotReadableException ex =
+                    new HttpMessageNotReadableException(
+                            "Could not read JSON", (Throwable) null, null);
+
+            // When
+            ResponseEntity<ProblemDetail> response =
+                    handler.handleHttpMessageNotReadableException(ex, request);
+
+            // Then
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+            assertThat(response.getBody()).isNotNull();
+            assertThat(response.getBody().status()).isEqualTo(400);
+            assertThat(response.getBody().title()).isEqualTo(MSG_MALFORMED_JSON_TITLE);
+            assertThat(response.getBody().detail()).isEqualTo(MSG_MALFORMED_JSON_DETAIL);
+        }
+
+        @Test
+        @DisplayName("should return correct content type")
+        void shouldReturnCorrectContentType() {
+            // Given
+            HttpMessageNotReadableException ex =
+                    new HttpMessageNotReadableException("Invalid JSON", (Throwable) null, null);
+
+            // When
+            ResponseEntity<ProblemDetail> response =
+                    handler.handleHttpMessageNotReadableException(ex, request);
+
+            // Then
+            assertThat(response.getHeaders().getContentType())
+                    .isEqualTo(GlobalExceptionHandler.APPLICATION_PROBLEM_JSON);
+        }
+
+        @Test
+        @DisplayName("should include correct type URI")
+        void shouldIncludeCorrectTypeUri() {
+            // Given
+            HttpMessageNotReadableException ex =
+                    new HttpMessageNotReadableException("Malformed", (Throwable) null, null);
+
+            // When
+            ResponseEntity<ProblemDetail> response =
+                    handler.handleHttpMessageNotReadableException(ex, request);
+
+            // Then
+            assertThat(response.getBody()).isNotNull();
+            assertThat(response.getBody().type()).hasToString("urn:apigen:problem:malformed-json");
+        }
+    }
+
+    // ==================== ConstraintViolationException Tests ====================
+
+    @Nested
+    @DisplayName("ConstraintViolationException Handler")
+    class ConstraintViolationExceptionTests {
+
+        @Test
+        @DisplayName("should return 400 BAD_REQUEST with constraint violations")
+        void shouldReturn400WithConstraintViolations() {
+            // Given
+            jakarta.validation.ConstraintViolation<?> violation =
+                    mock(jakarta.validation.ConstraintViolation.class);
+            jakarta.validation.Path path = mock(jakarta.validation.Path.class);
+            when(path.toString()).thenReturn("paramName");
+            when(violation.getPropertyPath()).thenReturn(path);
+            when(violation.getMessage()).thenReturn("must not be null");
+
+            jakarta.validation.ConstraintViolationException ex =
+                    new jakarta.validation.ConstraintViolationException(
+                            java.util.Set.of(violation));
+
+            // When
+            ResponseEntity<ProblemDetail> response =
+                    handler.handleConstraintViolationException(ex, request);
+
+            // Then
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+            assertThat(response.getBody()).isNotNull();
+            assertThat(response.getBody().status()).isEqualTo(400);
+            assertThat(response.getBody().title()).isEqualTo(MSG_CONSTRAINT_VIOLATION_TITLE);
+            assertThat(response.getBody().detail()).isEqualTo(MSG_CONSTRAINT_VIOLATION_DETAIL);
+        }
+
+        @Test
+        @DisplayName("should include violations in extensions")
+        void shouldIncludeViolationsInExtensions() {
+            // Given
+            jakarta.validation.ConstraintViolation<?> violation1 =
+                    mock(jakarta.validation.ConstraintViolation.class);
+            jakarta.validation.Path path1 = mock(jakarta.validation.Path.class);
+            when(path1.toString()).thenReturn("id");
+            when(violation1.getPropertyPath()).thenReturn(path1);
+            when(violation1.getMessage()).thenReturn("must be positive");
+
+            jakarta.validation.ConstraintViolation<?> violation2 =
+                    mock(jakarta.validation.ConstraintViolation.class);
+            jakarta.validation.Path path2 = mock(jakarta.validation.Path.class);
+            when(path2.toString()).thenReturn("name");
+            when(violation2.getPropertyPath()).thenReturn(path2);
+            when(violation2.getMessage()).thenReturn("must not be blank");
+
+            jakarta.validation.ConstraintViolationException ex =
+                    new jakarta.validation.ConstraintViolationException(
+                            java.util.Set.of(violation1, violation2));
+
+            // When
+            ResponseEntity<ProblemDetail> response =
+                    handler.handleConstraintViolationException(ex, request);
+
+            // Then
+            assertThat(response.getBody()).isNotNull();
+            assertThat(response.getBody().extensions()).containsKey("violations");
+            @SuppressWarnings("unchecked")
+            java.util.List<String> violations =
+                    (java.util.List<String>) response.getBody().extensions().get("violations");
+            assertThat(violations).hasSize(2);
+        }
+
+        @Test
+        @DisplayName("should include correct type URI")
+        void shouldIncludeCorrectTypeUri() {
+            // Given
+            jakarta.validation.ConstraintViolation<?> violation =
+                    mock(jakarta.validation.ConstraintViolation.class);
+            jakarta.validation.Path path = mock(jakarta.validation.Path.class);
+            when(path.toString()).thenReturn("field");
+            when(violation.getPropertyPath()).thenReturn(path);
+            when(violation.getMessage()).thenReturn("invalid");
+
+            jakarta.validation.ConstraintViolationException ex =
+                    new jakarta.validation.ConstraintViolationException(
+                            java.util.Set.of(violation));
+
+            // When
+            ResponseEntity<ProblemDetail> response =
+                    handler.handleConstraintViolationException(ex, request);
+
+            // Then
+            assertThat(response.getBody()).isNotNull();
+            assertThat(response.getBody().type())
+                    .hasToString("urn:apigen:problem:constraint-violation");
+        }
+    }
+
+    // ==================== MethodArgumentTypeMismatchException Tests ====================
+
+    @Nested
+    @DisplayName("MethodArgumentTypeMismatchException Handler")
+    class MethodArgumentTypeMismatchExceptionTests {
+
+        @Test
+        @DisplayName("should return 400 BAD_REQUEST with type mismatch details")
+        void shouldReturn400WithTypeMismatchDetails() {
+            // Given
+            when(messageService.getTypeMismatchDetail("id", "abc"))
+                    .thenReturn("Parameter 'id' with value 'abc' could not be converted");
+
+            MethodArgumentTypeMismatchException ex =
+                    new MethodArgumentTypeMismatchException(
+                            "abc", Long.class, "id", null, new NumberFormatException());
+
+            // When
+            ResponseEntity<ProblemDetail> response =
+                    handler.handleMethodArgumentTypeMismatchException(ex, request);
+
+            // Then
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+            assertThat(response.getBody()).isNotNull();
+            assertThat(response.getBody().status()).isEqualTo(400);
+            assertThat(response.getBody().title()).isEqualTo(MSG_TYPE_MISMATCH_TITLE);
+            assertThat(response.getBody().detail()).contains("id");
+        }
+
+        @Test
+        @DisplayName("should include correct type URI")
+        void shouldIncludeCorrectTypeUri() {
+            // Given
+            when(messageService.getTypeMismatchDetail("page", "invalid"))
+                    .thenReturn("Parameter 'page' with value 'invalid' could not be converted");
+
+            MethodArgumentTypeMismatchException ex =
+                    new MethodArgumentTypeMismatchException(
+                            "invalid", Integer.class, "page", null, new NumberFormatException());
+
+            // When
+            ResponseEntity<ProblemDetail> response =
+                    handler.handleMethodArgumentTypeMismatchException(ex, request);
+
+            // Then
+            assertThat(response.getBody()).isNotNull();
+            assertThat(response.getBody().type()).hasToString("urn:apigen:problem:type-mismatch");
+        }
+
+        @Test
+        @DisplayName("should handle null value gracefully")
+        void shouldHandleNullValueGracefully() {
+            // Given
+            when(messageService.getTypeMismatchDetail("id", null))
+                    .thenReturn("Parameter 'id' with value 'null' could not be converted");
+
+            MethodArgumentTypeMismatchException ex =
+                    new MethodArgumentTypeMismatchException(
+                            null, Long.class, "id", null, new IllegalArgumentException());
+
+            // When
+            ResponseEntity<ProblemDetail> response =
+                    handler.handleMethodArgumentTypeMismatchException(ex, request);
+
+            // Then
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+            assertThat(response.getBody()).isNotNull();
         }
     }
 
