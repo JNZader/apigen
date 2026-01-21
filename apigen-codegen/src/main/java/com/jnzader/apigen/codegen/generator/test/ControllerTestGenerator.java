@@ -1,5 +1,8 @@
 package com.jnzader.apigen.codegen.generator.test;
 
+import static com.jnzader.apigen.codegen.generator.util.TestValueProvider.getSampleTestValue;
+
+import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlTable;
 
 /** Generates unit test classes for Controller implementations. */
@@ -18,6 +21,33 @@ public class ControllerTestGenerator {
         String entityName = table.getEntityName();
         String entityVarName = table.getEntityVariableName();
         String moduleName = table.getModuleName();
+
+        // Generate field assignments for business columns
+        StringBuilder entitySetters = new StringBuilder();
+        StringBuilder dtoSetters = new StringBuilder();
+
+        for (SqlColumn col : table.getBusinessColumns()) {
+            String fieldName = col.getJavaFieldName();
+            String capitalField =
+                    Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
+            String sampleValue = getSampleTestValue(col);
+
+            entitySetters
+                    .append("\n        ")
+                    .append(entityVarName)
+                    .append(".set")
+                    .append(capitalField)
+                    .append("(")
+                    .append(sampleValue)
+                    .append(");");
+
+            dtoSetters
+                    .append("\n        dto.set")
+                    .append(capitalField)
+                    .append("(")
+                    .append(sampleValue)
+                    .append(");");
+        }
 
         return
 """
@@ -46,6 +76,7 @@ import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -78,14 +109,15 @@ class %sControllerImplTest {
                 .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
                 .build();
         objectMapper = new ObjectMapper();
+        objectMapper.findAndRegisterModules();
 
         %s = new %s();
         %s.setId(1L);
-        %s.setEstado(true);
+        %s.setEstado(true);%s
 
         dto = new %sDTO();
         dto.setId(1L);
-        dto.setActivo(true);
+        dto.setActivo(true);%s
     }
 
     @Nested
@@ -96,7 +128,7 @@ class %sControllerImplTest {
         @DisplayName("Should get all %s with pagination")
         @SuppressWarnings("unchecked")
         void shouldGetAllWithPagination() throws Exception {
-            Page<%s> page = new PageImpl<>(List.of(%s));
+            Page<%s> page = new PageImpl<>(new ArrayList<>(List.of(%s)));
             when(service.findAll(any(Specification.class), any(Pageable.class))).thenReturn(Result.success(page));
             when(mapper.toDTO(any(%s.class))).thenReturn(dto);
 
@@ -265,7 +297,9 @@ class %sControllerImplTest {
                         entityName,
                         entityVarName,
                         entityVarName,
+                        entitySetters.toString(),
                         entityName,
+                        dtoSetters.toString(),
                         // GET Operations
                         entityName,
                         entityName,

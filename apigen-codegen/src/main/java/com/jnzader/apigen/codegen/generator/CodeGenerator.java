@@ -206,7 +206,9 @@ public class CodeGenerator {
         files.add(dtoPath.toString());
 
         // 3. Generate Mapper
-        String mapperCode = mapperGenerator.generate(table, outgoingRelations, manyToManyRelations);
+        String mapperCode =
+                mapperGenerator.generate(
+                        table, outgoingRelations, incomingRelations, manyToManyRelations);
         Path mapperPath =
                 writeFile(
                         moduleName, PKG_APPLICATION_MAPPER, entityName + "Mapper.java", mapperCode);
