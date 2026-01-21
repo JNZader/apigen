@@ -1,5 +1,7 @@
 package com.jnzader.apigen.security.infrastructure.jwt;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jnzader.apigen.security.application.service.TokenBlacklistService;
 import com.jnzader.apigen.security.domain.entity.User;
 import com.jnzader.apigen.security.infrastructure.config.SecurityProperties;
@@ -52,9 +54,11 @@ public class JwtService {
 
     private static final Logger log = LoggerFactory.getLogger(JwtService.class);
     private static final String CLAIM_USER_ID = "userId";
+    private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() {};
 
     private final SecurityProperties securityProperties;
     private final TokenBlacklistService blacklistService;
+    private final ObjectMapper objectMapper;
     private final SecretKey currentKey;
     private final String currentKeyId;
     private final boolean rotationEnabled;
@@ -63,9 +67,12 @@ public class JwtService {
     private final Map<String, SecretKey> keyRegistry = new ConcurrentHashMap<>();
 
     public JwtService(
-            SecurityProperties securityProperties, TokenBlacklistService blacklistService) {
+            SecurityProperties securityProperties,
+            TokenBlacklistService blacklistService,
+            ObjectMapper objectMapper) {
         this.securityProperties = securityProperties;
         this.blacklistService = blacklistService;
+        this.objectMapper = objectMapper;
 
         // Inicializar clave actual
         this.currentKey =
@@ -227,30 +234,16 @@ public class JwtService {
         return currentKey;
     }
 
-    /** Extrae el kid del header JSON. */
+    /** Extrae el kid del header JSON usando ObjectMapper. */
     private String extractKidFromHeader(String headerJson) {
-        // Búsqueda simple de "kid":"value" en el JSON
-        int kidIndex = headerJson.indexOf("\"kid\"");
-        if (kidIndex == -1) {
+        try {
+            Map<String, Object> header = objectMapper.readValue(headerJson, MAP_TYPE);
+            Object kid = header.get("kid");
+            return kid != null ? kid.toString() : null;
+        } catch (Exception e) {
+            log.debug("Failed to parse JWT header: {}", e.getMessage());
             return null;
         }
-
-        int colonIndex = headerJson.indexOf(':', kidIndex);
-        if (colonIndex == -1) {
-            return null;
-        }
-
-        int startQuote = headerJson.indexOf('"', colonIndex);
-        if (startQuote == -1) {
-            return null;
-        }
-
-        int endQuote = headerJson.indexOf('"', startQuote + 1);
-        if (endQuote == -1) {
-            return null;
-        }
-
-        return headerJson.substring(startQuote + 1, endQuote);
     }
 
     /** Valida si el token es válido para el usuario dado. Incluye verificación de blacklist. */
