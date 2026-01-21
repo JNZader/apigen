@@ -15,12 +15,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Configuración de Resilience4j para patrones de resiliencia.
+ * Resilience4j configuration for resilience patterns.
  *
- * <p>Incluye: - Circuit Breaker: protege contra fallos en cascada - Rate Limiter: limita la tasa de
- * solicitudes - Retry: reintentos automáticos en caso de fallo
+ * <p>Includes: - Circuit Breaker: protects against cascading failures - Rate Limiter: limits
+ * request rate - Retry: automatic retries on failure
  *
- * <p>Uso en servicios:
+ * <p>Usage in services:
  *
  * <pre>{@code
  * @CircuitBreaker(name = "default", fallbackMethod = "fallback")
@@ -36,14 +36,13 @@ public class ResilienceConfig {
     private static final String BREAKER_DEFAULT = "default";
 
     /**
-     * Configuración del Circuit Breaker.
+     * Circuit Breaker configuration.
      *
-     * <p>Parámetros: - failureRateThreshold: 50% de fallos abre el circuito -
-     * slowCallRateThreshold: 100% de llamadas lentas (deshabilitado por defecto) -
-     * waitDurationInOpenState: 60 segundos antes de pasar a half-open -
-     * permittedNumberOfCallsInHalfOpenState: 3 llamadas de prueba - minimumNumberOfCalls: 10
-     * llamadas mínimas para calcular métricas - slidingWindowSize: 100 llamadas en la ventana
-     * deslizante
+     * <p>Parameters: - failureRateThreshold: 50% failures opens the circuit -
+     * slowCallRateThreshold: 100% slow calls (disabled by default) - waitDurationInOpenState: 60
+     * seconds before switching to half-open - permittedNumberOfCallsInHalfOpenState: 3 test calls -
+     * minimumNumberOfCalls: 10 minimum calls to calculate metrics - slidingWindowSize: 100 calls in
+     * the sliding window
      */
     @Bean
     public CircuitBreakerRegistry circuitBreakerRegistry() {
@@ -63,12 +62,12 @@ public class ResilienceConfig {
 
         CircuitBreakerRegistry registry = CircuitBreakerRegistry.of(defaultConfig);
 
-        // Crear circuit breakers predefinidos
+        // Create predefined circuit breakers
         CircuitBreaker defaultCb = registry.circuitBreaker(BREAKER_DEFAULT);
         CircuitBreaker externalCb = registry.circuitBreaker("external");
         CircuitBreaker databaseCb = registry.circuitBreaker("database");
 
-        // Event handlers para logging
+        // Event handlers for logging
         registerCircuitBreakerEventHandlers(defaultCb);
         registerCircuitBreakerEventHandlers(externalCb);
         registerCircuitBreakerEventHandlers(databaseCb);
@@ -81,10 +80,10 @@ public class ResilienceConfig {
     }
 
     /**
-     * Configuración del Rate Limiter.
+     * Rate Limiter configuration.
      *
-     * <p>Parámetros: - limitForPeriod: 100 llamadas por período - limitRefreshPeriod: 1 segundo -
-     * timeoutDuration: 5 segundos de espera máxima
+     * <p>Parameters: - limitForPeriod: 100 calls per period - limitRefreshPeriod: 1 second -
+     * timeoutDuration: 5 seconds maximum wait
      */
     @Bean
     public RateLimiterRegistry rateLimiterRegistry() {
@@ -104,7 +103,7 @@ public class ResilienceConfig {
 
         RateLimiterRegistry registry = RateLimiterRegistry.of(defaultConfig);
 
-        // Crear rate limiters predefinidos
+        // Create predefined rate limiters
         registry.rateLimiter(BREAKER_DEFAULT);
         registry.rateLimiter("strict", strictConfig);
         registry.rateLimiter("public-api", defaultConfig);
@@ -115,10 +114,10 @@ public class ResilienceConfig {
     }
 
     /**
-     * Configuración de Retry.
+     * Retry configuration.
      *
-     * <p>Parámetros: - maxAttempts: 3 intentos máximos - waitDuration: 500ms entre intentos -
-     * exponentialBackoff: multiplica el tiempo de espera en cada intento
+     * <p>Parameters: - maxAttempts: 3 maximum attempts - waitDuration: 500ms between attempts -
+     * exponentialBackoff: multiplies wait time on each attempt
      */
     @Bean
     public RetryRegistry retryRegistry() {
@@ -139,12 +138,12 @@ public class ResilienceConfig {
 
         RetryRegistry registry = RetryRegistry.of(defaultConfig);
 
-        // Crear retry configs predefinidos
+        // Create predefined retry configs
         Retry defaultRetry = registry.retry(BREAKER_DEFAULT);
         registry.retry("conservative", conservativeConfig);
         registry.retry("database");
 
-        // Event handler para logging
+        // Event handler for logging
         defaultRetry
                 .getEventPublisher()
                 .onRetry(

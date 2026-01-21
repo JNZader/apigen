@@ -12,9 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Servicio para gestionar la blacklist de tokens JWT.
+ * Service for managing the JWT token blacklist.
  *
- * <p>Permite invalidar tokens antes de su expiración natural.
+ * <p>Allows invalidating tokens before their natural expiration.
  */
 @Service
 @ConditionalOnProperty(name = "apigen.security.enabled", havingValue = "true")
@@ -29,36 +29,32 @@ public class TokenBlacklistService {
     }
 
     /**
-     * Añade un token a la blacklist.
+     * Adds a token to the blacklist.
      *
-     * @param tokenId Identificador único del token (jti claim)
-     * @param username Usuario propietario del token
-     * @param expiration Fecha de expiración del token
-     * @param reason Razón de la invalidación
+     * @param tokenId Unique token identifier (jti claim)
+     * @param username Token owner username
+     * @param expiration Token expiration date
+     * @param reason Reason for invalidation
      */
     @Transactional
     public void blacklistToken(
             String tokenId, String username, Instant expiration, BlacklistReason reason) {
-        // Llamar directamente al repository para evitar self-invocation transaccional
+        // Call repository directly to avoid transactional self-invocation
         if (repository.existsByTokenId(tokenId)) {
-            log.debug("Token {} ya está en la blacklist", tokenId);
+            log.debug("Token {} is already blacklisted", tokenId);
             return;
         }
 
         TokenBlacklist entry = new TokenBlacklist(tokenId, username, expiration, reason);
         repository.save(entry);
-        log.info(
-                "Token {} del usuario {} añadido a blacklist. Razón: {}",
-                tokenId,
-                username,
-                reason);
+        log.info("Token {} from user {} added to blacklist. Reason: {}", tokenId, username, reason);
     }
 
     /**
-     * Verifica si un token está en la blacklist.
+     * Checks if a token is blacklisted.
      *
-     * @param tokenId Identificador del token
-     * @return true si el token está invalidado
+     * @param tokenId Token identifier
+     * @return true if the token is invalidated
      */
     @Transactional(readOnly = true)
     public boolean isBlacklisted(String tokenId) {
@@ -66,23 +62,23 @@ public class TokenBlacklistService {
     }
 
     /**
-     * Invalida todos los tokens de un usuario. Útil cuando el usuario cambia su contraseña.
+     * Invalidates all tokens for a user. Useful when the user changes their password.
      *
-     * @param username Nombre de usuario
+     * @param username Username
      */
     @Transactional
     public void revokeAllUserTokens(String username) {
         int deleted = repository.deleteByUsername(username);
-        log.info("Revocados {} tokens del usuario {}", deleted, username);
+        log.info("Revoked {} tokens for user {}", deleted, username);
     }
 
-    /** Limpia tokens expirados de la blacklist. Se ejecuta automáticamente cada hora. */
-    @Scheduled(fixedRate = 3600000) // 1 hora
+    /** Cleans up expired tokens from the blacklist. Runs automatically every hour. */
+    @Scheduled(fixedRate = 3600000) // 1 hour
     @Transactional
     public void cleanupExpiredTokens() {
         int deleted = repository.deleteExpiredTokens(Instant.now());
         if (deleted > 0) {
-            log.info("Limpiados {} tokens expirados de la blacklist", deleted);
+            log.info("Cleaned up {} expired tokens from blacklist", deleted);
         }
     }
 }

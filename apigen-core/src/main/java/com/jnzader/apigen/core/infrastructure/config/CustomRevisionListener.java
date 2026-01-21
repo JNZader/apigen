@@ -4,11 +4,11 @@ import com.jnzader.apigen.core.domain.entity.audit.Revision;
 import org.hibernate.envers.RevisionListener;
 
 /**
- * Listener personalizado para Hibernate Envers que permite capturar información adicional en la
- * entidad de revisión, como el usuario que realiza la modificación.
+ * Custom listener for Hibernate Envers that allows capturing additional information in the revision
+ * entity, such as the user performing the modification.
  *
- * <p>Este listener usa reflection para acceder a Spring Security, de forma que funciona tanto con
- * como sin Spring Security en el classpath.
+ * <p>This listener uses reflection to access Spring Security, so it works both with and without
+ * Spring Security in the classpath.
  */
 public class CustomRevisionListener implements RevisionListener {
 
@@ -22,7 +22,7 @@ public class CustomRevisionListener implements RevisionListener {
             Class.forName("org.springframework.security.core.context.SecurityContextHolder");
             available = true;
         } catch (ClassNotFoundException _) {
-            // Spring Security no está disponible
+            // Spring Security is not available
         }
         SECURITY_AVAILABLE = available;
     }
@@ -40,7 +40,7 @@ public class CustomRevisionListener implements RevisionListener {
         }
 
         try {
-            // Usar reflection para acceder a Spring Security
+            // Use reflection to access Spring Security
             Class<?> securityContextHolderClass =
                     Class.forName(
                             "org.springframework.security.core.context.SecurityContextHolder");
@@ -81,7 +81,7 @@ public class CustomRevisionListener implements RevisionListener {
 
             return name;
         } catch (Exception _) {
-            // Si hay cualquier error con reflection, usar "system"
+            // If there is any error with reflection, use "system"
             return USERNAME_SYSTEM;
         }
     }

@@ -66,7 +66,7 @@ class ApiErrorTest {
         void shouldCreateWithFieldErrorsOnly() {
             ApiError.Validation error = new ApiError.Validation(Map.of("name", "Required"));
 
-            assertThat(error.message()).isEqualTo("Error de validación");
+            assertThat(error.message()).isEqualTo("Validation error");
             assertThat(error.fieldErrors()).containsEntry("name", "Required");
         }
     }
@@ -188,7 +188,7 @@ class ApiErrorTest {
             Exception cause = new RuntimeException("Root");
             ApiError.Internal error = new ApiError.Internal(cause);
 
-            assertThat(error.message()).isEqualTo("Error interno del servidor");
+            assertThat(error.message()).isEqualTo("Internal server error");
         }
     }
 
@@ -292,7 +292,7 @@ class ApiErrorTest {
             ApiError error = ApiError.from(null);
 
             assertThat(error).isInstanceOf(ApiError.Internal.class);
-            assertThat(error.message()).isEqualTo("Error desconocido");
+            assertThat(error.message()).isEqualTo("Unknown error");
         }
     }
 
@@ -308,7 +308,7 @@ class ApiErrorTest {
             ProblemDetail detail = error.toProblemDetail("/api/users/1");
 
             assertThat(detail.status()).isEqualTo(404);
-            assertThat(detail.title()).isEqualTo("Recurso no encontrado");
+            assertThat(detail.title()).isEqualTo("Resource not found");
             assertThat(detail.instance()).hasToString("/api/users/1");
         }
 
@@ -353,15 +353,14 @@ class ApiErrorTest {
         @Test
         @DisplayName("should return correct title for each type")
         void shouldReturnCorrectTitleForEachType() {
-            assertThat(new ApiError.NotFound("msg").title()).isEqualTo("Recurso no encontrado");
-            assertThat(new ApiError.Validation("msg").title()).isEqualTo("Error de validación");
-            assertThat(new ApiError.Conflict("msg").title()).isEqualTo("Conflicto de recursos");
-            assertThat(new ApiError.Forbidden("msg").title()).isEqualTo("Acción no permitida");
+            assertThat(new ApiError.NotFound("msg").title()).isEqualTo("Resource not found");
+            assertThat(new ApiError.Validation("msg").title()).isEqualTo("Validation error");
+            assertThat(new ApiError.Conflict("msg").title()).isEqualTo("Resource conflict");
+            assertThat(new ApiError.Forbidden("msg").title()).isEqualTo("Action not allowed");
             assertThat(new ApiError.PreconditionFailed("msg").title())
-                    .isEqualTo("Precondición fallida");
-            assertThat(new ApiError.IdMismatch(1L, 2L).title()).isEqualTo("IDs no coinciden");
-            assertThat(new ApiError.Internal("msg").title())
-                    .isEqualTo("Error interno del servidor");
+                    .isEqualTo("Precondition failed");
+            assertThat(new ApiError.IdMismatch(1L, 2L).title()).isEqualTo("IDs do not match");
+            assertThat(new ApiError.Internal("msg").title()).isEqualTo("Internal server error");
         }
 
         @Test

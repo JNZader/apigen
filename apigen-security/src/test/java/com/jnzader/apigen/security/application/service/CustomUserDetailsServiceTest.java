@@ -82,7 +82,7 @@ class CustomUserDetailsServiceTest {
 
         assertThatThrownBy(() -> userDetailsService.loadUserByUsername("inactive"))
                 .isInstanceOf(UsernameNotFoundException.class)
-                .hasMessageContaining("inactivo");
+                .hasMessageContaining("inactive");
 
         verify(userRepository).findActiveByUsername("inactive");
     }

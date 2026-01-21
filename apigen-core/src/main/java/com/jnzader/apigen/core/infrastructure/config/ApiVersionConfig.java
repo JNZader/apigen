@@ -6,13 +6,12 @@ import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * Configuración de versionado de API.
+ * API versioning configuration.
  *
- * <p>Agrega automáticamente el prefijo /api/v1 a todos los controladores en el paquete de
- * controllers.
+ * <p>Automatically adds the /api/v1 prefix to all controllers in the controllers package.
  *
- * <p>Estrategias de versionado soportadas: - URL path: /api/v1/resource (implementada) - Header:
- * Accept-Version: v1 (puede agregarse) - Query param: ?version=1 (puede agregarse)
+ * <p>Supported versioning strategies: - URL path: /api/v1/resource (implemented) - Header:
+ * Accept-Version: v1 (can be added) - Query param: ?version=1 (can be added)
  */
 @Configuration
 public class ApiVersionConfig implements WebMvcConfigurer {

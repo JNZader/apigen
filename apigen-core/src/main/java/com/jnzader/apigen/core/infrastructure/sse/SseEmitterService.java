@@ -11,22 +11,22 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**
- * Servicio para gestionar conexiones SSE (Server-Sent Events).
+ * Service for managing SSE (Server-Sent Events) connections.
  *
- * <p>Características: - Gestión de múltiples clientes por tópico - Broadcast a todos los
- * suscriptores de un tópico - Envío a clientes específicos por ID - Limpieza automática de
- * conexiones muertas - Thread-safe para uso concurrente
+ * <p>Features: - Management of multiple clients per topic - Broadcast to all subscribers of a topic
+ * - Send to specific clients by ID - Automatic cleanup of dead connections - Thread-safe for
+ * concurrent use
  *
- * <p>Uso típico:
+ * <p>Typical usage:
  *
  * <pre>
- * // En un controlador
+ * // In a controller
  * {@literal @}GetMapping(value = "/events/{topic}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
  * public SseEmitter subscribe({@literal @}PathVariable String topic) {
  *     return sseEmitterService.subscribe(topic);
  * }
  *
- * // En un servicio para enviar eventos
+ * // In a service to send events
  * sseEmitterService.broadcast("orders", new OrderEvent(order));
  * </pre>
  */
@@ -36,35 +36,33 @@ public class SseEmitterService {
     private static final Logger log = LoggerFactory.getLogger(SseEmitterService.class);
 
     /**
-     * Timeout para conexiones SSE (30 minutos por defecto). Valor mayor que el típico para evitar
-     * reconexiones frecuentes.
+     * Timeout for SSE connections (30 minutes by default). Higher value than typical to avoid
+     * frequent reconnections.
      */
     private static final long DEFAULT_TIMEOUT = 30 * 60 * 1000L;
 
-    /**
-     * Mapa de tópicos a sus suscriptores. Cada tópico puede tener múltiples clientes conectados.
-     */
+    /** Map of topics to their subscribers. Each topic can have multiple connected clients. */
     private final Map<String, Set<SseClient>> topicSubscribers = new ConcurrentHashMap<>();
 
-    /** Mapa de cliente ID a su emitter (para envío directo). */
+    /** Map of client ID to its emitter (for direct send). */
     private final Map<String, SseClient> clientsById = new ConcurrentHashMap<>();
 
     /**
-     * Suscribe un nuevo cliente a un tópico.
+     * Subscribes a new client to a topic.
      *
-     * @param topic Tópico al que suscribirse
-     * @return SseEmitter para la conexión
+     * @param topic Topic to subscribe to
+     * @return SseEmitter for the connection
      */
     public SseEmitter subscribe(String topic) {
         return subscribe(topic, null);
     }
 
     /**
-     * Suscribe un nuevo cliente a un tópico con ID específico.
+     * Subscribes a new client to a topic with a specific ID.
      *
-     * @param topic Tópico al que suscribirse
-     * @param clientId ID único del cliente (opcional)
-     * @return SseEmitter para la conexión
+     * @param topic Topic to subscribe to
+     * @param clientId Unique client ID (optional)
+     * @return SseEmitter for the connection
      */
     public SseEmitter subscribe(String topic, String clientId) {
         SseEmitter emitter = new SseEmitter(DEFAULT_TIMEOUT);
@@ -72,30 +70,27 @@ public class SseEmitterService {
 
         SseClient client = new SseClient(id, topic, emitter);
 
-        // Agregar a suscriptores del tópico
+        // Add to topic subscribers
         topicSubscribers.computeIfAbsent(topic, _ -> new CopyOnWriteArraySet<>()).add(client);
 
-        // Agregar al mapa de clientes por ID
+        // Add to clients by ID map
         clientsById.put(id, client);
 
-        // Configurar callbacks para limpieza
+        // Configure callbacks for cleanup
         emitter.onCompletion(() -> removeClient(client));
         emitter.onTimeout(
                 () -> {
-                    log.debug("SSE timeout para cliente {} en tópico {}", id, topic);
+                    log.debug("SSE timeout for client {} in topic {}", id, topic);
                     removeClient(client);
                 });
         emitter.onError(
                 ex -> {
                     log.debug(
-                            "SSE error para cliente {} en tópico {}: {}",
-                            id,
-                            topic,
-                            ex.getMessage());
+                            "SSE error for client {} in topic {}: {}", id, topic, ex.getMessage());
                     removeClient(client);
                 });
 
-        // Enviar evento inicial de conexión
+        // Send initial connection event
         try {
             emitter.send(
                     SseEmitter.event()
@@ -106,9 +101,9 @@ public class SseEmitterService {
                                             "clientId", id,
                                             "topic", topic,
                                             "timestamp", java.time.Instant.now().toString())));
-            log.debug("Cliente {} conectado a tópico {}", id, topic);
+            log.debug("Client {} connected to topic {}", id, topic);
         } catch (IOException e) {
-            log.warn("Error enviando evento de conexión a cliente {}: {}", id, e.getMessage());
+            log.warn("Error sending connection event to client {}: {}", id, e.getMessage());
             removeClient(client);
         }
 
@@ -116,31 +111,31 @@ public class SseEmitterService {
     }
 
     /**
-     * Envía un evento a todos los suscriptores de un tópico.
+     * Sends an event to all subscribers of a topic.
      *
-     * @param topic Tópico destino
-     * @param event Datos del evento
+     * @param topic Target topic
+     * @param event Event data
      */
     public void broadcast(String topic, Object event) {
         broadcast(topic, "message", event);
     }
 
     /**
-     * Envía un evento nombrado a todos los suscriptores de un tópico.
+     * Sends a named event to all subscribers of a topic.
      *
-     * @param topic Tópico destino
-     * @param eventName Nombre del evento (para filtrar en cliente)
-     * @param event Datos del evento
+     * @param topic Target topic
+     * @param eventName Event name (for client-side filtering)
+     * @param event Event data
      */
     public void broadcast(String topic, String eventName, Object event) {
         Set<SseClient> subscribers = topicSubscribers.get(topic);
         if (subscribers == null || subscribers.isEmpty()) {
-            log.trace("No hay suscriptores para tópico {}", topic);
+            log.trace("No subscribers for topic {}", topic);
             return;
         }
 
         log.debug(
-                "Enviando evento '{}' a {} suscriptores del tópico {}",
+                "Sending event '{}' to {} subscribers of topic {}",
                 eventName,
                 subscribers.size(),
                 topic);
@@ -151,24 +146,24 @@ public class SseEmitterService {
             try {
                 client.emitter().send(SseEmitter.event().name(eventName).id(eventId).data(event));
             } catch (IOException e) {
-                log.debug("Error enviando a cliente {}: {}", client.id(), e.getMessage());
+                log.debug("Error sending to client {}: {}", client.id(), e.getMessage());
                 removeClient(client);
             }
         }
     }
 
     /**
-     * Envía un evento a un cliente específico por ID.
+     * Sends an event to a specific client by ID.
      *
-     * @param clientId ID del cliente destino
-     * @param eventName Nombre del evento
-     * @param event Datos del evento
-     * @return true si el envío fue exitoso
+     * @param clientId Target client ID
+     * @param eventName Event name
+     * @param event Event data
+     * @return true if the send was successful
      */
     public boolean sendToClient(String clientId, String eventName, Object event) {
         SseClient client = clientsById.get(clientId);
         if (client == null) {
-            log.debug("Cliente {} no encontrado", clientId);
+            log.debug("Client {} not found", clientId);
             return false;
         }
 
@@ -181,17 +176,17 @@ public class SseEmitterService {
                                     .data(event));
             return true;
         } catch (IOException e) {
-            log.debug("Error enviando a cliente {}: {}", clientId, e.getMessage());
+            log.debug("Error sending to client {}: {}", clientId, e.getMessage());
             removeClient(client);
             return false;
         }
     }
 
     /**
-     * Envía un heartbeat a todos los clientes conectados. Útil para mantener conexiones vivas y
-     * detectar clientes muertos.
+     * Sends a heartbeat to all connected clients. Useful for keeping connections alive and
+     * detecting dead clients.
      *
-     * <p>Usa procesamiento paralelo para no bloquear cuando hay muchos clientes conectados.
+     * <p>Uses parallel processing to not block when there are many connected clients.
      */
     public void sendHeartbeatToAll() {
         long timestamp = System.currentTimeMillis();
@@ -204,10 +199,10 @@ public class SseEmitterService {
     }
 
     /**
-     * Envía un heartbeat a un cliente específico.
+     * Sends a heartbeat to a specific client.
      *
-     * @param client Cliente destino
-     * @param heartbeatEvent Datos del heartbeat
+     * @param client Target client
+     * @param heartbeatEvent Heartbeat data
      */
     private void sendHeartbeatToClient(SseClient client, Map<String, Long> heartbeatEvent) {
         try {
@@ -217,18 +212,18 @@ public class SseEmitterService {
         }
     }
 
-    /** Obtiene el número de suscriptores de un tópico. */
+    /** Gets the number of subscribers for a topic. */
     public int getSubscriberCount(String topic) {
         Set<SseClient> subscribers = topicSubscribers.get(topic);
         return subscribers != null ? subscribers.size() : 0;
     }
 
-    /** Obtiene el número total de clientes conectados. */
+    /** Gets the total number of connected clients. */
     public int getTotalClientCount() {
         return clientsById.size();
     }
 
-    /** Desconecta a un cliente específico. */
+    /** Disconnects a specific client. */
     public void disconnectClient(String clientId) {
         SseClient client = clientsById.get(clientId);
         if (client != null) {
@@ -237,7 +232,7 @@ public class SseEmitterService {
         }
     }
 
-    /** Desconecta a todos los suscriptores de un tópico. */
+    /** Disconnects all subscribers of a topic. */
     public void disconnectTopic(String topic) {
         Set<SseClient> subscribers = topicSubscribers.remove(topic);
         if (subscribers != null) {
@@ -248,7 +243,7 @@ public class SseEmitterService {
         }
     }
 
-    /** Elimina un cliente de todas las estructuras de datos. */
+    /** Removes a client from all data structures. */
     private void removeClient(SseClient client) {
         clientsById.remove(client.id());
         Set<SseClient> subscribers = topicSubscribers.get(client.topic());
@@ -258,9 +253,9 @@ public class SseEmitterService {
                 topicSubscribers.remove(client.topic());
             }
         }
-        log.debug("Cliente {} eliminado del tópico {}", client.id(), client.topic());
+        log.debug("Client {} removed from topic {}", client.id(), client.topic());
     }
 
-    /** Record interno para representar un cliente SSE. */
+    /** Internal record representing an SSE client. */
     private record SseClient(String id, String topic, SseEmitter emitter) {}
 }

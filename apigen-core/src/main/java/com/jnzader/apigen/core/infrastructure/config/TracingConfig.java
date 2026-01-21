@@ -10,24 +10,24 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Configuración de tracing distribuido usando Micrometer Tracing.
+ * Distributed tracing configuration using Micrometer Tracing.
  *
- * <p>Habilita observabilidad automática para:
+ * <p>Enables automatic observability for:
  *
  * <ul>
- *   <li>Peticiones HTTP entrantes
- *   <li>Llamadas HTTP salientes (RestTemplate/WebClient)
- *   <li>Métodos anotados con @Observed
- *   <li>Operaciones de base de datos
+ *   <li>Incoming HTTP requests
+ *   <li>Outgoing HTTP calls (RestTemplate/WebClient)
+ *   <li>Methods annotated with @Observed
+ *   <li>Database operations
  * </ul>
  *
- * <p>El tracing se puede deshabilitar completamente con:
+ * <p>Tracing can be completely disabled with:
  *
  * <pre>
  * management.tracing.enabled=false
  * </pre>
  *
- * <p>Para exportar traces a un backend OTLP (como Jaeger, Zipkin, etc.):
+ * <p>To export traces to an OTLP backend (such as Jaeger, Zipkin, etc.):
  *
  * <pre>
  * management.otlp.tracing.endpoint=http://localhost:4318/v1/traces
@@ -44,19 +44,19 @@ public class TracingConfig {
     private static final Logger log = LoggerFactory.getLogger(TracingConfig.class);
 
     /**
-     * Habilita el aspecto @Observed para instrumentación declarativa.
+     * Enables the @Observed aspect for declarative instrumentation.
      *
-     * <p>Uso:
+     * <p>Usage:
      *
      * <pre>
      * &#64;Observed(name = "my.operation", contextualName = "processOrder")
      * public void processOrder(Order order) {
-     *     // Este método será trazado automáticamente
+     *     // This method will be automatically traced
      * }
      * </pre>
      *
-     * @param registry Registro de observaciones de Micrometer
-     * @return Aspecto configurado
+     * @param registry Micrometer observation registry
+     * @return Configured aspect
      */
     @Bean
     public ObservedAspect observedAspect(ObservationRegistry registry) {

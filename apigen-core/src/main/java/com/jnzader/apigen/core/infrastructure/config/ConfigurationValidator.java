@@ -11,22 +11,21 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 /**
- * Validador de configuración que se ejecuta al iniciar la aplicación.
+ * Configuration validator that runs at application startup.
  *
- * <p>Verifica que todas las propiedades críticas estén configuradas correctamente antes de que la
- * aplicación comience a procesar solicitudes.
+ * <p>Verifies that all critical properties are configured correctly before the application begins
+ * processing requests.
  *
- * <p>Si alguna validación falla, la aplicación fallará en el inicio con un mensaje descriptivo del
- * problema.
+ * <p>If any validation fails, the application will fail to start with a descriptive error message.
  *
- * <p>Propiedades validadas:
+ * <p>Validated properties:
  *
  * <ul>
- *   <li>app.api.version - Versión de la API
- *   <li>app.api.base-path - Ruta base de la API
- *   <li>spring.datasource.url - URL de conexión a base de datos
- *   <li>Configuración de caché
- *   <li>Configuración de CORS
+ *   <li>app.api.version - API version
+ *   <li>app.api.base-path - API base path
+ *   <li>spring.datasource.url - Database connection URL
+ *   <li>Cache configuration
+ *   <li>CORS configuration
  * </ul>
  */
 @Component
@@ -74,22 +73,22 @@ public class ConfigurationValidator implements ApplicationRunner {
         List<String> errors = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
 
-        // Validaciones críticas (fallan el inicio)
+        // Critical validations (fail startup)
         validateCriticalProperties(errors);
 
-        // Validaciones de advertencia (solo log)
+        // Warning validations (log only)
         validateRecommendedProperties(warnings);
 
-        // Validaciones específicas por perfil
+        // Profile-specific validations
         validateProfileSpecificProperties(errors, warnings);
 
-        // Reportar advertencias
+        // Report warnings
         if (!warnings.isEmpty()) {
             log.warn("Configuration warnings detected:");
             warnings.forEach(w -> log.warn("  - {}", w));
         }
 
-        // Fallar si hay errores críticos
+        // Fail if there are critical errors
         if (!errors.isEmpty()) {
             String errorMessage =
                     "Configuration validation failed:\n"
@@ -160,7 +159,7 @@ public class ConfigurationValidator implements ApplicationRunner {
     }
 
     private void validateProductionProfile(List<String> errors, List<String> warnings) {
-        // Verificar que no se use ddl-auto: update o create en producción
+        // Verify that ddl-auto: update or create is not used in production
         String ddlAuto = environment.getProperty("spring.jpa.hibernate.ddl-auto", "");
         if ("update".equals(ddlAuto) || "create".equals(ddlAuto) || "create-drop".equals(ddlAuto)) {
             errors.add(
@@ -169,13 +168,13 @@ public class ConfigurationValidator implements ApplicationRunner {
                             + "' is not safe for production. Use 'none' or 'validate'");
         }
 
-        // Verificar que show-sql esté deshabilitado
+        // Verify that show-sql is disabled
         boolean showSql = environment.getProperty("spring.jpa.show-sql", Boolean.class, false);
         if (showSql) {
             warnings.add("spring.jpa.show-sql=true in production may impact performance");
         }
 
-        // Verificar nivel de logging
+        // Verify logging level
         String rootLogLevel = environment.getProperty("logging.level.root", "INFO");
         if ("DEBUG".equalsIgnoreCase(rootLogLevel) || "TRACE".equalsIgnoreCase(rootLogLevel)) {
             warnings.add(
@@ -186,7 +185,7 @@ public class ConfigurationValidator implements ApplicationRunner {
     }
 
     private void validateDevelopmentProfile(List<String> warnings) {
-        // Advertir si las credenciales por defecto están en uso
+        // Warn if default credentials are in use
         String dbUsername = environment.getProperty("spring.datasource.username", "");
         if ("apigen_user".equals(dbUsername) || "postgres".equals(dbUsername)) {
             warnings.add(
@@ -240,7 +239,7 @@ public class ConfigurationValidator implements ApplicationRunner {
 
     private String maskSensitiveUrl(String url) {
         if (url == null) return "null";
-        // Ocultar credenciales en la URL si las hay
+        // Hide credentials in URL if present
         return url.replaceAll("://[^:]+:[^@]+@", "://***:***@");
     }
 }

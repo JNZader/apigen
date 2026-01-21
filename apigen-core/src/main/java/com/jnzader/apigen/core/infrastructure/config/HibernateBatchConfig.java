@@ -9,19 +9,19 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Configura valores por defecto de Hibernate para optimización de rendimiento.
+ * Configures Hibernate default values for performance optimization.
  *
- * <p>Configuración aplicada:
+ * <p>Applied configuration:
  *
  * <ul>
- *   <li>{@code default_batch_fetch_size=25}: Previene N+1 queries cargando colecciones lazy en
- *       lotes
- *   <li>{@code batch_size=25}: Optimiza inserts/updates en lote
- *   <li>{@code order_inserts=true}: Agrupa inserts por tipo para mejor batching
- *   <li>{@code order_updates=true}: Agrupa updates por tipo para mejor batching
+ *   <li>{@code default_batch_fetch_size=25}: Prevents N+1 queries by loading lazy collections in
+ *       batches
+ *   <li>{@code batch_size=25}: Optimizes batch inserts/updates
+ *   <li>{@code order_inserts=true}: Groups inserts by type for better batching
+ *   <li>{@code order_updates=true}: Groups updates by type for better batching
  * </ul>
  *
- * <p>Estas configuraciones se pueden sobrescribir en application.yml:
+ * <p>These configurations can be overridden in application.yml:
  *
  * <pre>
  * spring:
@@ -42,10 +42,9 @@ public class HibernateBatchConfig {
     private static final int DEFAULT_BATCH_SIZE = 25;
 
     /**
-     * Customiza las propiedades de Hibernate para optimización de rendimiento.
+     * Customizes Hibernate properties for performance optimization.
      *
-     * <p>Solo aplica valores si no están ya configurados, permitiendo que el usuario los
-     * sobrescriba.
+     * <p>Only applies values if not already configured, allowing the user to override them.
      */
     @Bean
     public HibernatePropertiesCustomizer apigenHibernatePropertiesCustomizer() {

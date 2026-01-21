@@ -34,7 +34,7 @@ class ProblemDetailTest {
             ProblemDetail detail = ProblemDetail.validationError("Validation failed", errors);
 
             assertThat(detail.status()).isEqualTo(400);
-            assertThat(detail.title()).isEqualTo("Error de validación");
+            assertThat(detail.title()).isEqualTo("Validation error");
             assertThat(detail.type()).hasToString("urn:apigen:problem:validation-error");
             assertThat(detail.extensions()).containsEntry("field", "error message");
         }
@@ -45,8 +45,8 @@ class ProblemDetailTest {
             ProblemDetail detail = ProblemDetail.notFound("User", 123L);
 
             assertThat(detail.status()).isEqualTo(404);
-            assertThat(detail.title()).isEqualTo("Recurso no encontrado");
-            assertThat(detail.detail()).isEqualTo("User con ID '123' no fue encontrado");
+            assertThat(detail.title()).isEqualTo("Resource not found");
+            assertThat(detail.detail()).isEqualTo("User with ID '123' was not found");
             assertThat(detail.type()).hasToString("urn:apigen:problem:not-found");
         }
 
@@ -56,7 +56,7 @@ class ProblemDetailTest {
             ProblemDetail detail = ProblemDetail.conflict("Resource already exists");
 
             assertThat(detail.status()).isEqualTo(409);
-            assertThat(detail.title()).isEqualTo("Conflicto de recurso");
+            assertThat(detail.title()).isEqualTo("Resource conflict");
             assertThat(detail.type()).hasToString("urn:apigen:problem:conflict");
         }
 
@@ -66,7 +66,7 @@ class ProblemDetailTest {
             ProblemDetail detail = ProblemDetail.internalError("Something went wrong");
 
             assertThat(detail.status()).isEqualTo(500);
-            assertThat(detail.title()).isEqualTo("Error interno del servidor");
+            assertThat(detail.title()).isEqualTo("Internal server error");
             assertThat(detail.type()).hasToString("urn:apigen:problem:internal-error");
         }
 
@@ -76,7 +76,7 @@ class ProblemDetailTest {
             ProblemDetail detail = ProblemDetail.forbidden("Access denied");
 
             assertThat(detail.status()).isEqualTo(403);
-            assertThat(detail.title()).isEqualTo("Acceso denegado");
+            assertThat(detail.title()).isEqualTo("Access denied");
             assertThat(detail.type()).hasToString("urn:apigen:problem:forbidden");
         }
 
@@ -86,7 +86,7 @@ class ProblemDetailTest {
             ProblemDetail detail = ProblemDetail.preconditionFailed("ETag mismatch");
 
             assertThat(detail.status()).isEqualTo(412);
-            assertThat(detail.title()).isEqualTo("Precondición fallida");
+            assertThat(detail.title()).isEqualTo("Precondition failed");
             assertThat(detail.type()).hasToString("urn:apigen:problem:precondition-failed");
         }
 
@@ -96,7 +96,7 @@ class ProblemDetailTest {
             ProblemDetail detail = ProblemDetail.badRequest("Invalid request");
 
             assertThat(detail.status()).isEqualTo(400);
-            assertThat(detail.title()).isEqualTo("Solicitud inválida");
+            assertThat(detail.title()).isEqualTo("Invalid request");
             assertThat(detail.type()).hasToString("urn:apigen:problem:bad-request");
         }
     }

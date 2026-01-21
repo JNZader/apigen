@@ -19,15 +19,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Configuracion de cache local usando Caffeine.
+ * Local cache configuration using Caffeine.
  *
- * <p>Caffeine es una biblioteca de cache de alto rendimiento para Java, basada en el diseno de
- * Guava Cache pero con mejor rendimiento. Ideal para aplicaciones single-instance.
+ * <p>Caffeine is a high-performance caching library for Java, based on Guava Cache design but with
+ * better performance. Ideal for single-instance applications.
  *
- * <p>Para cache distribuido (multi-instance), use Redis con: {@code apigen.cache.type=redis}
+ * <p>For distributed cache (multi-instance), use Redis with: {@code apigen.cache.type=redis}
  *
- * <p>Caches configurados: - entities: Cache de entidades por ID (TTL: 10 minutos) - lists: Cache de
- * listas (TTL: 5 minutos) - counts: Cache de conteos (TTL: 2 minutos)
+ * <p>Configured caches: - entities: Entity cache by ID (TTL: 10 minutes) - lists: List cache (TTL:
+ * 5 minutes) - counts: Count cache (TTL: 2 minutes)
  */
 @Configuration
 @EnableCaching
@@ -46,8 +46,8 @@ public class CacheConfig implements CachingConfigurer {
     }
 
     /**
-     * Configura el CacheManager con multiples caches especializados. Cada cache usa su propia
-     * configuracion optimizada.
+     * Configures the CacheManager with multiple specialized caches. Each cache uses its own
+     * optimized configuration.
      */
     @Bean
     @Override
@@ -63,7 +63,7 @@ public class CacheConfig implements CachingConfigurer {
         cacheManager.setCaches(caches);
 
         log.info(
-                "Cache manager configurado con Caffeine. Caches especializados: entities ({}),"
+                "Cache manager configured with Caffeine. Specialized caches: entities ({}),"
                         + " lists ({}), counts ({})",
                 cacheProperties.entities().expireAfterWrite(),
                 cacheProperties.lists().expireAfterWrite(),
@@ -72,12 +72,12 @@ public class CacheConfig implements CachingConfigurer {
         return cacheManager;
     }
 
-    /** Construye un cache Caffeine con la configuracion dada. */
+    /** Builds a Caffeine cache with the given configuration. */
     private CaffeineCache buildCache(String name, Caffeine<Object, Object> caffeineBuilder) {
         return new CaffeineCache(name, caffeineBuilder.build());
     }
 
-    /** Builder especifico para cache de entidades. Mayor tamano y tiempo de expiracion. */
+    /** Specific builder for entity cache. Larger size and longer expiration time. */
     private Caffeine<Object, Object> entitiesCaffeineBuilder() {
         AppProperties.CacheProperties.CacheConfig config = cacheProperties.entities();
         return Caffeine.newBuilder()
@@ -88,12 +88,12 @@ public class CacheConfig implements CachingConfigurer {
                 .removalListener(
                         (key, value, cause) ->
                                 log.debug(
-                                        "Cache 'entities' - removida key: {}, causa: {}",
+                                        "Cache 'entities' - removed key: {}, cause: {}",
                                         key,
                                         cause));
     }
 
-    /** Builder especifico para cache de listas. Menor tamano y tiempo de expiracion mas corto. */
+    /** Specific builder for list cache. Smaller size and shorter expiration time. */
     private Caffeine<Object, Object> listsCaffeineBuilder() {
         AppProperties.CacheProperties.CacheConfig config = cacheProperties.lists();
         return Caffeine.newBuilder()
@@ -103,10 +103,10 @@ public class CacheConfig implements CachingConfigurer {
                 .removalListener(
                         (key, value, cause) ->
                                 log.debug(
-                                        "Cache 'lists' - removida key: {}, causa: {}", key, cause));
+                                        "Cache 'lists' - removed key: {}, cause: {}", key, cause));
     }
 
-    /** Builder especifico para cache de conteos. Muy pequeno y expiracion rapida. */
+    /** Specific builder for count cache. Very small size and fast expiration. */
     private Caffeine<Object, Object> countsCaffeineBuilder() {
         AppProperties.CacheProperties.CacheConfig config = cacheProperties.counts();
         return Caffeine.newBuilder()
@@ -116,15 +116,10 @@ public class CacheConfig implements CachingConfigurer {
                 .removalListener(
                         (key, value, cause) ->
                                 log.debug(
-                                        "Cache 'counts' - removida key: {}, causa: {}",
-                                        key,
-                                        cause));
+                                        "Cache 'counts' - removed key: {}, cause: {}", key, cause));
     }
 
-    /**
-     * Manejador de errores de cache. Loguea los errores pero permite que la aplicacion continue
-     * funcionando.
-     */
+    /** Cache error handler. Logs errors but allows the application to continue functioning. */
     @Override
     public CacheErrorHandler errorHandler() {
         return new SimpleCacheErrorHandler() {
@@ -132,7 +127,7 @@ public class CacheConfig implements CachingConfigurer {
             public void handleCacheGetError(
                     RuntimeException exception, org.springframework.cache.Cache cache, Object key) {
                 log.error(
-                        "Error al obtener del cache '{}' con key '{}': {}",
+                        "Error getting from cache '{}' with key '{}': {}",
                         cache.getName(),
                         key,
                         exception.getMessage());
@@ -145,7 +140,7 @@ public class CacheConfig implements CachingConfigurer {
                     Object key,
                     Object value) {
                 log.error(
-                        "Error al guardar en cache '{}' con key '{}': {}",
+                        "Error saving to cache '{}' with key '{}': {}",
                         cache.getName(),
                         key,
                         exception.getMessage());
@@ -155,7 +150,7 @@ public class CacheConfig implements CachingConfigurer {
             public void handleCacheEvictError(
                     RuntimeException exception, org.springframework.cache.Cache cache, Object key) {
                 log.error(
-                        "Error al eliminar del cache '{}' con key '{}': {}",
+                        "Error evicting from cache '{}' with key '{}': {}",
                         cache.getName(),
                         key,
                         exception.getMessage());
@@ -164,8 +159,7 @@ public class CacheConfig implements CachingConfigurer {
             @Override
             public void handleCacheClearError(
                     RuntimeException exception, org.springframework.cache.Cache cache) {
-                log.error(
-                        "Error al limpiar cache '{}': {}", cache.getName(), exception.getMessage());
+                log.error("Error clearing cache '{}': {}", cache.getName(), exception.getMessage());
             }
         };
     }

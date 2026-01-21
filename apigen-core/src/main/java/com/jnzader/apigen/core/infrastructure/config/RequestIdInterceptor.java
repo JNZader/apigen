@@ -9,13 +9,13 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
- * Interceptor que agrega un Request ID único a cada solicitud HTTP.
+ * Interceptor that adds a unique Request ID to each HTTP request.
  *
- * <p>El Request ID se utiliza para: - Trazabilidad de requests a través de logs - Correlación de
- * errores en sistemas distribuidos - Debugging y soporte al cliente
+ * <p>The Request ID is used for: - Request traceability through logs - Error correlation in
+ * distributed systems - Debugging and customer support
  *
- * <p>El ID se obtiene del header X-Request-ID si existe, o se genera uno nuevo. Se agrega al MDC de
- * SLF4J para logging y se retorna en el header de respuesta.
+ * <p>The ID is obtained from the X-Request-ID header if it exists, or a new one is generated. It is
+ * added to the SLF4J MDC for logging and returned in the response header.
  */
 @Component
 public class RequestIdInterceptor implements HandlerInterceptor {
@@ -26,16 +26,16 @@ public class RequestIdInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(
             HttpServletRequest request, HttpServletResponse response, Object handler) {
-        // Obtener Request ID del header o generar uno nuevo
+        // Get Request ID from header or generate a new one
         String requestId = request.getHeader(REQUEST_ID_HEADER);
         if (requestId == null || requestId.isBlank()) {
             requestId = generateRequestId();
         }
 
-        // Agregar al MDC para logging
+        // Add to MDC for logging
         MDC.put(MDC_REQUEST_ID_KEY, requestId);
 
-        // Agregar al header de respuesta
+        // Add to response header
         response.setHeader(REQUEST_ID_HEADER, requestId);
 
         return true;
@@ -56,14 +56,14 @@ public class RequestIdInterceptor implements HandlerInterceptor {
             HttpServletResponse response,
             Object handler,
             Exception ex) {
-        // Limpiar MDC al finalizar la request
+        // Clean MDC at the end of the request
         MDC.remove(MDC_REQUEST_ID_KEY);
     }
 
     /**
-     * Genera un Request ID único.
+     * Generates a unique Request ID.
      *
-     * <p>Usa UUID v4 truncado para balance entre unicidad y legibilidad.
+     * <p>Uses truncated UUID v4 for balance between uniqueness and readability.
      */
     private String generateRequestId() {
         return UUID.randomUUID().toString().replace("-", "").substring(0, 16);

@@ -10,18 +10,18 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
- * Configuración de auditoría con Spring Security.
+ * Auditing configuration with Spring Security.
  *
- * <p>Esta configuración solo se activa cuando Spring Security está disponible en el classpath.
- * Provee un AuditorAware que obtiene el usuario actual del SecurityContext.
+ * <p>This configuration is only activated when Spring Security is available in the classpath.
+ * Provides an AuditorAware that gets the current user from the SecurityContext.
  */
 @Configuration
 @ConditionalOnClass(name = "org.springframework.security.core.context.SecurityContextHolder")
 public class JpaSecurityConfig {
 
     /**
-     * Provee el usuario actual para auditoría basado en Spring Security. Obtiene el nombre del
-     * usuario autenticado del SecurityContext.
+     * Provides the current user for auditing based on Spring Security. Gets the authenticated
+     * user's name from the SecurityContext.
      */
     @Bean
     @Primary
@@ -35,7 +35,7 @@ public class JpaSecurityConfig {
 
             String principal = authentication.getName();
 
-            // Si es anónimo, usar "anonymous"
+            // If anonymous, use "anonymous"
             if ("anonymousUser".equals(principal)) {
                 return Optional.of("anonymous");
             }
