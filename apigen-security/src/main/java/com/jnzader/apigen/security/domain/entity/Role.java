@@ -1,6 +1,7 @@
 package com.jnzader.apigen.security.domain.entity;
 
 import com.jnzader.apigen.core.domain.entity.Base;
+import jakarta.persistence.Cacheable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -11,14 +12,21 @@ import jakarta.persistence.Table;
 import java.util.HashSet;
 import java.util.Set;
 import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 /**
  * Entidad que representa un rol en el sistema.
  *
  * <p>Los roles agrupan permisos y se asignan a usuarios. Ejemplos: ADMIN, MANAGER, USER, GUEST.
+ *
+ * <p>This entity is cached in Hibernate L2 cache for improved performance since roles are
+ * frequently read but rarely modified.
  */
 @Entity
 @Table(name = "roles")
+@Cacheable
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region = "roles")
 @SuppressWarnings("java:S2160") // equals/hashCode heredados de Base (basado en ID)
 public class Role extends Base {
 
@@ -34,6 +42,7 @@ public class Role extends Base {
             joinColumns = @JoinColumn(name = "role_id"),
             inverseJoinColumns = @JoinColumn(name = "permission_id"))
     @BatchSize(size = 25)
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region = "role_permissions")
     private Set<Permission> permissions = new HashSet<>();
 
     public Role() {}

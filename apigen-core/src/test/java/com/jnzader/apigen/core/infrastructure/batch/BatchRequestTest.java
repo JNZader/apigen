@@ -11,10 +11,14 @@ import jakarta.validation.Validator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 @DisplayName("BatchRequest")
 class BatchRequestTest {
@@ -67,49 +71,28 @@ class BatchRequestTest {
             assertThat(violations).isEmpty();
         }
 
-        @Test
-        @DisplayName("should reject operation with null method")
-        void rejectNullMethod() {
-            BatchOperation op = new BatchOperation("op1", null, "/api/users", null, null);
-
-            Set<ConstraintViolation<BatchOperation>> violations = validator.validate(op);
-
-            assertThat(violations).hasSize(1);
-            assertThat(violations.iterator().next().getMessage()).contains("Method is required");
+        static Stream<Arguments> invalidOperationProvider() {
+            return Stream.of(
+                    Arguments.of("null method", null, "/api/users", "Method is required"),
+                    Arguments.of(
+                            "invalid method",
+                            "INVALID",
+                            "/api/users",
+                            "GET, POST, PUT, PATCH, or DELETE"),
+                    Arguments.of("null path", "GET", null, "Path is required"),
+                    Arguments.of("path without slash", "GET", "api/users", "start with /"));
         }
 
-        @Test
-        @DisplayName("should reject operation with invalid method")
-        void rejectInvalidMethod() {
-            BatchOperation op = new BatchOperation("op1", "INVALID", "/api/users", null, null);
+        @ParameterizedTest(name = "should reject operation with {0}")
+        @MethodSource("invalidOperationProvider")
+        void rejectInvalidOperation(
+                String scenario, String method, String path, String expectedError) {
+            BatchOperation op = new BatchOperation("op1", method, path, null, null);
 
             Set<ConstraintViolation<BatchOperation>> violations = validator.validate(op);
 
             assertThat(violations).hasSize(1);
-            assertThat(violations.iterator().next().getMessage())
-                    .contains("GET, POST, PUT, PATCH, or DELETE");
-        }
-
-        @Test
-        @DisplayName("should reject operation with null path")
-        void rejectNullPath() {
-            BatchOperation op = new BatchOperation("op1", "GET", null, null, null);
-
-            Set<ConstraintViolation<BatchOperation>> violations = validator.validate(op);
-
-            assertThat(violations).hasSize(1);
-            assertThat(violations.iterator().next().getMessage()).contains("Path is required");
-        }
-
-        @Test
-        @DisplayName("should reject operation with path not starting with /")
-        void rejectPathWithoutSlash() {
-            BatchOperation op = new BatchOperation("op1", "GET", "api/users", null, null);
-
-            Set<ConstraintViolation<BatchOperation>> violations = validator.validate(op);
-
-            assertThat(violations).hasSize(1);
-            assertThat(violations.iterator().next().getMessage()).contains("start with /");
+            assertThat(violations.iterator().next().getMessage()).contains(expectedError);
         }
 
         @Test

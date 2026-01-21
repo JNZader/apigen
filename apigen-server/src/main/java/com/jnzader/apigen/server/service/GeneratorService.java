@@ -11,6 +11,7 @@ import com.jnzader.apigen.server.service.generator.ApiTestingGenerator;
 import com.jnzader.apigen.server.service.generator.ApplicationConfigGenerator;
 import com.jnzader.apigen.server.service.generator.BuildConfigGenerator;
 import com.jnzader.apigen.server.service.generator.DockerConfigGenerator;
+import com.jnzader.apigen.server.service.generator.GradleWrapperGenerator;
 import com.jnzader.apigen.server.service.generator.ProjectStructureGenerator;
 import com.jnzader.apigen.server.service.generator.util.FileArchiveService;
 import java.io.IOException;
@@ -37,6 +38,7 @@ public class GeneratorService {
     private final ProjectStructureGenerator projectStructureGenerator;
     private final DockerConfigGenerator dockerConfigGenerator;
     private final ApiTestingGenerator apiTestingGenerator;
+    private final GradleWrapperGenerator gradleWrapperGenerator;
     private final FileArchiveService fileArchiveService;
 
     public GeneratorService() {
@@ -46,6 +48,7 @@ public class GeneratorService {
         this.projectStructureGenerator = new ProjectStructureGenerator();
         this.dockerConfigGenerator = new DockerConfigGenerator();
         this.apiTestingGenerator = new ApiTestingGenerator();
+        this.gradleWrapperGenerator = new GradleWrapperGenerator();
         this.fileArchiveService = new FileArchiveService();
     }
 
@@ -147,6 +150,9 @@ public class GeneratorService {
         // settings.gradle
         String settingsGradle = buildConfigGenerator.generateSettingsGradle(config.getArtifactId());
         Files.writeString(projectRoot.resolve("settings.gradle"), settingsGradle);
+
+        // Gradle wrapper (gradlew, gradlew.bat, gradle-wrapper.jar, gradle-wrapper.properties)
+        gradleWrapperGenerator.generateWrapperFiles(projectRoot);
 
         // application.yml
         String applicationYml = applicationConfigGenerator.generateApplicationYml(config);

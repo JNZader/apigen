@@ -1,7 +1,6 @@
 package com.jnzader.apigen.core.infrastructure.sse;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
 
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;

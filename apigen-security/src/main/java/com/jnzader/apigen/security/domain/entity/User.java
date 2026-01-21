@@ -19,10 +19,10 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 /**
- * Entidad que representa un usuario en el sistema.
+ * Entity representing a user in the system.
  *
- * <p>Implementa UserDetails de Spring Security para integración directa con el sistema de
- * autenticación.
+ * <p>Implements Spring Security's UserDetails for direct integration with the authentication
+ * system.
  */
 @Entity
 @Table(
@@ -69,23 +69,22 @@ public class User extends Base implements UserDetails {
 
     @Column private String lastLoginIp;
 
-    /** Número de intentos de login fallidos consecutivos. */
+    /** Number of consecutive failed login attempts. */
     @Column(nullable = false)
     private int failedAttemptCount = 0;
 
-    /** Timestamp hasta cuando la cuenta está bloqueada. Null si no está bloqueada. */
+    /** Timestamp until when the account is locked. Null if not locked. */
     @Column private Instant lockedUntil;
 
-    /** Timestamp del último intento fallido. Para resetear contador tras inactividad. */
+    /** Timestamp of the last failed attempt. Used to reset counter after inactivity. */
     @Column private Instant lastFailedAttemptAt;
 
-    /** Número de veces que la cuenta ha sido bloqueada. Para bloqueo permanente. */
+    /** Number of times the account has been locked. Used for permanent lockout. */
     @Column(nullable = false)
     private int lockoutCount = 0;
 
     /**
-     * Cache de authorities para evitar N+1 queries. Se invalida automáticamente cuando cambia el
-     * rol.
+     * Cache of authorities to avoid N+1 queries. Automatically invalidated when the role changes.
      */
     @Transient private transient Collection<? extends GrantedAuthority> cachedAuthorities;
 
@@ -102,21 +101,21 @@ public class User extends Base implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Retornar cache si existe (evita N+1 queries)
+        // Return cache if exists (avoids N+1 queries)
         if (cachedAuthorities != null) {
             return cachedAuthorities;
         }
 
-        // Construir authorities desde rol y permisos
+        // Build authorities from role and permissions
         Set<SimpleGrantedAuthority> authorities =
                 role.getPermissions().stream()
                         .map(permission -> new SimpleGrantedAuthority(permission.getName()))
                         .collect(Collectors.toSet());
 
-        // Agregar el rol también (prefijo ROLE_ para Spring Security)
+        // Also add the role (ROLE_ prefix for Spring Security)
         authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName()));
 
-        // Cachear resultado inmutable
+        // Cache immutable result
         this.cachedAuthorities = Collections.unmodifiableSet(authorities);
         return cachedAuthorities;
     }
@@ -138,15 +137,8 @@ public class User extends Base implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        // Check permanent lock flag
-        if (!accountNonLocked) {
-            return false;
-        }
-        // Check temporary lockout
-        if (lockedUntil != null && Instant.now().isBefore(lockedUntil)) {
-            return false;
-        }
-        return true;
+        // Check permanent lock flag and temporary lockout
+        return accountNonLocked && (lockedUntil == null || !Instant.now().isBefore(lockedUntil));
     }
 
     @Override
@@ -156,7 +148,7 @@ public class User extends Base implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return enabled && getEstado(); // Combinar con estado de Base
+        return enabled && getEstado(); // Combine with Base status
     }
 
     // ==================== Getters & Setters ====================
@@ -199,7 +191,7 @@ public class User extends Base implements UserDetails {
 
     public void setRole(Role role) {
         this.role = role;
-        // Invalidar cache de authorities cuando cambia el rol
+        // Invalidate authorities cache when role changes
         this.cachedAuthorities = null;
     }
 

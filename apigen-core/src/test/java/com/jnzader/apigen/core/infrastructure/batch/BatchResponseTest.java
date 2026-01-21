@@ -100,6 +100,38 @@ class BatchResponseTest {
             assertThat(OperationResult.failure("op", 404, "error").isSuccessful()).isFalse();
             assertThat(OperationResult.failure("op", 500, "error").isSuccessful()).isFalse();
         }
+
+        @Test
+        @DisplayName("should identify 199 as unsuccessful (boundary before 2xx)")
+        void shouldIdentify199AsUnsuccessful() {
+            // Given - status code 199 is just below the 2xx range
+            OperationResult result = new OperationResult("op", 199, null, null, null);
+
+            // Then
+            assertThat(result.isSuccessful()).isFalse();
+        }
+
+        @Test
+        @DisplayName("should identify 300 as unsuccessful (boundary after 2xx)")
+        void shouldIdentify300AsUnsuccessful() {
+            // Given - status code 300 is just above the 2xx range
+            OperationResult result = new OperationResult("op", 300, null, null, null);
+
+            // Then
+            assertThat(result.isSuccessful()).isFalse();
+        }
+
+        @Test
+        @DisplayName("should identify exact boundaries 200 and 299 as successful")
+        void shouldIdentifyExactBoundariesAsSuccessful() {
+            // Given - exact boundary values
+            OperationResult at200 = new OperationResult("op1", 200, null, null, null);
+            OperationResult at299 = new OperationResult("op2", 299, null, null, null);
+
+            // Then
+            assertThat(at200.isSuccessful()).isTrue();
+            assertThat(at299.isSuccessful()).isTrue();
+        }
     }
 
     @Nested
@@ -135,7 +167,7 @@ class BatchResponseTest {
 
             assertThat(summary.total()).isEqualTo(2);
             assertThat(summary.successful()).isEqualTo(2);
-            assertThat(summary.failed()).isEqualTo(0);
+            assertThat(summary.failed()).isZero();
         }
 
         @Test
@@ -149,7 +181,7 @@ class BatchResponseTest {
             BatchSummary summary = BatchSummary.fromResults(results);
 
             assertThat(summary.total()).isEqualTo(2);
-            assertThat(summary.successful()).isEqualTo(0);
+            assertThat(summary.successful()).isZero();
             assertThat(summary.failed()).isEqualTo(2);
         }
 
@@ -158,9 +190,9 @@ class BatchResponseTest {
         void handleEmptyResults() {
             BatchSummary summary = BatchSummary.fromResults(List.of());
 
-            assertThat(summary.total()).isEqualTo(0);
-            assertThat(summary.successful()).isEqualTo(0);
-            assertThat(summary.failed()).isEqualTo(0);
+            assertThat(summary.total()).isZero();
+            assertThat(summary.successful()).isZero();
+            assertThat(summary.failed()).isZero();
         }
     }
 
@@ -210,7 +242,7 @@ class BatchResponseTest {
             BatchResponse response = BatchResponse.builder().build();
 
             assertThat(response.results()).isEmpty();
-            assertThat(response.summary().total()).isEqualTo(0);
+            assertThat(response.summary().total()).isZero();
         }
     }
 }

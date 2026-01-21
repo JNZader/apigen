@@ -1178,28 +1178,28 @@ public class SecurityProperties {
      *         - 127.0.0.1     # Localhost
      * </pre>
      */
+    // S1313: These are configurable defaults for RFC 1918 private networks and localhost.
+    // Users override these via apigen.security.trusted-proxies.addresses property.
+    @SuppressWarnings("java:S1313")
     public static class TrustedProxiesProperties {
 
         /**
-         * Modo de confianza para proxies. - TRUST_ALL: Confía en cualquier X-Forwarded-For
-         * (INSEGURO, solo para desarrollo) - TRUST_DIRECT: Solo usa remoteAddr, ignora headers de
-         * proxy (más seguro si no hay proxy) - CONFIGURED: Solo confía en proxies de la lista
-         * configurada (RECOMENDADO para producción)
+         * Trust mode for proxies. - TRUST_ALL: Trust any X-Forwarded-For (INSECURE, dev only) -
+         * TRUST_DIRECT: Use remoteAddr only, ignore proxy headers (safer without proxy) -
+         * CONFIGURED: Only trust proxies from configured list (RECOMMENDED for production)
          *
-         * <p>Default: TRUST_ALL para compatibilidad con versiones anteriores. En producción se
-         * recomienda CONFIGURED.
+         * <p>Default: TRUST_ALL for backwards compatibility. In production use CONFIGURED.
          */
         private TrustMode mode = TrustMode.TRUST_ALL;
 
         /**
-         * Lista de direcciones IP o rangos CIDR de proxies de confianza. Solo aplica cuando
-         * mode=CONFIGURED.
+         * List of trusted proxy IP addresses or CIDR ranges. Only applies when mode=CONFIGURED.
          *
-         * <p>Ejemplos: - 127.0.0.1 (localhost) - 10.0.0.0/8 (rango CIDR clase A privada) - ::1
+         * <p>Examples: - 127.0.0.1 (localhost) - 10.0.0.0/8 (private Class A CIDR range) - ::1
          * (IPv6 localhost)
          *
-         * <p>Valores comunes para cloud providers: - AWS ALB: IPs del VPC - GCP GLB:
-         * 130.211.0.0/22, 35.191.0.0/16 - Cloudflare: Ver https://www.cloudflare.com/ips/
+         * <p>Common values for cloud providers: - AWS ALB: VPC IPs - GCP GLB: 130.211.0.0/22,
+         * 35.191.0.0/16 - Cloudflare: See https://www.cloudflare.com/ips/
          */
         private java.util.List<String> addresses =
                 java.util.List.of(
@@ -1211,35 +1211,31 @@ public class SecurityProperties {
                         );
 
         /**
-         * Nombre del header a usar para obtener la IP del cliente. Default: X-Forwarded-For
-         * (estándar de facto).
+         * Header name to use for obtaining client IP. Default: X-Forwarded-For (de facto standard).
          */
         private String forwardedForHeader = "X-Forwarded-For";
 
         /**
-         * Si usar el primer o último IP en la cadena X-Forwarded-For. - true: Toma el primer IP
-         * (cliente original, asumiendo proxies confiables) - false: Toma el último IP añadido antes
-         * del proxy de confianza
+         * Whether to use the first or last IP in the X-Forwarded-For chain. - true: Use first IP
+         * (original client, assuming trusted proxies) - false: Use last IP added before trusted
+         * proxy
          *
-         * <p>Default: true (comportamiento estándar).
+         * <p>Default: true (standard behavior).
          */
         private boolean useFirstInChain = true;
 
-        /** Modos de confianza para proxies. */
+        /** Trust modes for proxies. */
         public enum TrustMode {
             /**
-             * Confía en cualquier header X-Forwarded-For. INSEGURO para producción, solo usar en
-             * desarrollo.
+             * Trust any X-Forwarded-For header. INSECURE for production, only use in development.
              */
             TRUST_ALL,
             /**
-             * Ignora todos los headers de proxy, solo usa la IP directa (remoteAddr). Usar si la
-             * aplicación no está detrás de un proxy.
+             * Ignore all proxy headers, only use direct IP (remoteAddr). Use if the application is
+             * not behind a proxy.
              */
             TRUST_DIRECT,
-            /**
-             * Solo confía en proxies con IPs en la lista configurada. RECOMENDADO para producción.
-             */
+            /** Only trust proxies with IPs in the configured list. RECOMMENDED for production. */
             CONFIGURED
         }
 
@@ -1275,12 +1271,12 @@ public class SecurityProperties {
             this.useFirstInChain = useFirstInChain;
         }
 
-        /** Helper: determina si se deben validar los proxies. */
+        /** Helper: determines if proxies should be validated. */
         public boolean shouldValidateProxies() {
             return mode == TrustMode.CONFIGURED;
         }
 
-        /** Helper: determina si se ignoran los headers de proxy. */
+        /** Helper: determines if proxy headers should be ignored. */
         public boolean shouldIgnoreProxyHeaders() {
             return mode == TrustMode.TRUST_DIRECT;
         }

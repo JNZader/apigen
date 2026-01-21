@@ -94,10 +94,12 @@ public class EntityGenerator {
             imports.addListImport();
             imports.addArrayListImport();
 
+            // Using PERSIST and MERGE instead of ALL to prevent accidental cascading deletes
+            // Developers should explicitly manage REMOVE operations
             fields.append(
                     """
 
-                    @OneToMany(mappedBy = "%s", cascade = CascadeType.ALL, orphanRemoval = true)
+                    @OneToMany(mappedBy = "%s", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
                     private List<%s> %s = new ArrayList<>();\
                     """
                             .formatted(mappedBy, sourceEntity, fieldName));

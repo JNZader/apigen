@@ -15,10 +15,12 @@ spring:
     password: ${DATABASE_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
-      # Pool optimizado para Virtual Threads (Java 21+) en producción
-      # Con virtual threads, se pueden manejar más conexiones concurrentes
-      maximum-pool-size: ${HIKARI_MAX_POOL_SIZE:250}
-      minimum-idle: ${HIKARI_MIN_IDLE:50}
+      # Pool optimizado siguiendo las recomendaciones de HikariCP
+      # Formula: connections = (core_count * 2) + effective_spindle_count
+      # Para la mayoría de aplicaciones, 10-20 conexiones son suficientes
+      # Ver: https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing
+      maximum-pool-size: ${HIKARI_MAX_POOL_SIZE:20}
+      minimum-idle: ${HIKARI_MIN_IDLE:5}
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
