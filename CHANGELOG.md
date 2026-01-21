@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.1](https://github.com/JNZader/apigen/compare/v2.1.0...v2.1.1) (2026-01-21)
+
+### Performance Improvements
+
+* **db:** Phase 16 - Database Optimization ([#34](https://github.com/JNZader/apigen/issues/34)) ([496ce55](https://github.com/JNZader/apigen/commit/496ce55fa785ab2dfce5972205e3b4158eb0c4fd))
+
 ## [2.1.0](https://github.com/JNZader/apigen/compare/v2.0.0...v2.1.0) (2026-01-21)
 
 ### Features
