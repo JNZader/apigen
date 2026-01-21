@@ -5,6 +5,7 @@ import com.jnzader.apigen.core.infrastructure.config.AsyncConfig;
 import com.jnzader.apigen.core.infrastructure.config.CacheConfig;
 import com.jnzader.apigen.core.infrastructure.config.ConfigurationValidator;
 import com.jnzader.apigen.core.infrastructure.config.ETagConfig;
+import com.jnzader.apigen.core.infrastructure.config.HibernateBatchConfig;
 import com.jnzader.apigen.core.infrastructure.config.HikariMetricsConfig;
 import com.jnzader.apigen.core.infrastructure.config.JpaConfig;
 import com.jnzader.apigen.core.infrastructure.config.OpenApiConfig;
@@ -60,7 +61,8 @@ import org.springframework.context.annotation.Import;
     ResilienceConfig.class,
     ConfigurationValidator.class,
     FeatureFlagConfig.class,
-    HikariMetricsConfig.class
+    HikariMetricsConfig.class,
+    HibernateBatchConfig.class
 })
 public class ApigenCoreAutoConfiguration {
 
