@@ -28,7 +28,7 @@ import %s.%s.application.mapper.%sMapper;
 import %s.%s.application.service.%sService;
 import %s.%s.domain.entity.%s;
 import %s.application.util.Result;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -40,6 +40,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -90,9 +91,10 @@ class %sControllerImplTest {
 
         @Test
         @DisplayName("Should get all %s with pagination")
+        @SuppressWarnings("unchecked")
         void shouldGetAllWithPagination() throws Exception {
             Page<%s> page = new PageImpl<>(List.of(%s));
-            when(service.findAll(any(Pageable.class))).thenReturn(Result.success(page));
+            when(service.findAll(any(Specification.class), any(Pageable.class))).thenReturn(Result.success(page));
             when(mapper.toDTO(any(%s.class))).thenReturn(dto);
 
             mockMvc.perform(get("/api/v1/%s")
@@ -100,7 +102,7 @@ class %sControllerImplTest {
                             .param("size", "10"))
                     .andExpect(status().isOk());
 
-            verify(service).findAll(any(Pageable.class));
+            verify(service).findAll(any(Specification.class), any(Pageable.class));
         }
 
         @Test
