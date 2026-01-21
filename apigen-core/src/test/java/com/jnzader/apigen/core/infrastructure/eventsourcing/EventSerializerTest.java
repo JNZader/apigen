@@ -195,6 +195,56 @@ class EventSerializerTest {
         }
     }
 
+    @Nested
+    @DisplayName("ObjectMapper Access")
+    class ObjectMapperAccessTests {
+
+        @Test
+        @DisplayName("should return the underlying ObjectMapper")
+        void shouldReturnUnderlyingObjectMapper() {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = serializer.getObjectMapper();
+
+            assertThat(mapper).isNotNull();
+        }
+
+        @Test
+        @DisplayName("should use custom ObjectMapper when provided")
+        void shouldUseCustomObjectMapperWhenProvided() {
+            com.fasterxml.jackson.databind.ObjectMapper customMapper =
+                    new com.fasterxml.jackson.databind.ObjectMapper();
+            customMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+
+            EventSerializer customSerializer = new EventSerializer(customMapper);
+
+            assertThat(customSerializer.getObjectMapper()).isSameAs(customMapper);
+        }
+
+        @Test
+        @DisplayName("should serialize and deserialize with custom ObjectMapper")
+        void shouldSerializeAndDeserializeWithCustomObjectMapper() {
+            com.fasterxml.jackson.databind.ObjectMapper customMapper =
+                    new com.fasterxml.jackson.databind.ObjectMapper();
+            customMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+            customMapper.disable(
+                    com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+            customMapper.configure(
+                    com.fasterxml.jackson.databind.DeserializationFeature
+                            .FAIL_ON_UNKNOWN_PROPERTIES,
+                    false);
+
+            EventSerializer customSerializer = new EventSerializer(customMapper);
+            TestEvent event =
+                    new TestEvent(
+                            "agg-1", "TestEvent", Instant.parse("2024-01-15T10:30:00Z"), "data");
+
+            String json = customSerializer.serialize(event);
+            TestEvent deserialized = customSerializer.deserialize(json, TestEvent.class);
+
+            assertThat(deserialized.getAggregateId()).isEqualTo("agg-1");
+            assertThat(deserialized.getData()).isEqualTo("data");
+        }
+    }
+
     // Test helpers
 
     static class TestEvent implements DomainEvent {

@@ -145,6 +145,190 @@ class JpaEventStoreTest {
             assertThat(events).hasSize(1);
             assertThat(events.get(0).getVersion()).isEqualTo(2);
         }
+
+        @Test
+        @DisplayName("should get events between versions")
+        void shouldGetEventsBetweenVersions() {
+            StoredEvent stored1 =
+                    StoredEvent.builder()
+                            .eventId("evt-2")
+                            .aggregateId("agg-1")
+                            .aggregateType("Test")
+                            .eventType("TestUpdated")
+                            .version(2)
+                            .payload("{}")
+                            .occurredAt(Instant.now())
+                            .build();
+            StoredEvent stored2 =
+                    StoredEvent.builder()
+                            .eventId("evt-3")
+                            .aggregateId("agg-1")
+                            .aggregateType("Test")
+                            .eventType("TestUpdated")
+                            .version(3)
+                            .payload("{}")
+                            .occurredAt(Instant.now())
+                            .build();
+            when(eventRepository
+                            .findByAggregateIdAndVersionGreaterThanAndVersionLessThanEqualOrderByVersionAsc(
+                                    "agg-1", 1L, 3L))
+                    .thenReturn(List.of(stored1, stored2));
+
+            List<StoredEvent> events = eventStore.getEventsBetween("agg-1", 1, 3);
+
+            assertThat(events).hasSize(2);
+            assertThat(events.get(0).getVersion()).isEqualTo(2);
+            assertThat(events.get(1).getVersion()).isEqualTo(3);
+        }
+
+        @Test
+        @DisplayName("should return empty list when no events between versions")
+        void shouldReturnEmptyListWhenNoEventsBetweenVersions() {
+            when(eventRepository
+                            .findByAggregateIdAndVersionGreaterThanAndVersionLessThanEqualOrderByVersionAsc(
+                                    "agg-1", 10L, 20L))
+                    .thenReturn(List.of());
+
+            List<StoredEvent> events = eventStore.getEventsBetween("agg-1", 10, 20);
+
+            assertThat(events).isEmpty();
+        }
+
+        @Test
+        @DisplayName("should get events by type with limit")
+        void shouldGetEventsByTypeWithLimit() {
+            StoredEvent stored1 =
+                    StoredEvent.builder()
+                            .eventId("evt-1")
+                            .aggregateId("agg-1")
+                            .aggregateType("Test")
+                            .eventType("UserCreated")
+                            .version(1)
+                            .payload("{}")
+                            .occurredAt(Instant.now())
+                            .build();
+            StoredEvent stored2 =
+                    StoredEvent.builder()
+                            .eventId("evt-2")
+                            .aggregateId("agg-2")
+                            .aggregateType("Test")
+                            .eventType("UserCreated")
+                            .version(1)
+                            .payload("{}")
+                            .occurredAt(Instant.now())
+                            .build();
+            when(eventRepository.findByEventTypeOrderByStoredAtDesc("UserCreated"))
+                    .thenReturn(List.of(stored1, stored2));
+
+            List<StoredEvent> events = eventStore.getEventsByType("UserCreated", 10);
+
+            assertThat(events).hasSize(2);
+        }
+
+        @Test
+        @DisplayName("should limit events by type when exceeding limit")
+        void shouldLimitEventsByTypeWhenExceedingLimit() {
+            StoredEvent stored1 =
+                    StoredEvent.builder()
+                            .eventId("evt-1")
+                            .aggregateId("agg-1")
+                            .aggregateType("Test")
+                            .eventType("UserCreated")
+                            .version(1)
+                            .payload("{}")
+                            .occurredAt(Instant.now())
+                            .build();
+            StoredEvent stored2 =
+                    StoredEvent.builder()
+                            .eventId("evt-2")
+                            .aggregateId("agg-2")
+                            .aggregateType("Test")
+                            .eventType("UserCreated")
+                            .version(1)
+                            .payload("{}")
+                            .occurredAt(Instant.now())
+                            .build();
+            StoredEvent stored3 =
+                    StoredEvent.builder()
+                            .eventId("evt-3")
+                            .aggregateId("agg-3")
+                            .aggregateType("Test")
+                            .eventType("UserCreated")
+                            .version(1)
+                            .payload("{}")
+                            .occurredAt(Instant.now())
+                            .build();
+            when(eventRepository.findByEventTypeOrderByStoredAtDesc("UserCreated"))
+                    .thenReturn(List.of(stored1, stored2, stored3));
+
+            List<StoredEvent> events = eventStore.getEventsByType("UserCreated", 2);
+
+            assertThat(events).hasSize(2);
+            assertThat(events.get(0).getEventId()).isEqualTo("evt-1");
+            assertThat(events.get(1).getEventId()).isEqualTo("evt-2");
+        }
+
+        @Test
+        @DisplayName("should get all events with pagination")
+        void shouldGetAllEventsWithPagination() {
+            StoredEvent stored1 =
+                    StoredEvent.builder()
+                            .eventId("evt-1")
+                            .aggregateId("agg-1")
+                            .aggregateType("Test")
+                            .eventType("Created")
+                            .version(1)
+                            .payload("{}")
+                            .occurredAt(Instant.now())
+                            .build();
+            StoredEvent stored2 =
+                    StoredEvent.builder()
+                            .eventId("evt-2")
+                            .aggregateId("agg-1")
+                            .aggregateType("Test")
+                            .eventType("Updated")
+                            .version(2)
+                            .payload("{}")
+                            .occurredAt(Instant.now())
+                            .build();
+            StoredEvent stored3 =
+                    StoredEvent.builder()
+                            .eventId("evt-3")
+                            .aggregateId("agg-2")
+                            .aggregateType("Test")
+                            .eventType("Created")
+                            .version(1)
+                            .payload("{}")
+                            .occurredAt(Instant.now())
+                            .build();
+            when(eventRepository.findAll()).thenReturn(List.of(stored1, stored2, stored3));
+
+            List<StoredEvent> events = eventStore.getAllEvents(1, 2);
+
+            assertThat(events).hasSize(2);
+            assertThat(events.get(0).getEventId()).isEqualTo("evt-2");
+            assertThat(events.get(1).getEventId()).isEqualTo("evt-3");
+        }
+
+        @Test
+        @DisplayName("should return empty list when position exceeds event count")
+        void shouldReturnEmptyListWhenPositionExceedsEventCount() {
+            StoredEvent stored =
+                    StoredEvent.builder()
+                            .eventId("evt-1")
+                            .aggregateId("agg-1")
+                            .aggregateType("Test")
+                            .eventType("Created")
+                            .version(1)
+                            .payload("{}")
+                            .occurredAt(Instant.now())
+                            .build();
+            when(eventRepository.findAll()).thenReturn(List.of(stored));
+
+            List<StoredEvent> events = eventStore.getAllEvents(10, 5);
+
+            assertThat(events).isEmpty();
+        }
     }
 
     @Nested
