@@ -293,8 +293,8 @@ class %sIntegrationTest {
                         .param("direction", "DESC"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())
-                .andExpect(jsonPath("$.hasNext").isBoolean())
-                .andExpect(jsonPath("$.hasPrevious").isBoolean());
+                .andExpect(jsonPath("$.pageInfo.hasNext").isBoolean())
+                .andExpect(jsonPath("$.pageInfo.hasPrevious").isBoolean());
     }
 
     @Test

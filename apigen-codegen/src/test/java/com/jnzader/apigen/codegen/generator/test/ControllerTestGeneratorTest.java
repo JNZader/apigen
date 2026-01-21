@@ -107,7 +107,11 @@ class ControllerTestGeneratorTest {
                     .contains("@BeforeEach")
                     .contains("void setUp()")
                     .contains("controller = new CategoryControllerImpl(service, mapper);")
-                    .contains("mockMvc = MockMvcBuilders.standaloneSetup(controller).build();");
+                    .contains("mockMvc = MockMvcBuilders.standaloneSetup(controller)")
+                    .contains(
+                            ".setCustomArgumentResolvers(new"
+                                    + " PageableHandlerMethodArgumentResolver())")
+                    .contains(".build();");
         }
 
         @Test
