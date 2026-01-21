@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0](https://github.com/JNZader/apigen/compare/v1.1.1...v2.0.0) (2026-01-21)
+
+### ⚠ BREAKING CHANGES
+
+* Error messages and exception messages are now in English.
+Applications using i18n should rely on the i18n module for localization.
+
+Files updated:
+- apigen-core: ApiError, ProblemDetail, FilterSpecificationBuilder,
+  BaseServiceImpl, SSE components, config classes
+- apigen-security: AuthService, JwtService, TokenBlacklistService,
+  AccountLockoutService, CustomUserDetailsService, SecurityConfig
+- Updated corresponding test files to expect English messages
+
+### Features
+
+* Phase 12 - Code Quality Improvements ([#31](https://github.com/JNZader/apigen/issues/31)) ([c609072](https://github.com/JNZader/apigen/commit/c60907288dc8e5274f4dae6ac6be0cf1685690ee))
+
 ## [1.1.1](https://github.com/JNZader/apigen/compare/v1.1.0...v1.1.1) (2026-01-21)
 
 ### Performance Improvements
