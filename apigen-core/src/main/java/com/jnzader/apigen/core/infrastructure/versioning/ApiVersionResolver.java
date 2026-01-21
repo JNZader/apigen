@@ -43,8 +43,7 @@ public class ApiVersionResolver {
         // Use atomic groups/possessive quantifiers where safe to prevent ReDoS attacks
         this.pathVersionPattern =
                 Pattern.compile("/" + Pattern.quote(pathPrefix) + "([\\d.]++[-\\w]*+)/");
-        // Media type pattern: application/vnd.{vendor}.v{version}+{format}
-        // Uses configured vendor name or wildcard pattern
+        // Build media type pattern for Accept header versioning (uses vendor name or wildcard)
         String vendorPattern =
                 vendorName != null
                         ? Pattern.quote(vendorName)

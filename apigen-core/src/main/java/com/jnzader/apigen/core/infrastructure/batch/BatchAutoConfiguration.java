@@ -67,24 +67,37 @@ public class BatchAutoConfiguration {
             boolean allowNestedBatch,
             int timeoutSeconds) {
 
+        /** Default path for batch endpoint, configurable via apigen.batch.path property. */
+        public static final String DEFAULT_PATH = "/api/batch";
+
+        private static final int DEFAULT_MAX_OPERATIONS = 100;
+        private static final int DEFAULT_PARALLEL_THRESHOLD = 10;
+        private static final int DEFAULT_TIMEOUT_SECONDS = 30;
+
         public BatchProperties {
             if (path == null || path.isBlank()) {
-                path = "/api/batch";
+                path = DEFAULT_PATH;
             }
             if (maxOperations <= 0) {
-                maxOperations = 100;
+                maxOperations = DEFAULT_MAX_OPERATIONS;
             }
             if (parallelThreshold <= 0) {
-                parallelThreshold = 10;
+                parallelThreshold = DEFAULT_PARALLEL_THRESHOLD;
             }
             if (timeoutSeconds <= 0) {
-                timeoutSeconds = 30;
+                timeoutSeconds = DEFAULT_TIMEOUT_SECONDS;
             }
         }
 
         /** Default configuration. */
         public static BatchProperties defaults() {
-            return new BatchProperties(true, "/api/batch", 100, 10, false, 30);
+            return new BatchProperties(
+                    true,
+                    DEFAULT_PATH,
+                    DEFAULT_MAX_OPERATIONS,
+                    DEFAULT_PARALLEL_THRESHOLD,
+                    false,
+                    DEFAULT_TIMEOUT_SECONDS);
         }
     }
 }

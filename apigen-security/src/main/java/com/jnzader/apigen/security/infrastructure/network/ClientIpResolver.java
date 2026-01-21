@@ -187,7 +187,7 @@ public class ClientIpResolver {
                     return true;
                 }
             }
-        } catch (UnknownHostException e) {
+        } catch (UnknownHostException _) {
             log.debug("Could not parse IP address: {}", ip);
         }
 

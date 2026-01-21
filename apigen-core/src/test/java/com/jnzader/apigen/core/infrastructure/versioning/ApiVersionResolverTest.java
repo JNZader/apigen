@@ -202,76 +202,41 @@ class ApiVersionResolverTest {
     @DisplayName("Media Type Resolution")
     class MediaTypeResolutionTests {
 
-        @Test
-        @DisplayName("should resolve version from Accept media type with configured vendor")
-        void shouldResolveFromMediaTypeWithConfiguredVendor() {
-            HttpServletRequest request = mock(HttpServletRequest.class);
-            when(request.getHeader("Accept")).thenReturn("application/vnd.apigen.v2+json");
-
-            ApiVersionResolver resolver =
-                    ApiVersionResolver.builder()
-                            .strategies(VersioningStrategy.MEDIA_TYPE)
-                            .vendorName("apigen")
-                            .defaultVersion("1.0")
-                            .build();
-
-            String version = resolver.resolve(request);
-
-            assertThat(version).isEqualTo("2");
+        static Stream<Arguments> mediaTypeResolutionProvider() {
+            return Stream.of(
+                    Arguments.of(
+                            "configured vendor", "application/vnd.apigen.v2+json", "apigen", "2"),
+                    Arguments.of(
+                            "version with minor",
+                            "application/vnd.apigen.v3.1+json",
+                            "apigen",
+                            "3.1"),
+                    Arguments.of(
+                            "wrong vendor (fallback)",
+                            "application/vnd.other.v2+json",
+                            "apigen",
+                            "1.0"),
+                    Arguments.of(
+                            "null vendor (any)", "application/vnd.anyvendor.v2+json", null, "2"));
         }
 
-        @Test
-        @DisplayName("should resolve version with minor from media type")
-        void shouldResolveVersionWithMinorFromMediaType() {
+        @ParameterizedTest(name = "should resolve version with {0}")
+        @MethodSource("mediaTypeResolutionProvider")
+        void shouldResolveVersionFromMediaType(
+                String scenario, String acceptHeader, String vendorName, String expectedVersion) {
             HttpServletRequest request = mock(HttpServletRequest.class);
-            when(request.getHeader("Accept")).thenReturn("application/vnd.apigen.v3.1+json");
+            when(request.getHeader("Accept")).thenReturn(acceptHeader);
 
             ApiVersionResolver resolver =
                     ApiVersionResolver.builder()
                             .strategies(VersioningStrategy.MEDIA_TYPE)
-                            .vendorName("apigen")
+                            .vendorName(vendorName)
                             .defaultVersion("1.0")
                             .build();
 
             String version = resolver.resolve(request);
 
-            assertThat(version).isEqualTo("3.1");
-        }
-
-        @Test
-        @DisplayName("should not match media type with wrong vendor name")
-        void shouldNotMatchMediaTypeWithWrongVendor() {
-            HttpServletRequest request = mock(HttpServletRequest.class);
-            when(request.getHeader("Accept")).thenReturn("application/vnd.other.v2+json");
-
-            ApiVersionResolver resolver =
-                    ApiVersionResolver.builder()
-                            .strategies(VersioningStrategy.MEDIA_TYPE)
-                            .vendorName("apigen")
-                            .defaultVersion("1.0")
-                            .build();
-
-            String version = resolver.resolve(request);
-
-            assertThat(version).isEqualTo("1.0"); // falls back to default
-        }
-
-        @Test
-        @DisplayName("should match any vendor when vendorName is null")
-        void shouldMatchAnyVendorWhenVendorNameIsNull() {
-            HttpServletRequest request = mock(HttpServletRequest.class);
-            when(request.getHeader("Accept")).thenReturn("application/vnd.anyvendor.v2+json");
-
-            ApiVersionResolver resolver =
-                    ApiVersionResolver.builder()
-                            .strategies(VersioningStrategy.MEDIA_TYPE)
-                            .vendorName(null)
-                            .defaultVersion("1.0")
-                            .build();
-
-            String version = resolver.resolve(request);
-
-            assertThat(version).isEqualTo("2");
+            assertThat(version).isEqualTo(expectedVersion);
         }
 
         @Test

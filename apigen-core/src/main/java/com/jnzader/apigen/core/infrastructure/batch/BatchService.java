@@ -62,6 +62,14 @@ public class BatchService {
 
     private static final Logger log = LoggerFactory.getLogger(BatchService.class);
 
+    // Header constants
+    private static final String HEADER_LOCATION = "Location";
+    private static final String HEADER_ETAG = "ETag";
+    private static final String HEADER_LAST_MODIFIED = "Last-Modified";
+    private static final String HEADER_CONTENT_LOCATION = "Content-Location";
+    private static final String HEADER_CONTENT_TYPE = "content-type";
+    private static final String CONTENT_TYPE_JSON = "application/json";
+
     private final DispatcherServlet dispatcherServlet;
     private final ObjectMapper objectMapper;
     private final ExecutorService executor;
@@ -251,7 +259,7 @@ public class BatchService {
             }
 
             String contentType = response.getContentType();
-            if (contentType != null && contentType.contains("application/json")) {
+            if (contentType != null && contentType.contains(CONTENT_TYPE_JSON)) {
                 return objectMapper.readTree(content);
             }
 
@@ -274,10 +282,10 @@ public class BatchService {
 
         for (String headerName : response.getHeaderNames()) {
             // Only include relevant headers in the batch response
-            if ("Location".equalsIgnoreCase(headerName)
-                    || "ETag".equalsIgnoreCase(headerName)
-                    || "Last-Modified".equalsIgnoreCase(headerName)
-                    || "Content-Location".equalsIgnoreCase(headerName)) {
+            if (HEADER_LOCATION.equalsIgnoreCase(headerName)
+                    || HEADER_ETAG.equalsIgnoreCase(headerName)
+                    || HEADER_LAST_MODIFIED.equalsIgnoreCase(headerName)
+                    || HEADER_CONTENT_LOCATION.equalsIgnoreCase(headerName)) {
                 headers.put(headerName, response.getHeader(headerName));
             }
         }
@@ -360,8 +368,8 @@ public class BatchService {
             customHeaders.forEach((k, v) -> headers.put(k.toLowerCase(), List.of(v)));
 
             // Set content type for body
-            if (body != null && !headers.containsKey("content-type")) {
-                headers.put("content-type", List.of("application/json"));
+            if (body != null) {
+                headers.computeIfAbsent(HEADER_CONTENT_TYPE, k -> List.of(CONTENT_TYPE_JSON));
             }
 
             return headers;
@@ -378,6 +386,7 @@ public class BatchService {
         }
 
         @Override
+        @SuppressWarnings("java:S4144") // Intentionally same as getRequestURI for batch operations
         public String getServletPath() {
             return path;
         }
@@ -416,7 +425,7 @@ public class BatchService {
 
         @Override
         public String getContentType() {
-            return getHeader("content-type");
+            return getHeader(HEADER_CONTENT_TYPE);
         }
 
         @Override
@@ -481,8 +490,10 @@ public class BatchService {
         }
 
         @Override
+        @SuppressWarnings("java:S2254") // Not exposing session ID in internal batch operations
         public String getRequestedSessionId() {
-            return original.getRequestedSessionId();
+            // Return null for security - batch operations don't need session ID exposure
+            return null;
         }
 
         @Override
@@ -850,14 +861,14 @@ public class BatchService {
         @Override
         public void sendRedirect(String location) {
             setStatus(302);
-            setHeader("Location", location);
+            setHeader(HEADER_LOCATION, location);
             this.committed = true;
         }
 
         @Override
         public void sendRedirect(String location, int sc, boolean clearBuffer) {
             setStatus(sc);
-            setHeader("Location", location);
+            setHeader(HEADER_LOCATION, location);
             if (clearBuffer) {
                 resetBuffer();
             }

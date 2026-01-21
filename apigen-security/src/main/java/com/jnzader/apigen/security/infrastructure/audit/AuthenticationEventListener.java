@@ -10,13 +10,13 @@ import org.springframework.security.authentication.event.AuthenticationSuccessEv
 import org.springframework.stereotype.Component;
 
 /**
- * Listener de eventos de autenticación de Spring Security.
+ * Listener for Spring Security authentication events.
  *
- * <p>Captura eventos de login exitoso y fallido para:
+ * <p>Captures successful and failed login events to:
  *
  * <ul>
- *   <li>Integrar con el servicio de bloqueo de cuentas
- *   <li>Registrar eventos de auditoría de seguridad
+ *   <li>Integrate with the account lockout service
+ *   <li>Log security audit events
  * </ul>
  */
 @Component
@@ -32,12 +32,12 @@ public class AuthenticationEventListener {
     }
 
     /**
-     * Maneja eventos de autenticación fallida por credenciales incorrectas.
+     * Handles authentication failure events due to bad credentials.
      *
-     * <p>Este evento se dispara cuando el usuario proporciona credenciales inválidas (username o
-     * password incorrectos).
+     * <p>This event is fired when the user provides invalid credentials (wrong username or
+     * password).
      *
-     * @param event evento de fallo de autenticación
+     * @param event the authentication failure event
      */
     @EventListener
     public void onAuthenticationFailure(AuthenticationFailureBadCredentialsEvent event) {
@@ -48,16 +48,16 @@ public class AuthenticationEventListener {
                 username,
                 event.getException().getMessage());
 
-        // Registrar intento fallido para bloqueo de cuenta
+        // Record failed attempt for account lockout
         accountLockoutService.recordFailedAttempt(username);
     }
 
     /**
-     * Maneja eventos de autenticación exitosa.
+     * Handles successful authentication events.
      *
-     * <p>Se usa para resetear el contador de intentos fallidos después de un login exitoso.
+     * <p>Used to reset the failed attempts counter after a successful login.
      *
-     * @param event evento de autenticación exitosa
+     * @param event the successful authentication event
      */
     @EventListener
     public void onAuthenticationSuccess(AuthenticationSuccessEvent event) {
@@ -65,24 +65,24 @@ public class AuthenticationEventListener {
 
         log.debug("SECURITY EVENT: Authentication successful for user '{}'", username);
 
-        // Resetear contador de intentos fallidos
+        // Reset failed attempts counter
         accountLockoutService.recordSuccessfulLogin(username);
     }
 
     /**
-     * Extrae el username del evento de fallo de autenticación.
+     * Extracts the username from the authentication failure event.
      *
-     * @param event evento de fallo
-     * @return username o "unknown" si no se puede determinar
+     * @param event the failure event
+     * @return username or "unknown" if it cannot be determined
      */
     private String extractUsername(AuthenticationFailureBadCredentialsEvent event) {
         Object principal = event.getAuthentication().getPrincipal();
 
-        if (principal instanceof String) {
-            return (String) principal;
+        if (principal instanceof String username) {
+            return username;
         }
 
-        // Fallback: intentar obtener del nombre de autenticación
+        // Fallback: try to get from authentication name
         String name = event.getAuthentication().getName();
         return name != null ? name : "unknown";
     }

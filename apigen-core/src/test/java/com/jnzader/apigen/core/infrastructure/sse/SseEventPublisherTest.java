@@ -1,5 +1,6 @@
 package com.jnzader.apigen.core.infrastructure.sse;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -92,7 +93,7 @@ class SseEventPublisherTest {
             boolean result = sseEventPublisher.publishToClient("client-1", "notification", "data");
 
             verify(sseEmitterService).sendToClient("client-1", "notification", "data");
-            assert result;
+            assertThat(result).isTrue();
         }
 
         @Test
@@ -102,7 +103,7 @@ class SseEventPublisherTest {
 
             boolean result = sseEventPublisher.publishToClient("unknown", "event", "data");
 
-            assert !result;
+            assertThat(result).isFalse();
         }
     }
 

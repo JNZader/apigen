@@ -301,6 +301,35 @@ class SecurityEntitiesTest {
             Permission permission = new Permission();
             assertThat(permission.getName()).isNull();
             assertThat(permission.getDescription()).isNull();
+            assertThat(permission.getCategory()).isNull();
+        }
+
+        @Test
+        @DisplayName("should create permission with name constructor")
+        void shouldCreatePermissionWithNameConstructor() {
+            Permission permission = new Permission("READ_USERS");
+            assertThat(permission.getName()).isEqualTo("READ_USERS");
+            assertThat(permission.getDescription()).isNull();
+            assertThat(permission.getCategory()).isNull();
+        }
+
+        @Test
+        @DisplayName("should create permission with name and description constructor")
+        void shouldCreatePermissionWithNameAndDescriptionConstructor() {
+            Permission permission = new Permission("CREATE_USER", "Allows creating new users");
+            assertThat(permission.getName()).isEqualTo("CREATE_USER");
+            assertThat(permission.getDescription()).isEqualTo("Allows creating new users");
+            assertThat(permission.getCategory()).isNull();
+        }
+
+        @Test
+        @DisplayName("should create permission with all fields constructor")
+        void shouldCreatePermissionWithAllFieldsConstructor() {
+            Permission permission =
+                    new Permission("DELETE_ORDER", "Allows deleting orders", "ORDERS");
+            assertThat(permission.getName()).isEqualTo("DELETE_ORDER");
+            assertThat(permission.getDescription()).isEqualTo("Allows deleting orders");
+            assertThat(permission.getCategory()).isEqualTo("ORDERS");
         }
 
         @Test
@@ -310,10 +339,20 @@ class SecurityEntitiesTest {
             permission.setId(1L);
             permission.setName("READ");
             permission.setDescription("Read permission");
+            permission.setCategory("USERS");
 
             assertThat(permission.getId()).isEqualTo(1L);
             assertThat(permission.getName()).isEqualTo("READ");
             assertThat(permission.getDescription()).isEqualTo("Read permission");
+            assertThat(permission.getCategory()).isEqualTo("USERS");
+        }
+
+        @Test
+        @DisplayName("should update category field")
+        void shouldUpdateCategoryField() {
+            Permission permission = new Permission("READ_PRODUCTS", "Read products", "PRODUCTS");
+            permission.setCategory("INVENTORY");
+            assertThat(permission.getCategory()).isEqualTo("INVENTORY");
         }
     }
 

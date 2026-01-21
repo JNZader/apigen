@@ -9,10 +9,16 @@ import com.jnzader.apigen.security.infrastructure.config.SecurityProperties.Trus
 import com.jnzader.apigen.security.infrastructure.config.SecurityProperties.TrustedProxiesProperties.TrustMode;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @DisplayName("ClientIpResolver")
 class ClientIpResolverTest {
@@ -171,46 +177,34 @@ class ClientIpResolverTest {
             trustedProxiesProperties.setAddresses(List.of("10.0.0.1", "10.0.0.2"));
         }
 
-        @Test
-        @DisplayName("should use X-Forwarded-For when connection is from trusted proxy")
-        void shouldUseHeaderWhenFromTrustedProxy() {
-            when(request.getRemoteAddr()).thenReturn("10.0.0.1");
-            when(request.getHeader("X-Forwarded-For")).thenReturn("203.0.113.50");
-
-            ClientIpResolver resolver = new ClientIpResolver(securityProperties);
-            resolver.initialize();
-
-            String clientIp = resolver.resolveClientIp(request);
-
-            assertThat(clientIp).isEqualTo("203.0.113.50");
+        static Stream<Arguments> trustedProxyResolutionProvider() {
+            return Stream.of(
+                    Arguments.of(
+                            "trusted proxy with header",
+                            "10.0.0.1",
+                            "203.0.113.50",
+                            "203.0.113.50"),
+                    Arguments.of(
+                            "untrusted proxy ignores header",
+                            "203.0.113.99",
+                            "10.10.10.10",
+                            "203.0.113.99"),
+                    Arguments.of("trusted proxy without header", "10.0.0.1", null, "10.0.0.1"));
         }
 
-        @Test
-        @DisplayName("should ignore X-Forwarded-For when connection is NOT from trusted proxy")
-        void shouldIgnoreHeaderWhenNotFromTrustedProxy() {
-            when(request.getRemoteAddr()).thenReturn("203.0.113.99");
-            when(request.getHeader("X-Forwarded-For")).thenReturn("10.10.10.10");
+        @ParameterizedTest(name = "should resolve IP for {0}")
+        @MethodSource("trustedProxyResolutionProvider")
+        void shouldResolveClientIp(
+                String scenario, String remoteAddr, String forwardedFor, String expectedIp) {
+            when(request.getRemoteAddr()).thenReturn(remoteAddr);
+            when(request.getHeader("X-Forwarded-For")).thenReturn(forwardedFor);
 
             ClientIpResolver resolver = new ClientIpResolver(securityProperties);
             resolver.initialize();
 
             String clientIp = resolver.resolveClientIp(request);
 
-            assertThat(clientIp).isEqualTo("203.0.113.99");
-        }
-
-        @Test
-        @DisplayName("should return remoteAddr if header is missing from trusted proxy")
-        void shouldReturnRemoteAddrIfHeaderMissing() {
-            when(request.getRemoteAddr()).thenReturn("10.0.0.1");
-            when(request.getHeader("X-Forwarded-For")).thenReturn(null);
-
-            ClientIpResolver resolver = new ClientIpResolver(securityProperties);
-            resolver.initialize();
-
-            String clientIp = resolver.resolveClientIp(request);
-
-            assertThat(clientIp).isEqualTo("10.0.0.1");
+            assertThat(clientIp).isEqualTo(expectedIp);
         }
 
         @Test
@@ -406,40 +400,14 @@ class ClientIpResolverTest {
             assertThat(resolver.isTrustedProxy("192.168.1.1")).isTrue();
         }
 
-        @Test
-        @DisplayName("should return false for untrusted IP")
-        void shouldReturnFalseForUntrustedIp() {
+        @ParameterizedTest(name = "should return false for invalid/untrusted IP: {0}")
+        @NullAndEmptySource
+        @ValueSource(strings = {"  ", "203.0.113.50", "not.an.ip.address"})
+        void shouldReturnFalseForInvalidOrUntrustedIp(String ip) {
             ClientIpResolver resolver = new ClientIpResolver(securityProperties);
             resolver.initialize();
 
-            assertThat(resolver.isTrustedProxy("203.0.113.50")).isFalse();
-        }
-
-        @Test
-        @DisplayName("should return false for null IP")
-        void shouldReturnFalseForNullIp() {
-            ClientIpResolver resolver = new ClientIpResolver(securityProperties);
-            resolver.initialize();
-
-            assertThat(resolver.isTrustedProxy(null)).isFalse();
-        }
-
-        @Test
-        @DisplayName("should return false for blank IP")
-        void shouldReturnFalseForBlankIp() {
-            ClientIpResolver resolver = new ClientIpResolver(securityProperties);
-            resolver.initialize();
-
-            assertThat(resolver.isTrustedProxy("  ")).isFalse();
-        }
-
-        @Test
-        @DisplayName("should return false for invalid IP format")
-        void shouldReturnFalseForInvalidIp() {
-            ClientIpResolver resolver = new ClientIpResolver(securityProperties);
-            resolver.initialize();
-
-            assertThat(resolver.isTrustedProxy("not.an.ip.address")).isFalse();
+            assertThat(resolver.isTrustedProxy(ip)).isFalse();
         }
     }
 

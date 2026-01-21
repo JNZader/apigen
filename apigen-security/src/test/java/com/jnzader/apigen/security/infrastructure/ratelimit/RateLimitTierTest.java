@@ -106,5 +106,35 @@ class RateLimitTierTest {
             assertThat(RateLimitTier.BASIC.getName()).isEqualTo("basic");
             assertThat(RateLimitTier.PRO.getName()).isEqualTo("pro");
         }
+
+        @Test
+        @DisplayName("should have name different from enum name")
+        void shouldHaveNameDifferentFromEnumName() {
+            for (RateLimitTier tier : RateLimitTier.values()) {
+                // getName() returns lowercase, name() returns uppercase
+                assertThat(tier.getName()).isEqualTo(tier.name().toLowerCase());
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("Enum Values")
+    class EnumValuesTests {
+
+        @Test
+        @DisplayName("should have exactly four tiers")
+        void shouldHaveFourTiers() {
+            assertThat(RateLimitTier.values()).hasSize(4);
+        }
+
+        @Test
+        @DisplayName("burst capacity should be 2x requests per second")
+        void burstCapacityShouldBeTwiceRequestsPerSecond() {
+            for (RateLimitTier tier : RateLimitTier.values()) {
+                assertThat(tier.getDefaultBurstCapacity())
+                        .as("Tier %s burst should be 2x rate", tier)
+                        .isEqualTo(tier.getDefaultRequestsPerSecond() * 2);
+            }
+        }
     }
 }

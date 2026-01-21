@@ -4,6 +4,7 @@ import com.jnzader.apigen.security.infrastructure.config.SecurityProperties;
 import com.jnzader.apigen.security.infrastructure.config.SecurityProperties.RateLimitProperties.TierConfig;
 import com.jnzader.apigen.security.infrastructure.network.ClientIpResolver;
 import io.github.bucket4j.ConsumptionProbe;
+import jakarta.annotation.Nullable;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,30 +19,29 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.lang.Nullable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * Filtro de Rate Limiting para la API usando Bucket4j.
+ * Rate limiting filter for the API using Bucket4j.
  *
- * <p>Aplica rate limiting basado en IP o usuario a todos los endpoints de la API. Soporta:
+ * <p>Applies IP or user-based rate limiting to all API endpoints. Supports:
  *
  * <ul>
- *   <li>Rate limiting tradicional por IP (general y auth endpoints)
- *   <li>Rate limiting basado en tiers de usuario (ANONYMOUS, FREE, BASIC, PRO)
+ *   <li>Traditional IP-based rate limiting (general and auth endpoints)
+ *   <li>User tier-based rate limiting (ANONYMOUS, FREE, BASIC, PRO)
  * </ul>
  *
- * <p>Headers de respuesta:
+ * <p>Response headers:
  *
  * <ul>
- *   <li>X-RateLimit-Limit: Límite total de requests
- *   <li>X-RateLimit-Remaining: Requests restantes
- *   <li>X-RateLimit-Reset: Segundos hasta reset del límite
- *   <li>X-RateLimit-Tier: Tier actual del usuario (si tiers habilitados)
- *   <li>Retry-After: Segundos a esperar (solo en 429)
+ *   <li>X-RateLimit-Limit: Total request limit
+ *   <li>X-RateLimit-Remaining: Remaining requests
+ *   <li>X-RateLimit-Reset: Seconds until limit reset
+ *   <li>X-RateLimit-Tier: Current user tier (if tiers enabled)
+ *   <li>Retry-After: Seconds to wait (only on 429)
  * </ul>
  */
 @Component
@@ -176,7 +176,7 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
         String uri = request.getRequestURI();
         String method = request.getMethod();
 
-        // Solo POST a endpoints de auth son considerados "auth endpoints" para rate limiting
+        // Only POST to auth endpoints are considered "auth endpoints" for rate limiting
         return "POST".equalsIgnoreCase(method)
                 && (uri.contains("/auth/login")
                         || uri.contains("/auth/register")
@@ -222,7 +222,7 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setHeader("Retry-After", String.valueOf(waitSeconds));
 
-        String endpointType = isAuthEndpoint ? "autenticación" : "API";
+        String endpointType = isAuthEndpoint ? "authentication" : "API";
         String jsonResponse =
                 String.format(
                         """
@@ -230,7 +230,7 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
                             "type": "about:blank",
                             "title": "Too Many Requests",
                             "status": 429,
-                            "detail": "Límite de requests excedido para %s. Intente nuevamente en %d segundos.",
+                            "detail": "Request limit exceeded for %s. Please try again in %d seconds.",
                             "instance": "%s"
                         }
                         """,

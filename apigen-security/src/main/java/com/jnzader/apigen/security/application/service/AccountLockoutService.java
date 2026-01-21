@@ -163,7 +163,7 @@ public class AccountLockoutService {
 
         // Permanent lockout
         if (!user.isAccountNonLocked() && user.getLockedUntil() == null) {
-            return Duration.ofDays(365 * 100); // Effectively "infinite"
+            return Duration.ofDays(365L * 100); // Effectively "infinite"
         }
 
         // Temporary lockout
