@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.6](https://github.com/JNZader/apigen/compare/v2.1.5...v2.1.6) (2026-01-21)
+
+### Bug Fixes
+
+* **codegen:** fix test generators for Spring Boot 4 ([#40](https://github.com/JNZader/apigen/issues/40)) ([6b5b96a](https://github.com/JNZader/apigen/commit/6b5b96a2fe3b01866b3375900a76d756708e0494))
+
 ## [2.1.5](https://github.com/JNZader/apigen/compare/v2.1.4...v2.1.5) (2026-01-21)
 
 ### Bug Fixes
