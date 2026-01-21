@@ -1,9 +1,12 @@
 package com.jnzader.apigen.security.domain.entity;
 
 import com.jnzader.apigen.core.domain.entity.Base;
+import jakarta.persistence.Cacheable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 /**
  * Entidad que representa un permiso en el sistema.
@@ -13,9 +16,14 @@ import jakarta.persistence.Table;
  *
  * <p>Convención de nombres: VERBO_RECURSO Ejemplos: CREATE_USER, READ_USERS, UPDATE_PRODUCT,
  * DELETE_ORDER
+ *
+ * <p>This entity is cached in Hibernate L2 cache for improved performance since permissions are
+ * frequently read but rarely modified.
  */
 @Entity
 @Table(name = "permissions")
+@Cacheable
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region = "permissions")
 @SuppressWarnings("java:S2160") // equals/hashCode heredados de Base (basado en ID)
 public class Permission extends Base {
 

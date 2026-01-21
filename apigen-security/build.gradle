@@ -54,6 +54,16 @@ dependencies {
     // Redis (optional - for distributed rate limiting)
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
+    // Hibernate L2 Cache with JCache (Caffeine provider)
+    api 'org.hibernate.orm:hibernate-jcache'
+    api 'com.github.ben-manes.caffeine:jcache:3.2.3'
+
+    // JPA (optional - for HibernatePropertiesCustomizer - activated when consumer has JPA)
+    implementation('org.springframework.boot:spring-boot-starter-data-jpa') {
+        // Mark as optional - consumers need to provide this dependency
+        exclude group: 'com.zaxxer', module: 'HikariCP'
+    }
+
     // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
@@ -95,6 +105,8 @@ def jacocoExcludes = [
     '**/ratelimit/**',
     // Audit listeners (require Spring context)
     '**/audit/**',
+    // L2 Cache infrastructure (requires JPA context)
+    '**/cache/**',
     // Entity classes with low test coverage
     '**/entity/Permission*.class',
     // JWT Service (complex crypto operations)
@@ -138,6 +150,8 @@ jacocoTestCoverageVerification {
                 '*.ratelimit.*',
                 // Audit infrastructure
                 '*.audit.*',
+                // L2 Cache infrastructure
+                '*.cache.*',
                 // Domain entities
                 '*.entity.Permission'
             ]

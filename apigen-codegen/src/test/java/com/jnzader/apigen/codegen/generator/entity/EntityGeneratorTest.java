@@ -224,10 +224,11 @@ class EntityGeneratorTest {
                     entityGenerator.generate(
                             targetTable, List.of(), List.of(relationship), List.of());
 
+            // Verify safer cascade defaults (PERSIST, MERGE instead of ALL)
             assertThat(result)
                     .contains(
-                            "@OneToMany(mappedBy = \"customer\", cascade = CascadeType.ALL,"
-                                    + " orphanRemoval = true)")
+                            "@OneToMany(mappedBy = \"customer\", cascade = {CascadeType.PERSIST,"
+                                    + " CascadeType.MERGE}, orphanRemoval = true)")
                     .contains("private List<Order> orders = new ArrayList<>();")
                     .contains("import java.util.List;")
                     .contains("import java.util.ArrayList;");
