@@ -2,6 +2,7 @@ package com.jnzader.apigen.core.infrastructure.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jnzader.apigen.core.domain.entity.Base;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -59,6 +60,42 @@ public final class ETagGenerator {
     }
 
     /**
+     * Genera un ETag basado en versión para una entidad Base.
+     *
+     * <p>Este método ofrece complejidad O(1) vs O(n) del método {@link #generate(Object)} que
+     * serializa a JSON y calcula MD5. Usa el formato {@code id:version} que es único por entidad y
+     * cambio.
+     *
+     * <p>Ejemplo de ETag generado: "123:5" para entidad con id=123, version=5
+     *
+     * @param entity La entidad Base para la que generar el ETag.
+     * @return El ETag generado, o null si la entidad o sus campos son null.
+     */
+    public static String generateFromVersion(Base entity) {
+        if (entity == null || entity.getId() == null || entity.getVersion() == null) {
+            return null;
+        }
+        return "\"" + entity.getId() + ":" + entity.getVersion() + "\"";
+    }
+
+    /**
+     * Genera un ETag basado en id y versión.
+     *
+     * <p>Método de conveniencia para generar ETags O(1) sin necesidad de acceder a la entidad
+     * completa.
+     *
+     * @param id El ID de la entidad.
+     * @param version La versión de la entidad.
+     * @return El ETag generado, o null si algún parámetro es null.
+     */
+    public static String generateFromVersion(Long id, Long version) {
+        if (id == null || version == null) {
+            return null;
+        }
+        return "\"" + id + ":" + version + "\"";
+    }
+
+    /**
      * Genera un ETag débil para el objeto dado.
      *
      * <p>Los ETags débiles (W/"...") indican equivalencia semántica, no igualdad byte-a-byte.
@@ -68,6 +105,20 @@ public final class ETagGenerator {
      */
     public static String generateWeak(Object object) {
         String strong = generate(object);
+        return strong != null ? "W/" + strong : null;
+    }
+
+    /**
+     * Genera un ETag débil basado en versión para una entidad Base.
+     *
+     * <p>Combina la eficiencia O(1) de {@link #generateFromVersion(Base)} con semántica de ETag
+     * débil.
+     *
+     * @param entity La entidad Base para la que generar el ETag débil.
+     * @return El ETag débil generado, o null si la entidad o sus campos son null.
+     */
+    public static String generateWeakFromVersion(Base entity) {
+        String strong = generateFromVersion(entity);
         return strong != null ? "W/" + strong : null;
     }
 
