@@ -120,9 +120,7 @@ class BatchRequestTest {
             for (String method : validMethods) {
                 BatchOperation op = new BatchOperation("op1", method, "/api/users", null, null);
                 Set<ConstraintViolation<BatchOperation>> violations = validator.validate(op);
-                assertThat(violations)
-                        .as("Method %s should be valid", method)
-                        .isEmpty();
+                assertThat(violations).as("Method %s should be valid", method).isEmpty();
             }
         }
     }

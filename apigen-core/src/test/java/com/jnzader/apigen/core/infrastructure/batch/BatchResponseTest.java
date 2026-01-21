@@ -171,8 +171,7 @@ class BatchResponseTest {
         @Test
         @DisplayName("should create batch response with timestamp")
         void createBatchResponseWithTimestamp() {
-            List<OperationResult> results =
-                    List.of(OperationResult.success("op1", 200, null));
+            List<OperationResult> results = List.of(OperationResult.success("op1", 200, null));
             BatchSummary summary = BatchSummary.fromResults(results);
 
             BatchResponse response = new BatchResponse(results, summary, 100);

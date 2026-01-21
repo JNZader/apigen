@@ -2,8 +2,10 @@ package com.jnzader.apigen.core.infrastructure.batch;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -30,8 +32,11 @@ import org.springframework.web.servlet.DispatcherServlet;
  * apigen.batch.parallel-threshold=10     # Suggest parallel for batches larger than this
  * </pre>
  */
-@AutoConfiguration
+@AutoConfiguration(
+        afterName = "org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration")
 @EnableConfigurationProperties(BatchAutoConfiguration.BatchProperties.class)
+@ConditionalOnWebApplication
+@ConditionalOnBean(ObjectMapper.class)
 @ConditionalOnProperty(
         prefix = "apigen.batch",
         name = "enabled",

@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * REST controller for batch API operations.
@@ -55,7 +55,7 @@ import org.springframework.web.bind.annotation.RestController;
  * }
  * }</pre>
  */
-@RestController
+@ResponseBody
 @RequestMapping("${apigen.batch.path:/api/batch}")
 @Tag(name = "Batch Operations", description = "Execute multiple API operations in a single request")
 public class BatchController {
