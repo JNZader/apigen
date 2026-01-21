@@ -28,6 +28,8 @@ public class ApiVersionInterceptor implements HandlerInterceptor {
     private static final Logger log = LoggerFactory.getLogger(ApiVersionInterceptor.class);
 
     private static final String VERSION_ATTRIBUTE = "apigen.api.version";
+    private static final String MEDIA_TYPE_REQUESTED = "apigen.api.mediaTypeRequested";
+    private static final String RESOLVED_VERSION = "apigen.api.resolvedVersion";
     private static final String VERSION_HEADER = "X-API-Version";
     private static final String DEPRECATION_HEADER = "Deprecation";
     private static final String SUNSET_HEADER = "Sunset";
@@ -54,12 +56,43 @@ public class ApiVersionInterceptor implements HandlerInterceptor {
         // Add version header to response
         response.setHeader(VERSION_HEADER, version);
 
+        // Add Vary header for content negotiation caching
+        response.addHeader("Vary", "Accept, X-API-Version, Accept-Version");
+
+        // Store media type request info for postHandle
+        String accept = request.getHeader("Accept");
+        if (accept != null && accept.contains("application/vnd.")) {
+            request.setAttribute(MEDIA_TYPE_REQUESTED, true);
+            request.setAttribute(RESOLVED_VERSION, version);
+        }
+
         // Handle deprecation if handler is a method
         if (handler instanceof HandlerMethod handlerMethod) {
             handleDeprecation(request, response, handlerMethod);
         }
 
         return true;
+    }
+
+    @Override
+    public void postHandle(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Object handler,
+            org.springframework.web.servlet.ModelAndView modelAndView) {
+
+        // If client requested versioned media type, set appropriate Content-Type
+        Boolean mediaTypeRequested = (Boolean) request.getAttribute(MEDIA_TYPE_REQUESTED);
+        if (Boolean.TRUE.equals(mediaTypeRequested)) {
+            String version = (String) request.getAttribute(RESOLVED_VERSION);
+            String contentType = response.getContentType();
+
+            // Only modify if response is JSON
+            if (contentType != null && contentType.contains("application/json")) {
+                String versionedMediaType = versionResolver.generateMediaType(version, "json");
+                response.setContentType(versionedMediaType);
+            }
+        }
     }
 
     private void handleDeprecation(

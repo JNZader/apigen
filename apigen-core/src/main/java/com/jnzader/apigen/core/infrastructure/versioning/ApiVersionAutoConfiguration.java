@@ -52,6 +52,7 @@ public class ApiVersionAutoConfiguration implements WebMvcConfigurer {
                 .versionHeader(properties.getHeaderName())
                 .versionParam(properties.getQueryParam())
                 .pathPrefix(properties.getPathPrefix())
+                .vendorName(properties.getVendorName())
                 .build();
     }
 
@@ -87,6 +88,12 @@ public class ApiVersionAutoConfiguration implements WebMvcConfigurer {
 
         /** Path prefix for version. Default: "v". */
         private String pathPrefix = "v";
+
+        /** Vendor name for media type versioning. Default: "apigen". */
+        private String vendorName = "apigen";
+
+        /** Supported API versions. Default: ["1.0"]. */
+        private List<String> supportedVersions = List.of("1.0");
 
         // Getters and setters
 
@@ -136,6 +143,22 @@ public class ApiVersionAutoConfiguration implements WebMvcConfigurer {
 
         public void setPathPrefix(String pathPrefix) {
             this.pathPrefix = pathPrefix;
+        }
+
+        public String getVendorName() {
+            return vendorName;
+        }
+
+        public void setVendorName(String vendorName) {
+            this.vendorName = vendorName;
+        }
+
+        public List<String> getSupportedVersions() {
+            return supportedVersions;
+        }
+
+        public void setSupportedVersions(List<String> supportedVersions) {
+            this.supportedVersions = supportedVersions;
         }
     }
 }

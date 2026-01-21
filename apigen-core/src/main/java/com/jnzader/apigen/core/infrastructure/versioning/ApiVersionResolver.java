@@ -28,6 +28,7 @@ public class ApiVersionResolver {
     private final String versionHeader;
     private final String versionParam;
     private final String pathPrefix;
+    private final String vendorName;
     private final Pattern pathVersionPattern;
     private final Pattern mediaTypeVersionPattern;
 
@@ -38,13 +39,19 @@ public class ApiVersionResolver {
         this.versionHeader = builder.versionHeader;
         this.versionParam = builder.versionParam;
         this.pathPrefix = builder.pathPrefix;
+        this.vendorName = builder.vendorName;
         // Use atomic groups/possessive quantifiers where safe to prevent ReDoS attacks
         this.pathVersionPattern =
                 Pattern.compile("/" + Pattern.quote(pathPrefix) + "([\\d.]++[-\\w]*+)/");
-        // Media type pattern: application/vnd.{vendor}.v{version}+{format} - non-greedy vendor,
-        // possessive version
+        // Media type pattern: application/vnd.{vendor}.v{version}+{format}
+        // Uses configured vendor name or wildcard pattern
+        String vendorPattern =
+                vendorName != null
+                        ? Pattern.quote(vendorName)
+                        : "[\\w.-]+?"; // fallback to any vendor
         this.mediaTypeVersionPattern =
-                Pattern.compile("application/vnd\\.([\\w.-]+?)\\.v([\\d.]++[-\\w]*+)\\+\\w++");
+                Pattern.compile(
+                        "application/vnd\\." + vendorPattern + "\\.v([\\d.]++[-\\w]*+)\\+\\w++");
     }
 
     /**
@@ -118,9 +125,38 @@ public class ApiVersionResolver {
         }
         Matcher matcher = mediaTypeVersionPattern.matcher(accept);
         if (matcher.find()) {
-            return Optional.of(matcher.group(2)); // group(1) is vendor, group(2) is version
+            return Optional.of(matcher.group(1)); // group(1) is version
         }
         return Optional.empty();
+    }
+
+    /**
+     * Returns the configured vendor name for media type versioning.
+     *
+     * @return the vendor name
+     */
+    public String getVendorName() {
+        return vendorName;
+    }
+
+    /**
+     * Returns the default version.
+     *
+     * @return the default version
+     */
+    public String getDefaultVersion() {
+        return defaultVersion;
+    }
+
+    /**
+     * Generates a media type string for the given version and format.
+     *
+     * @param version the API version
+     * @param format the format (e.g., "json", "xml")
+     * @return the media type string
+     */
+    public String generateMediaType(String version, String format) {
+        return String.format("application/vnd.%s.v%s+%s", vendorName, version, format);
     }
 
     /**
@@ -156,6 +192,7 @@ public class ApiVersionResolver {
         private String versionHeader = DEFAULT_VERSION_HEADER;
         private String versionParam = DEFAULT_VERSION_PARAM;
         private String pathPrefix = DEFAULT_PATH_PREFIX;
+        private String vendorName = "apigen";
 
         public Builder strategies(List<VersioningStrategy> strategies) {
             this.strategies = strategies;
@@ -184,6 +221,11 @@ public class ApiVersionResolver {
 
         public Builder pathPrefix(String pathPrefix) {
             this.pathPrefix = pathPrefix;
+            return this;
+        }
+
+        public Builder vendorName(String vendorName) {
+            this.vendorName = vendorName;
             return this;
         }
 
