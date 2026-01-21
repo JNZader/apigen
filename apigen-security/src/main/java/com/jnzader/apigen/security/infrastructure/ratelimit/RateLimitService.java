@@ -2,6 +2,7 @@ package com.jnzader.apigen.security.infrastructure.ratelimit;
 
 import com.jnzader.apigen.security.infrastructure.config.SecurityProperties;
 import com.jnzader.apigen.security.infrastructure.config.SecurityProperties.RateLimitProperties;
+import com.jnzader.apigen.security.infrastructure.config.SecurityProperties.RateLimitProperties.TierConfig;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.BucketConfiguration;
@@ -189,6 +190,101 @@ public class RateLimitService {
     public long getAvailableTokens(String key, boolean isAuthEndpoint) {
         Bucket bucket = resolveBucket(key, isAuthEndpoint);
         return bucket.getAvailableTokens();
+    }
+
+    // ========== Tier-based rate limiting methods ==========
+
+    /**
+     * Intenta consumir un token del bucket usando límites basados en tier.
+     *
+     * @param userIdentifier Identificador único del usuario (user:id o ip:address)
+     * @param tier el tier de rate limit del usuario
+     * @return true si se permitió el request, false si se excedió el límite
+     */
+    public boolean tryConsumeForTier(String userIdentifier, RateLimitTier tier) {
+        Bucket bucket = resolveTierBucket(userIdentifier, tier);
+        return bucket.tryConsume(1);
+    }
+
+    /**
+     * Intenta consumir un token y retorna información detallada usando límites basados en tier.
+     *
+     * @param userIdentifier Identificador único del usuario
+     * @param tier el tier de rate limit del usuario
+     * @return ConsumptionProbe con información de tokens restantes y tiempo de espera
+     */
+    public ConsumptionProbe tryConsumeForTierAndReturnRemaining(
+            String userIdentifier, RateLimitTier tier) {
+        Bucket bucket = resolveTierBucket(userIdentifier, tier);
+        return bucket.tryConsumeAndReturnRemaining(1);
+    }
+
+    /**
+     * Obtiene los tokens disponibles para un usuario en un tier específico.
+     *
+     * @param userIdentifier Identificador único del usuario
+     * @param tier el tier de rate limit del usuario
+     * @return Número de tokens disponibles
+     */
+    public long getAvailableTokensForTier(String userIdentifier, RateLimitTier tier) {
+        Bucket bucket = resolveTierBucket(userIdentifier, tier);
+        return bucket.getAvailableTokens();
+    }
+
+    /**
+     * Obtiene la configuración de tier para un tier específico.
+     *
+     * @param tier el tier
+     * @return la configuración del tier
+     */
+    public TierConfig getTierConfig(RateLimitTier tier) {
+        return securityProperties.getRateLimit().getTiers().getForTier(tier.getName());
+    }
+
+    /**
+     * Verifica si el rate limiting basado en tiers está habilitado.
+     *
+     * @return true si está habilitado
+     */
+    public boolean isTiersEnabled() {
+        return securityProperties.getRateLimit().isTiersEnabled();
+    }
+
+    private Bucket resolveTierBucket(String userIdentifier, RateLimitTier tier) {
+        RateLimitProperties config = securityProperties.getRateLimit();
+        String bucketKey =
+                config.getRedisKeyPrefix() + "tier:" + tier.getName() + ":" + userIdentifier;
+
+        if (config.isRedisMode() && redisProxyManager != null) {
+            return resolveRedisTierBucket(bucketKey, tier);
+        } else {
+            return resolveLocalTierBucket(bucketKey, tier);
+        }
+    }
+
+    private Bucket resolveLocalTierBucket(String key, RateLimitTier tier) {
+        return localBuckets.computeIfAbsent(key, k -> createTierBucket(tier));
+    }
+
+    private Bucket resolveRedisTierBucket(String key, RateLimitTier tier) {
+        Supplier<BucketConfiguration> configSupplier = () -> createTierBucketConfiguration(tier);
+        return redisProxyManager.builder().build(key, configSupplier);
+    }
+
+    private Bucket createTierBucket(RateLimitTier tier) {
+        return Bucket.builder().addLimit(createTierBandwidth(tier)).build();
+    }
+
+    private BucketConfiguration createTierBucketConfiguration(RateLimitTier tier) {
+        return BucketConfiguration.builder().addLimit(createTierBandwidth(tier)).build();
+    }
+
+    private Bandwidth createTierBandwidth(RateLimitTier tier) {
+        TierConfig tierConfig = getTierConfig(tier);
+        return Bandwidth.builder()
+                .capacity(tierConfig.getBurstCapacity())
+                .refillGreedy(tierConfig.getRequestsPerSecond(), Duration.ofSeconds(1))
+                .build();
     }
 
     private Bucket resolveBucket(String key, boolean isAuthEndpoint) {

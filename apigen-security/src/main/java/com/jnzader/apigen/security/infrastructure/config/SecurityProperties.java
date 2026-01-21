@@ -604,11 +604,17 @@ public class SecurityProperties {
      *
      * <p>Soporta dos modos de almacenamiento: - in-memory: usa Bucket4j con almacenamiento local
      * (single instance) - redis: usa Bucket4j con Redis/Lettuce (distributed, multi-instance)
+     *
+     * <p>Soporta rate limiting por tiers de usuario: - anonymous: usuarios no autenticados - free:
+     * usuarios tier gratuito - basic: usuarios tier básico - pro: usuarios tier profesional
      */
     public static class RateLimitProperties {
 
         /** Habilitar rate limiting general para API. Default: true. */
         private boolean enabled = true;
+
+        /** Habilitar rate limiting basado en tiers de usuario. Default: false. */
+        private boolean tiersEnabled = false;
 
         /**
          * Modo de almacenamiento: 'in-memory' o 'redis'. - in-memory: para desarrollo o single
@@ -636,6 +642,9 @@ public class SecurityProperties {
 
         /** TTL en segundos para las claves de Redis. Default: 3600 (1 hora). */
         private int redisTtlSeconds = 3600;
+
+        /** Configuración de tiers para rate limiting basado en usuario. */
+        private TiersConfig tiers = new TiersConfig();
 
         public enum StorageMode {
             /** Almacenamiento en memoria local (single instance) */
@@ -719,6 +728,126 @@ public class SecurityProperties {
         /** Determina si está configurado para usar Redis. */
         public boolean isRedisMode() {
             return storageMode == StorageMode.REDIS;
+        }
+
+        public boolean isTiersEnabled() {
+            return tiersEnabled;
+        }
+
+        public void setTiersEnabled(boolean tiersEnabled) {
+            this.tiersEnabled = tiersEnabled;
+        }
+
+        public TiersConfig getTiers() {
+            return tiers;
+        }
+
+        public void setTiers(TiersConfig tiers) {
+            this.tiers = tiers;
+        }
+
+        /**
+         * Configuración de tiers para rate limiting basado en usuario.
+         *
+         * <p>Cada tier tiene su propio límite de requests por segundo y capacidad de burst.
+         */
+        public static class TiersConfig {
+
+            /** Configuración para usuarios no autenticados. */
+            private TierConfig anonymous = new TierConfig(10, 20);
+
+            /** Configuración para usuarios tier gratuito. */
+            private TierConfig free = new TierConfig(50, 100);
+
+            /** Configuración para usuarios tier básico. */
+            private TierConfig basic = new TierConfig(200, 400);
+
+            /** Configuración para usuarios tier profesional. */
+            private TierConfig pro = new TierConfig(1000, 2000);
+
+            public TierConfig getAnonymous() {
+                return anonymous;
+            }
+
+            public void setAnonymous(TierConfig anonymous) {
+                this.anonymous = anonymous;
+            }
+
+            public TierConfig getFree() {
+                return free;
+            }
+
+            public void setFree(TierConfig free) {
+                this.free = free;
+            }
+
+            public TierConfig getBasic() {
+                return basic;
+            }
+
+            public void setBasic(TierConfig basic) {
+                this.basic = basic;
+            }
+
+            public TierConfig getPro() {
+                return pro;
+            }
+
+            public void setPro(TierConfig pro) {
+                this.pro = pro;
+            }
+
+            /**
+             * Gets the tier configuration for a specific tier name.
+             *
+             * @param tierName the tier name (anonymous, free, basic, pro)
+             * @return the tier configuration
+             */
+            public TierConfig getForTier(String tierName) {
+                return switch (tierName.toLowerCase()) {
+                    case "free" -> free;
+                    case "basic" -> basic;
+                    case "pro" -> pro;
+                    default -> anonymous;
+                };
+            }
+        }
+
+        /**
+         * Configuration for a specific rate limit tier.
+         *
+         * <p>Defines the requests per second and burst capacity for a tier.
+         */
+        public static class TierConfig {
+
+            /** Requests per second allowed for this tier. */
+            private int requestsPerSecond;
+
+            /** Maximum burst capacity for this tier. */
+            private int burstCapacity;
+
+            public TierConfig() {}
+
+            public TierConfig(int requestsPerSecond, int burstCapacity) {
+                this.requestsPerSecond = requestsPerSecond;
+                this.burstCapacity = burstCapacity;
+            }
+
+            public int getRequestsPerSecond() {
+                return requestsPerSecond;
+            }
+
+            public void setRequestsPerSecond(int requestsPerSecond) {
+                this.requestsPerSecond = requestsPerSecond;
+            }
+
+            public int getBurstCapacity() {
+                return burstCapacity;
+            }
+
+            public void setBurstCapacity(int burstCapacity) {
+                this.burstCapacity = burstCapacity;
+            }
         }
     }
 
