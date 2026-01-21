@@ -318,7 +318,7 @@ class IntegrationTestGeneratorTest {
                     .contains(
                             "@DisplayName(\"13. GET /cursor - Should support cursor pagination\")")
                     .contains("mockMvc.perform(get(BASE_URL + \"/cursor\")")
-                    .contains(".andExpect(jsonPath(\"$.hasNext\").isBoolean())");
+                    .contains(".andExpect(jsonPath(\"$.pageInfo.hasNext\").isBoolean())");
         }
 
         @Test
