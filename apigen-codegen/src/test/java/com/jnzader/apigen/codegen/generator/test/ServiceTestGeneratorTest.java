@@ -251,7 +251,7 @@ class ServiceTestGeneratorTest {
         }
 
         @Test
-        @DisplayName("Should generate hardDelete test")
+        @DisplayName("Should generate hardDelete test with lenient mocking")
         void shouldGenerateHardDeleteTest() {
             SqlTable table = createSimpleTable("products");
 
@@ -261,6 +261,12 @@ class ServiceTestGeneratorTest {
                     .contains("@DisplayName(\"Should hard delete Product\")")
                     .contains("void shouldHardDeleteProduct()")
                     .contains("when(repository.hardDeleteById(1L)).thenReturn(1);")
+                    // Should use lenient() for Mockito 5 strict stubbing compatibility
+                    .contains("lenient().doNothing().when(eventPublisher).publishEvent(any());")
+                    .contains(
+                            "lenient().doNothing().when(cacheEvictionService).evictListsByEntityName(anyString());")
+                    .contains(
+                            "lenient().doNothing().when(cacheEvictionService).evictCounts(anyString());")
                     .contains("service.hardDelete(1L)");
         }
 

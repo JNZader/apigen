@@ -33,12 +33,20 @@ public interface BaseMapper<E extends Base, D extends BaseDTO> {
 
     /**
      * Convierte un DTO a su entidad correspondiente. Realiza el mapeo inverso de 'activo' a
-     * 'estado'.
+     * 'estado'. Los campos de auditoría se ignoran ya que son gestionados por el sistema.
      *
      * @param dto El DTO a convertir.
      * @return La entidad convertida.
      */
     @InheritInverseConfiguration(name = "toDTO")
+    @Mapping(target = "fechaCreacion", ignore = true)
+    @Mapping(target = "fechaActualizacion", ignore = true)
+    @Mapping(target = "fechaEliminacion", ignore = true)
+    @Mapping(target = "eliminadoPor", ignore = true)
+    @Mapping(target = "creadoPor", ignore = true)
+    @Mapping(target = "modificadoPor", ignore = true)
+    @Mapping(target = "version", ignore = true)
+    @Mapping(target = "domainEvents", ignore = true)
     E toEntity(D dto);
 
     /**
@@ -60,13 +68,22 @@ public interface BaseMapper<E extends Base, D extends BaseDTO> {
     /**
      * Actualiza una entidad existente con los valores no nulos del DTO. Útil para operaciones PATCH
      * donde solo se envían los campos a modificar. Los campos nulos en el DTO no sobrescribirán los
-     * valores existentes en la entidad.
+     * valores existentes en la entidad. Los campos de auditoría se ignoran ya que son gestionados
+     * por el sistema.
      *
      * @param dto El DTO con los valores a actualizar.
      * @param entity La entidad destino a actualizar.
      */
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(source = "activo", target = "estado")
+    @Mapping(target = "fechaCreacion", ignore = true)
+    @Mapping(target = "fechaActualizacion", ignore = true)
+    @Mapping(target = "fechaEliminacion", ignore = true)
+    @Mapping(target = "eliminadoPor", ignore = true)
+    @Mapping(target = "creadoPor", ignore = true)
+    @Mapping(target = "modificadoPor", ignore = true)
+    @Mapping(target = "version", ignore = true)
+    @Mapping(target = "domainEvents", ignore = true)
     void updateEntityFromDTO(D dto, @MappingTarget E entity);
 
     /**

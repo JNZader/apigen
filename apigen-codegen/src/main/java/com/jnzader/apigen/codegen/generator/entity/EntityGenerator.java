@@ -100,6 +100,7 @@ public class EntityGenerator {
                     """
 
                     @OneToMany(mappedBy = "%s", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
+                    @Builder.Default
                     private List<%s> %s = new ArrayList<>();\
                     """
                             .formatted(mappedBy, sourceEntity, fieldName));
@@ -125,6 +126,7 @@ public class EntityGenerator {
                         joinColumns = @JoinColumn(name = "%s"),
                         inverseJoinColumns = @JoinColumn(name = "%s")
                     )
+                    @Builder.Default
                     private List<%s> %s = new ArrayList<>();\
                     """
                             .formatted(
