@@ -2,6 +2,7 @@ package com.jnzader.apigen.core.infrastructure.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.jnzader.apigen.core.domain.entity.Base;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -174,6 +175,161 @@ class ETagGeneratorTest {
         }
     }
 
+    @Nested
+    @DisplayName("generateFromVersion - Entity")
+    class GenerateFromVersionEntityTests {
+
+        @Test
+        @DisplayName("should generate ETag from entity id and version")
+        void shouldGenerateEtagFromEntityIdAndVersion() {
+            TestEntity entity = new TestEntity();
+            entity.setId(123L);
+            entity.setVersion(5L);
+
+            String etag = ETagGenerator.generateFromVersion(entity);
+
+            assertThat(etag).isEqualTo("\"123:5\"");
+        }
+
+        @Test
+        @DisplayName("should return null for null entity")
+        void shouldReturnNullForNullEntity() {
+            String etag = ETagGenerator.generateFromVersion((Base) null);
+            assertThat(etag).isNull();
+        }
+
+        @Test
+        @DisplayName("should return null for entity with null id")
+        void shouldReturnNullForNullId() {
+            TestEntity entity = new TestEntity();
+            entity.setVersion(5L);
+
+            String etag = ETagGenerator.generateFromVersion(entity);
+
+            assertThat(etag).isNull();
+        }
+
+        @Test
+        @DisplayName("should return null for entity with null version")
+        void shouldReturnNullForNullVersion() {
+            TestEntity entity = new TestEntity();
+            entity.setId(123L);
+            entity.setVersion(null);
+
+            String etag = ETagGenerator.generateFromVersion(entity);
+
+            assertThat(etag).isNull();
+        }
+
+        @Test
+        @DisplayName("should generate different ETags for different versions")
+        void shouldGenerateDifferentEtagsForDifferentVersions() {
+            TestEntity entity1 = new TestEntity();
+            entity1.setId(123L);
+            entity1.setVersion(1L);
+
+            TestEntity entity2 = new TestEntity();
+            entity2.setId(123L);
+            entity2.setVersion(2L);
+
+            String etag1 = ETagGenerator.generateFromVersion(entity1);
+            String etag2 = ETagGenerator.generateFromVersion(entity2);
+
+            assertThat(etag1).isNotEqualTo(etag2);
+        }
+    }
+
+    @Nested
+    @DisplayName("generateFromVersion - id/version")
+    class GenerateFromVersionIdVersionTests {
+
+        @Test
+        @DisplayName("should generate ETag from id and version")
+        void shouldGenerateEtagFromIdAndVersion() {
+            String etag = ETagGenerator.generateFromVersion(123L, 5L);
+            assertThat(etag).isEqualTo("\"123:5\"");
+        }
+
+        @Test
+        @DisplayName("should return null for null id")
+        void shouldReturnNullForNullId() {
+            String etag = ETagGenerator.generateFromVersion(null, 5L);
+            assertThat(etag).isNull();
+        }
+
+        @Test
+        @DisplayName("should return null for null version")
+        void shouldReturnNullForNullVersion() {
+            String etag = ETagGenerator.generateFromVersion(123L, null);
+            assertThat(etag).isNull();
+        }
+
+        @Test
+        @DisplayName("should generate valid ETag for version 0")
+        void shouldGenerateValidEtagForVersionZero() {
+            String etag = ETagGenerator.generateFromVersion(1L, 0L);
+            assertThat(etag).isEqualTo("\"1:0\"");
+        }
+    }
+
+    @Nested
+    @DisplayName("generateWeakFromVersion")
+    class GenerateWeakFromVersionTests {
+
+        @Test
+        @DisplayName("should generate weak ETag from entity")
+        void shouldGenerateWeakEtagFromEntity() {
+            TestEntity entity = new TestEntity();
+            entity.setId(123L);
+            entity.setVersion(5L);
+
+            String etag = ETagGenerator.generateWeakFromVersion(entity);
+
+            assertThat(etag).isEqualTo("W/\"123:5\"");
+        }
+
+        @Test
+        @DisplayName("should return null for null entity")
+        void shouldReturnNullForNullEntity() {
+            String etag = ETagGenerator.generateWeakFromVersion(null);
+            assertThat(etag).isNull();
+        }
+    }
+
+    @Nested
+    @DisplayName("version-based ETags matching")
+    class VersionBasedMatchingTests {
+
+        @Test
+        @DisplayName("version-based ETags should match correctly")
+        void versionBasedEtagsShouldMatchCorrectly() {
+            TestEntity entity = new TestEntity();
+            entity.setId(123L);
+            entity.setVersion(5L);
+
+            String etag1 = ETagGenerator.generateFromVersion(entity);
+            String etag2 = ETagGenerator.generateFromVersion(123L, 5L);
+
+            assertThat(ETagGenerator.matches(etag1, etag2)).isTrue();
+        }
+
+        @Test
+        @DisplayName("strong and weak version-based ETags should match")
+        void strongAndWeakVersionBasedEtagsShouldMatch() {
+            TestEntity entity = new TestEntity();
+            entity.setId(123L);
+            entity.setVersion(5L);
+
+            String strong = ETagGenerator.generateFromVersion(entity);
+            String weak = ETagGenerator.generateWeakFromVersion(entity);
+
+            assertThat(ETagGenerator.matches(strong, weak)).isTrue();
+        }
+    }
+
     // Test object for serialization
     record TestObject(String name, int value) {}
+
+    // Test entity extending Base for version-based ETag tests
+    static class TestEntity extends Base {}
 }
