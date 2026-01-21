@@ -14,18 +14,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Servicio para gestionar el bloqueo de cuentas por intentos fallidos de autenticación.
+ * Service for managing account lockout due to failed authentication attempts.
  *
- * <p>Protege contra ataques de fuerza bruta bloqueando temporalmente las cuentas después de
- * múltiples intentos de login fallidos.
+ * <p>Protects against brute force attacks by temporarily locking accounts after multiple failed
+ * login attempts.
  *
- * <p>Características:
+ * <p>Features:
  *
  * <ul>
- *   <li>Bloqueo temporal configurable (default: 15 minutos después de 5 intentos)
- *   <li>Reset automático del contador después de período de inactividad
- *   <li>Soporte para bloqueo permanente después de múltiples bloqueos
- *   <li>Logging de auditoría de eventos de seguridad
+ *   <li>Configurable temporary lockout (default: 15 minutes after 5 attempts)
+ *   <li>Automatic counter reset after inactivity period
+ *   <li>Support for permanent lockout after multiple lockouts
+ *   <li>Security event audit logging
  * </ul>
  */
 @Service
@@ -44,11 +44,11 @@ public class AccountLockoutService {
     }
 
     /**
-     * Registra un intento de login fallido para un usuario.
+     * Records a failed login attempt for a user.
      *
-     * <p>Incrementa el contador de intentos fallidos y bloquea la cuenta si se excede el máximo.
+     * <p>Increments the failed attempt counter and locks the account if the maximum is exceeded.
      *
-     * @param username nombre de usuario que falló la autenticación
+     * @param username username that failed authentication
      */
     @Transactional
     public void recordFailedAttempt(String username) {
@@ -58,7 +58,7 @@ public class AccountLockoutService {
 
         Optional<User> optionalUser = userRepository.findByUsername(username);
         if (optionalUser.isEmpty()) {
-            // Usuario no existe - no revelar esta información
+            // User doesn't exist - don't reveal this information
             log.debug(
                     "SECURITY: Failed login attempt for non-existent user (not revealing in"
                             + " response)");
@@ -67,13 +67,13 @@ public class AccountLockoutService {
 
         User user = optionalUser.get();
 
-        // Verificar si el contador debe resetearse por inactividad
+        // Check if counter should be reset due to inactivity
         if (shouldResetFailedAttempts(user)) {
             user.setFailedAttemptCount(0);
             log.debug("SECURITY: Reset failed attempts for user '{}' due to inactivity", username);
         }
 
-        // Incrementar contador
+        // Increment counter
         int newCount = user.getFailedAttemptCount() + 1;
         user.setFailedAttemptCount(newCount);
         user.setLastFailedAttemptAt(Instant.now());
@@ -84,7 +84,7 @@ public class AccountLockoutService {
                 username,
                 lockoutProperties.getMaxFailedAttempts());
 
-        // Verificar si se debe bloquear la cuenta
+        // Check if account should be locked
         if (newCount >= lockoutProperties.getMaxFailedAttempts()) {
             lockAccount(user);
         }
@@ -93,9 +93,9 @@ public class AccountLockoutService {
     }
 
     /**
-     * Registra un login exitoso y resetea los contadores de intentos fallidos.
+     * Records a successful login and resets the failed attempt counters.
      *
-     * @param username nombre de usuario que se autenticó exitosamente
+     * @param username username that authenticated successfully
      */
     @Transactional
     public void recordSuccessfulLogin(String username) {
@@ -110,7 +110,7 @@ public class AccountLockoutService {
 
         User user = optionalUser.get();
 
-        // Solo resetear si había intentos fallidos o bloqueo temporal
+        // Only reset if there were failed attempts or temporary lockout
         if (user.getFailedAttemptCount() > 0 || user.getLockedUntil() != null) {
             log.info(
                     "SECURITY: Successful login for user '{}'. Resetting {} failed attempts",
@@ -126,10 +126,10 @@ public class AccountLockoutService {
     }
 
     /**
-     * Verifica si una cuenta está actualmente bloqueada.
+     * Checks if an account is currently locked.
      *
-     * @param username nombre de usuario a verificar
-     * @return true si la cuenta está bloqueada, false en caso contrario
+     * @param username username to check
+     * @return true if the account is locked, false otherwise
      */
     @Transactional(readOnly = true)
     public boolean isAccountLocked(String username) {
@@ -147,10 +147,10 @@ public class AccountLockoutService {
     }
 
     /**
-     * Obtiene el tiempo restante de bloqueo para una cuenta.
+     * Gets the remaining lockout duration for an account.
      *
-     * @param username nombre de usuario
-     * @return duración restante del bloqueo, o Duration.ZERO si no está bloqueada
+     * @param username username
+     * @return remaining lockout duration, or Duration.ZERO if not locked
      */
     @Transactional(readOnly = true)
     public Duration getRemainingLockoutDuration(String username) {
@@ -161,12 +161,12 @@ public class AccountLockoutService {
 
         User user = optionalUser.get();
 
-        // Bloqueo permanente
+        // Permanent lockout
         if (!user.isAccountNonLocked() && user.getLockedUntil() == null) {
-            return Duration.ofDays(365 * 100); // Efectivamente "infinito"
+            return Duration.ofDays(365 * 100); // Effectively "infinite"
         }
 
-        // Bloqueo temporal
+        // Temporary lockout
         if (user.getLockedUntil() != null) {
             Duration remaining = Duration.between(Instant.now(), user.getLockedUntil());
             return remaining.isNegative() ? Duration.ZERO : remaining;
@@ -176,10 +176,10 @@ public class AccountLockoutService {
     }
 
     /**
-     * Desbloquea manualmente una cuenta (requiere permisos de admin).
+     * Manually unlocks an account (requires admin permissions).
      *
-     * @param username nombre de usuario a desbloquear
-     * @return true si se desbloqueó, false si el usuario no existe
+     * @param username username to unlock
+     * @return true if unlocked, false if user doesn't exist
      */
     @Transactional
     public boolean unlockAccount(String username) {
@@ -202,20 +202,20 @@ public class AccountLockoutService {
     }
 
     /**
-     * Bloquea una cuenta por haber excedido los intentos fallidos.
+     * Locks an account for exceeding failed attempts.
      *
-     * @param user usuario a bloquear
+     * @param user user to lock
      */
     private void lockAccount(User user) {
         int newLockoutCount = user.getLockoutCount() + 1;
         user.setLockoutCount(newLockoutCount);
 
-        // Verificar si corresponde bloqueo permanente
+        // Check if permanent lockout applies
         if (lockoutProperties.isPermanentLockoutEnabled()
                 && newLockoutCount >= lockoutProperties.getLockoutsBeforePermanent()) {
 
             user.setAccountNonLocked(false);
-            user.setLockedUntil(null); // Null = permanente
+            user.setLockedUntil(null); // Null = permanent
 
             log.warn(
                     "SECURITY: Account '{}' PERMANENTLY LOCKED after {} lockouts. "
@@ -223,7 +223,7 @@ public class AccountLockoutService {
                     user.getUsername(),
                     newLockoutCount);
         } else {
-            // Bloqueo temporal
+            // Temporary lockout
             Instant lockUntil =
                     Instant.now()
                             .plus(
@@ -243,15 +243,15 @@ public class AccountLockoutService {
                             : "unlimited");
         }
 
-        // Resetear contador de intentos para el próximo ciclo
+        // Reset attempt counter for next cycle
         user.setFailedAttemptCount(0);
     }
 
     /**
-     * Determina si el contador de intentos fallidos debe resetearse por inactividad.
+     * Determines if the failed attempt counter should be reset due to inactivity.
      *
-     * @param user usuario a verificar
-     * @return true si debe resetearse el contador
+     * @param user user to check
+     * @return true if counter should be reset
      */
     private boolean shouldResetFailedAttempts(User user) {
         if (user.getLastFailedAttemptAt() == null) {

@@ -448,8 +448,7 @@ class GlobalExceptionHandlerTest {
             // Then
             assertThat(response.getBody()).isNotNull();
             assertThat(response.getBody().type()).isNotNull();
-            assertThat(response.getBody().type().toString())
-                    .startsWith("https://api.example.com/problems/");
+            assertThat(response.getBody().type().toString()).startsWith("urn:apigen:problem:");
         }
 
         @Test

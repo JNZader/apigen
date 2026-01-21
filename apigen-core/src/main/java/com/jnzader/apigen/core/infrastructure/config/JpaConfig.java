@@ -8,10 +8,10 @@ import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 /**
- * Configuración de JPA y auditoría.
+ * JPA and auditing configuration.
  *
- * <p>Habilita JPA Auditing para poblar automáticamente los campos: - creadoPor / modificadoPor -
- * fechaCreacion / fechaActualizacion
+ * <p>Enables JPA Auditing to automatically populate the fields: - createdBy / modifiedBy -
+ * createdDate / updatedDate
  *
  * <p>IMPORTANT: This configuration is excluded from TestApplication's component scan to prevent
  * loading in @WebMvcTest. Import it explicitly in integration tests that need JPA
@@ -25,9 +25,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 public class JpaConfig {
 
     /**
-     * Provee el usuario actual para auditoría (versión sin Spring Security). Retorna "system" como
-     * usuario por defecto. Este bean será reemplazado por JpaSecurityConfig cuando Spring Security
-     * esté disponible.
+     * Provides the current user for auditing (version without Spring Security). Returns "system" as
+     * the default user. This bean will be replaced by JpaSecurityConfig when Spring Security is
+     * available.
      */
     @Bean
     @ConditionalOnMissingBean(name = "securityAuditorProvider")

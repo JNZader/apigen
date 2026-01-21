@@ -21,7 +21,9 @@ public record AppProperties(
         @NestedConfigurationProperty CorsProperties cors,
         @NestedConfigurationProperty SecurityProperties security,
         @NestedConfigurationProperty CacheProperties cache,
-        @NestedConfigurationProperty RateLimitProperties rateLimit) {
+        @NestedConfigurationProperty RateLimitProperties rateLimit,
+        @NestedConfigurationProperty ServiceProperties service,
+        @NestedConfigurationProperty PaginationProperties pagination) {
     /** Propiedades de versionado de API. */
     @SuppressWarnings("java:S1075") // URIs por defecto son intencionales para configuración
     public record ApiProperties(@NotBlank String version, @NotBlank String basePath) {
@@ -79,6 +81,28 @@ public record AppProperties(
         public RateLimitProperties {
             if (maxRequests <= 0) maxRequests = 100;
             if (windowSeconds <= 0) windowSeconds = 60;
+        }
+    }
+
+    /** Propiedades de servicios y operaciones batch. */
+    public record ServiceProperties(
+            @Positive int batchSize,
+            @Positive int maxResultsWithoutPagination,
+            @Positive int warnThreshold,
+            @Positive int maxBatchOperationSize) {
+        public ServiceProperties {
+            if (batchSize <= 0) batchSize = 50;
+            if (maxResultsWithoutPagination <= 0) maxResultsWithoutPagination = 1000;
+            if (warnThreshold <= 0) warnThreshold = 500;
+            if (maxBatchOperationSize <= 0) maxBatchOperationSize = 10000;
+        }
+    }
+
+    /** Propiedades de paginación. */
+    public record PaginationProperties(@Positive int defaultSize, @Positive int maxSize) {
+        public PaginationProperties {
+            if (defaultSize <= 0) defaultSize = 20;
+            if (maxSize <= 0) maxSize = 100;
         }
     }
 }

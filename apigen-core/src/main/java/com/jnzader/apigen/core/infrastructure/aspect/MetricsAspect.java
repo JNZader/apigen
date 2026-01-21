@@ -14,14 +14,14 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 /**
- * Aspecto selectivo para métricas de rendimiento.
+ * Selective aspect for performance metrics.
  *
- * <p>Características: - Solo mide métodos anotados con @Measured (selectivo) - Mide automáticamente
- * solo operaciones críticas de controlador público - Registra métricas en Micrometer para
- * exposición via Prometheus - Loguea métodos lentos (> umbral configurable) - Bajo overhead en
- * operaciones no instrumentadas
+ * <p>Features: - Only measures methods annotated with @Measured (selective) - Automatically
+ * measures only critical public controller operations - Registers metrics in Micrometer for
+ * exposure via Prometheus - Logs slow methods (> configurable threshold) - Low overhead on
+ * non-instrumented operations
  *
- * <p>Para medir un método específico, usar:
+ * <p>To measure a specific method, use:
  *
  * <pre>{@code
  * @Measured(name = "custom-operation")
@@ -52,24 +52,24 @@ public class MetricsAspect {
 
     // ==================== Pointcuts ====================
 
-    /** Pointcut para métodos anotados con @Measured. */
+    /** Pointcut for methods annotated with @Measured. */
     @Pointcut("@annotation(measured)")
     public void measuredMethod(Measured measured) {}
 
-    /** Pointcut para clases anotadas con @Measured. */
+    /** Pointcut for classes annotated with @Measured. */
     @Pointcut("@within(measured)")
     public void measuredClass(Measured measured) {}
 
     /**
-     * Pointcut para endpoints públicos de controlador (solo @GetMapping, @PostMapping, etc.). Se
-     * miden automáticamente porque son el punto de entrada del usuario.
+     * Pointcut for public controller endpoints (only @GetMapping, @PostMapping, etc.). Measured
+     * automatically because they are the user entry point.
      */
     @Pointcut("execution(public * com.jnzader.apigen.core.controller..*Controller.*(..))")
     public void controllerPublicMethod() {}
 
     /**
-     * Pointcut para operaciones de escritura de servicio. Se miden automáticamente porque son
-     * operaciones críticas.
+     * Pointcut for service write operations. Measured automatically because they are critical
+     * operations.
      */
     @Pointcut(
             "execution(* com.jnzader.apigen.core.service..*Service.save*(..)) || "
@@ -80,7 +80,7 @@ public class MetricsAspect {
 
     // ==================== Advices ====================
 
-    /** Mide métodos anotados explícitamente con @Measured. */
+    /** Measures methods explicitly annotated with @Measured. */
     @Around("measuredMethod(measured)")
     public Object measureAnnotatedMethod(ProceedingJoinPoint joinPoint, Measured measured)
             throws Throwable {
@@ -95,7 +95,7 @@ public class MetricsAspect {
         return executeWithMetrics(joinPoint, metricName, "custom", measured.histogram(), threshold);
     }
 
-    /** Mide métodos de clases anotadas con @Measured. */
+    /** Measures methods of classes annotated with @Measured. */
     @Around("measuredClass(measured) && !measuredMethod(com.jnzader.apigen.core.aspect.Measured)")
     public Object measureClassMethod(ProceedingJoinPoint joinPoint, Measured measured)
             throws Throwable {
@@ -113,8 +113,8 @@ public class MetricsAspect {
     }
 
     /**
-     * Mide endpoints de controlador automáticamente. Solo endpoints públicos, excluyendo métodos ya
-     * medidos por @Measured.
+     * Measures controller endpoints automatically. Only public endpoints, excluding methods already
+     * measured by @Measured.
      */
     @Around("controllerPublicMethod() && !measuredMethod(com.jnzader.apigen.core.aspect.Measured)")
     public Object measureControllerEndpoint(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -129,7 +129,7 @@ public class MetricsAspect {
         return executeWithMetrics(joinPoint, metricName, "controller", false, slowThresholdMs);
     }
 
-    /** Mide operaciones de escritura de servicio automáticamente. */
+    /** Measures service write operations automatically. */
     @Around("serviceWriteOperation() && !measuredMethod(com.jnzader.apigen.core.aspect.Measured)")
     public Object measureServiceWriteOperation(ProceedingJoinPoint joinPoint) throws Throwable {
         if (!metricsEnabled) {
@@ -156,7 +156,7 @@ public class MetricsAspect {
                 Timer.builder("apigen.method.duration")
                         .tag("name", metricName)
                         .tag(TAG_LAYER, layer)
-                        .description("Tiempo de ejecución de método");
+                        .description("Method execution time");
 
         if (histogram) {
             timerBuilder.publishPercentileHistogram();
@@ -187,7 +187,7 @@ public class MetricsAspect {
             long duration = System.currentTimeMillis() - startTime;
             sample.stop(timer);
 
-            // Registrar outcome
+            // Register outcome
             meterRegistry
                     .counter(
                             "apigen.method.calls",
@@ -199,7 +199,7 @@ public class MetricsAspect {
                             outcome)
                     .increment();
 
-            // Log de métodos lentos
+            // Log slow methods
             if (duration > threshold) {
                 log.warn(
                         "[SLOW] {}.{}() took {}ms (threshold: {}ms)",

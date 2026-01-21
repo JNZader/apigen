@@ -19,10 +19,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * Filtro de autenticación JWT que procesa cada request.
+ * JWT authentication filter that processes each request.
  *
- * <p>Extrae el token del header Authorization, lo valida y establece el contexto de seguridad si es
- * válido.
+ * <p>Extracts the token from the Authorization header, validates it, and sets the security context
+ * if valid.
  */
 @Component
 @ConditionalOnProperty(name = "apigen.security.enabled", havingValue = "true")
@@ -50,7 +50,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         final String authHeader = request.getHeader(AUTHORIZATION_HEADER);
 
-        // Si no hay header de autorización o no es Bearer, continuar
+        // If no authorization header or not Bearer, continue
         if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX)) {
             filterChain.doFilter(request, response);
             return;
@@ -60,12 +60,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             final String jwt = authHeader.substring(BEARER_PREFIX.length());
             final String username = jwtService.extractUsername(jwt);
 
-            // Si hay username y no hay autenticación previa
+            // If username exists and no prior authentication
             if (username != null
                     && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-                // Verificar que sea un access token y que sea válido
+                // Verify it's an access token and that it's valid
                 if (jwtService.isAccessToken(jwt) && jwtService.isTokenValid(jwt, userDetails)) {
                     UsernamePasswordAuthenticationToken authToken =
                             new UsernamePasswordAuthenticationToken(
@@ -73,12 +73,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     authToken.setDetails(
                             new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-                    log.debug("Usuario autenticado: {}", username);
+                    log.debug("User authenticated: {}", username);
                 }
             }
         } catch (Exception e) {
-            log.debug("Error procesando token JWT: {}", e.getMessage());
-            // No lanzar excepción, simplemente continuar sin autenticación
+            log.debug("Error processing JWT token: {}", e.getMessage());
+            // Don't throw exception, simply continue without authentication
         }
 
         filterChain.doFilter(request, response);
@@ -87,7 +87,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getServletPath();
-        // No filtrar endpoints de autenticación
+        // Don't filter authentication endpoints
         return path.startsWith("/api/auth/");
     }
 }

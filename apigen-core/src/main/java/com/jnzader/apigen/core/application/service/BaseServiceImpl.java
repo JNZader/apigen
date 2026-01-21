@@ -36,20 +36,20 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Implementación base para servicios genéricos que proporciona las operaciones CRUD estándar.
+ * Base implementation for generic services providing standard CRUD operations.
  *
- * <p>Características: - Operaciones CRUD con soporte para Result pattern - Soft delete y
- * restauración - Operaciones en batch con flush periódico - Búsqueda con especificaciones JPA -
- * Logging integrado - Caché opcional (habilitado por anotaciones)
+ * <p>Features: - CRUD operations with Result pattern support - Soft delete and restore - Batch
+ * operations with periodic flush - JPA specification-based search - Integrated logging - Optional
+ * cache (enabled via annotations)
  *
- * @param <E> El tipo de la entidad que extiende {@link Base}.
- * @param <I> El tipo del identificador de la entidad.
+ * @param <E> The entity type extending {@link Base}.
+ * @param <I> The entity identifier type.
  */
 public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
         implements BaseService<E, I> {
 
     private static final Logger log = LoggerFactory.getLogger(BaseServiceImpl.class);
-    private static final String ERROR_NOT_FOUND = "Entidad no encontrada con ID: ";
+    private static final String ERROR_NOT_FOUND = "Entity not found with ID: ";
     private static final int BATCH_SIZE = 50;
     private static final int MAX_RESULTS_WITHOUT_PAGINATION = 1000;
     private static final int WARN_THRESHOLD = 500;
@@ -73,44 +73,41 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
         this.auditorAware = auditorAware;
     }
 
-    // ==================== Métodos internos (evitan self-invocation) ====================
+    // ==================== Internal methods (avoid self-invocation) ====================
 
     /**
-     * Búsqueda interna por ID sin pasar por el proxy de Spring. Usado por métodos de escritura que
-     * necesitan leer antes de modificar.
+     * Internal lookup by ID without going through Spring proxy. Used by write methods that need to
+     * read before modifying.
      */
     private Result<E, Exception> findByIdInternal(I id) {
-        log.debug("Buscando {} con ID: {} (interno)", getEntityName(), id);
+        log.debug("Finding {} with ID: {} (internal)", getEntityName(), id);
         return Result.fromOptional(
                 baseRepository.findById(id),
                 () -> new ResourceNotFoundException(ERROR_NOT_FOUND + id));
     }
 
     /**
-     * Guardado interno sin pasar por el proxy de Spring. Usado por métodos que ya están dentro de
-     * una transacción.
+     * Internal save without going through Spring proxy. Used by methods already within a
+     * transaction.
      */
     private Result<E, Exception> saveInternal(E entity) {
         return Result.of(
                 () -> {
                     boolean isNew = entity.getId() == null;
                     log.debug(
-                            "{} entidad de tipo {} (interno)",
-                            isNew ? "Creando" : "Actualizando",
+                            "{} entity of type {} (internal)",
+                            isNew ? "Creating" : "Updating",
                             getEntityName());
 
                     E saved = baseRepository.save(entity);
 
                     if (isNew) {
                         saved.registerEvent(new EntityCreatedEvent<>(saved, saved.getCreadoPor()));
-                        log.info("Entidad {} creada con ID: {}", getEntityName(), saved.getId());
+                        log.info("Entity {} created with ID: {}", getEntityName(), saved.getId());
                     } else {
                         saved.registerEvent(
                                 new EntityUpdatedEvent<>(saved, saved.getModificadoPor()));
-                        log.info(
-                                "Entidad {} actualizada con ID: {}",
-                                getEntityName(),
-                                saved.getId());
+                        log.info("Entity {} updated with ID: {}", getEntityName(), saved.getId());
                     }
 
                     return saved;
@@ -118,32 +115,31 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
     }
 
     /**
-     * Retorna el nombre de la entidad para mensajes de log y caché. Este método es público para
-     * permitir acceso desde SpEL en anotaciones de caché.
+     * Returns the entity name for log messages and cache. This method is public to allow access
+     * from SpEL in cache annotations.
      *
-     * <p>Por defecto, deriva el nombre de {@link #getEntityClass()}. Las subclases pueden
-     * sobrescribir si necesitan un nombre diferente.
+     * <p>By default, derives the name from {@link #getEntityClass()}. Subclasses may override if
+     * they need a different name.
      *
-     * @return El nombre de la entidad (derivado de getEntityClass()).
+     * @return The entity name (derived from getEntityClass()).
      */
     public String getEntityName() {
         return getEntityClass().getSimpleName();
     }
 
     /**
-     * Retorna la clase de la entidad manejada por este servicio. Las subclases deben implementar
-     * este método para permitir operaciones que requieren conocer el tipo de entidad en tiempo de
-     * ejecución.
+     * Returns the entity class managed by this service. Subclasses must implement this method to
+     * allow operations that require knowing the entity type at runtime.
      *
-     * @return La clase de la entidad.
+     * @return The entity class.
      */
     protected abstract Class<E> getEntityClass();
 
     /**
-     * Obtiene el nombre de la tabla de base de datos para la entidad. Usa la anotación @Table si
-     * está presente, de lo contrario usa el nombre de la clase.
+     * Gets the database table name for the entity. Uses the @Table annotation if present, otherwise
+     * uses the class name.
      *
-     * @return El nombre de la tabla.
+     * @return The table name.
      */
     protected String getTableName() {
         Class<E> entityClass = getEntityClass();
@@ -151,20 +147,20 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
         if (tableAnnotation != null && !tableAnnotation.name().isEmpty()) {
             return tableAnnotation.name();
         }
-        // Convertir CamelCase a snake_case como convención de Hibernate
+        // Convert CamelCase to snake_case as Hibernate convention
         return entityClass.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase();
     }
 
-    // ==================== Consultas básicas ====================
+    // ==================== Basic queries ====================
 
     @Override
     @Transactional(readOnly = true)
     public Result<List<E>, Exception> findAll() {
         return Result.of(
                 () -> {
-                    log.debug("Buscando todas las entidades de tipo {}", getEntityName());
+                    log.debug("Finding all entities of type {}", getEntityName());
 
-                    // COUNT primero - más eficiente que traer datos para verificar
+                    // COUNT first - more efficient than fetching data to verify
                     long total = baseRepository.count();
 
                     if (total == 0) {
@@ -173,20 +169,20 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
 
                     if (total > MAX_RESULTS_WITHOUT_PAGINATION) {
                         log.warn(
-                                "findAll() de {} tiene {} registros (limite: {}). "
-                                        + "Considere usar findAll(Pageable) para tablas grandes.",
+                                "findAll() of {} has {} records (limit: {}). "
+                                        + "Consider using findAll(Pageable) for large tables.",
                                 getEntityName(),
                                 total,
                                 MAX_RESULTS_WITHOUT_PAGINATION);
                     } else if (total > WARN_THRESHOLD) {
                         log.info(
-                                "findAll() de {} tiene {} registros. "
-                                        + "Considere usar paginacion para mejor rendimiento.",
+                                "findAll() of {} has {} records. "
+                                        + "Consider using pagination for better performance.",
                                 getEntityName(),
                                 total);
                     }
 
-                    // Traer solo hasta el límite
+                    // Fetch only up to the limit
                     int limit = (int) Math.min(total, MAX_RESULTS_WITHOUT_PAGINATION);
                     return baseRepository.findAll(PageRequest.of(0, limit)).getContent();
                 });
@@ -197,9 +193,9 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
     public Result<List<E>, Exception> findAllActive() {
         return Result.of(
                 () -> {
-                    log.debug("Buscando todas las entidades activas de tipo {}", getEntityName());
+                    log.debug("Finding all active entities of type {}", getEntityName());
 
-                    // COUNT primero con especificación - más eficiente
+                    // COUNT first with specification - more efficient
                     long total = baseRepository.count(BaseSpecification.isActive());
 
                     if (total == 0) {
@@ -208,20 +204,20 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
 
                     if (total > MAX_RESULTS_WITHOUT_PAGINATION) {
                         log.warn(
-                                "findAllActive() de {} tiene {} registros (limite: {}). Considere"
-                                        + " usar findAllActive(Pageable) para tablas grandes.",
+                                "findAllActive() of {} has {} records (limit: {}). Consider"
+                                        + " using findAllActive(Pageable) for large tables.",
                                 getEntityName(),
                                 total,
                                 MAX_RESULTS_WITHOUT_PAGINATION);
                     } else if (total > WARN_THRESHOLD) {
                         log.info(
-                                "findAllActive() de {} tiene {} registros. "
-                                        + "Considere usar paginacion para mejor rendimiento.",
+                                "findAllActive() of {} has {} records. "
+                                        + "Consider using pagination for better performance.",
                                 getEntityName(),
                                 total);
                     }
 
-                    // Traer solo hasta el límite
+                    // Fetch only up to the limit
                     int limit = (int) Math.min(total, MAX_RESULTS_WITHOUT_PAGINATION);
                     return baseRepository
                             .findAll(BaseSpecification.isActive(), PageRequest.of(0, limit))
@@ -241,7 +237,7 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
         return Result.of(
                 () -> {
                     log.debug(
-                            "Buscando entidades de tipo {} con paginación: {}",
+                            "Finding entities of type {} with pagination: {}",
                             getEntityName(),
                             pageable);
                     return baseRepository.findAll(pageable);
@@ -260,7 +256,7 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
         return Result.of(
                 () -> {
                     log.debug(
-                            "Buscando entidades activas de tipo {} con paginación: {}",
+                            "Finding active entities of type {} with pagination: {}",
                             getEntityName(),
                             pageable);
                     return baseRepository.findAll(BaseSpecification.isActive(), pageable);
@@ -274,7 +270,7 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
             key = "#root.target.entityName + ':' + #id",
             unless = "#result.isFailure()")
     public Result<E, Exception> findById(I id) {
-        log.debug("Buscando {} con ID: {}", getEntityName(), id);
+        log.debug("Finding {} with ID: {}", getEntityName(), id);
         return Result.fromOptional(
                 baseRepository.findById(id),
                 () -> new ResourceNotFoundException(ERROR_NOT_FOUND + id));
@@ -285,7 +281,7 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
     public Result<Boolean, Exception> existsById(I id) {
         return Result.of(
                 () -> {
-                    log.debug("Verificando existencia de {} con ID: {}", getEntityName(), id);
+                    log.debug("Checking existence of {} with ID: {}", getEntityName(), id);
                     return baseRepository.existsById(id);
                 });
     }
@@ -295,7 +291,7 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
     public Result<Long, Exception> count() {
         return Result.of(
                 () -> {
-                    log.debug("Contando todas las entidades de tipo {}", getEntityName());
+                    log.debug("Counting all entities of type {}", getEntityName());
                     return baseRepository.count();
                 });
     }
@@ -305,19 +301,19 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
     public Result<Long, Exception> countActive() {
         return Result.of(
                 () -> {
-                    log.debug("Contando entidades activas de tipo {}", getEntityName());
+                    log.debug("Counting active entities of type {}", getEntityName());
                     return baseRepository.count(BaseSpecification.isActive());
                 });
     }
 
-    // ==================== Búsqueda con especificaciones ====================
+    // ==================== Specification-based search ====================
 
     @Override
     @Transactional(readOnly = true)
     public Result<List<E>, Exception> findAll(Specification<E> spec) {
         return Result.of(
                 () -> {
-                    log.debug("Buscando entidades de tipo {} con especificación", getEntityName());
+                    log.debug("Finding entities of type {} with specification", getEntityName());
                     return baseRepository.findAll(spec);
                 });
     }
@@ -328,7 +324,7 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
         return Result.of(
                 () -> {
                     log.debug(
-                            "Buscando entidades de tipo {} con especificación y paginación",
+                            "Finding entities of type {} with specification and pagination",
                             getEntityName());
                     return baseRepository.findAll(spec, pageable);
                 });
@@ -337,37 +333,35 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
     @Override
     @Transactional(readOnly = true)
     public Result<E, Exception> findOne(Specification<E> spec) {
-        log.debug("Buscando una entidad de tipo {} con especificación", getEntityName());
+        log.debug("Finding single entity of type {} with specification", getEntityName());
         return Result.fromOptional(
                 baseRepository.findOne(spec),
-                () ->
-                        new ResourceNotFoundException(
-                                "No se encontró ninguna entidad que cumpla los criterios"));
+                () -> new ResourceNotFoundException("No entity found matching the criteria"));
     }
 
-    // ==================== Operaciones de escritura ====================
+    // ==================== Write operations ====================
 
     @Override
     @Transactional(noRollbackFor = Exception.class)
     public Result<E, Exception> save(E entity) {
         try {
             boolean isNew = entity.getId() == null;
-            log.debug("{} entidad de tipo {}", isNew ? "Creando" : "Actualizando", getEntityName());
+            log.debug("{} entity of type {}", isNew ? "Creating" : "Updating", getEntityName());
 
             E saved = baseRepository.save(entity);
 
-            // Registrar evento de dominio después de guardar (para tener el ID asignado)
+            // Register domain event after saving (to have the assigned ID)
             if (isNew) {
                 saved.registerEvent(new EntityCreatedEvent<>(saved, saved.getCreadoPor()));
-                log.info("Entidad {} creada con ID: {}", getEntityName(), saved.getId());
+                log.info("Entity {} created with ID: {}", getEntityName(), saved.getId());
             } else {
                 saved.registerEvent(new EntityUpdatedEvent<>(saved, saved.getModificadoPor()));
-                log.info("Entidad {} actualizada con ID: {}", getEntityName(), saved.getId());
+                log.info("Entity {} updated with ID: {}", getEntityName(), saved.getId());
             }
 
             return Result.success(saved);
         } catch (Exception e) {
-            log.error("Error al guardar entidad {}: {}", getEntityName(), e.getMessage());
+            log.error("Error saving entity {}: {}", getEntityName(), e.getMessage());
             return Result.failure(e);
         }
     }
@@ -376,7 +370,7 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
     @Transactional(timeout = 30)
     @CacheEvict(value = "entities", key = "#root.target.entityName + ':' + #id")
     public Result<E, Exception> update(I id, E entity) {
-        log.debug("Actualizando {} con ID: {}", getEntityName(), id);
+        log.debug("Updating {} with ID: {}", getEntityName(), id);
         return findByIdInternal(id)
                 .flatMap(
                         existingEntity -> {
@@ -386,7 +380,7 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
                             return saveInternal(entity)
                                     .map(
                                             saved -> {
-                                                // Eviction selectivo: solo listas de esta entidad
+                                                // Selective eviction: only lists of this entity
                                                 cacheEvictionService.evictListsByEntityName(
                                                         getEntityName());
                                                 cacheEvictionService.evictCounts(getEntityName());
@@ -396,23 +390,21 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
     }
 
     /**
-     * Asigna el ID de forma type-safe a la entidad.
+     * Assigns the ID in a type-safe manner to the entity.
      *
-     * <p>Soporta los siguientes tipos de ID: - Long (más común) - Integer y otros tipos numéricos
-     * (convertidos a Long)
+     * <p>Supports the following ID types: - Long (most common) - Integer and other numeric types
+     * (converted to Long)
      *
-     * <p>Las subclases pueden sobrescribir si usan tipos de ID diferentes o necesitan lógica de
-     * asignación personalizada.
+     * <p>Subclasses may override if they use different ID types or need custom assignment logic.
      *
-     * @param entity La entidad a la que asignar el ID
-     * @param id El ID a asignar
-     * @param existingEntity La entidad existente (para referencia y fallback)
-     * @throws IllegalArgumentException si el ID es null
+     * @param entity The entity to assign the ID to
+     * @param id The ID to assign
+     * @param existingEntity The existing entity (for reference and fallback)
+     * @throws IllegalArgumentException if ID is null
      */
     protected void setEntityId(E entity, I id, E existingEntity) {
         if (id == null) {
-            throw new IllegalArgumentException(
-                    "El ID no puede ser null para la operación de actualización");
+            throw new IllegalArgumentException("ID cannot be null for update operation");
         }
 
         switch (id) {
@@ -422,8 +414,7 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
                             || bigInt.compareTo(java.math.BigInteger.valueOf(Long.MIN_VALUE))
                                     < 0 -> {
                 log.error(
-                        "Valor de BigInteger {} excede el rango de Long. Usando ID de entidad"
-                                + " existente.",
+                        "BigInteger value {} exceeds Long range. Using existing entity ID.",
                         bigInt);
                 entity.setId(existingEntity.getId());
             }
@@ -432,7 +423,7 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
                 entity.setId(longValue);
                 if (log.isDebugEnabled()) {
                     log.debug(
-                            "ID convertido de {} a Long: {} -> {}",
+                            "ID converted from {} to Long: {} -> {}",
                             id.getClass().getSimpleName(),
                             id,
                             longValue);
@@ -441,7 +432,7 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
             default -> {
                 entity.setId(existingEntity.getId());
                 log.warn(
-                        "Tipo de ID no soportado: {}. Usando ID de entidad existente: {}",
+                        "Unsupported ID type: {}. Using existing entity ID: {}",
                         id.getClass().getName(),
                         existingEntity.getId());
             }
@@ -452,16 +443,16 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
     @Transactional(timeout = 30)
     @CacheEvict(value = "entities", key = "#root.target.entityName + ':' + #id")
     public Result<E, Exception> partialUpdate(I id, E partialEntity) {
-        log.debug("Actualizando parcialmente {} con ID: {}", getEntityName(), id);
+        log.debug("Partially updating {} with ID: {}", getEntityName(), id);
         return findByIdInternal(id)
                 .flatMap(
                         existingEntity -> {
-                            // Copiar solo campos no nulas del partialEntity al existingEntity
+                            // Copy only non-null fields from partialEntity to existingEntity
                             copyNonNullProperties(partialEntity, existingEntity);
                             return saveInternal(existingEntity)
                                     .map(
                                             saved -> {
-                                                // Eviction selectivo: solo listas de esta entidad
+                                                // Selective eviction: only lists of this entity
                                                 cacheEvictionService.evictListsByEntityName(
                                                         getEntityName());
                                                 cacheEvictionService.evictCounts(getEntityName());
@@ -471,16 +462,15 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
     }
 
     /**
-     * Copia propiedades no nulas de la fuente al destino.
+     * Copies non-null properties from source to target.
      *
-     * <p>Utiliza {@link BeanCopyUtils} para copiar automáticamente todas las propiedades no nulas,
-     * excluyendo propiedades de sistema como: id, version, fechas de auditoría, etc.
+     * <p>Uses {@link BeanCopyUtils} to automatically copy all non-null properties, excluding system
+     * properties like: id, version, audit dates, etc.
      *
-     * <p>Las subclases pueden sobrescribir este método si necesitan un comportamiento personalizado
-     * (por ejemplo, usar MapStruct).
+     * <p>Subclasses may override this method if they need custom behavior (e.g., using MapStruct).
      *
-     * @param source Entidad fuente con los valores a copiar
-     * @param target Entidad destino donde se copiarán los valores
+     * @param source Source entity with values to copy
+     * @param target Target entity where values will be copied
      */
     protected void copyNonNullProperties(E source, E target) {
         BeanCopyUtils.copyNonNullProperties(source, target);
@@ -503,13 +493,9 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
         return softDeleteInternal(id, usuario);
     }
 
-    /** Implementación interna de soft delete para evitar self-invocation de métodos proxy. */
+    /** Internal soft delete implementation to avoid self-invocation of proxy methods. */
     private Result<Void, Exception> softDeleteInternal(I id, String usuario) {
-        log.debug(
-                "Eliminando lógicamente {} con ID: {} por usuario: {}",
-                getEntityName(),
-                id,
-                usuario);
+        log.debug("Soft deleting {} with ID: {} by user: {}", getEntityName(), id, usuario);
         return findByIdInternal(id)
                 .flatMap(
                         entity -> {
@@ -517,15 +503,15 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
                             return Result.of(
                                     () -> {
                                         E saved = baseRepository.save(entity);
-                                        // Registrar evento de eliminación
+                                        // Register deletion event
                                         saved.registerEvent(
                                                 new EntityDeletedEvent<>(saved, usuario));
-                                        // Eviction selectivo: solo listas de esta entidad
+                                        // Selective eviction: only lists of this entity
                                         cacheEvictionService.evictListsByEntityName(
                                                 getEntityName());
                                         cacheEvictionService.evictCounts(getEntityName());
                                         log.info(
-                                                "Entidad {} con ID: {} eliminada lógicamente",
+                                                "Entity {} with ID: {} soft deleted",
                                                 getEntityName(),
                                                 id);
                                         return null;
@@ -537,13 +523,13 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
     @Transactional(timeout = 30)
     @CacheEvict(value = "entities", key = "#root.target.entityName + ':' + #id")
     public Result<E, Exception> restore(I id) {
-        log.debug("Restaurando {} con ID: {}", getEntityName(), id);
+        log.debug("Restoring {} with ID: {}", getEntityName(), id);
 
         return Result.of(
                 () -> {
-                    // Usar native SQL para bypass de @SQLRestriction en Hibernate 6.2+
-                    // La anotación @SQLRestriction afecta a JPQL UPDATE/DELETE queries,
-                    // pero native SQL no se ve afectado por esta restricción
+                    // Use native SQL to bypass @SQLRestriction in Hibernate 6.2+
+                    // The @SQLRestriction annotation affects JPQL UPDATE/DELETE queries,
+                    // but native SQL is not affected by this restriction
                     String tableName = getTableName();
                     String sql =
                             "UPDATE "
@@ -559,15 +545,15 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
                         throw new ResourceNotFoundException(ERROR_NOT_FOUND + id);
                     }
 
-                    // Eviction selectivo: solo listas de esta entidad
+                    // Selective eviction: only lists of this entity
                     cacheEvictionService.evictListsByEntityName(getEntityName());
                     cacheEvictionService.evictCounts(getEntityName());
 
-                    // Refresh del entity manager para que reconozca el cambio hecho por native SQL
+                    // Refresh entity manager to recognize the change made by native SQL
                     entityManager.flush();
                     entityManager.clear();
 
-                    // Ahora la entidad está activa, podemos buscarla normalmente
+                    // Now the entity is active, we can find it normally
                     E restored =
                             baseRepository
                                     .findById(id)
@@ -576,9 +562,9 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
                                                     new ResourceNotFoundException(
                                                             ERROR_NOT_FOUND + id));
 
-                    // Registrar evento de restauración
+                    // Register restore event
                     restored.registerEvent(new EntityRestoredEvent<>(restored));
-                    log.info("Entidad {} con ID: {} restaurada", getEntityName(), id);
+                    log.info("Entity {} with ID: {} restored", getEntityName(), id);
                     return restored;
                 });
     }
@@ -590,43 +576,41 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
     @CacheEvict(value = "entities", key = "#root.target.entityName + ':' + #id")
     public Result<Void, Exception> hardDelete(I id) {
         log.warn(
-                "Eliminando permanentemente {} con ID: {} - ¡ESTA OPERACIÓN ES IRREVERSIBLE!",
+                "Permanently deleting {} with ID: {} - THIS OPERATION IS IRREVERSIBLE!",
                 getEntityName(),
                 id);
 
         return Result.of(
                 () -> {
-                    // hardDeleteById usa DELETE directo que no se ve afectado por @SQLRestriction
+                    // hardDeleteById uses direct DELETE which is not affected by @SQLRestriction
                     int deleted = baseRepository.hardDeleteById(id);
                     if (deleted == 0) {
                         throw new ResourceNotFoundException(ERROR_NOT_FOUND + id);
                     }
 
-                    // Publicar evento de eliminación permanente con información de la entidad
-                    // eliminada
+                    // Publish permanent deletion event with deleted entity information
                     eventPublisher.publishEvent(new EntityHardDeletedEvent<>(id, getEntityName()));
 
-                    // Eviction selectivo: solo listas de esta entidad
+                    // Selective eviction: only lists of this entity
                     cacheEvictionService.evictListsByEntityName(getEntityName());
                     cacheEvictionService.evictCounts(getEntityName());
-                    log.info(
-                            "Entidad {} con ID: {} eliminada permanentemente", getEntityName(), id);
+                    log.info("Entity {} with ID: {} permanently deleted", getEntityName(), id);
                     return null;
                 });
     }
 
-    // ==================== Operaciones en Batch ====================
+    // ==================== Batch Operations ====================
 
     @Override
     @Transactional(timeout = 300) // 5 minutes for batch operations
     public Result<List<E>, Exception> saveAll(List<E> entities) {
         return Result.of(
                 () -> {
-                    // Validar tamaño del batch
+                    // Validate batch size
                     validateBatchSize(entities.size(), "saveAll");
 
                     log.debug(
-                            "Guardando {} entidades de tipo {} en batch",
+                            "Saving {} entities of type {} in batch",
                             entities.size(),
                             getEntityName());
 
@@ -636,31 +620,31 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
 
                     List<E> allSavedEntities = new ArrayList<>(entities.size());
 
-                    // Procesar en lotes para evitar problemas de memoria con grandes volúmenes
+                    // Process in batches to avoid memory issues with large volumes
                     for (int i = 0; i < entities.size(); i += BATCH_SIZE) {
                         int end = Math.min(i + BATCH_SIZE, entities.size());
                         List<E> batch = entities.subList(i, end);
 
-                        // Usar saveAll nativo de JPA para batch insert optimizado
+                        // Use native JPA saveAll for optimized batch insert
                         List<E> savedBatch = baseRepository.saveAll(batch);
                         allSavedEntities.addAll(savedBatch);
 
-                        // Flush y clear para liberar memoria del contexto de persistencia
+                        // Flush and clear to release persistence context memory
                         entityManager.flush();
                         entityManager.clear();
 
                         log.debug(
-                                "Batch {} de {} procesado ({} entidades)",
+                                "Batch {} of {} processed ({} entities)",
                                 (i / BATCH_SIZE) + 1,
                                 (int) Math.ceil((double) entities.size() / BATCH_SIZE),
                                 savedBatch.size());
                     }
 
-                    // Eviction selectivo: solo caches de esta entidad (no afecta otras)
+                    // Selective eviction: only caches of this entity (doesn't affect others)
                     cacheEvictionService.evictAll(getEntityName(), null);
 
                     log.info(
-                            "Guardadas {} entidades de tipo {} en batch",
+                            "Saved {} entities of type {} in batch",
                             allSavedEntities.size(),
                             getEntityName());
                     return allSavedEntities;
@@ -680,31 +664,28 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
         return softDeleteAllInternal(ids, usuario);
     }
 
-    /** Implementación interna de soft delete en batch para evitar self-invocation. */
+    /** Internal batch soft delete implementation to avoid self-invocation. */
     private Result<Integer, Exception> softDeleteAllInternal(List<I> ids, String usuario) {
         return Result.of(
                 () -> {
-                    // Validar tamaño del batch
+                    // Validate batch size
                     validateBatchSize(ids.size(), "softDeleteAll");
 
-                    log.debug(
-                            "Eliminando lógicamente {} entidades de tipo {}",
-                            ids.size(),
-                            getEntityName());
+                    log.debug("Soft deleting {} entities of type {}", ids.size(), getEntityName());
 
                     if (ids.isEmpty()) {
                         return 0;
                     }
 
-                    // Usar operación bulk para evitar N+1 queries
+                    // Use bulk operation to avoid N+1 queries
                     LocalDateTime now = LocalDateTime.now();
                     int count = baseRepository.softDeleteAllByIds(ids, now, usuario);
 
-                    // Eviction selectivo: solo caches de esta entidad (no afecta otras)
+                    // Selective eviction: only caches of this entity (doesn't affect others)
                     cacheEvictionService.evictAll(getEntityName(), null);
 
                     log.info(
-                            "Eliminadas lógicamente {} de {} entidades de tipo {}",
+                            "Soft deleted {} of {} entities of type {}",
                             count,
                             ids.size(),
                             getEntityName());
@@ -717,23 +698,23 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
     public Result<Integer, Exception> restoreAll(List<I> ids) {
         return Result.of(
                 () -> {
-                    // Validar tamaño del batch
+                    // Validate batch size
                     validateBatchSize(ids.size(), "restoreAll");
 
-                    log.debug("Restaurando {} entidades de tipo {}", ids.size(), getEntityName());
+                    log.debug("Restoring {} entities of type {}", ids.size(), getEntityName());
 
                     if (ids.isEmpty()) {
                         return 0;
                     }
 
-                    // Usar operación bulk para evitar N+1 queries
+                    // Use bulk operation to avoid N+1 queries
                     int count = baseRepository.restoreAllByIds(ids);
 
-                    // Eviction selectivo: solo caches de esta entidad (no afecta otras)
+                    // Selective eviction: only caches of this entity (doesn't affect others)
                     cacheEvictionService.evictAll(getEntityName(), null);
 
                     log.info(
-                            "Restauradas {} de {} entidades de tipo {}",
+                            "Restored {} of {} entities of type {}",
                             count,
                             ids.size(),
                             getEntityName());
@@ -746,12 +727,11 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
     public Result<Integer, Exception> hardDeleteAll(List<I> ids) {
         return Result.of(
                 () -> {
-                    // Validar tamaño del batch
+                    // Validate batch size
                     validateBatchSize(ids.size(), "hardDeleteAll");
 
                     log.warn(
-                            "Eliminando permanentemente {} entidades de tipo {} - ¡OPERACIÓN"
-                                    + " IRREVERSIBLE!",
+                            "Permanently deleting {} entities of type {} - IRREVERSIBLE OPERATION!",
                             ids.size(),
                             getEntityName());
 
@@ -759,36 +739,35 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
                         return 0;
                     }
 
-                    // Usar deleteAllByIdInBatch para DELETE WHERE IN (más eficiente)
+                    // Use deleteAllByIdInBatch for DELETE WHERE IN (more efficient)
                     baseRepository.deleteAllByIdInBatch(ids);
 
-                    // Eviction selectivo: solo caches de esta entidad (no afecta otras)
+                    // Selective eviction: only caches of this entity (doesn't affect others)
                     cacheEvictionService.evictAll(getEntityName(), null);
 
                     log.info(
-                            "Eliminadas permanentemente {} entidades de tipo {}",
+                            "Permanently deleted {} entities of type {}",
                             ids.size(),
                             getEntityName());
                     return ids.size();
                 });
     }
 
-    // ==================== Métodos de validación ====================
+    // ==================== Validation methods ====================
 
     /**
-     * Valida que el tamaño del batch no exceda el límite permitido. Esto previene ataques de
-     * denegación de servicio y problemas de recursos.
+     * Validates that the batch size doesn't exceed the allowed limit. This prevents denial of
+     * service attacks and resource issues.
      *
-     * @param size El tamaño del batch a validar.
-     * @param operationName El nombre de la operación (para mensajes de error).
-     * @throws IllegalArgumentException Si el tamaño excede el límite.
+     * @param size The batch size to validate.
+     * @param operationName The operation name (for error messages).
+     * @throws IllegalArgumentException If the size exceeds the limit.
      */
     protected void validateBatchSize(int size, String operationName) {
         if (size > MAX_BATCH_OPERATION_SIZE) {
             String message =
                     String.format(
-                            "El tamaño del batch (%d) excede el límite permitido (%d) para la"
-                                    + " operación %s en %s",
+                            "Batch size (%d) exceeds allowed limit (%d) for operation %s on %s",
                             size, MAX_BATCH_OPERATION_SIZE, operationName, getEntityName());
             log.warn(message);
             throw new IllegalArgumentException(message);
@@ -796,8 +775,7 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
 
         if (size > WARN_THRESHOLD) {
             log.info(
-                    "Operación {} de {} con {} elementos - considere procesamiento por lotes más"
-                            + " pequeños",
+                    "Operation {} on {} with {} elements - consider smaller batch processing",
                     operationName,
                     getEntityName(),
                     size);
@@ -809,8 +787,8 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
     @Override
     @Transactional(readOnly = true)
     @SuppressWarnings("java:S6809")
-    // S6809: La llamada via this es SEGURA aqui porque ambos metodos tienen
-    // @Transactional(readOnly=true) identico - no hay cambio de comportamiento transaccional
+    // S6809: The call via this is SAFE here because both methods have identical
+    // @Transactional(readOnly=true) - no change in transactional behavior
     public Result<CursorPageResponse<E>, Exception> findAllWithCursor(CursorPageRequest request) {
         return findAllWithCursor((Specification<E>) null, request);
     }
@@ -822,33 +800,33 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
         return Result.of(
                 () -> {
                     log.debug(
-                            "Buscando entidades de tipo {} con cursor pagination: size={},"
+                            "Finding entities of type {} with cursor pagination: size={},"
                                     + " sortField={}, sortDirection={}",
                             getEntityName(),
                             request.size(),
                             request.sortField(),
                             request.sortDirection());
 
-                    // Construir la especificación con el cursor
+                    // Build the specification with the cursor
                     Specification<E> cursorSpec = buildCursorSpecification(spec, request);
 
-                    // Determinar el orden
+                    // Determine the order
                     Sort sort = buildSort(request);
 
-                    // Obtener size + 1 para saber si hay más elementos
+                    // Get size + 1 to know if there are more elements
                     Pageable pageable = PageRequest.of(0, request.size() + 1, sort);
                     List<E> results = baseRepository.findAll(cursorSpec, pageable).getContent();
 
-                    // Verificar si hay más elementos
+                    // Check if there are more elements
                     boolean hasNext = results.size() > request.size();
                     if (hasNext) {
                         results = results.subList(0, request.size());
                     }
 
-                    // Verificar si hay elementos anteriores (solo si no es la primera página)
+                    // Check if there are previous elements (only if not the first page)
                     boolean hasPrevious = !request.isFirstPage();
 
-                    // Construir cursores
+                    // Build cursors
                     String nextCursor = null;
                     String prevCursor = null;
 
@@ -875,7 +853,7 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
                 });
     }
 
-    /** Construye la especificación JPA para el cursor. */
+    /** Builds the JPA specification for the cursor. */
     private Specification<E> buildCursorSpecification(
             Specification<E> baseSpec, CursorPageRequest request) {
         if (request.isFirstPage()) {
@@ -887,11 +865,11 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
             return baseSpec != null ? baseSpec : (root, query, cb) -> cb.conjunction();
         }
 
-        // Especificación para "después del cursor"
+        // Specification for "after the cursor"
         Specification<E> cursorSpec =
                 (root, query, cb) -> {
-                    // Para ordenamiento DESC: id < lastId
-                    // Para ordenamiento ASC: id > lastId
+                    // For DESC ordering: id < lastId
+                    // For ASC ordering: id > lastId
                     if (request.sortDirection() == CursorPageRequest.SortDirection.DESC) {
                         return cb.lessThan(root.get("id"), decoded.lastId());
                     } else {
@@ -902,14 +880,14 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
         return baseSpec != null ? baseSpec.and(cursorSpec) : cursorSpec;
     }
 
-    /** Construye el Sort para la consulta. */
+    /** Builds the Sort for the query. */
     private Sort buildSort(CursorPageRequest request) {
         Sort.Direction direction =
                 request.sortDirection() == CursorPageRequest.SortDirection.DESC
                         ? Sort.Direction.DESC
                         : Sort.Direction.ASC;
 
-        // Siempre ordenar por ID como campo secundario para garantizar consistencia
+        // Always sort by ID as secondary field to guarantee consistency
         if ("id".equals(request.sortField())) {
             return Sort.by(direction, "id");
         }
@@ -919,7 +897,7 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
                 Sort.Order.by("id").with(direction));
     }
 
-    /** Construye el cursor codificado para una entidad. */
+    /** Builds the encoded cursor for an entity. */
     private String buildCursor(E entity, CursorPageRequest request) {
         String sortValue = getSortFieldValue(entity, request.sortField());
         return CursorPageRequest.encodeCursor(
@@ -927,10 +905,10 @@ public abstract class BaseServiceImpl<E extends Base, I extends Serializable>
     }
 
     /**
-     * Obtiene el valor del campo de ordenamiento de una entidad.
+     * Gets the sort field value from an entity.
      *
-     * <p>Usa {@link FieldAccessorCache} para acceso optimizado con MethodHandles cacheados,
-     * evitando la sobrecarga de reflexión directa (~90% menos overhead).
+     * <p>Uses {@link FieldAccessorCache} for optimized access with cached MethodHandles, avoiding
+     * direct reflection overhead (~90% less overhead).
      */
     private String getSortFieldValue(E entity, String sortField) {
         Object value = FieldAccessorCache.getFieldValue(entity, sortField);

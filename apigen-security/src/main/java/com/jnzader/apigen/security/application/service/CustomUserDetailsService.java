@@ -9,9 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Implementación personalizada de UserDetailsService.
+ * Custom implementation of UserDetailsService.
  *
- * <p>Carga usuarios desde la base de datos para la autenticación.
+ * <p>Loads users from the database for authentication.
  */
 @Service
 @ConditionalOnProperty(name = "apigen.security.enabled", havingValue = "true")
@@ -31,6 +31,6 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .orElseThrow(
                         () ->
                                 new UsernameNotFoundException(
-                                        "Usuario no encontrado o inactivo: " + username));
+                                        "User not found or inactive: " + username));
     }
 }

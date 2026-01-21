@@ -12,10 +12,10 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
- * Configuración de procesamiento asíncrono.
+ * Asynchronous processing configuration.
  *
- * <p>Habilita @Async para event handlers y otras tareas asíncronas. Usa Virtual Threads cuando
- * están habilitados (Java 21+).
+ * <p>Enables @Async for event handlers and other asynchronous tasks. Uses Virtual Threads when
+ * enabled (Java 21+).
  */
 @Configuration
 @EnableAsync
@@ -24,8 +24,8 @@ public class AsyncConfig {
     private static final Logger log = LoggerFactory.getLogger(AsyncConfig.class);
 
     /**
-     * Executor para tareas de eventos de dominio usando Virtual Threads. Virtual Threads son más
-     * eficientes para I/O-bound tasks.
+     * Executor for domain event tasks using Virtual Threads. Virtual Threads are more efficient for
+     * I/O-bound tasks.
      */
     @Bean(name = "domainEventExecutor")
     @ConditionalOnProperty(
@@ -52,7 +52,7 @@ public class AsyncConfig {
         return executor;
     }
 
-    /** Executor alternativo usando ThreadPool para entornos sin Virtual Threads. */
+    /** Alternative executor using ThreadPool for environments without Virtual Threads. */
     @Bean(name = "domainEventExecutor")
     @ConditionalOnProperty(name = "spring.threads.virtual.enabled", havingValue = "false")
     public Executor threadPoolDomainEventExecutor() {
@@ -78,7 +78,7 @@ public class AsyncConfig {
         return executor;
     }
 
-    /** Executor general para tareas asíncronas con Virtual Threads. */
+    /** General executor for asynchronous tasks with Virtual Threads. */
     @Bean(name = "taskExecutor")
     @ConditionalOnProperty(
             name = "spring.threads.virtual.enabled",

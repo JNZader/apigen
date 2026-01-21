@@ -1,5 +1,7 @@
 package com.jnzader.apigen.security.infrastructure.jwt;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jnzader.apigen.security.application.service.TokenBlacklistService;
 import com.jnzader.apigen.security.domain.entity.User;
 import com.jnzader.apigen.security.infrastructure.config.SecurityProperties;
@@ -29,21 +31,20 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 /**
- * Servicio para generación y validación de tokens JWT.
+ * Service for JWT token generation and validation.
  *
- * <p>Características:
+ * <p>Features:
  *
  * <ul>
- *   <li>Access tokens con claims de usuario
- *   <li>Refresh tokens para renovación
- *   <li>Integración con blacklist para revocación
- *   <li>Token ID (jti) único para cada token
- *   <li>Soporte para rotación de claves con header 'kid'
+ *   <li>Access tokens with user claims
+ *   <li>Refresh tokens for renewal
+ *   <li>Integration with blacklist for revocation
+ *   <li>Unique Token ID (jti) for each token
+ *   <li>Support for key rotation with 'kid' header
  * </ul>
  *
- * <p>Rotación de claves: Cuando está habilitada, los tokens incluyen un header 'kid' (Key ID) que
- * identifica qué clave se usó para firmarlos. Esto permite mantener claves anteriores válidas
- * durante la transición.
+ * <p>Key rotation: When enabled, tokens include a 'kid' (Key ID) header that identifies which key
+ * was used to sign them. This allows previous keys to remain valid during the transition.
  */
 @Service
 @ConditionalOnProperty(name = "apigen.security.enabled", havingValue = "true")
@@ -52,22 +53,27 @@ public class JwtService {
 
     private static final Logger log = LoggerFactory.getLogger(JwtService.class);
     private static final String CLAIM_USER_ID = "userId";
+    private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() {};
 
     private final SecurityProperties securityProperties;
     private final TokenBlacklistService blacklistService;
+    private final ObjectMapper objectMapper;
     private final SecretKey currentKey;
     private final String currentKeyId;
     private final boolean rotationEnabled;
 
-    // Mapa de keyId -> SecretKey para validación de tokens con claves anteriores
+    // Map of keyId -> SecretKey for validating tokens with previous keys
     private final Map<String, SecretKey> keyRegistry = new ConcurrentHashMap<>();
 
     public JwtService(
-            SecurityProperties securityProperties, TokenBlacklistService blacklistService) {
+            SecurityProperties securityProperties,
+            TokenBlacklistService blacklistService,
+            ObjectMapper objectMapper) {
         this.securityProperties = securityProperties;
         this.blacklistService = blacklistService;
+        this.objectMapper = objectMapper;
 
-        // Inicializar clave actual
+        // Initialize current key
         this.currentKey =
                 Keys.hmacShaKeyFor(
                         securityProperties.getJwt().getSecret().getBytes(StandardCharsets.UTF_8));
@@ -79,11 +85,11 @@ public class JwtService {
 
     @PostConstruct
     public void init() {
-        // Registrar clave actual
+        // Register current key
         keyRegistry.put(currentKeyId, currentKey);
 
         if (rotationEnabled) {
-            // Registrar claves anteriores para validación
+            // Register previous keys for validation
             KeyRotationProperties rotation = securityProperties.getJwt().getKeyRotation();
             for (PreviousKey prevKey : rotation.getPreviousSecrets()) {
                 if (prevKey.getId() != null && prevKey.getSecret() != null) {
@@ -103,7 +109,7 @@ public class JwtService {
         }
     }
 
-    /** Genera un token de acceso para el usuario. */
+    /** Generates an access token for the user. */
     public String generateAccessToken(User user) {
         Map<String, Object> claims = new HashMap<>();
         claims.put(CLAIM_USER_ID, user.getId());
@@ -115,7 +121,7 @@ public class JwtService {
                 claims, user.getUsername(), securityProperties.getJwt().getExpirationMinutes());
     }
 
-    /** Genera un refresh token para el usuario. */
+    /** Generates a refresh token for the user. */
     public String generateRefreshToken(User user) {
         Map<String, Object> claims = new HashMap<>();
         claims.put(CLAIM_USER_ID, user.getId());
@@ -127,21 +133,21 @@ public class JwtService {
                 securityProperties.getJwt().getRefreshExpirationMinutes());
     }
 
-    /** Construye un token JWT con los claims y duración especificados. */
+    /** Builds a JWT token with the specified claims and duration. */
     private String buildToken(Map<String, Object> claims, String subject, int expirationMinutes) {
         Instant now = Instant.now();
         Instant expiration = now.plus(expirationMinutes, ChronoUnit.MINUTES);
 
         var builder =
                 Jwts.builder()
-                        .id(UUID.randomUUID().toString()) // Token ID único para blacklist
+                        .id(UUID.randomUUID().toString()) // Unique Token ID for blacklist
                         .claims(claims)
                         .subject(subject)
                         .issuer(securityProperties.getJwt().getIssuer())
                         .issuedAt(Date.from(now))
                         .expiration(Date.from(expiration));
 
-        // Agregar header 'kid' cuando rotación está habilitada
+        // Add 'kid' header when rotation is enabled
         if (rotationEnabled) {
             builder.header().keyId(currentKeyId).and();
         }
@@ -149,53 +155,53 @@ public class JwtService {
         return builder.signWith(currentKey, Jwts.SIG.HS256).compact();
     }
 
-    /** Extrae el nombre de usuario del token. */
+    /** Extracts the username from the token. */
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
-    /** Extrae el ID del token (jti). */
+    /** Extracts the token ID (jti). */
     public String extractTokenId(String token) {
         return extractClaim(token, Claims::getId);
     }
 
-    /** Extrae el ID del usuario del token. */
+    /** Extracts the user ID from the token. */
     public Long extractUserId(String token) {
         return extractClaim(token, claims -> claims.get(CLAIM_USER_ID, Long.class));
     }
 
-    /** Extrae el rol del usuario del token. */
+    /** Extracts the user role from the token. */
     public String extractRole(String token) {
         return extractClaim(token, claims -> claims.get("role", String.class));
     }
 
-    /** Extrae el tipo de token (access/refresh). */
+    /** Extracts the token type (access/refresh). */
     public String extractTokenType(String token) {
         return extractClaim(token, claims -> claims.get("type", String.class));
     }
 
-    /** Extrae la fecha de expiración del token. */
+    /** Extracts the expiration date from the token. */
     public Instant extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration).toInstant();
     }
 
-    /** Extrae un claim específico del token. */
+    /** Extracts a specific claim from the token. */
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
 
-    /** Extrae todos los claims del token. */
+    /** Extracts all claims from the token. */
     private Claims extractAllClaims(String token) {
         SecretKey key = resolveSigningKey(token);
         return Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
     }
 
     /**
-     * Resuelve la clave de firma correcta para el token.
+     * Resolves the correct signing key for the token.
      *
-     * <p>Si la rotación está habilitada, busca el 'kid' en el header y usa la clave correspondiente
-     * del registry. Si no hay 'kid' o la rotación está deshabilitada, usa la clave actual.
+     * <p>If rotation is enabled, looks up the 'kid' in the header and uses the corresponding key
+     * from the registry. If there is no 'kid' or rotation is disabled, uses the current key.
      */
     private SecretKey resolveSigningKey(String token) {
         if (!rotationEnabled) {
@@ -203,7 +209,7 @@ public class JwtService {
         }
 
         try {
-            // Parsear solo el header sin verificar firma para obtener kid
+            // Parse only the header without verifying signature to get kid
             String[] parts = token.split("\\.");
             if (parts.length < 2) {
                 return currentKey;
@@ -214,7 +220,7 @@ public class JwtService {
                             java.util.Base64.getUrlDecoder().decode(parts[0]),
                             StandardCharsets.UTF_8);
 
-            // Extraer kid del header JSON de forma simple
+            // Extract kid from header JSON simply
             String kid = extractKidFromHeader(headerJson);
             if (kid != null && keyRegistry.containsKey(kid)) {
                 log.debug("Using key '{}' for token verification", kid);
@@ -227,52 +233,38 @@ public class JwtService {
         return currentKey;
     }
 
-    /** Extrae el kid del header JSON. */
+    /** Extracts the kid from header JSON using ObjectMapper. */
     private String extractKidFromHeader(String headerJson) {
-        // Búsqueda simple de "kid":"value" en el JSON
-        int kidIndex = headerJson.indexOf("\"kid\"");
-        if (kidIndex == -1) {
+        try {
+            Map<String, Object> header = objectMapper.readValue(headerJson, MAP_TYPE);
+            Object kid = header.get("kid");
+            return kid != null ? kid.toString() : null;
+        } catch (Exception e) {
+            log.debug("Failed to parse JWT header: {}", e.getMessage());
             return null;
         }
-
-        int colonIndex = headerJson.indexOf(':', kidIndex);
-        if (colonIndex == -1) {
-            return null;
-        }
-
-        int startQuote = headerJson.indexOf('"', colonIndex);
-        if (startQuote == -1) {
-            return null;
-        }
-
-        int endQuote = headerJson.indexOf('"', startQuote + 1);
-        if (endQuote == -1) {
-            return null;
-        }
-
-        return headerJson.substring(startQuote + 1, endQuote);
     }
 
-    /** Valida si el token es válido para el usuario dado. Incluye verificación de blacklist. */
+    /** Validates if the token is valid for the given user. Includes blacklist verification. */
     public boolean isTokenValid(String token, UserDetails userDetails) {
         try {
             final String username = extractUsername(token);
             final String tokenId = extractTokenId(token);
 
-            // Verificar blacklist
+            // Verify blacklist
             if (blacklistService.isBlacklisted(tokenId)) {
-                log.debug("Token {} está en blacklist", tokenId);
+                log.debug("Token {} is blacklisted", tokenId);
                 return false;
             }
 
             return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
         } catch (JwtException | IllegalArgumentException e) {
-            log.debug("Token inválido: {}", e.getMessage());
+            log.debug("Invalid token: {}", e.getMessage());
             return false;
         }
     }
 
-    /** Verifica si el token está expirado. */
+    /** Checks if the token is expired. */
     public boolean isTokenExpired(String token) {
         try {
             return extractExpiration(token).isBefore(Instant.now());
@@ -281,18 +273,19 @@ public class JwtService {
         }
     }
 
-    /** Verifica si el token es un access token. */
+    /** Checks if the token is an access token. */
     public boolean isAccessToken(String token) {
         return "access".equals(extractTokenType(token));
     }
 
-    /** Verifica si el token es un refresh token. */
+    /** Checks if the token is a refresh token. */
     public boolean isRefreshToken(String token) {
         return "refresh".equals(extractTokenType(token));
     }
 
     /**
-     * Valida la estructura y firma del token sin verificar expiración. Útil para refresh tokens.
+     * Validates the token structure and signature without checking expiration. Useful for refresh
+     * tokens.
      */
     public boolean isTokenStructureValid(String token) {
         try {
@@ -300,12 +293,12 @@ public class JwtService {
             Jwts.parser().verifyWith(key).build().parseSignedClaims(token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
-            log.debug("Estructura de token inválida: {}", e.getMessage());
+            log.debug("Invalid token structure: {}", e.getMessage());
             return false;
         }
     }
 
-    /** Extrae claims de un token potencialmente expirado. Útil para refresh tokens. */
+    /** Extracts claims from a potentially expired token. Useful for refresh tokens. */
     public Claims extractClaimsIgnoringExpiration(String token) {
         try {
             SecretKey key = resolveSigningKey(token);
@@ -316,27 +309,27 @@ public class JwtService {
     }
 
     /**
-     * Obtiene el ID de la clave actual usada para firmar nuevos tokens.
+     * Gets the current key ID used to sign new tokens.
      *
-     * @return el keyId actual
+     * @return the current keyId
      */
     public String getCurrentKeyId() {
         return currentKeyId;
     }
 
     /**
-     * Verifica si la rotación de claves está habilitada.
+     * Checks if key rotation is enabled.
      *
-     * @return true si la rotación está habilitada
+     * @return true if rotation is enabled
      */
     public boolean isKeyRotationEnabled() {
         return rotationEnabled;
     }
 
     /**
-     * Obtiene la cantidad de claves registradas (incluyendo anteriores).
+     * Gets the number of registered keys (including previous ones).
      *
-     * @return número de claves en el registry
+     * @return number of keys in the registry
      */
     public int getRegisteredKeyCount() {
         return keyRegistry.size();

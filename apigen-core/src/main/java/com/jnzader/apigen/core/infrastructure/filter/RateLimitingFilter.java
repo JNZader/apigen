@@ -19,12 +19,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * Filtro de rate limiting basado en IP del cliente.
+ * Rate limiting filter based on client IP.
  *
- * <p>Características: - Limita el número de requests por IP en una ventana de tiempo - Usa Caffeine
- * cache para almacenamiento eficiente de contadores - Agrega headers estándar de rate limit
- * (X-RateLimit-*) - Retorna 429 Too Many Requests cuando se excede el límite - Configurable via
- * application.yaml
+ * <p>Features: - Limits the number of requests per IP within a time window - Uses Caffeine cache
+ * for efficient counter storage - Adds standard rate limit headers (X-RateLimit-*) - Returns 429
+ * Too Many Requests when limit is exceeded - Configurable via application.yaml
  */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE + 1)
@@ -47,17 +46,17 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         this.requestCounts =
                 Caffeine.newBuilder()
                         .expireAfterWrite(windowDuration)
-                        .maximumSize(10000) // Máximo 10k IPs en cache
+                        .maximumSize(10000) // Maximum 10k IPs in cache
                         .build();
 
         log.info(
-                "Rate limiting configurado: {} requests por {}s",
+                "Rate limiting configured: {} requests per {}s",
                 maxRequestsPerWindow,
                 windowSeconds);
     }
 
     @Override
-    @SuppressWarnings("java:S4449") // El parámetro k nunca es null en Caffeine Cache
+    @SuppressWarnings("java:S4449") // The k parameter is never null in Caffeine Cache
     protected void doFilterInternal(
             HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
@@ -68,13 +67,13 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         int currentCount = counter.incrementAndGet();
         int remaining = Math.max(0, maxRequestsPerWindow - currentCount);
 
-        // Agregar headers de rate limit
+        // Add rate limit headers
         response.setHeader("X-RateLimit-Limit", String.valueOf(maxRequestsPerWindow));
         response.setHeader("X-RateLimit-Remaining", String.valueOf(remaining));
         response.setHeader("X-RateLimit-Reset", String.valueOf(windowDuration.toSeconds()));
 
         if (currentCount > maxRequestsPerWindow) {
-            log.warn("Rate limit excedido para IP: {} ({} requests)", clientIp, currentCount);
+            log.warn("Rate limit exceeded for IP: {} ({} requests)", clientIp, currentCount);
 
             response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
             response.setContentType("application/json");
@@ -83,7 +82,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
                             """
                             {
                                 "error": "Too Many Requests",
-                                "message": "Has excedido el límite de %d requests por %d segundos",
+                                "message": "You have exceeded the limit of %d requests per %d seconds",
                                 "retryAfter": %d
                             }
                             """
@@ -115,7 +114,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        // No aplicar rate limit a actuator endpoints
+        // Do not apply rate limit to actuator endpoints
         return path.startsWith("/actuator/");
     }
 }

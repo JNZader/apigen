@@ -31,11 +31,11 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 /**
- * Configuración de seguridad cuando está habilitada (apigen.security.enabled=true).
+ * Security configuration when enabled (apigen.security.enabled=true).
  *
- * <p>Características: - JWT Authentication con access y refresh tokens - CORS configurables -
- * Headers de seguridad (XSS, HSTS, CSP, Frame Options) - Sesión stateless para API REST -
- * Method-level security habilitada
+ * <p>Features: - JWT Authentication with access and refresh tokens - Configurable CORS - Security
+ * headers (XSS, HSTS, CSP, Frame Options) - Stateless session for REST API - Method-level security
+ * enabled
  */
 @Configuration
 @EnableWebSecurity
@@ -62,48 +62,47 @@ public class SecurityConfig {
 
     @Bean
     @SuppressWarnings({"java:S112", "java:S1130", "java:S4502", "java:S4834"})
-    // S112/S1130: Exception requerido por Spring Security API
-    // S4502: CSRF deshabilitado es SEGURO aquí porque:
-    //   - API REST stateless usando JWT en header Authorization (no cookies)
-    //   - CSRF ataca autenticación basada en cookies, no aplica a JWT
-    //   - Sesión configurada como STATELESS (sin estado en servidor)
-    // S4834: permitAll() es SEGURO para endpoints especificos:
-    //   - /api/auth/** : necesario para login/registro sin token
-    //   - /actuator/health,info : health checks para load balancers
-    //   - /swagger-ui/** : documentacion API (puede restringirse en prod)
-    //   - OPTIONS : CORS preflight (requerido por navegadores)
+    // S112/S1130: Exception required by Spring Security API
+    // S4502: CSRF disabled is SAFE here because:
+    //   - Stateless REST API using JWT in Authorization header (not cookies)
+    //   - CSRF attacks target cookie-based authentication, not applicable to JWT
+    //   - Session configured as STATELESS (no server-side state)
+    // S4834: permitAll() is SAFE for specific endpoints:
+    //   - /api/auth/** : required for login/registration without token
+    //   - /actuator/health,info : health checks for load balancers
+    //   - /swagger-ui/** : API documentation (can be restricted in prod)
+    //   - OPTIONS : CORS preflight (required by browsers)
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Configuración CORS
+                // CORS configuration
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-                // CSRF deshabilitado - seguro para API REST stateless con JWT (ver
-                // @SuppressWarnings)
+                // CSRF disabled - safe for stateless REST API with JWT (see @SuppressWarnings)
                 .csrf(AbstractHttpConfigurer::disable)
 
-                // Sesión stateless
+                // Stateless session
                 .sessionManagement(
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // Headers de seguridad (configurables via apigen.security.headers.*)
+                // Security headers (configurable via apigen.security.headers.*)
                 .headers(this::configureSecurityHeaders)
 
-                // Autorización de endpoints
+                // Endpoint authorization
                 .authorizeHttpRequests(this::configureAuthorizationRules)
 
-                // Proveedor de autenticación
+                // Authentication provider
                 .authenticationProvider(authenticationProvider())
 
-                // Filtro JWT antes del filtro de autenticación
+                // JWT filter before authentication filter
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
     /**
-     * Configura las reglas de autorización para los endpoints HTTP.
+     * Configures authorization rules for HTTP endpoints.
      *
-     * <p>Incluye configuración condicional para Swagger/OpenAPI basada en
+     * <p>Includes conditional configuration for Swagger/OpenAPI based on
      * apigen.security.swagger.protection-mode.
      */
     private void configureAuthorizationRules(
@@ -114,36 +113,36 @@ public class SecurityConfig {
                             .AuthorizationManagerRequestMatcherRegistry
                     auth) {
 
-        // Endpoints de autenticación siempre públicos
+        // Authentication endpoints always public
         auth.requestMatchers("/api/auth/**").permitAll();
 
-        // Actuator health/info públicos para health checks
+        // Actuator health/info public for health checks
         auth.requestMatchers("/actuator/health", "/actuator/info").permitAll();
 
-        // Configurar Swagger según el modo de protección
+        // Configure Swagger according to protection mode
         configureSwaggerAuthorization(auth);
 
-        // CORS preflight siempre permitido
+        // CORS preflight always allowed
         auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
 
-        // Actuator completo solo para ADMIN
+        // Full Actuator only for ADMIN
         auth.requestMatchers("/actuator/**").hasRole("ADMIN");
 
-        // El resto requiere autenticación
+        // Everything else requires authentication
         auth.anyRequest().authenticated();
     }
 
     /**
-     * Configura la autorización para Swagger/OpenAPI según el modo de protección.
+     * Configures authorization for Swagger/OpenAPI according to protection mode.
      *
-     * <p>Modos soportados:
+     * <p>Supported modes:
      *
      * <ul>
-     *   <li>PUBLIC: Acceso sin autenticación (default para desarrollo)
-     *   <li>AUTHENTICATED: Requiere cualquier usuario autenticado
-     *   <li>ADMIN: Requiere rol ADMIN
-     *   <li>ROLES: Requiere uno de los roles especificados
-     *   <li>DISABLED: Swagger completamente bloqueado (denyAll)
+     *   <li>PUBLIC: Access without authentication (default for development)
+     *   <li>AUTHENTICATED: Requires any authenticated user
+     *   <li>ADMIN: Requires ADMIN role
+     *   <li>ROLES: Requires one of the specified roles
+     *   <li>DISABLED: Swagger completely blocked (denyAll)
      * </ul>
      */
     private void configureSwaggerAuthorization(
@@ -177,9 +176,9 @@ public class SecurityConfig {
     }
 
     /**
-     * Configura los headers de seguridad HTTP basados en SecurityProperties.
+     * Configures HTTP security headers based on SecurityProperties.
      *
-     * <p>Headers configurados: - X-XSS-Protection - X-Frame-Options - X-Content-Type-Options -
+     * <p>Headers configured: - X-XSS-Protection - X-Frame-Options - X-Content-Type-Options -
      * Content-Security-Policy - Strict-Transport-Security (HSTS) - Referrer-Policy -
      * Permissions-Policy
      */
@@ -254,16 +253,16 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         AppProperties.CorsProperties corsProps = appProperties.cors();
 
-        // Orígenes permitidos desde configuración
+        // Allowed origins from configuration
         configuration.setAllowedOrigins(corsProps.allowedOrigins());
 
-        // Métodos HTTP permitidos
+        // Allowed HTTP methods
         configuration.setAllowedMethods(corsProps.allowedMethods());
 
-        // Headers permitidos
+        // Allowed headers
         configuration.setAllowedHeaders(corsProps.allowedHeaders());
 
-        // Headers expuestos al cliente (añadir ETag y Last-Modified si no están)
+        // Headers exposed to client (add ETag and Last-Modified if not present)
         List<String> exposedHeaders = new java.util.ArrayList<>(corsProps.exposedHeaders());
         if (!exposedHeaders.contains("ETag")) {
             exposedHeaders.add("ETag");
@@ -273,10 +272,10 @@ public class SecurityConfig {
         }
         configuration.setExposedHeaders(exposedHeaders);
 
-        // Permitir credenciales
+        // Allow credentials
         configuration.setAllowCredentials(corsProps.allowCredentials());
 
-        // Cache de preflight
+        // Preflight cache
         configuration.setMaxAge(corsProps.maxAge());
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -293,7 +292,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    @SuppressWarnings({"java:S112", "java:S1130"}) // Exception requerido por Spring Security API
+    @SuppressWarnings({"java:S112", "java:S1130"}) // Exception required by Spring Security API
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config)
             throws Exception {
         return config.getAuthenticationManager();
@@ -301,7 +300,7 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // BCrypt con factor de trabajo 12 (más seguro que el default 10)
+        // BCrypt with work factor 12 (more secure than default 10)
         return new BCryptPasswordEncoder(12);
     }
 }

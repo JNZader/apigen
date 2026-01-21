@@ -127,7 +127,7 @@ public class TenantFilter implements Filter {
                 .write(
                         """
                         {
-                            "type": "https://api.example.com/problems/tenant-required",
+                            "type": "urn:apigen:problem:tenant-required",
                             "title": "Tenant Required",
                             "status": 400,
                             "detail": "A tenant identifier is required for this request. Provide it via X-Tenant-ID header."
@@ -144,7 +144,7 @@ public class TenantFilter implements Filter {
                         String.format(
                                 """
                                 {
-                                    "type": "https://api.example.com/problems/invalid-tenant",
+                                    "type": "urn:apigen:problem:invalid-tenant",
                                     "title": "Invalid Tenant",
                                     "status": 400,
                                     "detail": "The tenant identifier '%s' is invalid. Use alphanumeric characters and hyphens."

@@ -16,11 +16,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**
- * Controlador REST para Server-Sent Events (SSE).
+ * REST controller for Server-Sent Events (SSE).
  *
- * <p>Permite a los clientes suscribirse a eventos en tiempo real.
+ * <p>Allows clients to subscribe to real-time events.
  *
- * <p>Uso en cliente JavaScript:
+ * <p>JavaScript client usage:
  *
  * <pre>
  * const eventSource = new EventSource('/api/v1/events/orders');
@@ -43,12 +43,12 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
  * };
  * </pre>
  *
- * <p>Eventos disponibles: - connected: Enviado al establecer conexión (incluye clientId) -
- * heartbeat: Keepalive periódico - message: Evento genérico (configurable por tópico)
+ * <p>Available events: - connected: Sent when connection is established (includes clientId) -
+ * heartbeat: Periodic keepalive - message: Generic event (configurable by topic)
  */
 @RestController
 @RequestMapping("${app.api.base-path:}/v1/events")
-@Tag(name = "Server-Sent Events", description = "Endpoints para eventos en tiempo real")
+@Tag(name = "Server-Sent Events", description = "Endpoints for real-time events")
 public class SseController {
 
     private final SseEmitterService sseEmitterService;
@@ -58,42 +58,41 @@ public class SseController {
     }
 
     @Operation(
-            summary = "Suscribirse a eventos de un tópico",
+            summary = "Subscribe to events from a topic",
             description =
                     """
-                    Establece una conexión SSE para recibir eventos en tiempo real.
+                    Establishes an SSE connection to receive real-time events.
 
-                    La conexión permanece abierta y recibirá eventos cada vez que
-                    se publique uno en el tópico especificado.
+                    The connection remains open and will receive events whenever
+                    one is published to the specified topic.
 
-                    Tópicos disponibles dependen de la configuración de la aplicación.
-                    Ejemplos comunes: 'orders', 'notifications', 'updates'.
+                    Available topics depend on the application configuration.
+                    Common examples: 'orders', 'notifications', 'updates'.
                     """)
     @ApiResponse(
             responseCode = "200",
-            description = "Conexión SSE establecida",
+            description = "SSE connection established",
             content = @Content(mediaType = MediaType.TEXT_EVENT_STREAM_VALUE))
     @GetMapping(value = "/{topic}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter subscribe(
-            @Parameter(description = "Tópico al que suscribirse", example = "orders") @PathVariable
+            @Parameter(description = "Topic to subscribe to", example = "orders") @PathVariable
                     String topic,
-            @Parameter(description = "ID de cliente opcional (se genera uno si no se proporciona)")
+            @Parameter(description = "Optional client ID (one is generated if not provided)")
                     @RequestParam(required = false)
                     String clientId) {
         return sseEmitterService.subscribe(topic, clientId);
     }
 
     @Operation(
-            summary = "Obtener estadísticas de SSE",
-            description = "Retorna información sobre conexiones activas por tópico")
+            summary = "Get SSE statistics",
+            description = "Returns information about active connections by topic")
     @ApiResponse(
             responseCode = "200",
-            description = "Estadísticas de conexiones",
+            description = "Connection statistics",
             content = @Content(schema = @Schema(implementation = SseStats.class)))
     @GetMapping("/stats")
     public ResponseEntity<SseStats> getStats(
-            @Parameter(description = "Filtrar por tópico específico")
-                    @RequestParam(required = false)
+            @Parameter(description = "Filter by specific topic") @RequestParam(required = false)
                     String topic) {
         int totalClients = sseEmitterService.getTotalClientCount();
         int topicClients =
@@ -102,12 +101,11 @@ public class SseController {
         return ResponseEntity.ok(new SseStats(totalClients, topicClients, topic));
     }
 
-    /** DTO para estadísticas de SSE. */
-    @Schema(description = "Estadísticas de conexiones SSE")
+    /** DTO for SSE statistics. */
+    @Schema(description = "SSE connection statistics")
     public record SseStats(
-            @Schema(description = "Total de clientes conectados") int totalClients,
-            @Schema(description = "Clientes en el tópico filtrado (o total si no hay filtro)")
+            @Schema(description = "Total connected clients") int totalClients,
+            @Schema(description = "Clients in the filtered topic (or total if no filter)")
                     int topicClients,
-            @Schema(description = "Tópico filtrado (null si no hay filtro)")
-                    String filteredTopic) {}
+            @Schema(description = "Filtered topic (null if no filter)") String filteredTopic) {}
 }

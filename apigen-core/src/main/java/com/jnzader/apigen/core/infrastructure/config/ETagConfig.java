@@ -6,17 +6,17 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.filter.ShallowEtagHeaderFilter;
 
 /**
- * Configuración de ETag para caché HTTP.
+ * ETag configuration for HTTP caching.
  *
- * <p>ShallowEtagHeaderFilter calcula un hash MD5 del contenido de la respuesta y lo usa como ETag.
- * Esto permite que los clientes usen If-None-Match para validar su caché y recibir 304 Not Modified
- * si el contenido no ha cambiado.
+ * <p>ShallowEtagHeaderFilter calculates an MD5 hash of the response content and uses it as an ETag.
+ * This allows clients to use If-None-Match to validate their cache and receive 304 Not Modified if
+ * the content has not changed.
  *
- * <p>Beneficios: - Reduce el ancho de banda (no se envía el body si no cambió) - Mejora el tiempo
- * de respuesta percibido - Permite validación de caché del lado del cliente
+ * <p>Benefits: - Reduces bandwidth (body is not sent if unchanged) - Improves perceived response
+ * time - Enables client-side cache validation
  *
- * <p>Limitaciones: - El servidor aún procesa la request completamente (solo ahorra bandwidth) -
- * Para verdadero ahorro de procesamiento, usar caché del lado del servidor
+ * <p>Limitations: - The server still processes the request completely (only saves bandwidth) - For
+ * true processing savings, use server-side caching
  */
 @Configuration
 public class ETagConfig {
@@ -26,13 +26,13 @@ public class ETagConfig {
         FilterRegistrationBean<ShallowEtagHeaderFilter> filterRegistrationBean =
                 new FilterRegistrationBean<>(new ShallowEtagHeaderFilter());
 
-        // Aplicar a todos los endpoints de la API
+        // Apply to all API endpoints
         filterRegistrationBean.addUrlPatterns("/api/*");
 
-        // Establecer orden (después del logging, antes del rate limiting)
+        // Set order (after logging, before rate limiting)
         filterRegistrationBean.setOrder(2);
 
-        // Nombre para identificación en logs
+        // Name for identification in logs
         filterRegistrationBean.setName("etagFilter");
 
         return filterRegistrationBean;

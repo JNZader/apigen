@@ -3,6 +3,7 @@ package com.jnzader.apigen.security.infrastructure.jwt;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jnzader.apigen.security.application.service.TokenBlacklistService;
 import com.jnzader.apigen.security.domain.entity.Role;
 import com.jnzader.apigen.security.domain.entity.User;
@@ -38,7 +39,7 @@ class JwtServiceTest {
     @BeforeEach
     void setUp() {
         SecurityProperties properties = createSecurityProperties();
-        jwtService = new JwtService(properties, blacklistService);
+        jwtService = new JwtService(properties, blacklistService, new ObjectMapper());
         testUser = createTestUser();
     }
 

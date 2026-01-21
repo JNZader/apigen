@@ -146,7 +146,7 @@ class AuthServiceTest {
 
             assertThatThrownBy(() -> authService.login(request))
                     .isInstanceOf(RuntimeException.class)
-                    .hasMessageContaining("Usuario no encontrado");
+                    .hasMessageContaining("User not found");
         }
     }
 
@@ -202,7 +202,7 @@ class AuthServiceTest {
 
             assertThatThrownBy(() -> authService.register(request))
                     .isInstanceOf(RuntimeException.class)
-                    .hasMessageContaining("nombre de usuario ya existe");
+                    .hasMessageContaining("Username already exists");
 
             verify(userRepository, never()).save(any());
         }
@@ -219,7 +219,7 @@ class AuthServiceTest {
 
             assertThatThrownBy(() -> authService.register(request))
                     .isInstanceOf(RuntimeException.class)
-                    .hasMessageContaining("email ya está registrado");
+                    .hasMessageContaining("Email already registered");
 
             verify(userRepository, never()).save(any());
         }
@@ -237,7 +237,7 @@ class AuthServiceTest {
 
             assertThatThrownBy(() -> authService.register(request))
                     .isInstanceOf(RuntimeException.class)
-                    .hasMessageContaining("Rol por defecto no encontrado");
+                    .hasMessageContaining("Default role not found");
 
             verify(userRepository, never()).save(any());
         }
@@ -291,7 +291,7 @@ class AuthServiceTest {
 
             assertThatThrownBy(() -> authService.refreshToken(request))
                     .isInstanceOf(RuntimeException.class)
-                    .hasMessageContaining("no es un refresh token");
+                    .hasMessageContaining("not a refresh token");
         }
 
         @Test
@@ -305,7 +305,7 @@ class AuthServiceTest {
 
             assertThatThrownBy(() -> authService.refreshToken(request))
                     .isInstanceOf(RuntimeException.class)
-                    .hasMessageContaining("inválido o expirado");
+                    .hasMessageContaining("Invalid or expired");
         }
 
         @Test
@@ -321,7 +321,7 @@ class AuthServiceTest {
 
             assertThatThrownBy(() -> authService.refreshToken(request))
                     .isInstanceOf(RuntimeException.class)
-                    .hasMessageContaining("ya fue utilizado o revocado");
+                    .hasMessageContaining("already used or revoked");
         }
 
         @Test
@@ -339,7 +339,7 @@ class AuthServiceTest {
 
             assertThatThrownBy(() -> authService.refreshToken(request))
                     .isInstanceOf(RuntimeException.class)
-                    .hasMessageContaining("Usuario no encontrado");
+                    .hasMessageContaining("User not found");
         }
     }
 

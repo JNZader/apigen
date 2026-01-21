@@ -17,10 +17,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Configuración de SpringDoc para generar la documentación OpenAPI/Swagger de la API.
+ * SpringDoc configuration for generating OpenAPI/Swagger documentation for the API.
  *
- * <p>Proporciona metadatos personalizados, esquemas de seguridad y ejemplos de respuestas de error
- * para la interfaz de usuario de Swagger.
+ * <p>Provides custom metadata, security schemes, and error response examples for the Swagger UI.
  */
 @Configuration
 public class OpenApiConfig {
@@ -51,8 +50,8 @@ public class OpenApiConfig {
     // Example instance constant
     private static final String EXAMPLE_INSTANCE = "/api/products";
 
-    // Spanish text constants
-    private static final String VALIDATION_ERROR_TITLE = "Error de validación";
+    // Error title constants
+    private static final String VALIDATION_ERROR_TITLE = "Validation error";
 
     @Bean
     public OpenAPI customOpenAPI() {
@@ -68,26 +67,22 @@ public class OpenApiConfig {
                 .version("1.0.0")
                 .description(
                         """
-                        API RESTful genérica construida con Spring Boot 4, Java 25 y Spring Security.
+                        Generic RESTful API built with Spring Boot 4, Java 25 and Spring Security.
 
-                        ## Características
-                        - **CRUD completo** con soft delete y restauración
-                        - **Filtrado dinámico** con 12+ operadores
-                        - **Paginación** offset-based y cursor-based
-                        - **ETag** para concurrencia optimista
-                        - **HATEOAS** con links de navegación
-                        - **JWT** para autenticación
+                        ## Features
+                        - **Full CRUD** with soft delete and restore
+                        - **Dynamic filtering** with 12+ operators
+                        - **Pagination** offset-based and cursor-based
+                        - **ETag** for optimistic concurrency
+                        - **HATEOAS** with navigation links
+                        - **JWT** for authentication
 
-                        ## Autenticación
-                        Usa el endpoint `/v1/auth/login` para obtener un token JWT.
-                        Incluye el token en el header: `Authorization: Bearer <token>`
+                        ## Authentication
+                        Use the `/v1/auth/login` endpoint to obtain a JWT token.
+                        Include the token in the header: `Authorization: Bearer <token>`
                         """)
                 .termsOfService("https://github.com/JNZader/apigen")
-                .contact(
-                        new Contact()
-                                .name("Javier N. Zader")
-                                .url("https://github.com/JNZader")
-                                .email("jnzader@example.com"))
+                .contact(new Contact().name("Javier N. Zader").url("https://github.com/JNZader"))
                 .license(
                         new License()
                                 .name("MIT License")
@@ -113,7 +108,7 @@ public class OpenApiConfig {
                 .type(SecurityScheme.Type.HTTP)
                 .scheme("bearer")
                 .bearerFormat("JWT")
-                .description("Token JWT obtenido del endpoint /v1/auth/login");
+                .description("JWT token obtained from the /v1/auth/login endpoint");
     }
 
     @SuppressWarnings("rawtypes")
@@ -130,7 +125,7 @@ public class OpenApiConfig {
                 .addProperty(PROP_STATUS, new Schema<>().type(TYPE_INTEGER).example(400))
                 .addProperty(
                         PROP_DETAIL,
-                        new Schema<>().type(TYPE_STRING).example("El campo 'name' es requerido"))
+                        new Schema<>().type(TYPE_STRING).example("The 'name' field is required"))
                 .addProperty(
                         PROP_INSTANCE, new Schema<>().type(TYPE_STRING).example(EXAMPLE_INSTANCE));
     }
@@ -139,7 +134,7 @@ public class OpenApiConfig {
     private Schema validationErrorSchema() {
         return new Schema<>()
                 .type(TYPE_OBJECT)
-                .description("VALIDATION_ERROR_TITLE con detalle de campos")
+                .description("Validation error with field details")
                 .addProperty(
                         PROP_TYPE,
                         new Schema<>().type(TYPE_STRING).example(PROBLEM_TYPE_VALIDATION))
@@ -151,7 +146,7 @@ public class OpenApiConfig {
                         PROP_DETAIL,
                         new Schema<>()
                                 .type(TYPE_STRING)
-                                .example("VALIDATION_ERROR_TITLE en los datos enviados"))
+                                .example("Validation error in the submitted data"))
                 .addProperty(
                         PROP_INSTANCE, new Schema<>().type(TYPE_STRING).example(EXAMPLE_INSTANCE))
                 .addProperty(
@@ -162,14 +157,14 @@ public class OpenApiConfig {
                                 .example(
                                         Map.of(
                                                 "name",
-                                                "El nombre es requerido",
+                                                "Name is required",
                                                 "price",
-                                                "El precio debe ser positivo")));
+                                                "Price must be positive")));
     }
 
     private ApiResponse badRequestResponse() {
         return new ApiResponse()
-                .description("Datos inválidos o error de validación")
+                .description("Invalid data or validation error")
                 .content(
                         new Content()
                                 .addMediaType(
@@ -189,42 +184,41 @@ public class OpenApiConfig {
                                                                                         PROP_TYPE,
                                                                                         PROBLEM_TYPE_VALIDATION,
                                                                                         PROP_TITLE,
-                                                                                        "VALIDATION_ERROR_TITLE",
+                                                                                        VALIDATION_ERROR_TITLE,
                                                                                         PROP_STATUS,
                                                                                         400,
                                                                                         PROP_DETAIL,
-                                                                                        "VALIDATION_ERROR_TITLE"
-                                                                                            + " en los"
-                                                                                            + " datos"
-                                                                                            + " enviados",
+                                                                                        "Validation"
+                                                                                            + " error"
+                                                                                            + " in the"
+                                                                                            + " submitted"
+                                                                                            + " data",
                                                                                         PROP_INSTANCE,
                                                                                         EXAMPLE_INSTANCE,
                                                                                         "fieldErrors",
                                                                                         Map.of(
                                                                                                 "name",
-                                                                                                "El nombre"
-                                                                                                    + " es requerido"))),
+                                                                                                "Name is"
+                                                                                                    + " required"))),
                                                                 "idMismatch",
                                                                 new Example()
-                                                                        .summary("IDs no coinciden")
+                                                                        .summary("IDs do not match")
                                                                         .value(
                                                                                 Map.of(
                                                                                         PROP_TYPE,
                                                                                         "urn:problem-type:id-mismatch",
                                                                                         PROP_TITLE,
-                                                                                        "IDs no"
-                                                                                            + " coinciden",
+                                                                                        "IDs do not"
+                                                                                            + " match",
                                                                                         PROP_STATUS,
                                                                                         400,
                                                                                         PROP_DETAIL,
-                                                                                        "El ID del"
-                                                                                            + " path"
-                                                                                            + " (1) no"
-                                                                                            + " coincide"
-                                                                                            + " con el"
-                                                                                            + " ID del"
-                                                                                            + " body"
-                                                                                            + " (2)",
+                                                                                        "The path"
+                                                                                            + " ID (1)"
+                                                                                            + " does"
+                                                                                            + " not match"
+                                                                                            + " the body"
+                                                                                            + " ID (2)",
                                                                                         PROP_INSTANCE,
                                                                                         "/api/products/1",
                                                                                         "pathId",
@@ -235,7 +229,7 @@ public class OpenApiConfig {
 
     private ApiResponse unauthorizedResponse() {
         return new ApiResponse()
-                .description("No autenticado - Token JWT faltante o inválido")
+                .description("Not authenticated - JWT token missing or invalid")
                 .content(
                         new Content()
                                 .addMediaType(
@@ -249,19 +243,18 @@ public class OpenApiConfig {
                                                                 PROP_TYPE,
                                                                 "urn:problem-type:unauthorized",
                                                                 PROP_TITLE,
-                                                                "No autenticado",
+                                                                "Not authenticated",
                                                                 PROP_STATUS,
                                                                 401,
                                                                 PROP_DETAIL,
-                                                                "Token JWT inválido o"
-                                                                        + " expirado",
+                                                                "Invalid or expired JWT" + " token",
                                                                 PROP_INSTANCE,
                                                                 EXAMPLE_INSTANCE))));
     }
 
     private ApiResponse forbiddenResponse() {
         return new ApiResponse()
-                .description("No autorizado - Sin permisos suficientes")
+                .description("Not authorized - Insufficient permissions")
                 .content(
                         new Content()
                                 .addMediaType(
@@ -275,20 +268,20 @@ public class OpenApiConfig {
                                                                 PROP_TYPE,
                                                                 "urn:problem-type:forbidden",
                                                                 PROP_TITLE,
-                                                                "Acción no permitida",
+                                                                "Action not allowed",
                                                                 PROP_STATUS,
                                                                 403,
                                                                 PROP_DETAIL,
-                                                                "No tienes permisos para"
-                                                                        + " realizar esta"
-                                                                        + " acción",
+                                                                "You do not have permission"
+                                                                        + " to perform this"
+                                                                        + " action",
                                                                 PROP_INSTANCE,
                                                                 EXAMPLE_INSTANCE))));
     }
 
     private ApiResponse notFoundResponse() {
         return new ApiResponse()
-                .description("Recurso no encontrado")
+                .description("Resource not found")
                 .content(
                         new Content()
                                 .addMediaType(
@@ -301,18 +294,18 @@ public class OpenApiConfig {
                                                         Map.of(
                                                                 PROP_TYPE,
                                                                         "urn:problem-type:resource-not-found",
-                                                                PROP_TITLE, "Recurso no encontrado",
+                                                                PROP_TITLE, "Resource not found",
                                                                 PROP_STATUS, 404,
                                                                 PROP_DETAIL,
-                                                                        "Producto con ID '999' no"
-                                                                                + " encontrado",
+                                                                        "Product with ID '999' not"
+                                                                                + " found",
                                                                 PROP_INSTANCE,
                                                                         "/api/products/999"))));
     }
 
     private ApiResponse conflictResponse() {
         return new ApiResponse()
-                .description("Conflicto - Recurso duplicado o violación de constraint")
+                .description("Conflict - Duplicate resource or constraint violation")
                 .content(
                         new Content()
                                 .addMediaType(
@@ -326,12 +319,12 @@ public class OpenApiConfig {
                                                                 PROP_TYPE,
                                                                 "urn:problem-type:resource-conflict",
                                                                 PROP_TITLE,
-                                                                "Conflicto de recursos",
+                                                                "Resource conflict",
                                                                 PROP_STATUS,
                                                                 409,
                                                                 PROP_DETAIL,
-                                                                "Ya existe un producto con el SKU"
-                                                                        + " 'ABC-123'",
+                                                                "A product with SKU 'ABC-123'"
+                                                                        + " already exists",
                                                                 PROP_INSTANCE,
                                                                 EXAMPLE_INSTANCE,
                                                                 "conflictType",
@@ -340,7 +333,7 @@ public class OpenApiConfig {
 
     private ApiResponse preconditionFailedResponse() {
         return new ApiResponse()
-                .description("Precondición fallida - ETag no coincide (concurrencia optimista)")
+                .description("Precondition failed - ETag mismatch (optimistic concurrency)")
                 .content(
                         new Content()
                                 .addMediaType(
@@ -354,12 +347,12 @@ public class OpenApiConfig {
                                                                 PROP_TYPE,
                                                                 "urn:problem-type:precondition-failed",
                                                                 PROP_TITLE,
-                                                                "Precondición fallida",
+                                                                "Precondition failed",
                                                                 PROP_STATUS,
                                                                 412,
                                                                 PROP_DETAIL,
-                                                                "El recurso fue modificado por otro"
-                                                                        + " usuario",
+                                                                "The resource was modified by"
+                                                                        + " another user",
                                                                 PROP_INSTANCE,
                                                                 "/api/products/1",
                                                                 "expectedEtag",
@@ -370,7 +363,7 @@ public class OpenApiConfig {
 
     private ApiResponse internalErrorResponse() {
         return new ApiResponse()
-                .description("Error interno del servidor")
+                .description("Internal server error")
                 .content(
                         new Content()
                                 .addMediaType(
@@ -384,12 +377,11 @@ public class OpenApiConfig {
                                                                 PROP_TYPE,
                                                                 "urn:problem-type:internal-error",
                                                                 PROP_TITLE,
-                                                                "Error interno del" + " servidor",
+                                                                "Internal server" + " error",
                                                                 PROP_STATUS,
                                                                 500,
                                                                 PROP_DETAIL,
-                                                                "Ha ocurrido un error"
-                                                                        + " inesperado",
+                                                                "An unexpected error" + " occurred",
                                                                 PROP_INSTANCE,
                                                                 EXAMPLE_INSTANCE))));
     }

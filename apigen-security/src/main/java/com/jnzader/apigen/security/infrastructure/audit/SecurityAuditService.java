@@ -15,10 +15,10 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 /**
- * Servicio para auditoría de eventos de seguridad.
+ * Service for security event auditing.
  *
- * <p>Proporciona métodos para registrar eventos de seguridad como autenticación, autorización,
- * acceso denegado, etc.
+ * <p>Provides methods for logging security events such as authentication, authorization, access
+ * denied, etc.
  */
 @Service
 public class SecurityAuditService {
@@ -34,7 +34,7 @@ public class SecurityAuditService {
         this.eventPublisher = eventPublisher;
     }
 
-    /** Registra un evento de autenticación exitosa. */
+    /** Logs a successful authentication event. */
     public void logAuthenticationSuccess(String username) {
         SecurityAuditEvent event =
                 SecurityAuditEvent.builder()
@@ -49,7 +49,7 @@ public class SecurityAuditService {
         logEvent(event);
     }
 
-    /** Registra un evento de autenticación fallida. */
+    /** Logs a failed authentication event. */
     public void logAuthenticationFailure(String username, String reason) {
         SecurityAuditEvent event =
                 SecurityAuditEvent.builder()
@@ -65,7 +65,7 @@ public class SecurityAuditService {
         logEvent(event);
     }
 
-    /** Registra un evento de acceso denegado. */
+    /** Logs an access denied event. */
     public void logAccessDenied(String resource, String requiredAuthority) {
         String username = getCurrentUsername().orElse(ANONYMOUS_USER);
 
@@ -84,7 +84,7 @@ public class SecurityAuditService {
         logEvent(event);
     }
 
-    /** Registra un evento de límite de tasa excedido. */
+    /** Logs a rate limit exceeded event. */
     public void logRateLimitExceeded(String endpoint) {
         String username = getCurrentUsername().orElse(ANONYMOUS_USER);
 
@@ -102,7 +102,7 @@ public class SecurityAuditService {
         logEvent(event);
     }
 
-    /** Registra un evento de acceso a recurso. */
+    /** Logs a resource access event. */
     public void logResourceAccess(String resource, String method, SecurityOutcome outcome) {
         String username = getCurrentUsername().orElse(ANONYMOUS_USER);
 
@@ -120,7 +120,7 @@ public class SecurityAuditService {
         logEvent(event);
     }
 
-    /** Registra una acción administrativa. */
+    /** Logs an administrative action. */
     public void logAdminAction(String action, String targetResource, Map<String, Object> details) {
         String username = getCurrentUsername().orElse(UNKNOWN);
 
@@ -139,7 +139,7 @@ public class SecurityAuditService {
         logEvent(event);
     }
 
-    /** Registra actividad sospechosa. */
+    /** Logs suspicious activity. */
     public void logSuspiciousActivity(String description, Map<String, Object> details) {
         String username = getCurrentUsername().orElse(ANONYMOUS_USER);
 
@@ -157,9 +157,9 @@ public class SecurityAuditService {
         logEvent(event);
     }
 
-    /** Registra el evento en el log de auditoría y publica el evento. */
+    /** Logs the event to the audit log and publishes the event. */
     private void logEvent(SecurityAuditEvent event) {
-        // Log estructurado para auditoría
+        // Structured logging for audit
         auditLog.info(
                 "SECURITY_EVENT type={} user={} ip={} resource={} action={} outcome={} details={}",
                 event.eventType(),
@@ -170,15 +170,15 @@ public class SecurityAuditService {
                 event.outcome(),
                 event.details());
 
-        // Publicar evento para listeners (opcional: persistir en BD, enviar alertas, etc.)
+        // Publish event for listeners (optional: persist to DB, send alerts, etc.)
         try {
             eventPublisher.publishEvent(event);
         } catch (Exception e) {
-            log.warn("No se pudo publicar el evento de auditoría: {}", e.getMessage());
+            log.warn("Could not publish audit event: {}", e.getMessage());
         }
     }
 
-    /** Obtiene la IP del cliente de la request actual. */
+    /** Gets the client IP from the current request. */
     private String getClientIp() {
         return getRequest()
                 .map(
@@ -192,12 +192,12 @@ public class SecurityAuditService {
                 .orElse(UNKNOWN);
     }
 
-    /** Obtiene el User-Agent del cliente. */
+    /** Gets the client User-Agent. */
     private String getUserAgent() {
         return getRequest().map(request -> request.getHeader("User-Agent")).orElse(UNKNOWN);
     }
 
-    /** Obtiene el username del contexto de seguridad actual. */
+    /** Gets the username from the current security context. */
     private Optional<String> getCurrentUsername() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null
@@ -208,7 +208,7 @@ public class SecurityAuditService {
         return Optional.empty();
     }
 
-    /** Obtiene la HttpServletRequest actual del contexto. */
+    /** Gets the current HttpServletRequest from the context. */
     private Optional<HttpServletRequest> getRequest() {
         try {
             ServletRequestAttributes attrs =

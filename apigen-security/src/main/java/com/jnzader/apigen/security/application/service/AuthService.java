@@ -25,9 +25,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Servicio de autenticación.
+ * Authentication service.
  *
- * <p>Maneja login, registro y refresh de tokens.
+ * <p>Handles login, registration and token refresh.
  */
 @Service
 @ConditionalOnProperty(name = "apigen.security.enabled", havingValue = "true")
@@ -58,7 +58,7 @@ public class AuthService {
         this.tokenBlacklistService = tokenBlacklistService;
     }
 
-    /** Autentica un usuario y retorna tokens JWT. */
+    /** Authenticates a user and returns JWT tokens. */
     @Transactional(readOnly = true)
     public AuthResponseDTO login(LoginRequestDTO request) {
         authenticationManager.authenticate(
@@ -70,33 +70,32 @@ public class AuthService {
                         .orElseThrow(
                                 () ->
                                         new ResourceNotFoundException(
-                                                "Usuario no encontrado: " + request.username()));
+                                                "User not found: " + request.username()));
 
         return generateAuthResponse(user);
     }
 
-    /** Registra un nuevo usuario. */
+    /** Registers a new user. */
     @Transactional
     public AuthResponseDTO register(RegisterRequestDTO request) {
-        // Validar que no exista el usuario
+        // Validate user doesn't exist
         if (userRepository.findByUsername(request.username()).isPresent()) {
-            throw new DuplicateResourceException(
-                    "El nombre de usuario ya existe: " + request.username());
+            throw new DuplicateResourceException("Username already exists: " + request.username());
         }
         if (userRepository.findByEmail(request.email()).isPresent()) {
-            throw new DuplicateResourceException("El email ya está registrado: " + request.email());
+            throw new DuplicateResourceException("Email already registered: " + request.email());
         }
 
-        // Obtener rol por defecto
+        // Get default role
         Role defaultRole =
                 roleRepository
                         .findByName(DEFAULT_ROLE)
                         .orElseThrow(
                                 () ->
                                         new ResourceNotFoundException(
-                                                "Rol por defecto no encontrado: " + DEFAULT_ROLE));
+                                                "Default role not found: " + DEFAULT_ROLE));
 
-        // Crear usuario
+        // Create user
         User user = new User();
         user.setUsername(request.username());
         user.setPassword(passwordEncoder.encode(request.password()));
@@ -112,53 +111,51 @@ public class AuthService {
     }
 
     /**
-     * Refresca el token de acceso usando un refresh token válido.
+     * Refreshes the access token using a valid refresh token.
      *
-     * <p>Implementa rotación de refresh tokens: el token usado se invalida y se emite uno nuevo
-     * junto con el access token.
+     * <p>Implements refresh token rotation: the used token is invalidated and a new one is issued
+     * along with the access token.
      */
     @Transactional
     public AuthResponseDTO refreshToken(RefreshTokenRequestDTO request) {
         String refreshToken = request.refreshToken();
 
-        // Validar que sea un refresh token
+        // Validate it's a refresh token
         if (!jwtService.isRefreshToken(refreshToken)) {
-            throw new ValidationException("Token inválido: no es un refresh token");
+            throw new ValidationException("Invalid token: not a refresh token");
         }
 
-        // Validar estructura del token
+        // Validate token structure
         if (!jwtService.isTokenStructureValid(refreshToken)) {
-            throw new ValidationException("Refresh token inválido o expirado");
+            throw new ValidationException("Invalid or expired refresh token");
         }
 
-        // Verificar que el token no esté en blacklist
+        // Verify token is not blacklisted
         String tokenId = jwtService.extractTokenId(refreshToken);
         if (tokenBlacklistService.isBlacklisted(tokenId)) {
-            throw new ValidationException("Refresh token ya fue utilizado o revocado");
+            throw new ValidationException("Refresh token already used or revoked");
         }
 
-        // Extraer username del token
+        // Extract username from token
         String username = jwtService.extractUsername(refreshToken);
         User user =
                 userRepository
                         .findActiveByUsername(username)
                         .orElseThrow(
-                                () ->
-                                        new ResourceNotFoundException(
-                                                "Usuario no encontrado: " + username));
+                                () -> new ResourceNotFoundException("User not found: " + username));
 
-        // ROTACIÓN: Invalidar el refresh token usado (single-use)
+        // ROTATION: Invalidate the used refresh token (single-use)
         tokenBlacklistService.blacklistToken(
                 tokenId,
                 username,
                 jwtService.extractExpiration(refreshToken),
                 BlacklistReason.TOKEN_ROTATED);
 
-        // Generar nuevos tokens (access + refresh)
+        // Generate new tokens (access + refresh)
         return generateAuthResponse(user);
     }
 
-    /** Genera la respuesta de autenticación con tokens. */
+    /** Generates the authentication response with tokens. */
     private AuthResponseDTO generateAuthResponse(User user) {
         String accessToken = jwtService.generateAccessToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
@@ -179,9 +176,9 @@ public class AuthService {
     }
 
     /**
-     * Invalida un token añadiéndolo a la blacklist.
+     * Invalidates a token by adding it to the blacklist.
      *
-     * @param token Token JWT a invalidar
+     * @param token JWT token to invalidate
      */
     @Transactional
     public void logout(String token) {
@@ -193,9 +190,9 @@ public class AuthService {
     }
 
     /**
-     * Invalida todos los tokens de un usuario. Útil cuando el usuario cambia su contraseña.
+     * Invalidates all tokens for a user. Useful when the user changes their password.
      *
-     * @param username Nombre de usuario
+     * @param username Username
      */
     @Transactional
     public void revokeAllUserTokens(String username) {

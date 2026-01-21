@@ -30,8 +30,8 @@ import org.springframework.data.domain.DomainEvents;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
- * Clase base abstracta para todas las entidades del sistema. Proporciona campos comunes de
- * auditoría, soporte para soft delete y domain events.
+ * Abstract base class for all system entities. Provides common auditing fields, soft delete
+ * support, and domain events.
  */
 @MappedSuperclass
 @Getter
@@ -46,40 +46,38 @@ public abstract class Base implements Serializable {
     @SequenceGenerator(name = "base_seq_gen", sequenceName = "base_sequence", allocationSize = 50)
     private Long id;
 
-    /**
-     * Estado de la entidad (true = activo, false = inactivo/eliminado). Se usa para soft delete.
-     */
+    /** Entity status (true = active, false = inactive/deleted). Used for soft delete. */
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
     private Boolean estado = true;
 
-    /** Fecha y hora de creación del registro. */
+    /** Creation date and time of the record. */
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
 
-    /** Fecha y hora de la última actualización. */
+    /** Date and time of the last update. */
     @LastModifiedDate
     @Column(nullable = false)
     private LocalDateTime fechaActualizacion;
 
-    /** Fecha y hora de eliminación lógica (soft delete). */
+    /** Date and time of logical deletion (soft delete). */
     @Column private LocalDateTime fechaEliminacion;
 
-    /** Usuario que realizó la eliminación lógica. */
+    /** User who performed the logical deletion. */
     @Column(length = 100)
     private String eliminadoPor;
 
-    /** Usuario que creó el registro. */
+    /** User who created the record. */
     @CreatedBy
     @Column(length = 100, updatable = false)
     private String creadoPor;
 
-    /** Usuario que realizó la última modificación. */
+    /** User who performed the last modification. */
     @LastModifiedBy
     @Column(length = 100)
     private String modificadoPor;
 
-    /** Versión para control de concurrencia optimista. */
+    /** Version for optimistic concurrency control. */
     @Version
     @Column(nullable = false)
     private Long version = 0L;
@@ -87,29 +85,29 @@ public abstract class Base implements Serializable {
     // ==================== Domain Events ====================
 
     /**
-     * Lista de eventos de dominio pendientes de publicación. Usa CopyOnWriteArrayList para thread
-     * safety en entornos concurrentes.
+     * List of domain events pending publication. Uses CopyOnWriteArrayList for thread safety in
+     * concurrent environments.
      */
     @Transient @JsonIgnore
     private final List<DomainEvent> domainEvents = new CopyOnWriteArrayList<>();
 
     /**
-     * Registra un evento de dominio para ser publicado. Este método es público para permitir que
-     * los servicios registren eventos.
+     * Registers a domain event to be published. This method is public to allow services to register
+     * events.
      *
-     * @param event El evento a registrar.
+     * @param event The event to register.
      */
     public void registerEvent(DomainEvent event) {
         this.domainEvents.add(event);
     }
 
-    /** Retorna los eventos de dominio pendientes (usado por Spring Data). */
+    /** Returns pending domain events (used by Spring Data). */
     @DomainEvents
     public List<DomainEvent> getDomainEvents() {
         return Collections.unmodifiableList(domainEvents);
     }
 
-    /** Limpia la lista de eventos después de su publicación. */
+    /** Clears the event list after publication. */
     @AfterDomainEventPublication
     public void clearDomainEvents() {
         this.domainEvents.clear();
@@ -118,9 +116,9 @@ public abstract class Base implements Serializable {
     // ==================== Soft Delete ====================
 
     /**
-     * Marca la entidad como eliminada (soft delete).
+     * Marks the entity as deleted (soft delete).
      *
-     * @param usuario El usuario que realiza la eliminación.
+     * @param usuario The user performing the deletion.
      */
     public void softDelete(String usuario) {
         this.estado = false;
@@ -128,19 +126,19 @@ public abstract class Base implements Serializable {
         this.eliminadoPor = usuario;
     }
 
-    /** Restaura una entidad eliminada. */
+    /** Restores a deleted entity. */
     public void restore() {
         this.estado = true;
         this.fechaEliminacion = null;
         this.eliminadoPor = null;
     }
 
-    /** Verifica si la entidad está eliminada. */
+    /** Checks if the entity is deleted. */
     public boolean isDeleted() {
         return !Boolean.TRUE.equals(estado);
     }
 
-    /** Verifica si la entidad está activa. */
+    /** Checks if the entity is active. */
     public boolean isActive() {
         return Boolean.TRUE.equals(estado);
     }
@@ -152,7 +150,7 @@ public abstract class Base implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Base base = (Base) o;
-        // Solo comparar por ID si ambos tienen ID (entidades persistidas)
+        // Only compare by ID if both have ID (persisted entities)
         if (id != null && base.id != null) {
             return Objects.equals(id, base.id);
         }
@@ -161,7 +159,7 @@ public abstract class Base implements Serializable {
 
     @Override
     public int hashCode() {
-        // Usar una constante para entidades nuevas (sin ID)
+        // Use a constant for new entities (without ID)
         return id != null ? Objects.hash(id) : System.identityHashCode(this);
     }
 

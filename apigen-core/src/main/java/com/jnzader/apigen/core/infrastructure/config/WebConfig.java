@@ -7,10 +7,10 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * Configuración de Spring MVC para la API REST.
+ * Spring MVC configuration for the REST API.
  *
- * <p>Configura: - Interceptores (Request ID) - Negociación de contenido - Otros aspectos de
- * configuración web
+ * <p>Configures: - Interceptors (Request ID) - Content negotiation - Other web configuration
+ * aspects
  */
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
@@ -23,18 +23,18 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        // Request ID interceptor para todas las requests de la API
+        // Request ID interceptor for all API requests
         registry.addInterceptor(requestIdInterceptor).addPathPatterns("/api/**");
     }
 
     @Override
     public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
         configurer
-                // No usar parámetros para determinar tipo de contenido
+                // Do not use parameters to determine content type
                 .favorParameter(false)
-                // Tipo de contenido por defecto
+                // Default content type
                 .defaultContentType(MediaType.APPLICATION_JSON)
-                // Tipos soportados
+                // Supported types
                 .mediaType("json", MediaType.APPLICATION_JSON)
                 .mediaType("xml", MediaType.APPLICATION_XML);
     }

@@ -11,12 +11,12 @@ import java.util.Map;
 import org.springframework.http.HttpStatus;
 
 /**
- * Sealed interface que representa errores de API tipados.
+ * Sealed interface representing typed API errors.
  *
- * <p>Proporciona un manejo de errores type-safe con pattern matching exhaustivo. Cada variante
- * corresponde a un tipo especifico de error HTTP.
+ * <p>Provides type-safe error handling with exhaustive pattern matching. Each variant corresponds
+ * to a specific HTTP error type.
  *
- * <p>Uso con Result pattern:
+ * <p>Usage with Result pattern:
  *
  * <pre>
  * result.fold(
@@ -25,46 +25,46 @@ import org.springframework.http.HttpStatus;
  * );
  * </pre>
  *
- * <p>Uso con pattern matching:
+ * <p>Usage with pattern matching:
  *
  * <pre>
  * switch (apiError) {
  *     case ApiError.NotFound nf -> handleNotFound(nf);
  *     case ApiError.Validation v -> handleValidation(v);
- *     // ... exhaustivo gracias a sealed
+ *     // ... exhaustive thanks to sealed
  * }
  * </pre>
  */
 public sealed interface ApiError {
 
-    /** Obtiene el mensaje del error. Todas las implementaciones deben proporcionar un mensaje. */
+    /** Gets the error message. All implementations must provide a message. */
     String message();
 
     /**
-     * Recurso no encontrado (HTTP 404).
+     * Resource not found (HTTP 404).
      *
-     * @param resourceType Tipo de recurso (e.g., "Usuario", "Producto")
-     * @param resourceId Identificador del recurso buscado
-     * @param message Mensaje descriptivo del error
+     * @param resourceType Type of resource (e.g., "User", "Product")
+     * @param resourceId Identifier of the searched resource
+     * @param message Descriptive error message
      */
     record NotFound(String resourceType, Object resourceId, String message) implements ApiError {
         public NotFound(String resourceType, Object resourceId) {
             this(
                     resourceType,
                     resourceId,
-                    String.format("%s con ID '%s' no encontrado", resourceType, resourceId));
+                    String.format("%s with ID '%s' not found", resourceType, resourceId));
         }
 
         public NotFound(String message) {
-            this("Recurso", null, message);
+            this("Resource", null, message);
         }
     }
 
     /**
-     * Error de validación (HTTP 400).
+     * Validation error (HTTP 400).
      *
-     * @param message Mensaje general de validacion
-     * @param fieldErrors Mapa de campo -> mensaje de error especifico
+     * @param message General validation message
+     * @param fieldErrors Map of field -> specific error message
      */
     record Validation(String message, Map<String, String> fieldErrors) implements ApiError {
         public Validation(String message) {
@@ -72,15 +72,15 @@ public sealed interface ApiError {
         }
 
         public Validation(Map<String, String> fieldErrors) {
-            this("Error de validación", fieldErrors);
+            this("Validation error", fieldErrors);
         }
     }
 
     /**
-     * Conflicto de recursos (HTTP 409). Usado para duplicados o violaciones de constraints unicos.
+     * Resource conflict (HTTP 409). Used for duplicates or unique constraint violations.
      *
-     * @param message Descripcion del conflicto
-     * @param conflictType Tipo de conflicto (e.g., "DUPLICATE_KEY", "UNIQUE_CONSTRAINT")
+     * @param message Conflict description
+     * @param conflictType Conflict type (e.g., "DUPLICATE_KEY", "UNIQUE_CONSTRAINT")
      */
     record Conflict(String message, String conflictType) implements ApiError {
         public Conflict(String message) {
@@ -89,11 +89,11 @@ public sealed interface ApiError {
     }
 
     /**
-     * Accion no autorizada (HTTP 403).
+     * Unauthorized action (HTTP 403).
      *
-     * @param message Descripcion de la restriccion
-     * @param requiredRole Rol requerido para la accion (opcional)
-     * @param currentUser Usuario actual (opcional)
+     * @param message Restriction description
+     * @param requiredRole Required role for the action (optional)
+     * @param currentUser Current user (optional)
      */
     record Forbidden(String message, String requiredRole, String currentUser) implements ApiError {
         public Forbidden(String message) {
@@ -102,11 +102,11 @@ public sealed interface ApiError {
     }
 
     /**
-     * Precondición fallida (HTTP 412). Usado para conflictos de ETag en concurrencia optimista.
+     * Precondition failed (HTTP 412). Used for ETag conflicts in optimistic concurrency.
      *
-     * @param message Descripcion del fallo
-     * @param expectedEtag ETag esperado/actual del recurso
-     * @param providedEtag ETag proporcionado en el request
+     * @param message Failure description
+     * @param expectedEtag Expected/current ETag of the resource
+     * @param providedEtag ETag provided in the request
      */
     record PreconditionFailed(String message, String expectedEtag, String providedEtag)
             implements ApiError {
@@ -116,11 +116,11 @@ public sealed interface ApiError {
     }
 
     /**
-     * IDs no coinciden (HTTP 400). Cuando el ID en el path difiere del ID en el body.
+     * IDs do not match (HTTP 400). When the ID in the path differs from the ID in the body.
      *
-     * @param pathId ID en la URL
-     * @param bodyId ID en el cuerpo de la peticion
-     * @param message Mensaje descriptivo
+     * @param pathId ID in the URL
+     * @param bodyId ID in the request body
+     * @param message Descriptive message
      */
     record IdMismatch(Object pathId, Object bodyId, String message) implements ApiError {
         public IdMismatch(Object pathId, Object bodyId) {
@@ -128,16 +128,15 @@ public sealed interface ApiError {
                     pathId,
                     bodyId,
                     String.format(
-                            "El ID del path (%s) no coincide con el ID del body (%s)",
-                            pathId, bodyId));
+                            "The path ID (%s) does not match the body ID (%s)", pathId, bodyId));
         }
     }
 
     /**
-     * Error interno del servidor (HTTP 500).
+     * Internal server error (HTTP 500).
      *
-     * @param message Mensaje de error
-     * @param cause Causa original (para logging, no exponer al cliente)
+     * @param message Error message
+     * @param cause Original cause (for logging, not exposed to client)
      */
     record Internal(String message, Throwable cause) implements ApiError {
         public Internal(String message) {
@@ -145,18 +144,18 @@ public sealed interface ApiError {
         }
 
         public Internal(Throwable cause) {
-            this("Error interno del servidor", cause);
+            this("Internal server error", cause);
         }
     }
 
     // ==================== Factory Methods ====================
 
     /**
-     * Convierte una Exception a su ApiError correspondiente. Util para transformar errores del
-     * Result pattern a errores tipados.
+     * Converts an Exception to its corresponding ApiError. Useful for transforming Result pattern
+     * errors to typed errors.
      *
-     * @param exception La excepcion a convertir
-     * @return El ApiError correspondiente
+     * @param exception The exception to convert
+     * @return The corresponding ApiError
      */
     static ApiError from(Exception exception) {
         return switch (exception) {
@@ -182,15 +181,15 @@ public sealed interface ApiError {
 
             case null, default ->
                     new Internal(
-                            exception != null ? exception.getMessage() : "Error desconocido",
+                            exception != null ? exception.getMessage() : "Unknown error",
                             exception);
         };
     }
 
     /**
-     * Obtiene el codigo de estado HTTP correspondiente a este error.
+     * Gets the HTTP status code corresponding to this error.
      *
-     * @return El HttpStatus apropiado
+     * @return The appropriate HttpStatus
      */
     default HttpStatus httpStatus() {
         return switch (this) {
@@ -205,44 +204,44 @@ public sealed interface ApiError {
     }
 
     /**
-     * Obtiene el codigo numerico HTTP.
+     * Gets the numeric HTTP code.
      *
-     * @return El codigo de estado (e.g., 404, 400, 500)
+     * @return The status code (e.g., 404, 400, 500)
      */
     default int statusCode() {
         return httpStatus().value();
     }
 
     /**
-     * Obtiene el titulo estandar del error para RFC 7807.
+     * Gets the standard error title for RFC 7807.
      *
-     * @return El titulo del error
+     * @return The error title
      */
     default String title() {
         return switch (this) {
-            case NotFound _ -> "Recurso no encontrado";
-            case Validation _ -> "Error de validación";
-            case Conflict _ -> "Conflicto de recursos";
-            case Forbidden _ -> "Acción no permitida";
-            case PreconditionFailed _ -> "Precondición fallida";
-            case IdMismatch _ -> "IDs no coinciden";
-            case Internal _ -> "Error interno del servidor";
+            case NotFound _ -> "Resource not found";
+            case Validation _ -> "Validation error";
+            case Conflict _ -> "Resource conflict";
+            case Forbidden _ -> "Action not allowed";
+            case PreconditionFailed _ -> "Precondition failed";
+            case IdMismatch _ -> "IDs do not match";
+            case Internal _ -> "Internal server error";
         };
     }
 
     /**
-     * Obtiene el mensaje detallado del error.
+     * Gets the detailed error message.
      *
-     * @return El mensaje de detalle
+     * @return The detail message
      */
     default String detail() {
         return message();
     }
 
     /**
-     * Obtiene el tipo URI para RFC 7807.
+     * Gets the type URI for RFC 7807.
      *
-     * @return URI que identifica el tipo de problema
+     * @return URI that identifies the problem type
      */
     default String typeUri() {
         return switch (this) {
@@ -257,10 +256,10 @@ public sealed interface ApiError {
     }
 
     /**
-     * Convierte a ProblemDetail para respuestas RFC 7807.
+     * Converts to ProblemDetail for RFC 7807 responses.
      *
-     * @param instance URI de la instancia (tipicamente el request URI)
-     * @return ProblemDetail listo para serializar
+     * @param instance Instance URI (typically the request URI)
+     * @return ProblemDetail ready to serialize
      */
     default ProblemDetail toProblemDetail(String instance) {
         ProblemDetail.Builder builder =
@@ -271,7 +270,7 @@ public sealed interface ApiError {
                         .detail(detail())
                         .instance(instance);
 
-        // Agregar extensiones especificas por tipo
+        // Add type-specific extensions
         switch (this) {
             case Validation v when !v.fieldErrors().isEmpty() ->
                     builder.extension("fieldErrors", v.fieldErrors());

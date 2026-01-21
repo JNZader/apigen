@@ -9,29 +9,29 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 /**
- * Publisher que escucha eventos de dominio y los envía via SSE.
+ * Publisher that listens to domain events and sends them via SSE.
  *
- * <p>Convierte eventos de dominio del patrón DDD en eventos SSE para clientes conectados.
+ * <p>Converts DDD pattern domain events to SSE events for connected clients.
  *
- * <p>Ejemplo de uso:
+ * <p>Usage example:
  *
  * <pre>
- * // En tu servicio de dominio
+ * // In your domain service
  * {@literal @}Autowired
  * private ApplicationEventPublisher eventPublisher;
  *
  * public void createOrder(Order order) {
- *     // ... lógica de negocio ...
+ *     // ... business logic ...
  *     eventPublisher.publishEvent(new OrderCreatedEvent(order));
  * }
  *
- * // El SseEventPublisher escucha automáticamente y envía via SSE
+ * // SseEventPublisher automatically listens and sends via SSE
  * </pre>
  *
- * <p>El tópico SSE se determina del nombre del evento: - OrderCreatedEvent → tópico "orders" -
- * UserRegisteredEvent → tópico "users"
+ * <p>The SSE topic is determined from the event name: - OrderCreatedEvent -> topic "orders" -
+ * UserRegisteredEvent -> topic "users"
  *
- * <p>Los clientes deben estar suscritos al tópico apropiado para recibir eventos.
+ * <p>Clients must be subscribed to the appropriate topic to receive events.
  */
 @Component
 public class SseEventPublisher {
@@ -45,11 +45,11 @@ public class SseEventPublisher {
     }
 
     /**
-     * Escucha eventos de dominio y los publica via SSE.
+     * Listens to domain events and publishes them via SSE.
      *
-     * <p>El procesamiento es asíncrono para no bloquear el flujo principal.
+     * <p>Processing is asynchronous to not block the main flow.
      *
-     * @param event Evento de dominio a publicar
+     * @param event Domain event to publish
      */
     @Async
     @EventListener
@@ -57,7 +57,7 @@ public class SseEventPublisher {
         String topic = resolveTopicFromEvent(event);
         String eventName = resolveEventName(event);
 
-        log.debug("Publicando evento {} en tópico SSE: {}", eventName, topic);
+        log.debug("Publishing event {} to SSE topic: {}", eventName, topic);
 
         sseEmitterService.broadcast(
                 topic,
@@ -69,38 +69,38 @@ public class SseEventPublisher {
     }
 
     /**
-     * Publica un evento personalizado a un tópico específico.
+     * Publishes a custom event to a specific topic.
      *
-     * @param topic Tópico destino
-     * @param eventName Nombre del evento
-     * @param data Datos del evento
+     * @param topic Target topic
+     * @param eventName Event name
+     * @param data Event data
      */
     public void publish(String topic, String eventName, Object data) {
-        log.debug("Publicando evento {} en tópico SSE: {}", eventName, topic);
+        log.debug("Publishing event {} to SSE topic: {}", eventName, topic);
         sseEmitterService.broadcast(topic, eventName, data);
     }
 
     /**
-     * Publica un evento a un cliente específico.
+     * Publishes an event to a specific client.
      *
-     * @param clientId ID del cliente destino
-     * @param eventName Nombre del evento
-     * @param data Datos del evento
-     * @return true si el envío fue exitoso
+     * @param clientId Target client ID
+     * @param eventName Event name
+     * @param data Event data
+     * @return true if the send was successful
      */
     public boolean publishToClient(String clientId, String eventName, Object data) {
         return sseEmitterService.sendToClient(clientId, eventName, data);
     }
 
     /**
-     * Resuelve el tópico SSE a partir del evento.
+     * Resolves the SSE topic from the event.
      *
-     * <p>Convención: EntityNameEvent → "entitynames" (plural, minúsculas)
+     * <p>Convention: EntityNameEvent -> "entitynames" (plural, lowercase)
      */
     private String resolveTopicFromEvent(DomainEvent event) {
         String className = event.getClass().getSimpleName();
 
-        // Remover sufijos comunes de eventos
+        // Remove common event suffixes
         String baseName =
                 className
                         .replace("CreatedEvent", "")
@@ -108,19 +108,19 @@ public class SseEventPublisher {
                         .replace("DeletedEvent", "")
                         .replace("Event", "");
 
-        // Convertir a minúsculas y pluralizar simplemente
+        // Convert to lowercase and simple pluralize
         return baseName.toLowerCase() + "s";
     }
 
     /**
-     * Resuelve el nombre del evento para el tipo SSE.
+     * Resolves the event name for the SSE type.
      *
-     * <p>Convención: OrderCreatedEvent → "order.created"
+     * <p>Convention: OrderCreatedEvent -> "order.created"
      */
     private String resolveEventName(DomainEvent event) {
         String className = event.getClass().getSimpleName().replace("Event", "");
 
-        // Convertir CamelCase a dot.notation
+        // Convert CamelCase to dot.notation
         StringBuilder result = new StringBuilder();
         for (int i = 0; i < className.length(); i++) {
             char c = className.charAt(i);
