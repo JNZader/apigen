@@ -85,6 +85,9 @@ jobs:
         with:
           cache-read-only: true
 
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
       - name: Run apigen-core tests
         run: ./gradlew :apigen-core:test --no-daemon --continue
         env:
@@ -129,6 +132,9 @@ jobs:
         with:
           cache-read-only: true
 
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
       - name: Run apigen-security tests
         run: ./gradlew :apigen-security:test --no-daemon --continue
         env:
@@ -172,6 +178,9 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: true
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
 
       - name: Run apigen-codegen tests
         run: ./gradlew :apigen-codegen:test --no-daemon --continue
@@ -232,6 +241,9 @@ jobs:
         with:
           cache-read-only: true
 
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
       - name: Run apigen-server tests
         run: ./gradlew :apigen-server:test --no-daemon --continue
         env:
@@ -279,6 +291,9 @@ jobs:
         with:
           cache-read-only: true
 
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
       - name: Run apigen-gateway tests
         run: ./gradlew :apigen-gateway:test --no-daemon --continue
         env:
@@ -323,6 +338,9 @@ jobs:
         with:
           cache-read-only: true
 
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
       - name: Run apigen-graphql tests
         run: ./gradlew :apigen-graphql:test --no-daemon --continue
         env:
@@ -366,6 +384,9 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: true
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
 
       - name: Run apigen-grpc tests
         run: ./gradlew :apigen-grpc:test --no-daemon --continue
@@ -453,6 +474,9 @@ jobs:
         with:
           cache-read-only: true
 
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
       - name: Check code formatting
         run: ./gradlew spotlessCheck --no-daemon
         continue-on-error: true
@@ -517,6 +541,9 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: true
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
 
       - name: Build JARs
         run: ./gradlew jar --no-daemon
