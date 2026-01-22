@@ -109,12 +109,12 @@ public class MapperGenerator {
     %sDTO toDTO(%s entity);
 
     @Override
-    @Mapping(source = "activo", target = "estado")%s
+    @InheritConfiguration%s
     %s toEntity(%sDTO dto);
 
     @Override
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    @Mapping(source = "activo", target = "estado")%s
+    @InheritConfiguration
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)%s
     void updateEntityFromDTO(%sDTO dto, @MappingTarget %s entity);
 
     @Override
