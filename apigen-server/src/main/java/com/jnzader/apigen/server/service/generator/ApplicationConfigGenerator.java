@@ -162,28 +162,50 @@ logging:
      * Generates application-test.yml for test-specific configuration. Disables rate limiting and
      * other production features that interfere with tests.
      *
+     * @param config the project configuration
      * @return the application-test.yml content
      */
-    public String generateApplicationTestYml() {
-        return
-"""
-# =============================================================================
-# Test Profile Configuration
-# =============================================================================
-# This profile is automatically activated by @ActiveProfiles("test").
-# Disables rate limiting and other features that interfere with integration tests.
-# =============================================================================
+    public String generateApplicationTestYml(GenerateRequest.ProjectConfig config) {
+        boolean securityEnabled = config.getModules() != null && config.getModules().isSecurity();
 
-# Disable rate limiting for tests
-app:
-  rate-limit:
-    enabled: false
+        StringBuilder yml = new StringBuilder();
+        yml.append(
+                """
+                # =============================================================================
+                # Test Profile Configuration
+                # =============================================================================
+                # This profile is automatically activated by @ActiveProfiles("test").
+                # Disables rate limiting and other features that interfere with integration tests.
+                # =============================================================================
 
-# Logging configuration for tests
-logging:
-  level:
-    root: WARN
-    org.springframework.test: INFO
-""";
+                # Disable rate limiting for tests (apigen-core)
+                app:
+                  rate-limit:
+                    enabled: false
+                """);
+
+        if (securityEnabled) {
+            yml.append(
+                    """
+
+                    # Disable security for tests (apigen-security)
+                    # This allows integration tests to run without authentication
+                    apigen:
+                      security:
+                        enabled: false
+                    """);
+        }
+
+        yml.append(
+                """
+
+                # Logging configuration for tests
+                logging:
+                  level:
+                    root: WARN
+                    org.springframework.test: INFO
+                """);
+
+        return yml.toString();
     }
 }

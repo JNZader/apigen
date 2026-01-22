@@ -276,7 +276,9 @@ class ApplicationConfigGeneratorTest {
         @Test
         @DisplayName("Should include test profile comment")
         void shouldIncludeTestProfileComment() {
-            String result = applicationConfigGenerator.generateApplicationTestYml();
+            GenerateRequest.ProjectConfig config = createDefaultConfig();
+
+            String result = applicationConfigGenerator.generateApplicationTestYml(config);
 
             assertThat(result).contains("Test Profile Configuration");
         }
@@ -284,7 +286,9 @@ class ApplicationConfigGeneratorTest {
         @Test
         @DisplayName("Should disable rate limiting for tests")
         void shouldDisableRateLimitingForTests() {
-            String result = applicationConfigGenerator.generateApplicationTestYml();
+            GenerateRequest.ProjectConfig config = createDefaultConfig();
+
+            String result = applicationConfigGenerator.generateApplicationTestYml(config);
 
             assertThat(result).contains("app:").contains("rate-limit:").contains("enabled: false");
         }
@@ -292,9 +296,33 @@ class ApplicationConfigGeneratorTest {
         @Test
         @DisplayName("Should configure logging for tests")
         void shouldConfigureLoggingForTests() {
-            String result = applicationConfigGenerator.generateApplicationTestYml();
+            GenerateRequest.ProjectConfig config = createDefaultConfig();
+
+            String result = applicationConfigGenerator.generateApplicationTestYml(config);
 
             assertThat(result).contains("logging:").contains("level:").contains("root: WARN");
+        }
+
+        @Test
+        @DisplayName("Should disable security when security module is enabled")
+        void shouldDisableSecurityWhenSecurityModuleIsEnabled() {
+            GenerateRequest.ProjectConfig config = createDefaultConfig();
+            config.setModules(GenerateRequest.ModulesConfig.builder().security(true).build());
+
+            String result = applicationConfigGenerator.generateApplicationTestYml(config);
+
+            assertThat(result).contains("apigen:").contains("security:").contains("enabled: false");
+        }
+
+        @Test
+        @DisplayName("Should not include security config when security module is disabled")
+        void shouldNotIncludeSecurityConfigWhenSecurityModuleIsDisabled() {
+            GenerateRequest.ProjectConfig config = createDefaultConfig();
+            config.setModules(GenerateRequest.ModulesConfig.builder().security(false).build());
+
+            String result = applicationConfigGenerator.generateApplicationTestYml(config);
+
+            assertThat(result).doesNotContain("apigen:");
         }
     }
 
