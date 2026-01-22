@@ -13,6 +13,16 @@ public final class GeneratedProjectVersions {
     }
 
     // ==========================================================================
+    // APiGen Module Versions
+    // ==========================================================================
+
+    /** APiGen Core version for generated projects (from JitPack). */
+    public static final String APIGEN_CORE_VERSION = "v2.3.0";
+
+    /** APiGen Security version for generated projects (from JitPack). */
+    public static final String APIGEN_SECURITY_VERSION = "v2.3.0";
+
+    // ==========================================================================
     // Core Platform Versions
     // ==========================================================================
 

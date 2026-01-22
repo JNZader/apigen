@@ -94,7 +94,9 @@ class BuildConfigGeneratorTest {
 
             assertThat(result)
                     .contains(
-                            "implementation 'com.github.jnzader.apigen:apigen-core:main-SNAPSHOT'");
+                            "implementation 'com.github.jnzader.apigen:apigen-core:"
+                                    + GeneratedProjectVersions.APIGEN_CORE_VERSION
+                                    + "'");
         }
 
         @Test
@@ -107,8 +109,9 @@ class BuildConfigGeneratorTest {
 
             assertThat(result)
                     .contains(
-                            "implementation"
-                                    + " 'com.github.jnzader.apigen:apigen-security:main-SNAPSHOT'");
+                            "implementation 'com.github.jnzader.apigen:apigen-security:"
+                                    + GeneratedProjectVersions.APIGEN_SECURITY_VERSION
+                                    + "'");
         }
 
         @Test

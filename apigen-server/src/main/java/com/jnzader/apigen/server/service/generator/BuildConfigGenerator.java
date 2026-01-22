@@ -31,13 +31,15 @@ public class BuildConfigGenerator {
 
         // Core dependencies always included (via JitPack)
         deps.append("    // APiGen Core (from GitHub via JitPack)\n");
-        deps.append("    implementation 'com.github.jnzader.apigen:apigen-core:main-SNAPSHOT'\n");
+        deps.append(
+                "    implementation 'com.github.jnzader.apigen:apigen-core:%s'\n"
+                        .formatted(GeneratedProjectVersions.APIGEN_CORE_VERSION));
 
         if (config.getModules() != null && config.getModules().isSecurity()) {
             deps.append("\n    // APiGen Security (from GitHub via JitPack)\n");
             deps.append(
-                    "    implementation"
-                            + " 'com.github.jnzader.apigen:apigen-security:main-SNAPSHOT'\n");
+                    "    implementation 'com.github.jnzader.apigen:apigen-security:%s'\n"
+                            .formatted(GeneratedProjectVersions.APIGEN_SECURITY_VERSION));
         }
 
         String dbDeps = generateDatabaseDependencies(config);

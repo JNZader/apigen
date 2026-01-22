@@ -33,10 +33,10 @@
       "changelogTitle": "# Changelog\n\nAll notable changes to this project will be documented in this file.\n\nThe format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),\nand this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)."
     }],
     ["@semantic-release/exec", {
-      "prepareCmd": "./gradlew setVersion -Pversion=${nextRelease.version} --no-daemon"
+      "prepareCmd": "./gradlew setVersion -Pversion=${nextRelease.version} --no-daemon && sed -i 's/APIGEN_CORE_VERSION = \"v[0-9.]*\"/APIGEN_CORE_VERSION = \"v${nextRelease.version}\"/' apigen-server/src/main/java/com/jnzader/apigen/server/config/GeneratedProjectVersions.java && sed -i 's/APIGEN_SECURITY_VERSION = \"v[0-9.]*\"/APIGEN_SECURITY_VERSION = \"v${nextRelease.version}\"/' apigen-server/src/main/java/com/jnzader/apigen/server/config/GeneratedProjectVersions.java"
     }],
     ["@semantic-release/git", {
-      "assets": ["CHANGELOG.md", "**/build.gradle", "gradle.properties"],
+      "assets": ["CHANGELOG.md", "**/build.gradle", "gradle.properties", "apigen-server/src/main/java/com/jnzader/apigen/server/config/GeneratedProjectVersions.java"],
       "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
     }],
     ["@semantic-release/github", {
