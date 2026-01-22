@@ -9,8 +9,7 @@ import java.util.Set;
 public record AuthResponseDTO(
         @Schema(
                         description = "Token de acceso JWT",
-                        example =
-                                "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCIsImtpZCI6ImtleS0xIn0.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTcwNjAwMDAwMCwiZXhwIjoxNzA2MDAzNjAwfQ.signature")
+                        example = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIn0.EXAMPLE_SIGNATURE")
                 String accessToken,
         @Schema(
                         description = "Token de refresco para obtener nuevos access tokens",
