@@ -129,7 +129,7 @@ class %sControllerImplTest {
         @DisplayName("Should get all %s with pagination")
         @SuppressWarnings("unchecked")
         void shouldGetAllWithPagination() throws Exception {
-            Page<%s> page = new PageImpl<>(new ArrayList<>(List.of(%s)));
+            Page<%s> page = new PageImpl<>(new ArrayList<>(List.of(%s)), PageRequest.of(0, 10), 1);
             when(service.findAll(any(Specification.class), any(Pageable.class))).thenReturn(Result.success(page));
             when(mapper.toDTO(any(%s.class))).thenReturn(dto);
 
