@@ -1,1 +1,2 @@
 com.jnzader.apigen.security.autoconfigure.ApigenSecurityAutoConfiguration
+com.jnzader.apigen.security.autoconfigure.ApigenSecurityDisabledAutoConfiguration

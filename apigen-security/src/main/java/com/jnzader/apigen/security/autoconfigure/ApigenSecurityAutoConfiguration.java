@@ -3,7 +3,6 @@ package com.jnzader.apigen.security.autoconfigure;
 import com.jnzader.apigen.core.autoconfigure.ApigenCoreAutoConfiguration;
 import com.jnzader.apigen.security.infrastructure.config.OAuth2SecurityConfig;
 import com.jnzader.apigen.security.infrastructure.config.SecurityConfig;
-import com.jnzader.apigen.security.infrastructure.config.SecurityDisabledConfig;
 import com.jnzader.apigen.security.infrastructure.config.SecurityProperties;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -62,7 +61,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EnableConfigurationProperties(SecurityProperties.class)
 @ComponentScan(basePackages = "com.jnzader.apigen.security")
 @EnableJpaRepositories(basePackages = "com.jnzader.apigen.security.infrastructure.repository")
-@Import({SecurityConfig.class, SecurityDisabledConfig.class, OAuth2SecurityConfig.class})
+@Import({SecurityConfig.class, OAuth2SecurityConfig.class})
 public class ApigenSecurityAutoConfiguration {
 
     /** Marker bean to indicate APiGen Security is auto-configured. */
