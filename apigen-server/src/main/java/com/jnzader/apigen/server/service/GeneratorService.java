@@ -165,6 +165,12 @@ public class GeneratorService {
                 applicationConfigGenerator.generateApplicationDockerYml(config);
         Files.writeString(resourcesDir.resolve("application-docker.yml"), applicationDockerYml);
 
+        // application-test.yml (in test resources)
+        String applicationTestYml = applicationConfigGenerator.generateApplicationTestYml();
+        Path testResourcesDir = projectRoot.resolve("src/test/resources");
+        Files.createDirectories(testResourcesDir);
+        Files.writeString(testResourcesDir.resolve("application-test.yml"), applicationTestYml);
+
         // Main Application class
         String className = toPascalCase(config.getArtifactId()) + "Application";
         String mainClass = projectStructureGenerator.generateMainClass(config);

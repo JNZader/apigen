@@ -157,4 +157,33 @@ logging:
                         db.getHibernateDialect(),
                         config.getBasePackage());
     }
+
+    /**
+     * Generates application-test.yml for test-specific configuration. Disables rate limiting and
+     * other production features that interfere with tests.
+     *
+     * @return the application-test.yml content
+     */
+    public String generateApplicationTestYml() {
+        return
+"""
+# =============================================================================
+# Test Profile Configuration
+# =============================================================================
+# This profile is automatically activated by @ActiveProfiles("test").
+# Disables rate limiting and other features that interfere with integration tests.
+# =============================================================================
+
+# Disable rate limiting for tests
+app:
+  rate-limit:
+    enabled: false
+
+# Logging configuration for tests
+logging:
+  level:
+    root: WARN
+    org.springframework.test: INFO
+""";
+    }
 }
