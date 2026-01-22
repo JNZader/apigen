@@ -166,7 +166,7 @@ public class GeneratorService {
         Files.writeString(resourcesDir.resolve("application-docker.yml"), applicationDockerYml);
 
         // application-test.yml (in test resources)
-        String applicationTestYml = applicationConfigGenerator.generateApplicationTestYml();
+        String applicationTestYml = applicationConfigGenerator.generateApplicationTestYml(config);
         Path testResourcesDir = projectRoot.resolve("src/test/resources");
         Files.createDirectories(testResourcesDir);
         Files.writeString(testResourcesDir.resolve("application-test.yml"), applicationTestYml);
