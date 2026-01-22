@@ -165,7 +165,7 @@ package %s.%s.domain.entity;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 public class %s extends Base {
 %s
 }
