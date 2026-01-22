@@ -59,6 +59,7 @@ import %s.%s.application.service.%sService;
 import %s.%s.domain.entity.%s;
 import %s.application.util.Result;
 import tools.jackson.databind.json.JsonMapper;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -105,10 +106,11 @@ class %sControllerImplTest {
     @BeforeEach
     void setUp() {
         controller = new %sControllerImpl(service, mapper);
+        jsonMapper = JsonMapper.builder().build();
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
+                .setMessageConverters(new JacksonJsonHttpMessageConverter(jsonMapper))
                 .build();
-        jsonMapper = JsonMapper.builder().build();
 
         %s = new %s();
         %s.setId(1L);
