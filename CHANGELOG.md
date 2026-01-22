@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0](https://github.com/JNZader/apigen/compare/v2.2.1...v2.3.0) (2026-01-22)
+
+### Features
+
+* **core:** add enabled flag to RateLimitingFilter for test profiles ([86c39e1](https://github.com/JNZader/apigen/commit/86c39e13531513fdc8f563a9d479e3b9b50c31ce))
+
 ## [2.2.1](https://github.com/JNZader/apigen/compare/v2.2.0...v2.2.1) (2026-01-22)
 
 ### Bug Fixes
