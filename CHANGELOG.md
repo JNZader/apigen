@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0](https://github.com/JNZader/apigen/compare/v2.1.18...v2.2.0) (2026-01-22)
+
+### Features
+
+* **codegen:** generate application-test.yml with rate limiting disabled ([bdeef5d](https://github.com/JNZader/apigen/commit/bdeef5d95f530fecabe060b8a86d5605b198a7b9))
+
 ## [2.1.18](https://github.com/JNZader/apigen/compare/v2.1.17...v2.1.18) (2026-01-22)
 
 ### Bug Fixes
