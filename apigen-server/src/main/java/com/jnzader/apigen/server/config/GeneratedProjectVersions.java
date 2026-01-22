@@ -23,7 +23,7 @@ public final class GeneratedProjectVersions {
     public static final String JAVA_VERSION = "25";
 
     /** Default Gradle version for generated projects. */
-    public static final String GRADLE_VERSION = "8.14";
+    public static final String GRADLE_VERSION = "9.3.0";
 
     /** Default Spring Boot version for generated projects. */
     public static final String SPRING_BOOT_VERSION = "4.0.0";
