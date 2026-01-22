@@ -77,10 +77,16 @@ public record AppProperties(
     }
 
     /** Propiedades de rate limiting. */
-    public record RateLimitProperties(@Positive int maxRequests, @Positive int windowSeconds) {
+    public record RateLimitProperties(
+            boolean enabled, @Positive int maxRequests, @Positive int windowSeconds) {
         public RateLimitProperties {
             if (maxRequests <= 0) maxRequests = 100;
             if (windowSeconds <= 0) windowSeconds = 60;
+        }
+
+        /** Default constructor with rate limiting enabled. */
+        public RateLimitProperties() {
+            this(true, 100, 60);
         }
     }
 

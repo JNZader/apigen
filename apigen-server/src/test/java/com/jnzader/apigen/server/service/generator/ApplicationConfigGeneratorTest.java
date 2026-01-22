@@ -286,11 +286,7 @@ class ApplicationConfigGeneratorTest {
         void shouldDisableRateLimitingForTests() {
             String result = applicationConfigGenerator.generateApplicationTestYml();
 
-            assertThat(result)
-                    .contains("apigen:")
-                    .contains("security:")
-                    .contains("rate-limit:")
-                    .contains("enabled: false");
+            assertThat(result).contains("app:").contains("rate-limit:").contains("enabled: false");
         }
 
         @Test
