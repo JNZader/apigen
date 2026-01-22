@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.16](https://github.com/JNZader/apigen/compare/v2.1.15...v2.1.16) (2026-01-22)
+
+### Bug Fixes
+
+* **codegen:** use PageRequest in PageImpl to fix Jackson serialization ([8264d7f](https://github.com/JNZader/apigen/commit/8264d7fca43e3f0fd4990c6f691e048ec85b64d9))
+
 ## [2.1.15](https://github.com/JNZader/apigen/compare/v2.1.14...v2.1.15) (2026-01-22)
 
 ### Bug Fixes
