@@ -23,6 +23,7 @@ public class IntegrationTestGenerator {
         StringBuilder fieldAssignments = new StringBuilder();
         StringBuilder updateAssignments = new StringBuilder();
         StringBuilder fieldAssertions = new StringBuilder();
+        StringBuilder uniqueFieldAssignments = new StringBuilder();
 
         for (SqlColumn col : table.getBusinessColumns()) {
             String fieldName = col.getJavaFieldName();
@@ -37,6 +38,24 @@ public class IntegrationTestGenerator {
                     .append("(")
                     .append(sampleValue)
                     .append(")");
+
+            // For cursor pagination test: append index to String values for uniqueness
+            if ("String".equals(col.getJavaType())) {
+                uniqueFieldAssignments
+                        .append("\n                        .")
+                        .append(fieldName)
+                        .append("(")
+                        .append(sampleValue)
+                        .append(" + \" \" + i)");
+            } else {
+                uniqueFieldAssignments
+                        .append("\n                        .")
+                        .append(fieldName)
+                        .append("(")
+                        .append(sampleValue)
+                        .append(")");
+            }
+
             updateAssignments
                     .append("\n        dto.set")
                     .append(capitalField)
@@ -278,11 +297,14 @@ class %sIntegrationTest {
     @org.junit.jupiter.api.Order(13)
     @DisplayName("13. GET /cursor - Should support cursor pagination")
     void shouldSupportCursorPagination() throws Exception {
-        // First, create a few entities for pagination
+        // First, create a few entities for pagination with unique values
         for (int i = 0; i < 3; i++) {
+            %sDTO uniqueDto = %sDTO.builder()
+                        .activo(true)%s
+                        .build();
             mockMvc.perform(post(BASE_URL)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(jsonMapper.writeValueAsString(testDto)))
+                            .content(jsonMapper.writeValueAsString(uniqueDto)))
                     .andExpect(status().isCreated());
         }
 
@@ -363,6 +385,10 @@ class %sIntegrationTest {
                         entityName,
                         // Test 12 - Validation
                         entityName,
-                        entityName);
+                        entityName,
+                        // Test 13 - Cursor Pagination
+                        entityName,
+                        entityName,
+                        uniqueFieldAssignments.toString());
     }
 }

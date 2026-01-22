@@ -322,6 +322,21 @@ class IntegrationTestGeneratorTest {
         }
 
         @Test
+        @DisplayName("Should generate cursor pagination test with unique DTOs for each entity")
+        void shouldGenerateCursorPaginationWithUniqueDtos() {
+            SqlTable table = createTableWithBusinessColumns();
+
+            String result = generator.generate(table);
+
+            // Verify unique DTOs are created inside the loop with index suffix for strings
+            assertThat(result)
+                    .contains("for (int i = 0; i < 3; i++)")
+                    .contains("ProductDTO uniqueDto = ProductDTO.builder()")
+                    // String fields should have index appended for uniqueness
+                    .contains(".name(\"Test name\" + \" \" + i)");
+        }
+
+        @Test
         @DisplayName("Should generate filter test (Order 14)")
         void shouldGenerateFilterTest() {
             SqlTable table = createSimpleTable("products");
