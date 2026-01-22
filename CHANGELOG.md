@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.11](https://github.com/JNZader/apigen/compare/v2.1.10...v2.1.11) (2026-01-22)
+
+### Bug Fixes
+
+* **codegen:** resolve MapStruct cycle error in mapper generation ([#45](https://github.com/JNZader/apigen/issues/45)) ([2ed69c8](https://github.com/JNZader/apigen/commit/2ed69c87902ef1ed09573c6b858b7a5eef910086))
+
 ## [2.1.10](https://github.com/JNZader/apigen/compare/v2.1.9...v2.1.10) (2026-01-22)
 
 ### Bug Fixes
