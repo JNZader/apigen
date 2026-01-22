@@ -61,6 +61,14 @@ public class GenerateRequest {
 
         @Valid @Builder.Default private DatabaseConfig database = new DatabaseConfig();
 
+        @Valid private CorsConfig corsConfig;
+
+        @Valid private CacheConfig cacheConfig;
+
+        @Valid private RateLimitConfig rateLimitConfig;
+
+        @Valid private SecurityConfigDTO securityConfig;
+
         /** Generate the base package from groupId and artifactId. */
         public String getBasePackage() {
             String sanitizedArtifact = artifactId.replace("-", "");
@@ -216,5 +224,81 @@ public class GenerateRequest {
                 default -> "org.hibernate.dialect.PostgreSQLDialect";
             };
         }
+    }
+
+    /** CORS configuration. */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CorsConfig {
+        private java.util.List<String> allowedOrigins;
+        private java.util.List<String> allowedMethods;
+        private java.util.List<String> allowedHeaders;
+        private java.util.List<String> exposedHeaders;
+        @Builder.Default private boolean allowCredentials = true;
+        @Builder.Default private int maxAgeSeconds = 3600;
+    }
+
+    /** Cache configuration. */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CacheConfig {
+        @Builder.Default private String type = "local";
+        private CacheEntitiesConfig entities;
+        private CacheListsConfig lists;
+
+        @Data
+        @Builder
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class CacheEntitiesConfig {
+            @Builder.Default private int maxSize = 1000;
+            @Builder.Default private int expireAfterWriteMinutes = 10;
+        }
+
+        @Data
+        @Builder
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class CacheListsConfig {
+            @Builder.Default private int maxSize = 100;
+            @Builder.Default private int expireAfterWriteMinutes = 5;
+        }
+    }
+
+    /** Rate limiting configuration. */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RateLimitConfig {
+        @Builder.Default private String storageMode = "IN_MEMORY";
+        @Builder.Default private int requestsPerSecond = 100;
+        @Builder.Default private int burstCapacity = 150;
+        @Builder.Default private int authRequestsPerMinute = 10;
+        @Builder.Default private int authBurstCapacity = 15;
+        @Builder.Default private int blockDurationSeconds = 60;
+        @Builder.Default private boolean enablePerUser = true;
+        @Builder.Default private boolean enablePerEndpoint = true;
+    }
+
+    /** Security configuration DTO. */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class SecurityConfigDTO {
+        @Builder.Default private String mode = "jwt";
+        @Builder.Default private int jwtSecretLength = 64;
+        @Builder.Default private int accessTokenExpiration = 30;
+        @Builder.Default private int refreshTokenExpiration = 7;
+        @Builder.Default private boolean enableRefreshToken = true;
+        @Builder.Default private boolean enableTokenBlacklist = true;
+        @Builder.Default private int passwordMinLength = 8;
+        @Builder.Default private int maxLoginAttempts = 5;
+        @Builder.Default private int lockoutMinutes = 15;
     }
 }
