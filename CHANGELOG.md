@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.9](https://github.com/JNZader/apigen/compare/v2.1.8...v2.1.9) (2026-01-22)
+
+### Bug Fixes
+
+* **codegen:** use @SuperBuilder for proper inheritance support ([#43](https://github.com/JNZader/apigen/issues/43)) ([76a5ab4](https://github.com/JNZader/apigen/commit/76a5ab41b257d555a8b013f4613e9209a8e682c1))
+
 ## [2.1.8](https://github.com/JNZader/apigen/compare/v2.1.7...v2.1.8) (2026-01-21)
 
 ### Bug Fixes
