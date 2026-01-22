@@ -117,7 +117,6 @@ class CacheTest {
 
         @Test
         @DisplayName("should expire entries after access duration")
-        @SuppressWarnings("java:S2925") // Thread.sleep necesario para probar expiración de cache
         void shouldExpireEntriesAfterAccessDuration() {
             // Given
             Cache<String, String> cache =
@@ -128,15 +127,11 @@ class CacheTest {
             // Access to reset expiration
             cache.getIfPresent("key");
 
-            // When - wait less than expiration time
-            try {
-                Thread.sleep(50);
-            } catch (InterruptedException _) {
-                Thread.currentThread().interrupt();
-            }
+            // When - wait for expiration
+            await().atMost(Duration.ofMillis(500)).until(() -> cache.getIfPresent("key") == null);
 
-            // Then - should still be present
-            assertThat(cache.getIfPresent("key")).isEqualTo("value");
+            // Then
+            assertThat(cache.getIfPresent("key")).isNull();
         }
     }
 
