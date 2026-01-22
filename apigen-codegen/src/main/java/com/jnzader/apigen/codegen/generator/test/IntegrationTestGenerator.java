@@ -59,7 +59,7 @@ package %s.%s;
 import %s.%s.application.dto.%sDTO;
 import %s.%s.domain.entity.%s;
 import %s.%s.infrastructure.repository.%sRepository;
-import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

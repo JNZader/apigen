@@ -15,6 +15,33 @@ public class MapperGenerator {
     private static final String MAPPING_SOURCE = "\n    @Mapping(source = \"";
     private static final String IGNORE_TRUE = "\", ignore = true)";
 
+    // Audit fields from Base class that should be ignored in updateEntityFromDTO
+    private static final String AUDIT_FIELD_IGNORES =
+            MAPPING_TARGET
+                    + "fechaCreacion"
+                    + IGNORE_TRUE
+                    + MAPPING_TARGET
+                    + "fechaActualizacion"
+                    + IGNORE_TRUE
+                    + MAPPING_TARGET
+                    + "fechaEliminacion"
+                    + IGNORE_TRUE
+                    + MAPPING_TARGET
+                    + "eliminadoPor"
+                    + IGNORE_TRUE
+                    + MAPPING_TARGET
+                    + "creadoPor"
+                    + IGNORE_TRUE
+                    + MAPPING_TARGET
+                    + "modificadoPor"
+                    + IGNORE_TRUE
+                    + MAPPING_TARGET
+                    + "version"
+                    + IGNORE_TRUE
+                    + MAPPING_TARGET
+                    + "domainEvents"
+                    + IGNORE_TRUE;
+
     private final String basePackage;
 
     public MapperGenerator(String basePackage) {
@@ -129,7 +156,7 @@ public class MapperGenerator {
                                     toEntityMappings,
                                     entityName,
                                     entityName,
-                                    updateEntityMappings,
+                                    AUDIT_FIELD_IGNORES + updateEntityMappings,
                                     entityName,
                                     entityName,
                                     updateDTOMappings,
