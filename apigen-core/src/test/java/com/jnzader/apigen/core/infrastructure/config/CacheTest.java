@@ -128,10 +128,12 @@ class CacheTest {
             cache.getIfPresent("key");
 
             // When - wait for expiration
-            await().atMost(Duration.ofMillis(500)).until(() -> cache.getIfPresent("key") == null);
+            // Note: Use asMap().containsKey() instead of getIfPresent() because
+            // getIfPresent() counts as an access and resets the expiration timer
+            await().atMost(Duration.ofMillis(500)).until(() -> !cache.asMap().containsKey("key"));
 
             // Then
-            assertThat(cache.getIfPresent("key")).isNull();
+            assertThat(cache.asMap().containsKey("key")).isFalse();
         }
     }
 
