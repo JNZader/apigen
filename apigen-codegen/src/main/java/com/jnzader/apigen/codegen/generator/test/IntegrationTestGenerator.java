@@ -39,14 +39,16 @@ public class IntegrationTestGenerator {
                     .append(sampleValue)
                     .append(")");
 
-            // For cursor pagination test: append index to String values for uniqueness
+            // For cursor pagination test: use UUID + index for truly unique String values
             if ("String".equals(col.getJavaType())) {
                 uniqueFieldAssignments
                         .append("\n                        .")
                         .append(fieldName)
                         .append("(")
                         .append(sampleValue)
-                        .append(" + \" \" + i)");
+                        .append(
+                                " + \"-\" + java.util.UUID.randomUUID().toString().substring(0, 8)"
+                                        + " + \"-\" + i)");
             } else {
                 uniqueFieldAssignments
                         .append("\n                        .")

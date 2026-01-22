@@ -328,12 +328,14 @@ class IntegrationTestGeneratorTest {
 
             String result = generator.generate(table);
 
-            // Verify unique DTOs are created inside the loop with index suffix for strings
+            // Verify unique DTOs are created inside the loop with UUID + index for truly unique
+            // values
             assertThat(result)
                     .contains("for (int i = 0; i < 3; i++)")
                     .contains("ProductDTO uniqueDto = ProductDTO.builder()")
-                    // String fields should have index appended for uniqueness
-                    .contains(".name(\"Test name\" + \" \" + i)");
+                    // String fields should use UUID for true uniqueness across test runs
+                    .contains("java.util.UUID.randomUUID().toString().substring(0, 8)")
+                    .contains(".name(\"Test name\"");
         }
 
         @Test
