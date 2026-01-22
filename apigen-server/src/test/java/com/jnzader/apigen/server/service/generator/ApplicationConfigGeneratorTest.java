@@ -269,6 +269,35 @@ class ApplicationConfigGeneratorTest {
         }
     }
 
+    @Nested
+    @DisplayName("generateApplicationTestYml()")
+    class GenerateApplicationTestYmlTests {
+
+        @Test
+        @DisplayName("Should include test profile comment")
+        void shouldIncludeTestProfileComment() {
+            String result = applicationConfigGenerator.generateApplicationTestYml();
+
+            assertThat(result).contains("Test Profile Configuration");
+        }
+
+        @Test
+        @DisplayName("Should disable rate limiting for tests")
+        void shouldDisableRateLimitingForTests() {
+            String result = applicationConfigGenerator.generateApplicationTestYml();
+
+            assertThat(result).contains("app:").contains("rate-limit:").contains("enabled: false");
+        }
+
+        @Test
+        @DisplayName("Should configure logging for tests")
+        void shouldConfigureLoggingForTests() {
+            String result = applicationConfigGenerator.generateApplicationTestYml();
+
+            assertThat(result).contains("logging:").contains("level:").contains("root: WARN");
+        }
+    }
+
     private GenerateRequest.ProjectConfig createDefaultConfig() {
         return GenerateRequest.ProjectConfig.builder()
                 .name("My API")
