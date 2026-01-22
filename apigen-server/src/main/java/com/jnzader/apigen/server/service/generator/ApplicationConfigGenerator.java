@@ -180,6 +180,8 @@ public class ApplicationConfigGenerator {
         int entitiesExpire = 10;
         int listsMaxSize = 100;
         int listsExpire = 5;
+        int countsMaxSize = 50;
+        int countsExpire = 2;
 
         if (cache != null) {
             if (cache.getEntities() != null) {
@@ -194,10 +196,13 @@ public class ApplicationConfigGenerator {
 
         yml.append("    entities:\n");
         yml.append("      max-size: ").append(entitiesMaxSize).append("\n");
-        yml.append("      expire-after-write-minutes: ").append(entitiesExpire).append("\n");
+        yml.append("      expire-after-write: ").append(entitiesExpire).append("m\n");
         yml.append("    lists:\n");
         yml.append("      max-size: ").append(listsMaxSize).append("\n");
-        yml.append("      expire-after-write-minutes: ").append(listsExpire).append("\n");
+        yml.append("      expire-after-write: ").append(listsExpire).append("m\n");
+        yml.append("    counts:\n");
+        yml.append("      max-size: ").append(countsMaxSize).append("\n");
+        yml.append("      expire-after-write: ").append(countsExpire).append("m\n");
     }
 
     private void appendRateLimitConfig(StringBuilder yml, RateLimitConfig rateLimit) {
