@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.1](https://github.com/JNZader/apigen/compare/v2.4.0...v2.4.1) (2026-01-22)
+
+### Bug Fixes
+
+* **ci:** add chmod +x gradlew to all test jobs ([a121cb7](https://github.com/JNZader/apigen/commit/a121cb7c49e59e7dcef24bf2850d58d7ca795b0a))
+* **ci:** remove dorny/test-reporter due to permission issues in PRs ([ba84333](https://github.com/JNZader/apigen/commit/ba8433371cb5bed6c4ee49d857d93128a82a01e0))
+* **codegen:** disable security in test profile when security module is enabled ([c44cac4](https://github.com/JNZader/apigen/commit/c44cac4d05c3395093c49c931f951e64b59fe798))
+
+### CI/CD
+
+* add granular test jobs per module ([db80ab7](https://github.com/JNZader/apigen/commit/db80ab708706217028f577326ed449924e687bab))
+
 ## [2.4.0](https://github.com/JNZader/apigen/compare/v2.3.0...v2.4.0) (2026-01-22)
 
 ### Features
