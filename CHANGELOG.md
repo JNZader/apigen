@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.0](https://github.com/JNZader/apigen/compare/v2.3.0...v2.4.0) (2026-01-22)
+
+### Features
+
+* **server:** use stable JitPack versions for generated projects ([c2dcf03](https://github.com/JNZader/apigen/commit/c2dcf03a3f925129230354d937ac66e72d5c06bf))
+
 ## [2.3.0](https://github.com/JNZader/apigen/compare/v2.2.1...v2.3.0) (2026-01-22)
 
 ### Features
