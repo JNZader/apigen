@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.2](https://github.com/JNZader/apigen/compare/v2.4.1...v2.4.2) (2026-01-22)
+
+### Bug Fixes
+
+* **ci:** add permissions for security scan and update CodeQL to v4 ([63105fa](https://github.com/JNZader/apigen/commit/63105fab7ffc6d759012ed92077dd8976f8ed718))
+* **security:** add auto-configuration for disabled security mode ([5f5b378](https://github.com/JNZader/apigen/commit/5f5b378acd83922bb455409a9cfce1150e6f485d))
+* **security:** replace JWT example to avoid false positive in Trivy scan ([8ba1d26](https://github.com/JNZader/apigen/commit/8ba1d26ba3b2d8613429a4cd107c9f5f8c141e93))
+
 ## [2.4.1](https://github.com/JNZader/apigen/compare/v2.4.0...v2.4.1) (2026-01-22)
 
 ### Bug Fixes
