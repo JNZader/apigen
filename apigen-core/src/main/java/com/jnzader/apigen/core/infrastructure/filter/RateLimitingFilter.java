@@ -32,14 +32,17 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     private static final Logger log = LoggerFactory.getLogger(RateLimitingFilter.class);
     private static final String UNKNOWN_IP = "unknown";
 
+    private final boolean enabled;
     private final int maxRequestsPerWindow;
     private final Duration windowDuration;
     private final Cache<String, AtomicInteger> requestCounts;
 
     public RateLimitingFilter(
+            @Value("${app.rate-limit.enabled:true}") boolean enabled,
             @Value("${app.rate-limit.max-requests:100}") int maxRequestsPerWindow,
             @Value("${app.rate-limit.window-seconds:60}") int windowSeconds) {
 
+        this.enabled = enabled;
         this.maxRequestsPerWindow = maxRequestsPerWindow;
         this.windowDuration = Duration.ofSeconds(windowSeconds);
 
@@ -49,10 +52,14 @@ public class RateLimitingFilter extends OncePerRequestFilter {
                         .maximumSize(10000) // Maximum 10k IPs in cache
                         .build();
 
-        log.info(
-                "Rate limiting configured: {} requests per {}s",
-                maxRequestsPerWindow,
-                windowSeconds);
+        if (enabled) {
+            log.info(
+                    "Rate limiting configured: {} requests per {}s",
+                    maxRequestsPerWindow,
+                    windowSeconds);
+        } else {
+            log.info("Rate limiting is DISABLED");
+        }
     }
 
     @Override
@@ -113,6 +120,10 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
+        // Skip if rate limiting is disabled
+        if (!enabled) {
+            return true;
+        }
         String path = request.getRequestURI();
         // Do not apply rate limit to actuator endpoints
         return path.startsWith("/actuator/");

@@ -31,7 +31,7 @@ class RateLimitingFilterTest {
 
     @BeforeEach
     void setUp() {
-        filter = new RateLimitingFilter(5, 60); // 5 requests per 60 seconds
+        filter = new RateLimitingFilter(true, 5, 60); // enabled, 5 requests per 60 seconds
     }
 
     @Nested
@@ -127,6 +127,14 @@ class RateLimitingFilterTest {
         void shouldFilterApiEndpoints() {
             when(request.getRequestURI()).thenReturn("/api/users");
             assertThat(filter.shouldNotFilter(request)).isFalse();
+        }
+
+        @Test
+        @DisplayName("should not filter when rate limiting is disabled")
+        void shouldNotFilterWhenDisabled() {
+            RateLimitingFilter disabledFilter = new RateLimitingFilter(false, 5, 60);
+            // No need to mock URI - disabled filter returns true before checking path
+            assertThat(disabledFilter.shouldNotFilter(request)).isTrue();
         }
     }
 }
