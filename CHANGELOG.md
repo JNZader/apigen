@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.17](https://github.com/JNZader/apigen/compare/v2.1.16...v2.1.17) (2026-01-22)
+
+### Bug Fixes
+
+* **codegen:** generate unique DTOs in cursor pagination test ([56b4888](https://github.com/JNZader/apigen/commit/56b4888ab5813d49c262a8df03be04d2d155d3da))
+* **core:** make cache expiration test more robust ([b68a13a](https://github.com/JNZader/apigen/commit/b68a13a8f217d750379065ada56c47936ca604b7))
+* **test:** use asMap() to avoid resetting cache expiration timer ([e7e99b0](https://github.com/JNZader/apigen/commit/e7e99b017ac52bc1fc0eae19373f71a77608d019))
+
 ## [2.1.16](https://github.com/JNZader/apigen/compare/v2.1.15...v2.1.16) (2026-01-22)
 
 ### Bug Fixes
