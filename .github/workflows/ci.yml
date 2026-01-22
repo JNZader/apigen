@@ -1,20 +1,14 @@
 # ==========================================
-# APiGen - CI Pipeline (Multi-Module)
+# APiGen - CI Pipeline (Granular Multi-Module)
 # ==========================================
-# Build and test pipeline for APiGen library modules
+# Granular build and test pipeline for APiGen library modules.
+# Each module has its own test job for easy error identification.
 #
-# Modules:
-# - apigen-core: Core functionality (CRUD, HATEOAS, caching)
-# - apigen-security: JWT authentication and rate limiting
-# - apigen-codegen: Code generation from SQL/commands
-# - apigen-bom: Bill of Materials for dependency management
-# - apigen-example: Example application demonstrating usage
-#
-# Features:
-# - Multi-module Gradle build
-# - Tests unitarios y de integración (con H2/Testcontainers)
-# - Cache de dependencias Gradle
-# - Artifact publishing for all modules
+# Jobs:
+# - build: Compile all modules (fast feedback on compilation errors)
+# - test-*: Individual test jobs per module (parallel execution)
+# - code-quality: Architecture tests
+# - security: Vulnerability scanning
 # ==========================================
 
 name: CI
@@ -30,12 +24,183 @@ env:
   GRADLE_OPTS: '-Dorg.gradle.daemon=false -Dorg.gradle.parallel=true'
 
 jobs:
-  # ------------------------------
-  # Build and Test All Modules
-  # ------------------------------
+  # ============================================
+  # Build - Compile all modules
+  # ============================================
   build:
-    name: Build & Test
+    name: Build
     runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Compile all modules
+        run: ./gradlew classes testClasses --no-daemon
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-classes
+          path: |
+            */build/classes
+            */build/resources
+          retention-days: 1
+
+  # ============================================
+  # Test Jobs - One per module (parallel)
+  # ============================================
+
+  test-core:
+    name: Test apigen-core
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: true
+
+      - name: Run apigen-core tests
+        run: ./gradlew :apigen-core:test --no-daemon --continue
+        env:
+          SPRING_PROFILES_ACTIVE: test
+
+      - name: Generate test report
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: apigen-core Test Results
+          path: apigen-core/build/test-results/test/*.xml
+          reporter: java-junit
+          fail-on-error: false
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-core
+          path: |
+            apigen-core/build/reports/tests/
+            apigen-core/build/test-results/
+          retention-days: 7
+
+  test-security:
+    name: Test apigen-security
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: true
+
+      - name: Run apigen-security tests
+        run: ./gradlew :apigen-security:test --no-daemon --continue
+        env:
+          SPRING_PROFILES_ACTIVE: test
+
+      - name: Generate test report
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: apigen-security Test Results
+          path: apigen-security/build/test-results/test/*.xml
+          reporter: java-junit
+          fail-on-error: false
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-security
+          path: |
+            apigen-security/build/reports/tests/
+            apigen-security/build/test-results/
+          retention-days: 7
+
+  test-codegen:
+    name: Test apigen-codegen
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: true
+
+      - name: Run apigen-codegen tests
+        run: ./gradlew :apigen-codegen:test --no-daemon --continue
+        env:
+          SPRING_PROFILES_ACTIVE: test
+
+      - name: Generate test report
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: apigen-codegen Test Results
+          path: apigen-codegen/build/test-results/test/*.xml
+          reporter: java-junit
+          fail-on-error: false
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-codegen
+          path: |
+            apigen-codegen/build/reports/tests/
+            apigen-codegen/build/test-results/
+          retention-days: 7
+
+  test-server:
+    name: Test apigen-server
+    runs-on: ubuntu-latest
+    needs: build
 
     services:
       postgres:
@@ -54,63 +219,219 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Set up JDK ${{ env.JAVA_VERSION }}
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v4
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@v4
         with:
-          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+          cache-read-only: true
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
-      - name: Build all modules
-        run: ./gradlew build -x test --no-daemon
-
-      - name: Run all tests
-        run: ./gradlew test --no-daemon
+      - name: Run apigen-server tests
+        run: ./gradlew :apigen-server:test --no-daemon --continue
         env:
+          SPRING_PROFILES_ACTIVE: test
           DB_URL: jdbc:postgresql://localhost:5432/apigen_test
           DB_USERNAME: apigen_user
           DB_PASSWORD: apigen_password
+
+      - name: Generate test report
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: apigen-server Test Results
+          path: apigen-server/build/test-results/test/*.xml
+          reporter: java-junit
+          fail-on-error: false
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-server
+          path: |
+            apigen-server/build/reports/tests/
+            apigen-server/build/test-results/
+          retention-days: 7
+
+  test-gateway:
+    name: Test apigen-gateway
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: true
+
+      - name: Run apigen-gateway tests
+        run: ./gradlew :apigen-gateway:test --no-daemon --continue
+        env:
           SPRING_PROFILES_ACTIVE: test
 
-      - name: Upload test results (apigen-core)
-        uses: actions/upload-artifact@v6
+      - name: Generate test report
+        uses: dorny/test-reporter@v1
         if: always()
         with:
-          name: test-results-core
-          path: apigen-core/build/reports/tests/
-          retention-days: 7
+          name: apigen-gateway Test Results
+          path: apigen-gateway/build/test-results/test/*.xml
+          reporter: java-junit
+          fail-on-error: false
 
-      - name: Upload test results (apigen-security)
-        uses: actions/upload-artifact@v6
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: test-results-security
-          path: apigen-security/build/reports/tests/
-          retention-days: 7
-
-      - name: Upload library artifacts
-        uses: actions/upload-artifact@v6
-        if: success()
-        with:
-          name: apigen-libraries
+          name: test-results-gateway
           path: |
-            apigen-core/build/libs/*.jar
-            apigen-security/build/libs/*.jar
-            apigen-codegen/build/libs/*.jar
+            apigen-gateway/build/reports/tests/
+            apigen-gateway/build/test-results/
           retention-days: 7
 
-  # ------------------------------
-  # Code Quality (opcional)
-  # ------------------------------
+  test-graphql:
+    name: Test apigen-graphql
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: true
+
+      - name: Run apigen-graphql tests
+        run: ./gradlew :apigen-graphql:test --no-daemon --continue
+        env:
+          SPRING_PROFILES_ACTIVE: test
+
+      - name: Generate test report
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: apigen-graphql Test Results
+          path: apigen-graphql/build/test-results/test/*.xml
+          reporter: java-junit
+          fail-on-error: false
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-graphql
+          path: |
+            apigen-graphql/build/reports/tests/
+            apigen-graphql/build/test-results/
+          retention-days: 7
+
+  test-grpc:
+    name: Test apigen-grpc
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: true
+
+      - name: Run apigen-grpc tests
+        run: ./gradlew :apigen-grpc:test --no-daemon --continue
+        env:
+          SPRING_PROFILES_ACTIVE: test
+
+      - name: Generate test report
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: apigen-grpc Test Results
+          path: apigen-grpc/build/test-results/test/*.xml
+          reporter: java-junit
+          fail-on-error: false
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-grpc
+          path: |
+            apigen-grpc/build/reports/tests/
+            apigen-grpc/build/test-results/
+          retention-days: 7
+
+  # ============================================
+  # Summary Job - Aggregates all results
+  # ============================================
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs:
+      - test-core
+      - test-security
+      - test-codegen
+      - test-server
+      - test-gateway
+      - test-graphql
+      - test-grpc
+    if: always()
+
+    steps:
+      - name: Download all test results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: test-results-*
+          path: all-test-results
+          merge-multiple: false
+
+      - name: Generate summary
+        run: |
+          echo "## Test Results Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Module | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| apigen-core | ${{ needs.test-core.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| apigen-security | ${{ needs.test-security.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| apigen-codegen | ${{ needs.test-codegen.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| apigen-server | ${{ needs.test-server.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| apigen-gateway | ${{ needs.test-gateway.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| apigen-graphql | ${{ needs.test-graphql.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| apigen-grpc | ${{ needs.test-grpc.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================
+  # Code Quality
+  # ============================================
   code-quality:
     name: Code Quality
     runs-on: ubuntu-latest
@@ -119,26 +440,30 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Set up JDK ${{ env.JAVA_VERSION }}
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v4
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: true
+
+      - name: Check code formatting
+        run: ./gradlew spotlessCheck --no-daemon
+        continue-on-error: true
 
       - name: Run architecture tests
         run: ./gradlew test --tests "*ArchitectureTest*" --no-daemon
         continue-on-error: true
 
-  # ------------------------------
-  # Security Scan (opcional)
-  # ------------------------------
+  # ============================================
+  # Security Scan
+  # ============================================
   security:
     name: Security Scan
     runs-on: ubuntu-latest
@@ -147,7 +472,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
@@ -155,4 +480,54 @@ jobs:
           scan-type: 'fs'
           scan-ref: '.'
           severity: 'CRITICAL,HIGH'
-          exit-code: '0'  # No fallar el build, solo reportar
+          exit-code: '0'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # ============================================
+  # Build Libraries (for release)
+  # ============================================
+  package:
+    name: Package Libraries
+    runs-on: ubuntu-latest
+    needs:
+      - test-core
+      - test-security
+      - test-codegen
+      - test-server
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: true
+
+      - name: Build JARs
+        run: ./gradlew jar --no-daemon
+
+      - name: Upload library artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: apigen-libraries
+          path: |
+            apigen-core/build/libs/*.jar
+            apigen-security/build/libs/*.jar
+            apigen-codegen/build/libs/*.jar
+            apigen-server/build/libs/*.jar
+          retention-days: 30
