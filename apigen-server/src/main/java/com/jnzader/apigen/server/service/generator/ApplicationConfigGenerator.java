@@ -175,9 +175,10 @@ logging:
 # =============================================================================
 
 # Disable rate limiting for tests
-app:
-  rate-limit:
-    enabled: false
+apigen:
+  security:
+    rate-limit:
+      enabled: false
 
 # Logging configuration for tests
 logging:
