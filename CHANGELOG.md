@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.12](https://github.com/JNZader/apigen/compare/v2.1.11...v2.1.12) (2026-01-22)
+
+### Bug Fixes
+
+* **codegen:** fix ObjectMapper import and add audit field ignores ([#46](https://github.com/JNZader/apigen/issues/46)) ([56ddcd9](https://github.com/JNZader/apigen/commit/56ddcd9d7dd641573f84efc2cdb3b742e0cd532e))
+
 ## [2.1.11](https://github.com/JNZader/apigen/compare/v2.1.10...v2.1.11) (2026-01-22)
 
 ### Bug Fixes
