@@ -93,14 +93,6 @@ jobs:
         env:
           SPRING_PROFILES_ACTIVE: test
 
-      - name: Generate test report
-        uses: dorny/test-reporter@v1
-        if: always()
-        with:
-          name: apigen-core Test Results
-          path: apigen-core/build/test-results/test/*.xml
-          reporter: java-junit
-          fail-on-error: false
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -140,14 +132,6 @@ jobs:
         env:
           SPRING_PROFILES_ACTIVE: test
 
-      - name: Generate test report
-        uses: dorny/test-reporter@v1
-        if: always()
-        with:
-          name: apigen-security Test Results
-          path: apigen-security/build/test-results/test/*.xml
-          reporter: java-junit
-          fail-on-error: false
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -187,14 +171,6 @@ jobs:
         env:
           SPRING_PROFILES_ACTIVE: test
 
-      - name: Generate test report
-        uses: dorny/test-reporter@v1
-        if: always()
-        with:
-          name: apigen-codegen Test Results
-          path: apigen-codegen/build/test-results/test/*.xml
-          reporter: java-junit
-          fail-on-error: false
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -252,14 +228,6 @@ jobs:
           DB_USERNAME: apigen_user
           DB_PASSWORD: apigen_password
 
-      - name: Generate test report
-        uses: dorny/test-reporter@v1
-        if: always()
-        with:
-          name: apigen-server Test Results
-          path: apigen-server/build/test-results/test/*.xml
-          reporter: java-junit
-          fail-on-error: false
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -299,14 +267,6 @@ jobs:
         env:
           SPRING_PROFILES_ACTIVE: test
 
-      - name: Generate test report
-        uses: dorny/test-reporter@v1
-        if: always()
-        with:
-          name: apigen-gateway Test Results
-          path: apigen-gateway/build/test-results/test/*.xml
-          reporter: java-junit
-          fail-on-error: false
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -346,14 +306,6 @@ jobs:
         env:
           SPRING_PROFILES_ACTIVE: test
 
-      - name: Generate test report
-        uses: dorny/test-reporter@v1
-        if: always()
-        with:
-          name: apigen-graphql Test Results
-          path: apigen-graphql/build/test-results/test/*.xml
-          reporter: java-junit
-          fail-on-error: false
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -393,14 +345,6 @@ jobs:
         env:
           SPRING_PROFILES_ACTIVE: test
 
-      - name: Generate test report
-        uses: dorny/test-reporter@v1
-        if: always()
-        with:
-          name: apigen-grpc Test Results
-          path: apigen-grpc/build/test-results/test/*.xml
-          reporter: java-junit
-          fail-on-error: false
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
