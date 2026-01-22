@@ -17,8 +17,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.envers.Audited;
 import org.springframework.data.annotation.CreatedBy;
@@ -36,6 +39,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @MappedSuperclass
 @Getter
 @Setter
+@NoArgsConstructor
+@SuperBuilder
 @Audited
 @EntityListeners(AuditingEntityListener.class)
 @SQLRestriction("estado = true")
@@ -47,6 +52,7 @@ public abstract class Base implements Serializable {
     private Long id;
 
     /** Entity status (true = active, false = inactive/deleted). Used for soft delete. */
+    @Builder.Default
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
     private Boolean estado = true;
 
@@ -78,6 +84,7 @@ public abstract class Base implements Serializable {
     private String modificadoPor;
 
     /** Version for optimistic concurrency control. */
+    @Builder.Default
     @Version
     @Column(nullable = false)
     private Long version = 0L;

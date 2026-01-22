@@ -64,6 +64,7 @@ public class ImportManager {
         addImport("import jakarta.persistence.*;");
         addImport("import jakarta.validation.constraints.*;");
         addImport("import lombok.*;");
+        addImport("import lombok.experimental.SuperBuilder;");
         addImportForClass("org.hibernate.envers.Audited");
         return this;
     }
