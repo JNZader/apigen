@@ -59,7 +59,7 @@ package %s.%s;
 import %s.%s.application.dto.%sDTO;
 import %s.%s.domain.entity.%s;
 import %s.%s.infrastructure.repository.%sRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -91,7 +91,7 @@ class %sIntegrationTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private JsonMapper jsonMapper;
 
     @Autowired
     private %sRepository repository;
@@ -112,7 +112,7 @@ class %sIntegrationTest {
     void shouldCreateNew%s() throws Exception {
         MvcResult result = mockMvc.perform(post(BASE_URL)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(testDto)))
+                        .content(jsonMapper.writeValueAsString(testDto)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.activo").value(true))%s
@@ -120,7 +120,7 @@ class %sIntegrationTest {
 
         // Extract created ID for subsequent tests
         String response = result.getResponse().getContentAsString();
-        %sDTO created = objectMapper.readValue(response, %sDTO.class);
+        %sDTO created = jsonMapper.readValue(response, %sDTO.class);
         createdId = created.getId();
 
         assertThat(createdId).isNotNull();
@@ -181,12 +181,12 @@ class %sIntegrationTest {
         MvcResult getResult = mockMvc.perform(get(BASE_URL + "/" + createdId))
                 .andReturn();
 
-        %sDTO dto = objectMapper.readValue(
+        %sDTO dto = jsonMapper.readValue(
                 getResult.getResponse().getContentAsString(), %sDTO.class);
 %s
         mockMvc.perform(put(BASE_URL + "/" + createdId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
+                        .content(jsonMapper.writeValueAsString(dto)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(createdId));
     }
@@ -270,7 +270,7 @@ class %sIntegrationTest {
 
         mockMvc.perform(post(BASE_URL)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(invalidDto)))
+                        .content(jsonMapper.writeValueAsString(invalidDto)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -282,7 +282,7 @@ class %sIntegrationTest {
         for (int i = 0; i < 3; i++) {
             mockMvc.perform(post(BASE_URL)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(testDto)))
+                            .content(jsonMapper.writeValueAsString(testDto)))
                     .andExpect(status().isCreated());
         }
 

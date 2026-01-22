@@ -58,7 +58,7 @@ import %s.%s.application.mapper.%sMapper;
 import %s.%s.application.service.%sService;
 import %s.%s.domain.entity.%s;
 import %s.application.util.Result;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -96,7 +96,7 @@ class %sControllerImplTest {
     private %sMapper mapper;
 
     private MockMvc mockMvc;
-    private ObjectMapper objectMapper;
+    private JsonMapper jsonMapper;
     private %sControllerImpl controller;
 
     private %s %s;
@@ -108,8 +108,7 @@ class %sControllerImplTest {
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
                 .build();
-        objectMapper = new ObjectMapper();
-        objectMapper.findAndRegisterModules();
+        jsonMapper = JsonMapper.builder().build();
 
         %s = new %s();
         %s.setId(1L);
@@ -177,7 +176,7 @@ class %sControllerImplTest {
 
             mockMvc.perform(post("/api/v1/%s")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(dto)))
+                            .content(jsonMapper.writeValueAsString(dto)))
                     .andExpect(status().isCreated());
 
             verify(service).save(any(%s.class));
@@ -209,7 +208,7 @@ class %sControllerImplTest {
 
             mockMvc.perform(put("/api/v1/%s/1")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(dto)))
+                            .content(jsonMapper.writeValueAsString(dto)))
                     .andExpect(status().isOk());
 
             verify(service).update(eq(1L), any(%s.class));
@@ -231,7 +230,7 @@ class %sControllerImplTest {
 
             mockMvc.perform(patch("/api/v1/%s/1")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(dto)))
+                            .content(jsonMapper.writeValueAsString(dto)))
                     .andExpect(status().isOk());
 
             verify(service).findById(1L);

@@ -91,7 +91,7 @@ class IntegrationTestGeneratorTest {
             assertThat(result)
                     .contains("@Autowired")
                     .contains("private MockMvc mockMvc;")
-                    .contains("private ObjectMapper objectMapper;")
+                    .contains("private JsonMapper jsonMapper;")
                     .contains("private CategoryRepository repository;");
         }
 
