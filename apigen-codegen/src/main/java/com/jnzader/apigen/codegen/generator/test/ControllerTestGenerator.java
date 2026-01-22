@@ -58,7 +58,7 @@ import %s.%s.application.mapper.%sMapper;
 import %s.%s.application.service.%sService;
 import %s.%s.domain.entity.%s;
 import %s.application.util.Result;
-import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
