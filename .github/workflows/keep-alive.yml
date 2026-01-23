@@ -1,0 +1,34 @@
+# ==========================================
+# Keep Alive - Prevent Koyeb instance sleep
+# ==========================================
+# Pings the Koyeb server every 5 minutes to prevent
+# the free tier instance from sleeping due to inactivity.
+#
+# GitHub Actions: Free for public repos, minimal usage for private
+# Koyeb: Incoming requests don't count against free tier limits
+# ==========================================
+
+name: Keep Alive
+
+on:
+  schedule:
+    # Every 4 minutes (Koyeb free tier sleeps after 5 min inactivity)
+    - cron: '*/4 * * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  ping:
+    name: Ping Server
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+
+    steps:
+      - name: Ping Koyeb server
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 "${{ secrets.KOYEB_APP_URL }}/actuator/health" || echo "000")
+          echo "Health check response: $response"
+          if [ "$response" = "200" ]; then
+            echo "Server is healthy"
+          else
+            echo "Server responded with: $response (may be waking up)"
+          fi
