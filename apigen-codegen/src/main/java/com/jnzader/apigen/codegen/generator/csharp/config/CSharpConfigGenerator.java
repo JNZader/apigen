@@ -9,7 +9,7 @@ import java.util.Map;
 /** Generates configuration files for C#/ASP.NET Core projects. */
 public class CSharpConfigGenerator {
 
-    private static final String DEFAULT_DOTNET_VERSION = "9.0";
+    private static final String DEFAULT_DOTNET_VERSION = "8.0";
 
     private final String baseNamespace;
 
@@ -48,25 +48,25 @@ public class CSharpConfigGenerator {
 
   <ItemGroup>
     <!-- Entity Framework Core -->
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.1">
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.11" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.11">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.3" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
 
     <!-- AutoMapper for DTO mapping (12.0.1 is last free version) -->
     <PackageReference Include="AutoMapper" Version="12.0.1" />
 
     <!-- OpenAPI / Swagger -->
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.9.0" />
 
     <!-- FluentValidation -->
     <PackageReference Include="FluentValidation" Version="11.11.0" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
 
     <!-- Logging -->
-    <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
   </ItemGroup>
 
 </Project>

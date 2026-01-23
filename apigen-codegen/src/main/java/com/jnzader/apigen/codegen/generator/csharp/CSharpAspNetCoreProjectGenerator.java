@@ -43,8 +43,8 @@ public class CSharpAspNetCoreProjectGenerator implements ProjectGenerator {
 
     private static final String LANGUAGE = "csharp";
     private static final String FRAMEWORK = "aspnetcore";
-    private static final String DEFAULT_DOTNET_VERSION = "9.0";
-    private static final String DEFAULT_FRAMEWORK_VERSION = "9.0.0";
+    private static final String DEFAULT_DOTNET_VERSION = "8.0";
+    private static final String DEFAULT_FRAMEWORK_VERSION = "8.0.0";
 
     private static final Set<Feature> SUPPORTED_FEATURES =
             Set.of(
@@ -83,7 +83,7 @@ public class CSharpAspNetCoreProjectGenerator implements ProjectGenerator {
 
     @Override
     public String getDisplayName() {
-        return "C# / ASP.NET Core 9.x";
+        return "C# / ASP.NET Core 8.x";
     }
 
     @Override

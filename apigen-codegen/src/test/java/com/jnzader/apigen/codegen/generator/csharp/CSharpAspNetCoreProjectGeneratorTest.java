@@ -43,21 +43,21 @@ class CSharpAspNetCoreProjectGeneratorTest {
         }
 
         @Test
-        @DisplayName("Should return C# / ASP.NET Core 9.x as display name")
+        @DisplayName("Should return C# / ASP.NET Core 8.x as display name")
         void shouldReturnCorrectDisplayName() {
-            assertThat(generator.getDisplayName()).isEqualTo("C# / ASP.NET Core 9.x");
+            assertThat(generator.getDisplayName()).isEqualTo("C# / ASP.NET Core 8.x");
         }
 
         @Test
         @DisplayName("Should return default .NET version")
         void shouldReturnDefaultDotNetVersion() {
-            assertThat(generator.getDefaultLanguageVersion()).isEqualTo("9.0");
+            assertThat(generator.getDefaultLanguageVersion()).isEqualTo("8.0");
         }
 
         @Test
         @DisplayName("Should return default ASP.NET Core version")
         void shouldReturnDefaultAspNetCoreVersion() {
-            assertThat(generator.getDefaultFrameworkVersion()).isEqualTo("9.0.0");
+            assertThat(generator.getDefaultFrameworkVersion()).isEqualTo("8.0.0");
         }
     }
 
