@@ -54,6 +54,7 @@ jobs:
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
+        continue-on-error: true
         with:
           name: build-classes
           path: |
@@ -97,6 +98,7 @@ jobs:
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
+        continue-on-error: true
         with:
           name: test-results-core
           path: |
@@ -136,6 +138,7 @@ jobs:
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
+        continue-on-error: true
         with:
           name: test-results-security
           path: |
@@ -175,6 +178,7 @@ jobs:
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
+        continue-on-error: true
         with:
           name: test-results-codegen
           path: |
@@ -232,6 +236,7 @@ jobs:
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
+        continue-on-error: true
         with:
           name: test-results-server
           path: |
@@ -271,6 +276,7 @@ jobs:
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
+        continue-on-error: true
         with:
           name: test-results-gateway
           path: |
@@ -310,6 +316,7 @@ jobs:
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
+        continue-on-error: true
         with:
           name: test-results-graphql
           path: |
@@ -349,6 +356,7 @@ jobs:
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
+        continue-on-error: true
         with:
           name: test-results-grpc
           path: |
@@ -396,6 +404,7 @@ jobs:
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
+        continue-on-error: true
         with:
           name: test-results-generated-project
           path: |
@@ -546,6 +555,7 @@ jobs:
 
       - name: Upload library artifacts
         uses: actions/upload-artifact@v4
+        continue-on-error: true
         with:
           name: apigen-libraries
           path: |

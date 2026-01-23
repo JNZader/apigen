@@ -1,10 +1,11 @@
-package com.jnzader.apigen.codegen.generator.entity;
+package com.jnzader.apigen.codegen.generator.java.entity;
 
 import static com.jnzader.apigen.codegen.generator.util.CodeGenerationUtils.pluralize;
 import static com.jnzader.apigen.codegen.generator.util.CodeGenerationUtils.safeFieldName;
 import static com.jnzader.apigen.codegen.generator.util.CodeGenerationUtils.toSnakeCase;
 
-import com.jnzader.apigen.codegen.generator.util.ImportManager;
+import com.jnzader.apigen.codegen.generator.common.ManyToManyRelation;
+import com.jnzader.apigen.codegen.generator.java.JavaImportManager;
 import com.jnzader.apigen.codegen.model.RelationType;
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlIndex;
@@ -12,21 +13,15 @@ import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.List;
 
-/**
- * Generates JPA Entity classes from SQL table definitions.
- *
- * @deprecated Use {@link com.jnzader.apigen.codegen.generator.java.entity.JavaEntityGenerator}
- *     instead. This class is maintained for backward compatibility.
- */
-@Deprecated(since = "2.6.0", forRemoval = false)
-public class EntityGenerator {
+/** Generates JPA Entity classes from SQL table definitions for Java/Spring Boot. */
+public class JavaEntityGenerator {
 
     private static final String APIGEN_CORE_PKG = "com.jnzader.apigen.core";
     private static final String DOMAIN_ENTITY_SUFFIX = ".domain.entity.";
 
     private final String basePackage;
 
-    public EntityGenerator(String basePackage) {
+    public JavaEntityGenerator(String basePackage) {
         this.basePackage = basePackage;
     }
 
@@ -39,7 +34,7 @@ public class EntityGenerator {
         String entityName = table.getEntityName();
         String moduleName = table.getModuleName();
 
-        ImportManager imports = new ImportManager();
+        JavaImportManager imports = new JavaImportManager();
         imports.addEntityImports(APIGEN_CORE_PKG);
 
         StringBuilder fields = new StringBuilder();
@@ -211,14 +206,4 @@ public class %s extends Base {
 
         return field.toString();
     }
-
-    /**
-     * Represents a many-to-many relationship through a junction table.
-     *
-     * @deprecated Use {@link com.jnzader.apigen.codegen.generator.common.ManyToManyRelation}
-     *     instead.
-     */
-    @Deprecated(since = "2.6.0", forRemoval = false)
-    public record ManyToManyRelation(
-            String junctionTable, String sourceColumn, String targetColumn, SqlTable targetTable) {}
 }

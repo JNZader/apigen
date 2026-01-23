@@ -1,25 +1,18 @@
-package com.jnzader.apigen.codegen.generator.repository;
+package com.jnzader.apigen.codegen.generator.java.repository;
 
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlFunction;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.List;
 
-/**
- * Generates Spring Data JPA Repository interfaces from SQL table definitions.
- *
- * @deprecated Use {@link
- *     com.jnzader.apigen.codegen.generator.java.repository.JavaRepositoryGenerator} instead. This
- *     class is maintained for backward compatibility.
- */
-@Deprecated(since = "2.6.0", forRemoval = false)
-public class RepositoryGenerator {
+/** Generates Spring Data JPA Repository interfaces for Java/Spring Boot. */
+public class JavaRepositoryGenerator {
 
     private static final String APIGEN_CORE_PKG = "com.jnzader.apigen.core";
 
     private final String basePackage;
 
-    public RepositoryGenerator(String basePackage) {
+    public JavaRepositoryGenerator(String basePackage) {
         this.basePackage = basePackage;
     }
 

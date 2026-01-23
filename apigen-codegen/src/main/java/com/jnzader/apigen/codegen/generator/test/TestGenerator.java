@@ -2,7 +2,13 @@ package com.jnzader.apigen.codegen.generator.test;
 
 import com.jnzader.apigen.codegen.model.SqlTable;
 
-/** Facade for generating all test classes for a table. */
+/**
+ * Facade for generating all test classes for a table.
+ *
+ * @deprecated Use {@link com.jnzader.apigen.codegen.generator.java.test.JavaTestGenerator} instead.
+ *     This class is maintained for backward compatibility.
+ */
+@Deprecated(since = "2.6.0", forRemoval = false)
 public class TestGenerator {
 
     private final ServiceTestGenerator serviceTestGenerator;

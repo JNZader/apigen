@@ -1,9 +1,13 @@
 package com.jnzader.apigen.server.controller;
 
+import com.jnzader.apigen.codegen.generator.api.Feature;
+import com.jnzader.apigen.codegen.generator.api.ProjectGenerator;
 import com.jnzader.apigen.server.dto.GenerateRequest;
 import com.jnzader.apigen.server.dto.GenerateResponse;
 import com.jnzader.apigen.server.service.GeneratorService;
 import jakarta.validation.Valid;
+import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -79,6 +83,46 @@ public class GeneratorController {
     public ResponseEntity<HealthResponse> health() {
         return ResponseEntity.ok(new HealthResponse("ok", "APiGen Server is running"));
     }
+
+    /**
+     * Lists all available code generators. Useful for discovering supported languages and
+     * frameworks.
+     *
+     * @return List of available generators with their capabilities
+     */
+    @GetMapping("/generators")
+    public ResponseEntity<GeneratorsResponse> listGenerators() {
+        log.info("Listing available generators");
+
+        List<GeneratorInfo> generators =
+                generatorService.getGeneratorRegistry().getAllGenerators().stream()
+                        .map(this::toGeneratorInfo)
+                        .toList();
+
+        Set<String> languages = generatorService.getGeneratorRegistry().getSupportedLanguages();
+
+        return ResponseEntity.ok(new GeneratorsResponse(generators, languages));
+    }
+
+    /** Converts a ProjectGenerator to GeneratorInfo DTO. */
+    private GeneratorInfo toGeneratorInfo(ProjectGenerator generator) {
+        return new GeneratorInfo(
+                generator.getLanguage(),
+                generator.getFramework(),
+                generator.getDisplayName(),
+                generator.getSupportedFeatures().stream().map(Feature::name).toList());
+    }
+
+    /** Response containing available generators. */
+    public record GeneratorsResponse(
+            List<GeneratorInfo> generators, Set<String> supportedLanguages) {}
+
+    /** Information about a single generator. */
+    public record GeneratorInfo(
+            String language,
+            String framework,
+            String displayName,
+            List<String> supportedFeatures) {}
 
     /** Simple health response record. */
     public record HealthResponse(String status, String message) {}

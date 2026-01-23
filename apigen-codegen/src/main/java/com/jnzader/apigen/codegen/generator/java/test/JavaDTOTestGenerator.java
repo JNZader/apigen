@@ -1,19 +1,13 @@
-package com.jnzader.apigen.codegen.generator.test;
+package com.jnzader.apigen.codegen.generator.java.test;
 
 import com.jnzader.apigen.codegen.model.SqlTable;
 
-/**
- * Generates unit test classes for DTOs.
- *
- * @deprecated Use {@link com.jnzader.apigen.codegen.generator.java.test.JavaDTOTestGenerator}
- *     instead. This class is maintained for backward compatibility.
- */
-@Deprecated(since = "2.6.0", forRemoval = false)
-public class DTOTestGenerator {
+/** Generates unit test classes for DTOs in Java/Spring Boot. */
+public class JavaDTOTestGenerator {
 
     private final String basePackage;
 
-    public DTOTestGenerator(String basePackage) {
+    public JavaDTOTestGenerator(String basePackage) {
         this.basePackage = basePackage;
     }
 

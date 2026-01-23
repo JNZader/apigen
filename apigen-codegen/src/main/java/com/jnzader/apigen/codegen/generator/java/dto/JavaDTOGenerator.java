@@ -1,29 +1,23 @@
-package com.jnzader.apigen.codegen.generator.dto;
+package com.jnzader.apigen.codegen.generator.java.dto;
 
 import static com.jnzader.apigen.codegen.generator.util.CodeGenerationUtils.pluralize;
 import static com.jnzader.apigen.codegen.generator.util.CodeGenerationUtils.safeFieldName;
 
-import com.jnzader.apigen.codegen.generator.entity.EntityGenerator.ManyToManyRelation;
-import com.jnzader.apigen.codegen.generator.util.ImportManager;
+import com.jnzader.apigen.codegen.generator.common.ManyToManyRelation;
+import com.jnzader.apigen.codegen.generator.java.JavaImportManager;
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.List;
 
-/**
- * Generates DTO classes from SQL table definitions.
- *
- * @deprecated Use {@link com.jnzader.apigen.codegen.generator.java.dto.JavaDTOGenerator} instead.
- *     This class is maintained for backward compatibility.
- */
-@Deprecated(since = "2.6.0", forRemoval = false)
-public class DTOGenerator {
+/** Generates DTO classes from SQL table definitions for Java/Spring Boot. */
+public class JavaDTOGenerator {
 
     private static final String APIGEN_CORE_PKG = "com.jnzader.apigen.core";
 
     private final String basePackage;
 
-    public DTOGenerator(String basePackage) {
+    public JavaDTOGenerator(String basePackage) {
         this.basePackage = basePackage;
     }
 
@@ -35,7 +29,7 @@ public class DTOGenerator {
         String entityName = table.getEntityName();
         String moduleName = table.getModuleName();
 
-        ImportManager imports = new ImportManager();
+        JavaImportManager imports = new JavaImportManager();
         imports.addDTOImports(APIGEN_CORE_PKG);
 
         StringBuilder fields = new StringBuilder();

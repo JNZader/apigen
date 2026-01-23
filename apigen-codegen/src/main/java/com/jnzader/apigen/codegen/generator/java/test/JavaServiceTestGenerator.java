@@ -1,21 +1,15 @@
-package com.jnzader.apigen.codegen.generator.test;
+package com.jnzader.apigen.codegen.generator.java.test;
 
 import com.jnzader.apigen.codegen.model.SqlTable;
 
-/**
- * Generates unit test classes for Service implementations.
- *
- * @deprecated Use {@link com.jnzader.apigen.codegen.generator.java.test.JavaServiceTestGenerator}
- *     instead. This class is maintained for backward compatibility.
- */
-@Deprecated(since = "2.6.0", forRemoval = false)
-public class ServiceTestGenerator {
+/** Generates unit test classes for Service implementations in Java/Spring Boot. */
+public class JavaServiceTestGenerator {
 
     private static final String APIGEN_CORE_PKG = "com.jnzader.apigen.core";
 
     private final String basePackage;
 
-    public ServiceTestGenerator(String basePackage) {
+    public JavaServiceTestGenerator(String basePackage) {
         this.basePackage = basePackage;
     }
 
@@ -312,7 +306,6 @@ class %sServiceImplTest {
                         entityName,
                         basePackage,
                         moduleName,
-                        entityName,
                         entityName,
                         entityName,
                         entityName,

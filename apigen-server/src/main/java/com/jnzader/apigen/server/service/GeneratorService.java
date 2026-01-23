@@ -3,6 +3,12 @@ package com.jnzader.apigen.server.service;
 import static com.jnzader.apigen.server.service.generator.util.StringTransformationUtil.toPascalCase;
 
 import com.jnzader.apigen.codegen.generator.CodeGenerator;
+import com.jnzader.apigen.codegen.generator.api.Feature;
+import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
+import com.jnzader.apigen.codegen.generator.api.ProjectGenerator;
+import com.jnzader.apigen.codegen.generator.java.JavaSpringBootProjectGenerator;
+import com.jnzader.apigen.codegen.generator.registry.GeneratorRegistry;
+import com.jnzader.apigen.codegen.generator.registry.SimpleGeneratorRegistry;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.parser.SqlSchemaParser;
 import com.jnzader.apigen.server.dto.GenerateRequest;
@@ -18,14 +24,17 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
  * Facade service for generating Spring Boot projects from SQL schemas. Delegates to specialized
- * generators for each component.
+ * generators for each component. Supports multi-language generation via GeneratorRegistry.
  */
 @Service
 @Slf4j
@@ -40,6 +49,7 @@ public class GeneratorService {
     private final ApiTestingGenerator apiTestingGenerator;
     private final GradleWrapperGenerator gradleWrapperGenerator;
     private final FileArchiveService fileArchiveService;
+    private final GeneratorRegistry generatorRegistry;
 
     public GeneratorService() {
         this.schemaParser = new SqlSchemaParser();
@@ -50,10 +60,25 @@ public class GeneratorService {
         this.apiTestingGenerator = new ApiTestingGenerator();
         this.gradleWrapperGenerator = new GradleWrapperGenerator();
         this.fileArchiveService = new FileArchiveService();
+        this.generatorRegistry = createDefaultRegistry();
+    }
+
+    /** Creates the default generator registry with all available generators. */
+    private static GeneratorRegistry createDefaultRegistry() {
+        SimpleGeneratorRegistry registry = new SimpleGeneratorRegistry();
+        registry.register(new JavaSpringBootProjectGenerator());
+        // Future: registry.register(new KotlinSpringBootProjectGenerator());
+        // Future: registry.register(new PythonFastApiProjectGenerator());
+        return registry;
+    }
+
+    /** Returns the generator registry for listing available generators. */
+    public GeneratorRegistry getGeneratorRegistry() {
+        return generatorRegistry;
     }
 
     /**
-     * Generates a Spring Boot project as a ZIP file.
+     * Generates a project as a ZIP file using the appropriate generator based on target config.
      *
      * @param request The generation request with SQL and config
      * @return ZIP file bytes
@@ -66,7 +91,19 @@ public class GeneratorService {
         String basePackage = request.getProject().getBasePackage();
         String artifactId = request.getProject().getArtifactId();
 
-        log.info("Starting project generation for: {}", artifactId);
+        // Get target configuration (defaults to java/spring-boot)
+        GenerateRequest.TargetConfig target = request.getTarget();
+        if (target == null) {
+            target = new GenerateRequest.TargetConfig();
+        }
+        String language = target.getLanguage();
+        String framework = target.getFramework();
+
+        log.info(
+                "Starting project generation for: {} (target: {}/{})",
+                artifactId,
+                language,
+                framework);
         log.debug("Base package: {}", basePackage);
 
         Path tempDir = Files.createTempDirectory("apigen-" + artifactId);
@@ -84,24 +121,114 @@ public class GeneratorService {
                 log.warn("Parse warnings: {}", schema.getParseErrors());
             }
 
-            log.info("Generating code...");
-            CodeGenerator generator = new CodeGenerator(basePackage, tempDir);
-            CodeGenerator.GenerationResult result = generator.generate(schema);
+            // Try to use new registry-based generator
+            ProjectGenerator projectGenerator =
+                    generatorRegistry.getGenerator(language, framework).orElse(null);
 
-            log.info("Generated {} files", result.getGeneratedFiles().size());
+            int generatedFileCount;
 
+            if (projectGenerator != null) {
+                log.info(
+                        "Using generator: {} ({})",
+                        projectGenerator.getDisplayName(),
+                        projectGenerator.getClass().getSimpleName());
+
+                // Convert request config to new API ProjectConfig
+                ProjectConfig projectConfig = toProjectConfig(request, tempDir);
+
+                // Generate using new API
+                Map<String, String> generatedFiles =
+                        projectGenerator.generate(schema, projectConfig);
+                generatedFileCount = generatedFiles.size();
+
+                // Write generated files to temp directory
+                writeGeneratedFiles(tempDir, generatedFiles);
+
+                log.info("Generated {} files using new generator", generatedFileCount);
+            } else {
+                // Fallback to legacy CodeGenerator for unsupported targets
+                log.warn(
+                        "No generator found for {}/{}, falling back to legacy CodeGenerator",
+                        language,
+                        framework);
+                CodeGenerator generator = new CodeGenerator(basePackage, tempDir);
+                CodeGenerator.GenerationResult result = generator.generate(schema);
+                generatedFileCount = result.getGeneratedFiles().size();
+
+                log.info("Generated {} files using legacy generator", generatedFileCount);
+            }
+
+            // Generate additional project files (build.gradle, configs, Docker, etc.)
             generateProjectFiles(tempDir, request, schema);
 
             log.info("Creating ZIP archive...");
             byte[] zipBytes = fileArchiveService.createZipFromDirectory(tempDir, artifactId);
 
             long duration = System.currentTimeMillis() - startTime;
-            log.info("Project generated successfully in {}ms", duration);
+            log.info(
+                    "Project generated successfully in {}ms ({} code files)",
+                    duration,
+                    generatedFileCount);
 
             return zipBytes;
 
         } finally {
             fileArchiveService.deleteDirectory(tempDir);
+        }
+    }
+
+    /** Converts the request configuration to the new API ProjectConfig. */
+    private ProjectConfig toProjectConfig(GenerateRequest request, Path outputDirectory) {
+        GenerateRequest.ProjectConfig reqConfig = request.getProject();
+        GenerateRequest.FeaturesConfig features = reqConfig.getFeatures();
+
+        // Map request features to Feature enum
+        Set<Feature> enabledFeatures = new HashSet<>();
+        enabledFeatures.add(Feature.CRUD); // Always enabled
+
+        if (features != null) {
+            if (features.isHateoas()) enabledFeatures.add(Feature.HATEOAS);
+            if (features.isAuditing()) enabledFeatures.add(Feature.AUDITING);
+            if (features.isSoftDelete()) enabledFeatures.add(Feature.SOFT_DELETE);
+            if (features.isCaching()) enabledFeatures.add(Feature.CACHING);
+            if (features.isSwagger()) enabledFeatures.add(Feature.OPENAPI);
+            if (features.isDocker()) enabledFeatures.add(Feature.DOCKER);
+        }
+
+        // Map database config
+        ProjectConfig.DatabaseConfig dbConfig = null;
+        if (reqConfig.getDatabase() != null) {
+            GenerateRequest.DatabaseConfig reqDb = reqConfig.getDatabase();
+            dbConfig =
+                    ProjectConfig.DatabaseConfig.builder()
+                            .type(reqDb.getType())
+                            .name(reqDb.getName())
+                            .port(reqDb.getPort())
+                            .username(reqDb.getUsername())
+                            .password(reqDb.getPassword())
+                            .build();
+        }
+
+        return ProjectConfig.builder()
+                .basePackage(reqConfig.getBasePackage())
+                .projectName(reqConfig.getName())
+                .artifactId(reqConfig.getArtifactId())
+                .groupId(reqConfig.getGroupId())
+                .outputDirectory(outputDirectory)
+                .languageVersion(reqConfig.getJavaVersion())
+                .frameworkVersion(reqConfig.getSpringBootVersion())
+                .enabledFeatures(enabledFeatures)
+                .database(dbConfig)
+                .build();
+    }
+
+    /** Writes generated files from the new API to the filesystem. */
+    private void writeGeneratedFiles(Path projectRoot, Map<String, String> files)
+            throws IOException {
+        for (Map.Entry<String, String> entry : files.entrySet()) {
+            Path filePath = projectRoot.resolve(entry.getKey());
+            Files.createDirectories(filePath.getParent());
+            Files.writeString(filePath, entry.getValue());
         }
     }
 

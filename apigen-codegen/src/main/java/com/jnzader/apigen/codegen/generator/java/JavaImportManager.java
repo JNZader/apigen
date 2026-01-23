@@ -1,4 +1,4 @@
-package com.jnzader.apigen.codegen.generator.util;
+package com.jnzader.apigen.codegen.generator.java;
 
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import java.util.Set;
@@ -7,11 +7,10 @@ import java.util.TreeSet;
 /**
  * Manages imports for generated Java code.
  *
- * @deprecated Use {@link com.jnzader.apigen.codegen.generator.java.JavaImportManager} instead. This
- *     class is maintained for backward compatibility.
+ * <p>This class is Java-specific and handles common import patterns for JPA entities, DTOs,
+ * controllers, and other Java constructs.
  */
-@Deprecated(since = "2.6.0", forRemoval = false)
-public class ImportManager {
+public class JavaImportManager {
 
     private final Set<String> imports = new TreeSet<>();
 
@@ -19,9 +18,9 @@ public class ImportManager {
      * Adds an import statement.
      *
      * @param importStatement the full import statement (e.g., "import java.util.List;")
-     * @return this ImportManager for chaining
+     * @return this JavaImportManager for chaining
      */
-    public ImportManager addImport(String importStatement) {
+    public JavaImportManager addImport(String importStatement) {
         imports.add(importStatement);
         return this;
     }
@@ -30,9 +29,9 @@ public class ImportManager {
      * Adds an import for a class.
      *
      * @param fullyQualifiedClassName the fully qualified class name
-     * @return this ImportManager for chaining
+     * @return this JavaImportManager for chaining
      */
-    public ImportManager addImportForClass(String fullyQualifiedClassName) {
+    public JavaImportManager addImportForClass(String fullyQualifiedClassName) {
         imports.add("import " + fullyQualifiedClassName + ";");
         return this;
     }
@@ -41,9 +40,9 @@ public class ImportManager {
      * Adds imports required for a column's Java type.
      *
      * @param column the SQL column
-     * @return this ImportManager for chaining
+     * @return this JavaImportManager for chaining
      */
-    public ImportManager addImportsForColumn(SqlColumn column) {
+    public JavaImportManager addImportsForColumn(SqlColumn column) {
         switch (column.getJavaType()) {
             case "BigDecimal" -> addImportForClass("java.math.BigDecimal");
             case "LocalDate" -> addImportForClass("java.time.LocalDate");
@@ -63,9 +62,9 @@ public class ImportManager {
      * Adds common entity imports.
      *
      * @param apigenCorePkg the APiGen core package
-     * @return this ImportManager for chaining
+     * @return this JavaImportManager for chaining
      */
-    public ImportManager addEntityImports(String apigenCorePkg) {
+    public JavaImportManager addEntityImports(String apigenCorePkg) {
         addImportForClass(apigenCorePkg + ".domain.entity.Base");
         addImport("import jakarta.persistence.*;");
         addImport("import jakarta.validation.constraints.*;");
@@ -78,9 +77,9 @@ public class ImportManager {
      * Adds common DTO imports.
      *
      * @param apigenCorePkg the APiGen core package
-     * @return this ImportManager for chaining
+     * @return this JavaImportManager for chaining
      */
-    public ImportManager addDTOImports(String apigenCorePkg) {
+    public JavaImportManager addDTOImports(String apigenCorePkg) {
         addImportForClass(apigenCorePkg + ".application.dto.BaseDTO");
         addImportForClass(apigenCorePkg + ".application.validation.ValidationGroups");
         addImport("import jakarta.validation.constraints.*;");
@@ -91,9 +90,9 @@ public class ImportManager {
     /**
      * Adds List import.
      *
-     * @return this ImportManager for chaining
+     * @return this JavaImportManager for chaining
      */
-    public ImportManager addListImport() {
+    public JavaImportManager addListImport() {
         addImportForClass("java.util.List");
         return this;
     }
@@ -101,9 +100,9 @@ public class ImportManager {
     /**
      * Adds ArrayList import.
      *
-     * @return this ImportManager for chaining
+     * @return this JavaImportManager for chaining
      */
-    public ImportManager addArrayListImport() {
+    public JavaImportManager addArrayListImport() {
         addImportForClass("java.util.ArrayList");
         return this;
     }

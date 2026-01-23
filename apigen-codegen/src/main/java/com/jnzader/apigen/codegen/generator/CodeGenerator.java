@@ -27,7 +27,13 @@ import java.util.stream.Stream;
 /**
  * Facade for generating complete Java code structure from parsed SQL schema. Delegates to
  * specialized generators for each component.
+ *
+ * @deprecated Use {@link com.jnzader.apigen.codegen.generator.java.JavaSpringBootProjectGenerator}
+ *     with {@link com.jnzader.apigen.codegen.generator.registry.GeneratorRegistry} instead. This
+ *     class is maintained for backward compatibility with existing code.
  */
+@Deprecated(since = "2.6.0", forRemoval = false)
+@SuppressWarnings("deprecation")
 public class CodeGenerator {
 
     private final Path sourceRoot;
