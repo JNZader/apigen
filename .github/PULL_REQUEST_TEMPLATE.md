@@ -13,8 +13,11 @@ Brief description of changes.
 - [ ] apigen-core
 - [ ] apigen-security
 - [ ] apigen-codegen
+- [ ] apigen-server
+- [ ] apigen-graphql
+- [ ] apigen-grpc
+- [ ] apigen-gateway
 - [ ] apigen-bom
-- [ ] apigen-example
 
 ## Checklist
 - [ ] My code follows the project's style guidelines

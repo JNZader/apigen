@@ -237,7 +237,7 @@ subprojects {
 tasks.register('jmhAll') {
     group = 'verification'
     description = 'Runs JMH benchmarks on all modules'
-    dependsOn subprojects.findAll { it.name != 'apigen-bom' && it.name != 'apigen-example' }.collect { "${it.path}:jmh" }
+    dependsOn subprojects.findAll { it.name != 'apigen-bom' }.collect { "${it.path}:jmh" }
 }
 
 // Aggregate task to publish all modules (except applications which are not libraries)
@@ -245,8 +245,8 @@ tasks.register('publishAll') {
     group = 'publishing'
     description = 'Publishes all library modules to Maven Local'
 
-    // Exclude applications: apigen-example (demo), apigen-server (HTTP server)
-    def excludedModules = ['apigen-example', 'apigen-server']
+    // Exclude applications: apigen-server (HTTP server, not a library)
+    def excludedModules = ['apigen-server']
     dependsOn subprojects.findAll { !excludedModules.contains(it.name) }.collect { "${it.path}:publishToMavenLocal" }
 
     doLast {
@@ -316,7 +316,7 @@ tasks.register('coverageAll') {
 tasks.register('pitestAll') {
     group = 'verification'
     description = 'Runs mutation testing (PIT) on all modules'
-    dependsOn subprojects.findAll { it.name != 'apigen-bom' && it.name != 'apigen-example' }.collect { "${it.path}:pitest" }
+    dependsOn subprojects.findAll { it.name != 'apigen-bom' }.collect { "${it.path}:pitest" }
 }
 
 // Wrapper task

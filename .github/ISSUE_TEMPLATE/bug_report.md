@@ -13,7 +13,10 @@ A clear and concise description of the bug.
 - [ ] apigen-core
 - [ ] apigen-security
 - [ ] apigen-codegen
-- [ ] apigen-example
+- [ ] apigen-server
+- [ ] apigen-graphql
+- [ ] apigen-grpc
+- [ ] apigen-gateway
 - [ ] Other
 
 ## Steps to Reproduce

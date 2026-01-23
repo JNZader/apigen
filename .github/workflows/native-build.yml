@@ -17,10 +17,10 @@ on:
       module:
         description: 'Module to build native image for'
         required: true
-        default: 'apigen-example'
+        default: 'apigen-server'
         type: choice
         options:
-          - apigen-example
+          - apigen-server
           - all
   release:
     types: [published]
@@ -82,7 +82,7 @@ jobs:
       - name: Build native image
         run: |
           if [ "${{ github.event.inputs.module }}" == "all" ] || [ "${{ github.event_name }}" == "release" ]; then
-            ./gradlew :apigen-example:nativeCompile --no-daemon
+            ./gradlew :apigen-server:nativeCompile --no-daemon
           else
             ./gradlew :${{ github.event.inputs.module }}:nativeCompile --no-daemon
           fi
@@ -91,9 +91,9 @@ jobs:
       - name: Prepare artifact
         run: |
           mkdir -p native-artifacts
-          if [ -f apigen-example/build/native/nativeCompile/apigen-example${{ matrix.extension }} ]; then
-            cp apigen-example/build/native/nativeCompile/apigen-example${{ matrix.extension }} \
-               native-artifacts/apigen-example-${{ matrix.artifact }}${{ matrix.extension }}
+          if [ -f apigen-server/build/native/nativeCompile/apigen-server${{ matrix.extension }} ]; then
+            cp apigen-server/build/native/nativeCompile/apigen-server${{ matrix.extension }} \
+               native-artifacts/apigen-server-${{ matrix.artifact }}${{ matrix.extension }}
           fi
         shell: bash
 

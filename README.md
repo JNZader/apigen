@@ -28,8 +28,12 @@ apigen/
 ├── apigen-core/        # Core library (entities, services, controllers)
 ├── apigen-security/    # JWT authentication module (optional)
 ├── apigen-codegen/     # Code generator from SQL
+├── apigen-server/      # API Generator HTTP server
+├── apigen-graphql/     # GraphQL support module
+├── apigen-grpc/        # gRPC support module
+├── apigen-gateway/     # API Gateway module
 ├── apigen-bom/         # Bill of Materials for version management
-└── apigen-example/     # Working example application
+└── apigen-examples/    # Generated API examples (Java, Python, TypeScript, etc.)
 ```
 
 ## Quick Start
@@ -174,7 +178,10 @@ That's it! Your API now has **12+ endpoints automatically**:
 | `apigen-security` | JWT authentication with refresh tokens, rate limiting, security configuration |
 | `apigen-codegen` | Code generation from SQL schemas |
 | `apigen-bom` | Bill of Materials for dependency management |
-| `apigen-example` | Complete working example application |
+| `apigen-server` | API Generator HTTP server with web UI |
+| `apigen-graphql` | GraphQL support for generated APIs |
+| `apigen-grpc` | gRPC support for generated APIs |
+| `apigen-gateway` | API Gateway module |
 
 ## Configuration
 
@@ -268,7 +275,7 @@ Generated files:
 - Controller with HATEOAS
 - ResourceAssembler
 
-## Running the Example
+## Running the Server
 
 ```bash
 # Clone the repository
@@ -278,14 +285,20 @@ cd apigen
 # Start PostgreSQL
 docker-compose up -d postgres
 
-# Run the example application
-./gradlew :apigen-example:bootRun
+# Run the API generator server
+./gradlew :apigen-server:bootRun
 
 # Or with dev profile (H2 in-memory, no Docker needed)
-./gradlew :apigen-example:bootRun --args='--spring.profiles.active=dev'
+./gradlew :apigen-server:bootRun --args='--spring.profiles.active=dev'
 ```
 
 Visit: http://localhost:8080/swagger-ui.html
+
+## Generated API Examples
+
+See the [apigen-examples/](./apigen-examples/) folder for complete working examples in multiple languages:
+- **Java/Spring Boot** - Full example with Docker, Postman collection
+- **Kotlin, Python, TypeScript, C#, PHP, Go** - Coming soon
 
 ## Requirements
 

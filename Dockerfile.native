@@ -16,7 +16,7 @@ LABEL org.opencontainers.image.vendor="JNZader"
 LABEL org.opencontainers.image.source="https://github.com/JNZader/apigen"
 
 # Copy the native executable
-COPY native-artifacts/apigen-example-linux-amd64 /app/apigen
+COPY native-artifacts/apigen-server-linux-amd64 /app/apigen
 
 # Set working directory
 WORKDIR /app

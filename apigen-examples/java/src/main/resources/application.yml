@@ -1,0 +1,101 @@
+spring:
+  application:
+    name: my-api
+
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+server:
+  port: 8086
+
+# APiGen Core Configuration
+app:
+  api:
+    version: v1
+    base-path: /api
+
+  # CORS configuration
+  cors:
+    allowed-origins:
+      - http://localhost:3000
+    allowed-methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
+    allowed-headers:
+      - Authorization
+      - Content-Type
+      - X-Requested-With
+    exposed-headers:
+      - Authorization
+      - X-Total-Count
+      - X-Page-Number
+      - X-Page-Size
+    allow-credentials: true
+    max-age: 3600
+
+  # Cache configuration
+  cache:
+    entities:
+      max-size: 1000
+      expire-after-write: 10m
+    lists:
+      max-size: 100
+      expire-after-write: 5m
+    counts:
+      max-size: 50
+      expire-after-write: 2m
+
+  # Rate limiting configuration
+  rate-limit:
+    enabled: true
+    max-requests: 0
+    window-seconds: 1
+    burst-capacity: 150
+
+# APiGen Security Configuration
+apigen:
+  security:
+    enabled: true
+    jwt:
+      secret: gCbGv1yMglk8DPGhtxjcaaG5xV3Mo2rUxgaSH8G3I3NyCs8C+NgSpIq1BismBUDc
+      access-token-expiration: 30m
+      refresh-token-expiration: 7d
+
+# OpenAPI
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+  enable-hateoas: false
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always

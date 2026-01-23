@@ -29,7 +29,6 @@ COPY apigen-graphql apigen-graphql
 COPY apigen-grpc apigen-grpc
 COPY apigen-gateway apigen-gateway
 COPY apigen-server apigen-server
-COPY apigen-example apigen-example
 
 # Make gradlew executable and build
 RUN chmod +x gradlew
