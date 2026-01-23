@@ -37,6 +37,7 @@ public class CSharpEntityGenerator {
         // Using statements
         sb.append("using System.ComponentModel.DataAnnotations;\n");
         sb.append("using System.ComponentModel.DataAnnotations.Schema;\n");
+        sb.append("using ").append(baseNamespace).append(".Domain.Common;\n");
 
         // Collect related entity namespaces
         Set<String> relatedNamespaces = new HashSet<>();

@@ -273,6 +273,60 @@ public class GeneratorService {
             throws IOException {
         GenerateRequest.ProjectConfig config = request.getProject();
 
+        // Get target language (default to Java)
+        GenerateRequest.TargetConfig target = request.getTarget();
+        String language = target != null ? target.getLanguage() : "java";
+
+        // Language-specific build files
+        if ("csharp".equals(language)) {
+            generateCSharpProjectFiles(projectRoot, config);
+        } else if ("kotlin".equals(language)) {
+            generateKotlinProjectFiles(projectRoot, config, schema);
+        } else {
+            generateJavaProjectFiles(projectRoot, config, schema);
+        }
+
+        // .gitignore (language-aware)
+        Files.writeString(projectRoot.resolve(".gitignore"), getGitignoreContent(language));
+
+        // README.md
+        String readme = projectStructureGenerator.generateReadme(config);
+        Files.writeString(projectRoot.resolve("README.md"), readme);
+
+        // HTTP test files (for Java and Kotlin only, not C#)
+        if (!"csharp".equals(language)) {
+            String httpTests = apiTestingGenerator.generateHttpTestFile(schema);
+            Files.writeString(projectRoot.resolve("api-tests.http"), httpTests);
+
+            String postmanCollection =
+                    apiTestingGenerator.generatePostmanCollection(schema, config);
+            Files.writeString(projectRoot.resolve("postman-collection.json"), postmanCollection);
+        }
+
+        // Docker files (if enabled, for Java/Kotlin - C# uses different Dockerfile)
+        if (config.getFeatures() != null && config.getFeatures().isDocker()) {
+            if ("csharp".equals(language)) {
+                generateCSharpDockerFiles(projectRoot, config);
+            } else {
+                String dockerfile = dockerConfigGenerator.generateDockerfile(config);
+                Files.writeString(projectRoot.resolve("Dockerfile"), dockerfile);
+
+                String dockerCompose = dockerConfigGenerator.generateDockerCompose(config);
+                Files.writeString(projectRoot.resolve("docker-compose.yml"), dockerCompose);
+
+                String dockerignore = dockerConfigGenerator.generateDockerignore();
+                Files.writeString(projectRoot.resolve(".dockerignore"), dockerignore);
+
+                String dockerReadme = dockerConfigGenerator.generateDockerReadme(config);
+                Files.writeString(projectRoot.resolve("DOCKER.md"), dockerReadme);
+            }
+        }
+    }
+
+    /** Generates Java-specific project files (build.gradle, Application.java, etc.). */
+    private void generateJavaProjectFiles(
+            Path projectRoot, GenerateRequest.ProjectConfig config, SqlSchema schema)
+            throws IOException {
         // build.gradle
         String buildGradle = buildConfigGenerator.generateBuildGradle(config);
         Files.writeString(projectRoot.resolve("build.gradle"), buildGradle);
@@ -281,7 +335,7 @@ public class GeneratorService {
         String settingsGradle = buildConfigGenerator.generateSettingsGradle(config.getArtifactId());
         Files.writeString(projectRoot.resolve("settings.gradle"), settingsGradle);
 
-        // Gradle wrapper (gradlew, gradlew.bat, gradle-wrapper.jar, gradle-wrapper.properties)
+        // Gradle wrapper
         gradleWrapperGenerator.generateWrapperFiles(projectRoot);
 
         // application.yml
@@ -295,13 +349,13 @@ public class GeneratorService {
                 applicationConfigGenerator.generateApplicationDockerYml(config);
         Files.writeString(resourcesDir.resolve("application-docker.yml"), applicationDockerYml);
 
-        // application-test.yml (in test resources)
+        // application-test.yml
         String applicationTestYml = applicationConfigGenerator.generateApplicationTestYml(config);
         Path testResourcesDir = projectRoot.resolve("src/test/resources");
         Files.createDirectories(testResourcesDir);
         Files.writeString(testResourcesDir.resolve("application-test.yml"), applicationTestYml);
 
-        // ApplicationContextTest.java (smoke test to verify context loads)
+        // ApplicationContextTest.java
         String contextTest = projectStructureGenerator.generateApplicationContextTest(config);
         Path testPackageDir =
                 projectRoot
@@ -319,36 +373,281 @@ public class GeneratorService {
                         .resolve(config.getBasePackage().replace('.', '/'));
         Files.createDirectories(mainPackageDir);
         Files.writeString(mainPackageDir.resolve(className + ".java"), mainClass);
+    }
 
-        // .gitignore
-        Files.writeString(
-                projectRoot.resolve(".gitignore"), projectStructureGenerator.getGitignoreContent());
+    /** Generates Kotlin-specific project files (build.gradle.kts, Application.kt, etc.). */
+    private void generateKotlinProjectFiles(
+            Path projectRoot, GenerateRequest.ProjectConfig config, SqlSchema schema)
+            throws IOException {
+        // build.gradle.kts
+        String buildGradleKts = buildConfigGenerator.generateKotlinBuildGradle(config);
+        Files.writeString(projectRoot.resolve("build.gradle.kts"), buildGradleKts);
 
-        // README.md
-        String readme = projectStructureGenerator.generateReadme(config);
-        Files.writeString(projectRoot.resolve("README.md"), readme);
+        // settings.gradle.kts
+        String settingsGradleKts = "rootProject.name = \"%s\"%n".formatted(config.getArtifactId());
+        Files.writeString(projectRoot.resolve("settings.gradle.kts"), settingsGradleKts);
 
-        // HTTP test files for REST Client / IntelliJ
-        String httpTests = apiTestingGenerator.generateHttpTestFile(schema);
-        Files.writeString(projectRoot.resolve("api-tests.http"), httpTests);
+        // Gradle wrapper
+        gradleWrapperGenerator.generateWrapperFiles(projectRoot);
 
-        // Postman collection
-        String postmanCollection = apiTestingGenerator.generatePostmanCollection(schema, config);
-        Files.writeString(projectRoot.resolve("postman-collection.json"), postmanCollection);
+        // application.yml
+        String applicationYml = applicationConfigGenerator.generateApplicationYml(config);
+        Path resourcesDir = projectRoot.resolve("src/main/resources");
+        Files.createDirectories(resourcesDir);
+        Files.writeString(resourcesDir.resolve("application.yml"), applicationYml);
 
-        // Docker files (if enabled)
-        if (config.getFeatures() != null && config.getFeatures().isDocker()) {
-            String dockerfile = dockerConfigGenerator.generateDockerfile(config);
-            Files.writeString(projectRoot.resolve("Dockerfile"), dockerfile);
+        // application-docker.yml
+        String applicationDockerYml =
+                applicationConfigGenerator.generateApplicationDockerYml(config);
+        Files.writeString(resourcesDir.resolve("application-docker.yml"), applicationDockerYml);
 
-            String dockerCompose = dockerConfigGenerator.generateDockerCompose(config);
-            Files.writeString(projectRoot.resolve("docker-compose.yml"), dockerCompose);
+        // application-test.yml
+        String applicationTestYml = applicationConfigGenerator.generateApplicationTestYml(config);
+        Path testResourcesDir = projectRoot.resolve("src/test/resources");
+        Files.createDirectories(testResourcesDir);
+        Files.writeString(testResourcesDir.resolve("application-test.yml"), applicationTestYml);
 
-            String dockerignore = dockerConfigGenerator.generateDockerignore();
-            Files.writeString(projectRoot.resolve(".dockerignore"), dockerignore);
+        // ApplicationContextTest.kt
+        String contextTest = generateKotlinContextTest(config);
+        Path testPackageDir =
+                projectRoot
+                        .resolve("src/test/kotlin")
+                        .resolve(config.getBasePackage().replace('.', '/'));
+        Files.createDirectories(testPackageDir);
+        Files.writeString(testPackageDir.resolve("ApplicationContextTest.kt"), contextTest);
 
-            String dockerReadme = dockerConfigGenerator.generateDockerReadme(config);
-            Files.writeString(projectRoot.resolve("DOCKER.md"), dockerReadme);
+        // Main Application class (Kotlin)
+        String className = toPascalCase(config.getArtifactId()) + "Application";
+        String mainClass = generateKotlinMainClass(config, className);
+        Path mainPackageDir =
+                projectRoot
+                        .resolve("src/main/kotlin")
+                        .resolve(config.getBasePackage().replace('.', '/'));
+        Files.createDirectories(mainPackageDir);
+        Files.writeString(mainPackageDir.resolve(className + ".kt"), mainClass);
+    }
+
+    /** Generates C#-specific project files (appsettings.json already generated by codegen). */
+    private void generateCSharpProjectFiles(Path projectRoot, GenerateRequest.ProjectConfig config)
+            throws IOException {
+        // C# projects have their config files generated by CSharpConfigGenerator
+        // (Program.cs, appsettings.json, .csproj)
+        // We just need to add a global.json for SDK version pinning
+        String globalJson = generateGlobalJson();
+        Files.writeString(projectRoot.resolve("global.json"), globalJson);
+    }
+
+    /** Generates C# Docker files. */
+    private void generateCSharpDockerFiles(Path projectRoot, GenerateRequest.ProjectConfig config)
+            throws IOException {
+        String namespace = config.getBasePackage();
+        String dockerfile = generateCSharpDockerfile(namespace);
+        Files.writeString(projectRoot.resolve("Dockerfile"), dockerfile);
+
+        String dockerCompose = generateCSharpDockerCompose(config);
+        Files.writeString(projectRoot.resolve("docker-compose.yml"), dockerCompose);
+
+        Files.writeString(projectRoot.resolve(".dockerignore"), getCSharpDockerignore());
+    }
+
+    /** Generates Kotlin main Application class. */
+    private String generateKotlinMainClass(GenerateRequest.ProjectConfig config, String className) {
+        String basePackage = config.getBasePackage();
+        boolean hasSecurity = config.getModules() != null && config.getModules().isSecurity();
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("package ").append(basePackage).append("\n\n");
+        sb.append("import org.springframework.boot.autoconfigure.SpringBootApplication\n");
+        sb.append("import org.springframework.boot.runApplication\n");
+
+        if (hasSecurity) {
+            sb.append("import org.springframework.boot.persistence.autoconfigure.EntityScan\n");
+            sb.append(
+                    "import"
+                        + " org.springframework.data.jpa.repository.config.EnableJpaRepositories\n");
+            sb.append("\n");
+            sb.append("@EnableJpaRepositories(basePackages = [\"")
+                    .append(basePackage)
+                    .append("\", \"com.jnzader.apigen.security.domain.repository\"])\n");
+            sb.append("@EntityScan(basePackages = [\"")
+                    .append(basePackage)
+                    .append("\", \"com.jnzader.apigen.security.domain.entity\"])\n");
+        } else {
+            sb.append("import org.springframework.boot.persistence.autoconfigure.EntityScan\n");
+            sb.append(
+                    "import"
+                        + " org.springframework.data.jpa.repository.config.EnableJpaRepositories\n");
+            sb.append("\n");
+            sb.append("@EnableJpaRepositories(basePackages = [\"")
+                    .append(basePackage)
+                    .append("\"])\n");
+            sb.append("@EntityScan(basePackages = [\"").append(basePackage).append("\"])\n");
         }
+
+        sb.append("@SpringBootApplication\n");
+        sb.append("class ").append(className).append("\n\n");
+        sb.append("fun main(args: Array<String>) {\n");
+        sb.append("    runApplication<").append(className).append(">(*args)\n");
+        sb.append("}\n");
+
+        return sb.toString();
+    }
+
+    /** Generates Kotlin ApplicationContextTest. */
+    private String generateKotlinContextTest(GenerateRequest.ProjectConfig config) {
+        String basePackage = config.getBasePackage();
+        String className = toPascalCase(config.getArtifactId()) + "Application";
+
+        return """
+        package %s
+
+        import org.junit.jupiter.api.Test
+        import org.springframework.boot.test.context.SpringBootTest
+        import org.springframework.test.context.ActiveProfiles
+
+        @SpringBootTest(classes = [%s::class])
+        @ActiveProfiles("test")
+        class ApplicationContextTest {
+
+            @Test
+            fun contextLoads() {
+                // Verifies Spring context loads successfully
+            }
+        }
+        """
+                .formatted(basePackage, className);
+    }
+
+    /** Generates global.json for C# SDK version pinning. */
+    private String generateGlobalJson() {
+        return """
+        {
+          "sdk": {
+            "version": "8.0.0",
+            "rollForward": "latestMinor"
+          }
+        }
+        """;
+    }
+
+    /** Generates C# Dockerfile. */
+    private String generateCSharpDockerfile(String namespace) {
+        return """
+        FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+        WORKDIR /app
+        EXPOSE 80
+        EXPOSE 443
+
+        FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+        WORKDIR /src
+        COPY ["%s.csproj", "./"]
+        RUN dotnet restore "%s.csproj"
+        COPY . .
+        RUN dotnet build "%s.csproj" -c Release -o /app/build
+
+        FROM build AS publish
+        RUN dotnet publish "%s.csproj" -c Release -o /app/publish
+
+        FROM base AS final
+        WORKDIR /app
+        COPY --from=publish /app/publish .
+        ENTRYPOINT ["dotnet", "%s.dll"]
+        """
+                .formatted(namespace, namespace, namespace, namespace, namespace);
+    }
+
+    /** Generates C# docker-compose.yml. */
+    private String generateCSharpDockerCompose(GenerateRequest.ProjectConfig config) {
+        String artifactId = config.getArtifactId();
+        return """
+        version: '3.8'
+
+        services:
+          api:
+            build: .
+            ports:
+              - "5000:80"
+              - "5001:443"
+            environment:
+              - ASPNETCORE_ENVIRONMENT=Development
+              - ConnectionStrings__DefaultConnection=Host=db;Database=%s;Username=postgres;Password=postgres
+            depends_on:
+              - db
+
+          db:
+            image: postgres:16-alpine
+            environment:
+              POSTGRES_USER: postgres
+              POSTGRES_PASSWORD: postgres
+              POSTGRES_DB: %s
+            ports:
+              - "5432:5432"
+            volumes:
+              - postgres_data:/var/lib/postgresql/data
+
+        volumes:
+          postgres_data:
+        """
+                .formatted(artifactId, artifactId);
+    }
+
+    /** Gets C# .dockerignore content. */
+    private String getCSharpDockerignore() {
+        return """
+        **/.dockerignore
+        **/.env
+        **/.git
+        **/.gitignore
+        **/.vs
+        **/bin
+        **/obj
+        **/Dockerfile*
+        **/docker-compose*
+        **/*.user
+        **/*.suo
+        **/.idea
+        """;
+    }
+
+    /** Gets language-aware .gitignore content. */
+    private String getGitignoreContent(String language) {
+        if ("csharp".equals(language)) {
+            return """
+            ## Visual Studio / .NET
+            bin/
+            obj/
+            .vs/
+            *.user
+            *.suo
+            *.userosscache
+            *.sln.docstates
+
+            ## JetBrains Rider
+            .idea/
+            *.sln.iml
+
+            ## Build results
+            [Dd]ebug/
+            [Dd]ebugPublic/
+            [Rr]elease/
+            [Rr]eleases/
+            x64/
+            x86/
+            bld/
+            [Bb]in/
+            [Oo]bj/
+
+            ## NuGet
+            *.nupkg
+            **/packages/*
+            project.lock.json
+            project.fragment.lock.json
+
+            ## Misc
+            .DS_Store
+            *.log
+            """;
+        }
+        return projectStructureGenerator.getGitignoreContent();
     }
 }

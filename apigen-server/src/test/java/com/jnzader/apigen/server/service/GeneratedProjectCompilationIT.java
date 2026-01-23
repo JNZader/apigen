@@ -1,7 +1,9 @@
 package com.jnzader.apigen.server.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
+import com.jnzader.apigen.server.config.GeneratedProjectVersions;
 import com.jnzader.apigen.server.dto.GenerateRequest;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -11,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,6 +45,10 @@ import tools.jackson.databind.json.JsonMapper;
 @DisplayName("Generated Project Compilation Integration Tests")
 @Tag("integration")
 class GeneratedProjectCompilationIT {
+
+    /** Pattern to detect JitPack dependency resolution failures. */
+    private static final Pattern JITPACK_DEPENDENCY_ERROR =
+            Pattern.compile("Could not (find|resolve).*apigen-(core|security)");
 
     private GeneratorService generatorService;
     private JsonMapper jsonMapper;
@@ -158,39 +165,65 @@ class GeneratedProjectCompilationIT {
             gradlew.toFile().setExecutable(true);
         }
 
-        // Run context test - this verifies the Spring context loads successfully
-        // This catches BeanDefinitionOverrideException and other runtime issues
-        ProcessBuilder pb =
-                new ProcessBuilder(
-                                "./gradlew",
-                                "test",
-                                "--tests",
-                                "ApplicationContextTest",
-                                "--no-daemon")
-                        .directory(projectDir.toFile())
-                        .redirectErrorStream(true);
+        // Try with fallback versions if JitPack dependency is not available
+        String lastOutput = "";
+        for (String version : GeneratedProjectVersions.FALLBACK_VERSIONS) {
+            // Update build.gradle to use this version
+            updateApigenVersionInBuildGradle(projectDir, version);
 
-        Process process = pb.start();
+            // Run context test
+            ProcessBuilder pb =
+                    new ProcessBuilder(
+                                    "./gradlew",
+                                    "test",
+                                    "--tests",
+                                    "ApplicationContextTest",
+                                    "--no-daemon",
+                                    "--refresh-dependencies")
+                            .directory(projectDir.toFile())
+                            .redirectErrorStream(true);
 
-        // Capture output
-        StringBuilder output = new StringBuilder();
-        try (BufferedReader reader =
-                new BufferedReader(
-                        new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                output.append(line).append("\n");
+            Process process = pb.start();
+
+            // Capture output
+            StringBuilder output = new StringBuilder();
+            try (BufferedReader reader =
+                    new BufferedReader(
+                            new InputStreamReader(
+                                    process.getInputStream(), StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    output.append(line).append("\n");
+                }
             }
+
+            boolean finished = process.waitFor(5, TimeUnit.MINUTES);
+            int exitCode = finished ? process.exitValue() : -1;
+            lastOutput = output.toString();
+
+            if (exitCode == 0) {
+                return; // Success!
+            }
+
+            // Check if it's a JitPack dependency error - if so, try next version
+            if (isJitPackDependencyError(lastOutput)) {
+                System.out.println(
+                        "JitPack dependency not available for "
+                                + version
+                                + ", trying next fallback...");
+                continue;
+            }
+
+            // It's a different error, fail immediately
+            fail("Generated project context test failed.\n\nBuild output:\n%s", lastOutput);
         }
 
-        boolean finished = process.waitFor(5, TimeUnit.MINUTES);
-        int exitCode = finished ? process.exitValue() : -1;
-
-        assertThat(exitCode)
-                .as(
-                        "Generated project context test should pass.\n\nBuild output:\n%s",
-                        output.toString())
-                .isZero();
+        // All versions failed
+        fail(
+                "Generated project context test failed with all fallback versions.\n\n"
+                        + "Last output:\n"
+                        + "%s",
+                lastOutput);
     }
 
     @Test
@@ -215,32 +248,62 @@ class GeneratedProjectCompilationIT {
             gradlew.toFile().setExecutable(true);
         }
 
-        // Run Kotlin compilation - verifies all .kt files compile correctly
-        ProcessBuilder pb =
-                new ProcessBuilder("./gradlew", "compileKotlin", "--no-daemon")
-                        .directory(projectDir.toFile())
-                        .redirectErrorStream(true);
+        // Try with fallback versions if JitPack dependency is not available
+        String lastOutput = "";
+        for (String version : GeneratedProjectVersions.FALLBACK_VERSIONS) {
+            // Update build.gradle.kts to use this version
+            updateApigenVersionInBuildGradle(projectDir, version);
 
-        Process process = pb.start();
+            // Run Kotlin compilation
+            ProcessBuilder pb =
+                    new ProcessBuilder(
+                                    "./gradlew",
+                                    "compileKotlin",
+                                    "--no-daemon",
+                                    "--refresh-dependencies")
+                            .directory(projectDir.toFile())
+                            .redirectErrorStream(true);
 
-        StringBuilder output = new StringBuilder();
-        try (BufferedReader reader =
-                new BufferedReader(
-                        new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                output.append(line).append("\n");
+            Process process = pb.start();
+
+            StringBuilder output = new StringBuilder();
+            try (BufferedReader reader =
+                    new BufferedReader(
+                            new InputStreamReader(
+                                    process.getInputStream(), StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    output.append(line).append("\n");
+                }
             }
+
+            boolean finished = process.waitFor(5, TimeUnit.MINUTES);
+            int exitCode = finished ? process.exitValue() : -1;
+            lastOutput = output.toString();
+
+            if (exitCode == 0) {
+                return; // Success!
+            }
+
+            // Check if it's a JitPack dependency error - if so, try next version
+            if (isJitPackDependencyError(lastOutput)) {
+                System.out.println(
+                        "JitPack dependency not available for "
+                                + version
+                                + ", trying next fallback...");
+                continue;
+            }
+
+            // It's a different error, fail immediately
+            fail("Generated Kotlin project compilation failed.\n\nBuild output:\n%s", lastOutput);
         }
 
-        boolean finished = process.waitFor(5, TimeUnit.MINUTES);
-        int exitCode = finished ? process.exitValue() : -1;
-
-        assertThat(exitCode)
-                .as(
-                        "Generated Kotlin project should compile.\n\nBuild output:\n%s",
-                        output.toString())
-                .isZero();
+        // All versions failed
+        fail(
+                "Generated Kotlin project compilation failed with all fallback versions.\n\n"
+                        + "Last output:\n"
+                        + "%s",
+                lastOutput);
     }
 
     @Test
@@ -350,6 +413,44 @@ class GeneratedProjectCompilationIT {
                 }
                 zis.closeEntry();
             }
+        }
+    }
+
+    /**
+     * Checks if the build output indicates a JitPack dependency resolution failure. This happens
+     * when a new version is tagged but JitPack hasn't built it yet or the build failed.
+     */
+    private boolean isJitPackDependencyError(String output) {
+        return JITPACK_DEPENDENCY_ERROR.matcher(output).find();
+    }
+
+    /**
+     * Updates the APiGen version in the project's build.gradle or build.gradle.kts file. This is
+     * used by the fallback mechanism when a JitPack version is not available.
+     */
+    private void updateApigenVersionInBuildGradle(Path projectDir, String version)
+            throws IOException {
+        // Try build.gradle first (Java/Groovy)
+        Path buildGradle = projectDir.resolve("build.gradle");
+        if (Files.exists(buildGradle)) {
+            String content = Files.readString(buildGradle, StandardCharsets.UTF_8);
+            content =
+                    content.replaceAll(
+                            "com\\.github\\.jnzader\\.apigen:apigen-(core|security):v[\\d.]+",
+                            "com.github.jnzader.apigen:apigen-$1:" + version);
+            Files.writeString(buildGradle, content, StandardCharsets.UTF_8);
+            return;
+        }
+
+        // Try build.gradle.kts (Kotlin DSL)
+        Path buildGradleKts = projectDir.resolve("build.gradle.kts");
+        if (Files.exists(buildGradleKts)) {
+            String content = Files.readString(buildGradleKts, StandardCharsets.UTF_8);
+            content =
+                    content.replaceAll(
+                            "com\\.github\\.jnzader\\.apigen:apigen-(core|security):v[\\d.]+",
+                            "com.github.jnzader.apigen:apigen-$1:" + version);
+            Files.writeString(buildGradleKts, content, StandardCharsets.UTF_8);
         }
     }
 }
