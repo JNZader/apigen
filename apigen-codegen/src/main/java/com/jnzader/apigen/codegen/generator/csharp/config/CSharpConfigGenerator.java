@@ -57,6 +57,7 @@ public class CSharpConfigGenerator {
 
     <!-- AutoMapper for DTO mapping (12.0.1 is last free version) -->
     <PackageReference Include="AutoMapper" Version="12.0.1" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
 
     <!-- OpenAPI / Swagger -->
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.9.0" />
