@@ -46,6 +46,7 @@ jobs:
   prepare:
     name: Prepare Deployment
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     outputs:
       environment: ${{ steps.set-env.outputs.environment }}
       version: ${{ steps.set-env.outputs.version }}
@@ -93,6 +94,7 @@ jobs:
     needs: prepare
     if: needs.prepare.outputs.should_deploy == 'true' && needs.prepare.outputs.environment == 'staging'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     environment:
       name: staging
       url: https://staging.api.example.com
@@ -161,6 +163,7 @@ jobs:
     needs: prepare
     if: needs.prepare.outputs.should_deploy == 'true' && needs.prepare.outputs.environment == 'production'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     environment:
       name: production
       url: https://api.example.com
@@ -195,6 +198,7 @@ jobs:
     needs: [prepare, deploy-staging, deploy-production]
     if: always() && (needs.deploy-staging.result == 'success' || needs.deploy-production.result == 'success')
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Wait for application startup

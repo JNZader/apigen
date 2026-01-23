@@ -21,6 +21,7 @@ jobs:
   cleanup:
     name: Check and Clean Cache
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Check cache size
