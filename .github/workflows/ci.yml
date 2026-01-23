@@ -477,7 +477,7 @@ jobs:
       - name: Set up .NET SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: '9.0.x'
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4

@@ -78,7 +78,7 @@ package %s.%s.application.dto
 data class %sDTO(
     @field:Null(groups = [ValidationGroups.Create::class], message = "ID debe ser nulo al crear")
     @field:NotNull(groups = [ValidationGroups.Update::class], message = "ID es requerido al actualizar")
-    override var id: Long? = null,
+    var id: Long? = null,
 
     var activo: Boolean = true,%s
 ) : BaseDTO {
