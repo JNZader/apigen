@@ -5,7 +5,6 @@ import java.nio.charset.StandardCharsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
 
 /**
  * Propiedades de configuración para el módulo de seguridad.
@@ -33,8 +32,10 @@ import org.springframework.stereotype.Component;
  *       audience: your-api-identifier
  *       roles-claim: permissions  # claim que contiene los roles
  * </pre>
+ *
+ * <p>Note: This class is registered as a bean via @EnableConfigurationProperties in
+ * ApigenSecurityAutoConfiguration. Do not add @Component to avoid duplicate bean registration.
  */
-@Component
 @ConfigurationProperties(prefix = "apigen.security")
 public class SecurityProperties {
 
