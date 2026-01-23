@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.9](https://github.com/JNZader/apigen/compare/v2.5.8...v2.5.9) (2026-01-23)
+
+### Code Refactoring
+
+* replace apigen-example module with apigen-examples folder ([cf13cce](https://github.com/JNZader/apigen/commit/cf13ccec5012e3e950551a28d282793b7cdb3707))
+
+### CI/CD
+
+* add cache cleanup workflow to prevent storage quota issues ([e8750b7](https://github.com/JNZader/apigen/commit/e8750b72dc62f2474a1e6fce405a2203c0887b07))
+* add keep-alive workflow to prevent Koyeb instance sleep ([4af91e0](https://github.com/JNZader/apigen/commit/4af91e0321eeb15de54fec45f21b1173b25fc444))
+* reduce artifact retention to 1 day to avoid storage quota issues ([bc6858d](https://github.com/JNZader/apigen/commit/bc6858d64da60ce538a18b079f9af3b3f74f8e4f))
+
 ## [2.5.8](https://github.com/JNZader/apigen/compare/v2.5.7...v2.5.8) (2026-01-23)
 
 ### Bug Fixes

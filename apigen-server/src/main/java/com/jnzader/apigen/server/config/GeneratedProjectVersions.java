@@ -17,10 +17,10 @@ public final class GeneratedProjectVersions {
     // ==========================================================================
 
     /** APiGen Core version for generated projects (from JitPack). */
-    public static final String APIGEN_CORE_VERSION = "v2.5.8";
+    public static final String APIGEN_CORE_VERSION = "v2.5.9";
 
     /** APiGen Security version for generated projects (from JitPack). */
-    public static final String APIGEN_SECURITY_VERSION = "v2.5.8";
+    public static final String APIGEN_SECURITY_VERSION = "v2.5.9";
 
     // ==========================================================================
     // Core Platform Versions
