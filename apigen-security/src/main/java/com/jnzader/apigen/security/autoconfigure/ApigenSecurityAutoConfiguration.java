@@ -8,11 +8,9 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 /**
  * Auto-configuration for APiGen Security module.
@@ -21,7 +19,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  *
  * <ul>
  *   <li>JWT authentication with access and refresh tokens
- *   <li>Security repositories for user management
+ *   <li>Security components via ComponentScan
  *   <li>Auth controller for login/logout/refresh endpoints
  *   <li>Rate limiting for authentication endpoints
  *   <li>Security audit logging
@@ -56,6 +54,11 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  * was removed for Spring Framework 7.0 compatibility (cannot combine @ConditionalOnBean
  * with @ComponentScan). The apigen-security module requires apigen-core as a dependency, so core
  * will always be present.
+ *
+ * <p>Important: JPA repository and entity scanning for the security module is handled by the
+ * generated Application class (via @EnableJpaRepositories and @EntityScan annotations). This avoids
+ * BeanDefinitionOverrideException when both configurations would try to register the same
+ * repositories.
  */
 @AutoConfiguration(after = ApigenCoreAutoConfiguration.class)
 @ConditionalOnProperty(
@@ -64,8 +67,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         matchIfMissing = false)
 @EnableConfigurationProperties(SecurityProperties.class)
 @ComponentScan(basePackages = "com.jnzader.apigen.security")
-@EnableJpaRepositories(basePackages = "com.jnzader.apigen.security.domain.repository")
-@EntityScan(basePackages = "com.jnzader.apigen.security.domain.entity")
 @Import({SecurityConfig.class, OAuth2SecurityConfig.class})
 public class ApigenSecurityAutoConfiguration {
 

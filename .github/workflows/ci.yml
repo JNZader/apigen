@@ -387,8 +387,8 @@ jobs:
         env:
           SPRING_PROFILES_ACTIVE: test
 
-      - name: Run generated project compilation test
-        run: ./gradlew :apigen-server:test --tests "GeneratedProjectCompilationIT.generatedProjectWithSecurityShouldCompile" --no-daemon
+      - name: Run generated project context test
+        run: ./gradlew :apigen-server:test --tests "GeneratedProjectCompilationIT.generatedProjectWithSecurityShouldPassContextTest" --no-daemon
         env:
           SPRING_PROFILES_ACTIVE: test
           CI_COMPILE_GENERATED_PROJECT: true

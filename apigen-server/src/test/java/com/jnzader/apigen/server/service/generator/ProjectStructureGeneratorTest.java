@@ -303,6 +303,66 @@ class ProjectStructureGeneratorTest {
     }
 
     @Nested
+    @DisplayName("generateApplicationContextTest()")
+    class GenerateApplicationContextTestTests {
+
+        @Test
+        @DisplayName("Should generate test with correct package")
+        void shouldGenerateTestWithCorrectPackage() {
+            GenerateRequest.ProjectConfig config = createDefaultConfig();
+
+            String result = projectStructureGenerator.generateApplicationContextTest(config);
+
+            assertThat(result).contains("package com.example.myapi;");
+        }
+
+        @Test
+        @DisplayName("Should be a SpringBootTest with correct application class")
+        void shouldBeSpringBootTestWithCorrectApplicationClass() {
+            GenerateRequest.ProjectConfig config = createDefaultConfig();
+
+            String result = projectStructureGenerator.generateApplicationContextTest(config);
+
+            assertThat(result)
+                    .contains("@SpringBootTest(classes = MyApiApplication.class)")
+                    .contains("import org.springframework.boot.test.context.SpringBootTest;");
+        }
+
+        @Test
+        @DisplayName("Should use test profile")
+        void shouldUseTestProfile() {
+            GenerateRequest.ProjectConfig config = createDefaultConfig();
+
+            String result = projectStructureGenerator.generateApplicationContextTest(config);
+
+            assertThat(result)
+                    .contains("@ActiveProfiles(\"test\")")
+                    .contains("import org.springframework.test.context.ActiveProfiles;");
+        }
+
+        @Test
+        @DisplayName("Should have contextLoads test method")
+        void shouldHaveContextLoadsTestMethod() {
+            GenerateRequest.ProjectConfig config = createDefaultConfig();
+
+            String result = projectStructureGenerator.generateApplicationContextTest(config);
+
+            assertThat(result).contains("void contextLoads()").contains("@Test");
+        }
+
+        @Test
+        @DisplayName("Should handle different artifact IDs")
+        void shouldHandleDifferentArtifactIds() {
+            GenerateRequest.ProjectConfig config = createDefaultConfig();
+            config.setArtifactId("my-awesome-api");
+
+            String result = projectStructureGenerator.generateApplicationContextTest(config);
+
+            assertThat(result).contains("@SpringBootTest(classes = MyAwesomeApiApplication.class)");
+        }
+    }
+
+    @Nested
     @DisplayName("getGitignoreContent()")
     class GetGitignoreContentTests {
 

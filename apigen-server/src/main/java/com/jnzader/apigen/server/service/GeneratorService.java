@@ -171,6 +171,15 @@ public class GeneratorService {
         Files.createDirectories(testResourcesDir);
         Files.writeString(testResourcesDir.resolve("application-test.yml"), applicationTestYml);
 
+        // ApplicationContextTest.java (smoke test to verify context loads)
+        String contextTest = projectStructureGenerator.generateApplicationContextTest(config);
+        Path testPackageDir =
+                projectRoot
+                        .resolve("src/test/java")
+                        .resolve(config.getBasePackage().replace('.', '/'));
+        Files.createDirectories(testPackageDir);
+        Files.writeString(testPackageDir.resolve("ApplicationContextTest.java"), contextTest);
+
         // Main Application class
         String className = toPascalCase(config.getArtifactId()) + "Application";
         String mainClass = projectStructureGenerator.generateMainClass(config);
