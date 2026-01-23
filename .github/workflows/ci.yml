@@ -365,10 +365,96 @@ jobs:
           retention-days: 1
 
   # ============================================
-  # Integration Test - Generated Project Compilation
+  # Integration Tests - Generated Project Compilation (per language)
   # ============================================
-  test-generated-project:
-    name: Test Generated Project
+
+  test-generated-java:
+    name: Test Generated Java Project
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: true
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run generated project annotation tests
+        run: ./gradlew :apigen-server:test --tests "GeneratedProjectCompilationIT.generatedApplicationShouldHaveJpaAnnotationsWithSecurity" --tests "GeneratedProjectCompilationIT.generatedApplicationShouldHaveSimpleJpaAnnotationsWithoutSecurity" --tests "GeneratedProjectCompilationIT.generatedProjectShouldIncludeContextTest" --no-daemon
+        env:
+          SPRING_PROFILES_ACTIVE: test
+
+      - name: Run Java generated project context test
+        run: ./gradlew :apigen-server:test --tests "GeneratedProjectCompilationIT.generatedProjectWithSecurityShouldPassContextTest" --no-daemon
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          CI_COMPILE_GENERATED_PROJECT: true
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        continue-on-error: true
+        with:
+          name: test-results-generated-java
+          path: |
+            apigen-server/build/reports/tests/
+            apigen-server/build/test-results/
+          retention-days: 1
+
+  test-generated-kotlin:
+    name: Test Generated Kotlin Project
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: true
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run Kotlin generated project compilation test
+        run: ./gradlew :apigen-server:test --tests "GeneratedProjectCompilationIT.generatedKotlinProjectShouldCompile" --no-daemon
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          CI_COMPILE_GENERATED_PROJECT: true
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        continue-on-error: true
+        with:
+          name: test-results-generated-kotlin
+          path: |
+            apigen-server/build/reports/tests/
+            apigen-server/build/test-results/
+          retention-days: 1
+
+  test-generated-csharp:
+    name: Test Generated C# Project
     runs-on: ubuntu-latest
     needs: build
 
@@ -395,23 +481,6 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Run generated project annotation tests
-        run: ./gradlew :apigen-server:test --tests "GeneratedProjectCompilationIT" --no-daemon
-        env:
-          SPRING_PROFILES_ACTIVE: test
-
-      - name: Run Java generated project context test
-        run: ./gradlew :apigen-server:test --tests "GeneratedProjectCompilationIT.generatedProjectWithSecurityShouldPassContextTest" --no-daemon
-        env:
-          SPRING_PROFILES_ACTIVE: test
-          CI_COMPILE_GENERATED_PROJECT: true
-
-      - name: Run Kotlin generated project compilation test
-        run: ./gradlew :apigen-server:test --tests "GeneratedProjectCompilationIT.generatedKotlinProjectShouldCompile" --no-daemon
-        env:
-          SPRING_PROFILES_ACTIVE: test
-          CI_COMPILE_GENERATED_PROJECT: true
-
       - name: Run C# generated project compilation test
         run: ./gradlew :apigen-server:test --tests "GeneratedProjectCompilationIT.generatedCSharpProjectShouldCompile" --no-daemon
         env:
@@ -423,7 +492,7 @@ jobs:
         if: always()
         continue-on-error: true
         with:
-          name: test-results-generated-project
+          name: test-results-generated-csharp
           path: |
             apigen-server/build/reports/tests/
             apigen-server/build/test-results/
@@ -443,7 +512,9 @@ jobs:
       - test-gateway
       - test-graphql
       - test-grpc
-      - test-generated-project
+      - test-generated-java
+      - test-generated-kotlin
+      - test-generated-csharp
     if: always()
 
     steps:
@@ -458,6 +529,7 @@ jobs:
         run: |
           echo "## Test Results Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Module Tests" >> $GITHUB_STEP_SUMMARY
           echo "| Module | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|--------|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| apigen-core | ${{ needs.test-core.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
@@ -467,7 +539,13 @@ jobs:
           echo "| apigen-gateway | ${{ needs.test-gateway.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| apigen-graphql | ${{ needs.test-graphql.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| apigen-grpc | ${{ needs.test-grpc.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| generated-project | ${{ needs.test-generated-project.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Generated Project Compilation Tests" >> $GITHUB_STEP_SUMMARY
+          echo "| Language | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Java/Spring Boot | ${{ needs.test-generated-java.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Kotlin/Spring Boot | ${{ needs.test-generated-kotlin.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| C#/ASP.NET Core | ${{ needs.test-generated-csharp.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
 
   # ============================================
   # Code Quality
