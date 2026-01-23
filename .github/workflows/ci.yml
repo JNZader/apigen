@@ -477,7 +477,7 @@ jobs:
       - name: Set up .NET SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '8.0.x'
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -585,7 +585,7 @@ jobs:
         run: ./gradlew spotlessCheck --no-daemon
         
       - name: Run architecture tests
-        run: ./gradlew test --tests "*ArchitectureTest*" --no-daemon
+        run: ./gradlew :apigen-core:test --tests "*ArchitectureTest*" --no-daemon
         
   # ============================================
   # Security Scan
