@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.7](https://github.com/JNZader/apigen/compare/v2.5.6...v2.5.7) (2026-01-23)
+
+### Bug Fixes
+
+* **codegen:** add @EnableJpaRepositories and @EntityScan to generated Application class ([89df53b](https://github.com/JNZader/apigen/commit/89df53bf9f7df9623f2b013694251dc3f8083084))
+* **test:** correct ZIP extraction path for compilation test ([f24b6fc](https://github.com/JNZader/apigen/commit/f24b6fc840ddfe566aa898d4921cf79c47c32539))
+
 ## [2.5.6](https://github.com/JNZader/apigen/compare/v2.5.5...v2.5.6) (2026-01-23)
 
 ### Code Refactoring
