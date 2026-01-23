@@ -94,6 +94,66 @@ class ProjectStructureGeneratorTest {
         }
 
         @Test
+        @DisplayName("Should include @EnableJpaRepositories with base package")
+        void shouldIncludeEnableJpaRepositoriesWithBasePackage() {
+            GenerateRequest.ProjectConfig config = createDefaultConfig();
+
+            String result = projectStructureGenerator.generateMainClass(config);
+
+            assertThat(result)
+                    .contains(
+                            "import"
+                                + " org.springframework.data.jpa.repository.config.EnableJpaRepositories;")
+                    .contains("@EnableJpaRepositories(basePackages = \"com.example.myapi\")");
+        }
+
+        @Test
+        @DisplayName("Should include @EntityScan with base package")
+        void shouldIncludeEntityScanWithBasePackage() {
+            GenerateRequest.ProjectConfig config = createDefaultConfig();
+
+            String result = projectStructureGenerator.generateMainClass(config);
+
+            assertThat(result)
+                    .contains(
+                            "import org.springframework.boot.persistence.autoconfigure.EntityScan;")
+                    .contains("@EntityScan(basePackages = \"com.example.myapi\")");
+        }
+
+        @Test
+        @DisplayName("Should include security packages in JPA annotations when security is enabled")
+        void shouldIncludeSecurityPackagesWhenSecurityEnabled() {
+            GenerateRequest.ProjectConfig config = createDefaultConfig();
+            config.setModules(
+                    GenerateRequest.ModulesConfig.builder().core(true).security(true).build());
+
+            String result = projectStructureGenerator.generateMainClass(config);
+
+            assertThat(result)
+                    .contains(
+                            "@EnableJpaRepositories(basePackages = {\"com.example.myapi\","
+                                    + " \"com.jnzader.apigen.security.domain.repository\"})")
+                    .contains(
+                            "@EntityScan(basePackages = {\"com.example.myapi\","
+                                    + " \"com.jnzader.apigen.security.domain.entity\"})");
+        }
+
+        @Test
+        @DisplayName("Should not include security packages when security is disabled")
+        void shouldNotIncludeSecurityPackagesWhenSecurityDisabled() {
+            GenerateRequest.ProjectConfig config = createDefaultConfig();
+            config.setModules(
+                    GenerateRequest.ModulesConfig.builder().core(true).security(false).build());
+
+            String result = projectStructureGenerator.generateMainClass(config);
+
+            assertThat(result)
+                    .contains("@EnableJpaRepositories(basePackages = \"com.example.myapi\")")
+                    .contains("@EntityScan(basePackages = \"com.example.myapi\")")
+                    .doesNotContain("com.jnzader.apigen.security");
+        }
+
+        @Test
         @DisplayName("Should include main method")
         void shouldIncludeMainMethod() {
             GenerateRequest.ProjectConfig config = createDefaultConfig();

@@ -47,17 +47,40 @@ Thumbs.db
      */
     public String generateMainClass(GenerateRequest.ProjectConfig config) {
         String className = toPascalCase(config.getArtifactId()) + "Application";
+        String basePackage = config.getBasePackage();
+        boolean securityEnabled = config.getModules() != null && config.getModules().isSecurity();
+
+        String jpaRepoPackages;
+        String entityScanPackages;
+
+        if (securityEnabled) {
+            jpaRepoPackages =
+                    String.format(
+                            "{\"%s\", \"com.jnzader.apigen.security.domain.repository\"}",
+                            basePackage);
+            entityScanPackages =
+                    String.format(
+                            "{\"%s\", \"com.jnzader.apigen.security.domain.entity\"}", basePackage);
+        } else {
+            jpaRepoPackages = String.format("\"%s\"", basePackage);
+            entityScanPackages = String.format("\"%s\"", basePackage);
+        }
+
         return
 """
 package %s;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication
 @ComponentScan(basePackages = {"%s", "com.jnzader.apigen.core"})
+@EnableJpaRepositories(basePackages = %s)
+@EntityScan(basePackages = %s)
 @EnableCaching
 public class %s {
 
@@ -66,7 +89,13 @@ public class %s {
     }
 }
 """
-                .formatted(config.getBasePackage(), config.getBasePackage(), className, className);
+                .formatted(
+                        basePackage,
+                        basePackage,
+                        jpaRepoPackages,
+                        entityScanPackages,
+                        className,
+                        className);
     }
 
     /**
