@@ -5,7 +5,6 @@ import com.jnzader.apigen.security.infrastructure.config.OAuth2SecurityConfig;
 import com.jnzader.apigen.security.infrastructure.config.SecurityConfig;
 import com.jnzader.apigen.security.infrastructure.config.SecurityProperties;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -51,9 +50,13 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  *     jwt:
  *       secret: your-256-bit-secret-key-here
  * </pre>
+ *
+ * <p>Note: This auto-configuration runs after ApigenCoreAutoConfiguration. The @ConditionalOnBean
+ * was removed for Spring Framework 7.0 compatibility (cannot combine @ConditionalOnBean
+ * with @ComponentScan). The apigen-security module requires apigen-core as a dependency, so core
+ * will always be present.
  */
 @AutoConfiguration(after = ApigenCoreAutoConfiguration.class)
-@ConditionalOnBean(ApigenCoreAutoConfiguration.ApigenCoreMarker.class)
 @ConditionalOnProperty(
         name = "apigen.security.enabled",
         havingValue = "true",

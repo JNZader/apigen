@@ -3,7 +3,6 @@ package com.jnzader.apigen.security.autoconfigure;
 import com.jnzader.apigen.core.autoconfigure.ApigenCoreAutoConfiguration;
 import com.jnzader.apigen.security.infrastructure.config.SecurityDisabledConfig;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Import;
 
@@ -22,9 +21,11 @@ import org.springframework.context.annotation.Import;
  * </ul>
  *
  * <p>Usage: Set {@code apigen.security.enabled=false} in your application properties.
+ *
+ * <p>Note: @ConditionalOnBean was removed for Spring Framework 7.0 compatibility. The
+ * apigen-security module requires apigen-core as a dependency, so core will always be present.
  */
 @AutoConfiguration(after = ApigenCoreAutoConfiguration.class)
-@ConditionalOnBean(ApigenCoreAutoConfiguration.ApigenCoreMarker.class)
 @ConditionalOnProperty(
         name = "apigen.security.enabled",
         havingValue = "false",
