@@ -23,7 +23,7 @@ import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
- * Integration test that generates a full project and compiles it.
+ * Integration test that generates a full project, compiles it, and runs a context smoke test.
  *
  * <p>This test catches Spring Boot compatibility issues that unit tests miss, such as:
  *
@@ -31,11 +31,13 @@ import tools.jackson.databind.json.JsonMapper;
  *   <li>Missing @EnableJpaRepositories causing "No qualifying bean" errors
  *   <li>Incorrect package scanning configurations
  *   <li>Missing imports or annotation changes in new Spring Boot versions
+ *   <li>BeanDefinitionOverrideException from duplicate bean registrations
+ *   <li>Runtime context loading failures
  * </ul>
  *
- * <p>The compilation test is controlled by the CI_COMPILE_GENERATED_PROJECT environment variable.
- * When enabled, it extracts the generated ZIP and runs ./gradlew compileJava to verify the project
- * compiles successfully.
+ * <p>The context test is controlled by the CI_COMPILE_GENERATED_PROJECT environment variable. When
+ * enabled, it extracts the generated ZIP and runs ./gradlew test --tests "ApplicationContextTest"
+ * to verify the Spring context loads successfully.
  */
 @DisplayName("Generated Project Compilation Integration Tests")
 @Tag("integration")
@@ -114,9 +116,29 @@ class GeneratedProjectCompilationIT {
     }
 
     @Test
-    @DisplayName("Generated project with security should compile successfully")
+    @DisplayName("Generated project should include ApplicationContextTest")
+    void generatedProjectShouldIncludeContextTest() throws IOException {
+        // Load fixture
+        GenerateRequest request = loadFixture("fixtures/blog-api-with-security.json");
+
+        // Generate project
+        byte[] zipBytes = generatorService.generateProject(request);
+
+        // Extract and find ApplicationContextTest.java
+        String contextTest = extractFileFromZip(zipBytes, "ApplicationContextTest.java");
+
+        assertThat(contextTest)
+                .as("ApplicationContextTest should be a @SpringBootTest")
+                .contains("@SpringBootTest(classes = MyApiApplication.class)")
+                .contains("@ActiveProfiles(\"test\")")
+                .contains("void contextLoads()");
+    }
+
+    @Test
+    @DisplayName("Generated project with security should pass context test")
     @EnabledIfEnvironmentVariable(named = "CI_COMPILE_GENERATED_PROJECT", matches = "true")
-    void generatedProjectWithSecurityShouldCompile() throws IOException, InterruptedException {
+    void generatedProjectWithSecurityShouldPassContextTest()
+            throws IOException, InterruptedException {
         // Load fixture
         GenerateRequest request = loadFixture("fixtures/blog-api-with-security.json");
         String artifactId = request.getProject().getArtifactId();
@@ -136,9 +158,15 @@ class GeneratedProjectCompilationIT {
             gradlew.toFile().setExecutable(true);
         }
 
-        // Run compilation
+        // Run context test - this verifies the Spring context loads successfully
+        // This catches BeanDefinitionOverrideException and other runtime issues
         ProcessBuilder pb =
-                new ProcessBuilder("./gradlew", "compileJava", "--no-daemon", "-x", "test")
+                new ProcessBuilder(
+                                "./gradlew",
+                                "test",
+                                "--tests",
+                                "ApplicationContextTest",
+                                "--no-daemon")
                         .directory(projectDir.toFile())
                         .redirectErrorStream(true);
 
@@ -147,7 +175,8 @@ class GeneratedProjectCompilationIT {
         // Capture output
         StringBuilder output = new StringBuilder();
         try (BufferedReader reader =
-                new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                new BufferedReader(
+                        new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 output.append(line).append("\n");
@@ -159,7 +188,7 @@ class GeneratedProjectCompilationIT {
 
         assertThat(exitCode)
                 .as(
-                        "Generated project should compile successfully.\n\nBuild output:\n%s",
+                        "Generated project context test should pass.\n\nBuild output:\n%s",
                         output.toString())
                 .isZero();
     }

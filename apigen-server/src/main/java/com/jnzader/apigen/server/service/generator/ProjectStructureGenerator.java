@@ -175,4 +175,58 @@ src/main/java/%s/
     public String getGitignoreContent() {
         return GITIGNORE_CONTENT;
     }
+
+    /**
+     * Generates the ApplicationContextTest class to verify Spring context loads correctly.
+     *
+     * <p>This test catches runtime configuration issues like:
+     *
+     * <ul>
+     *   <li>BeanDefinitionOverrideException from duplicate bean registrations
+     *   <li>Missing required beans
+     *   <li>Circular dependencies
+     *   <li>Invalid configuration properties
+     * </ul>
+     *
+     * @param config the project configuration
+     * @return the ApplicationContextTest class content
+     */
+    public String generateApplicationContextTest(GenerateRequest.ProjectConfig config) {
+        String className = toPascalCase(config.getArtifactId()) + "Application";
+        String basePackage = config.getBasePackage();
+
+        return
+"""
+package %s;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+
+/**
+ * Smoke test to verify the Spring application context loads correctly.
+ *
+ * <p>This test catches configuration issues like:
+ * <ul>
+ *   <li>Duplicate bean definitions (BeanDefinitionOverrideException)
+ *   <li>Missing required beans
+ *   <li>Circular dependencies
+ *   <li>Invalid configuration properties
+ * </ul>
+ */
+@SpringBootTest(classes = %s.class)
+@ActiveProfiles("test")
+@DisplayName("Application Context Tests")
+class ApplicationContextTest {
+
+    @Test
+    @DisplayName("Application context should load successfully")
+    void contextLoads() {
+        // If we get here, the context loaded successfully
+    }
+}
+"""
+                .formatted(basePackage, className);
+    }
 }
