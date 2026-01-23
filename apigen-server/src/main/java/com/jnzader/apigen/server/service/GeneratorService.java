@@ -6,6 +6,7 @@ import com.jnzader.apigen.codegen.generator.CodeGenerator;
 import com.jnzader.apigen.codegen.generator.api.Feature;
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
 import com.jnzader.apigen.codegen.generator.api.ProjectGenerator;
+import com.jnzader.apigen.codegen.generator.csharp.CSharpAspNetCoreProjectGenerator;
 import com.jnzader.apigen.codegen.generator.java.JavaSpringBootProjectGenerator;
 import com.jnzader.apigen.codegen.generator.kotlin.KotlinSpringBootProjectGenerator;
 import com.jnzader.apigen.codegen.generator.registry.GeneratorRegistry;
@@ -69,6 +70,7 @@ public class GeneratorService {
         SimpleGeneratorRegistry registry = new SimpleGeneratorRegistry();
         registry.register(new JavaSpringBootProjectGenerator());
         registry.register(new KotlinSpringBootProjectGenerator());
+        registry.register(new CSharpAspNetCoreProjectGenerator());
         // Future: registry.register(new PythonFastApiProjectGenerator());
         return registry;
     }
