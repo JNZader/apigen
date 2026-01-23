@@ -382,6 +382,11 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
 
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
@@ -395,8 +400,20 @@ jobs:
         env:
           SPRING_PROFILES_ACTIVE: test
 
-      - name: Run generated project context test
+      - name: Run Java generated project context test
         run: ./gradlew :apigen-server:test --tests "GeneratedProjectCompilationIT.generatedProjectWithSecurityShouldPassContextTest" --no-daemon
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          CI_COMPILE_GENERATED_PROJECT: true
+
+      - name: Run Kotlin generated project compilation test
+        run: ./gradlew :apigen-server:test --tests "GeneratedProjectCompilationIT.generatedKotlinProjectShouldCompile" --no-daemon
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          CI_COMPILE_GENERATED_PROJECT: true
+
+      - name: Run C# generated project compilation test
+        run: ./gradlew :apigen-server:test --tests "GeneratedProjectCompilationIT.generatedCSharpProjectShouldCompile" --no-daemon
         env:
           SPRING_PROFILES_ACTIVE: test
           CI_COMPILE_GENERATED_PROJECT: true

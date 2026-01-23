@@ -193,6 +193,122 @@ class GeneratedProjectCompilationIT {
                 .isZero();
     }
 
+    @Test
+    @DisplayName("Generated Kotlin project should compile successfully")
+    @EnabledIfEnvironmentVariable(named = "CI_COMPILE_GENERATED_PROJECT", matches = "true")
+    void generatedKotlinProjectShouldCompile() throws IOException, InterruptedException {
+        // Load Kotlin fixture
+        GenerateRequest request = loadFixture("fixtures/blog-api-kotlin.json");
+        String artifactId = request.getProject().getArtifactId();
+
+        // Generate Kotlin project
+        byte[] zipBytes = generatorService.generateProject(request);
+
+        // Extract to temp directory
+        extractZipToDirectory(zipBytes, tempDir);
+
+        Path projectDir = tempDir.resolve(artifactId);
+
+        // Make gradlew executable
+        Path gradlew = projectDir.resolve("gradlew");
+        if (Files.exists(gradlew)) {
+            gradlew.toFile().setExecutable(true);
+        }
+
+        // Run Kotlin compilation - verifies all .kt files compile correctly
+        ProcessBuilder pb =
+                new ProcessBuilder("./gradlew", "compileKotlin", "--no-daemon")
+                        .directory(projectDir.toFile())
+                        .redirectErrorStream(true);
+
+        Process process = pb.start();
+
+        StringBuilder output = new StringBuilder();
+        try (BufferedReader reader =
+                new BufferedReader(
+                        new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                output.append(line).append("\n");
+            }
+        }
+
+        boolean finished = process.waitFor(5, TimeUnit.MINUTES);
+        int exitCode = finished ? process.exitValue() : -1;
+
+        assertThat(exitCode)
+                .as(
+                        "Generated Kotlin project should compile.\n\nBuild output:\n%s",
+                        output.toString())
+                .isZero();
+    }
+
+    @Test
+    @DisplayName("Generated C# project should compile successfully")
+    @EnabledIfEnvironmentVariable(named = "CI_COMPILE_GENERATED_PROJECT", matches = "true")
+    void generatedCSharpProjectShouldCompile() throws IOException, InterruptedException {
+        // Load C# fixture
+        GenerateRequest request = loadFixture("fixtures/blog-api-csharp.json");
+        String artifactId = request.getProject().getArtifactId();
+
+        // Generate C# project
+        byte[] zipBytes = generatorService.generateProject(request);
+
+        // Extract to temp directory
+        extractZipToDirectory(zipBytes, tempDir);
+
+        Path projectDir = tempDir.resolve(artifactId);
+
+        // Run dotnet build - verifies all .cs files compile correctly
+        ProcessBuilder pb =
+                new ProcessBuilder("dotnet", "build", "--no-restore")
+                        .directory(projectDir.toFile())
+                        .redirectErrorStream(true);
+
+        // First restore packages
+        ProcessBuilder restorePb =
+                new ProcessBuilder("dotnet", "restore")
+                        .directory(projectDir.toFile())
+                        .redirectErrorStream(true);
+
+        Process restoreProcess = restorePb.start();
+        StringBuilder restoreOutput = new StringBuilder();
+        try (BufferedReader reader =
+                new BufferedReader(
+                        new InputStreamReader(
+                                restoreProcess.getInputStream(), StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                restoreOutput.append(line).append("\n");
+            }
+        }
+        restoreProcess.waitFor(3, TimeUnit.MINUTES);
+
+        // Now build
+        Process process = pb.start();
+
+        StringBuilder output = new StringBuilder();
+        output.append("=== dotnet restore output ===\n");
+        output.append(restoreOutput);
+        output.append("\n=== dotnet build output ===\n");
+
+        try (BufferedReader reader =
+                new BufferedReader(
+                        new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                output.append(line).append("\n");
+            }
+        }
+
+        boolean finished = process.waitFor(5, TimeUnit.MINUTES);
+        int exitCode = finished ? process.exitValue() : -1;
+
+        assertThat(exitCode)
+                .as("Generated C# project should compile.\n\nBuild output:\n%s", output.toString())
+                .isZero();
+    }
+
     private GenerateRequest loadFixture(String resourcePath) throws IOException {
         try (var is = getClass().getClassLoader().getResourceAsStream(resourcePath)) {
             assertThat(is).as("Fixture resource should exist: " + resourcePath).isNotNull();
