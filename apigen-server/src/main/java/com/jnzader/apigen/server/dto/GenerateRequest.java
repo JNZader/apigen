@@ -23,6 +23,12 @@ public class GenerateRequest {
     private ProjectConfig project;
 
     /**
+     * Target language/framework configuration. Optional - defaults to Java/Spring Boot for backward
+     * compatibility.
+     */
+    @Valid @Builder.Default private TargetConfig target = new TargetConfig();
+
+    /**
      * SQL schema to generate code from. This is the CREATE TABLE statements exported from the web
      * designer.
      */
@@ -300,5 +306,30 @@ public class GenerateRequest {
         @Builder.Default private int passwordMinLength = 8;
         @Builder.Default private int maxLoginAttempts = 5;
         @Builder.Default private int lockoutMinutes = 15;
+    }
+
+    /**
+     * Target language/framework configuration for code generation. Specifies which generator to
+     * use.
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TargetConfig {
+        /** Target programming language (e.g., "java", "kotlin", "python"). */
+        @Builder.Default private String language = "java";
+
+        /** Target framework (e.g., "spring-boot", "quarkus", "fastapi"). */
+        @Builder.Default private String framework = "spring-boot";
+
+        // Custom getters to handle null values from JSON deserialization
+        public String getLanguage() {
+            return language != null ? language : "java";
+        }
+
+        public String getFramework() {
+            return framework != null ? framework : "spring-boot";
+        }
     }
 }

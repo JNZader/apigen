@@ -1,21 +1,15 @@
-package com.jnzader.apigen.codegen.generator.service;
+package com.jnzader.apigen.codegen.generator.java.service;
 
 import com.jnzader.apigen.codegen.model.SqlTable;
 
-/**
- * Generates Service interface and implementation classes from SQL table definitions.
- *
- * @deprecated Use {@link com.jnzader.apigen.codegen.generator.java.service.JavaServiceGenerator}
- *     instead. This class is maintained for backward compatibility.
- */
-@Deprecated(since = "2.6.0", forRemoval = false)
-public class ServiceGenerator {
+/** Generates Service interface and implementation classes for Java/Spring Boot. */
+public class JavaServiceGenerator {
 
     private static final String APIGEN_CORE_PKG = "com.jnzader.apigen.core";
 
     private final String basePackage;
 
-    public ServiceGenerator(String basePackage) {
+    public JavaServiceGenerator(String basePackage) {
         this.basePackage = basePackage;
     }
 

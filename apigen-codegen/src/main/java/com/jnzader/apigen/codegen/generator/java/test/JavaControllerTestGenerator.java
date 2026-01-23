@@ -1,25 +1,18 @@
-package com.jnzader.apigen.codegen.generator.test;
+package com.jnzader.apigen.codegen.generator.java.test;
 
 import static com.jnzader.apigen.codegen.generator.util.TestValueProvider.getSampleTestValue;
 
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlTable;
 
-/**
- * Generates unit test classes for Controller implementations.
- *
- * @deprecated Use {@link
- *     com.jnzader.apigen.codegen.generator.java.test.JavaControllerTestGenerator} instead. This
- *     class is maintained for backward compatibility.
- */
-@Deprecated(since = "2.6.0", forRemoval = false)
-public class ControllerTestGenerator {
+/** Generates unit test classes for Controller implementations in Java/Spring Boot. */
+public class JavaControllerTestGenerator {
 
     private static final String APIGEN_CORE_PKG = "com.jnzader.apigen.core";
 
     private final String basePackage;
 
-    public ControllerTestGenerator(String basePackage) {
+    public JavaControllerTestGenerator(String basePackage) {
         this.basePackage = basePackage;
     }
 

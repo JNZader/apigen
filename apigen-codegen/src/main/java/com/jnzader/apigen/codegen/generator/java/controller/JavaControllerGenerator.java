@@ -1,22 +1,15 @@
-package com.jnzader.apigen.codegen.generator.controller;
+package com.jnzader.apigen.codegen.generator.java.controller;
 
 import com.jnzader.apigen.codegen.model.SqlTable;
 
-/**
- * Generates Controller interface and implementation classes from SQL table definitions.
- *
- * @deprecated Use {@link
- *     com.jnzader.apigen.codegen.generator.java.controller.JavaControllerGenerator} instead. This
- *     class is maintained for backward compatibility.
- */
-@Deprecated(since = "2.6.0", forRemoval = false)
-public class ControllerGenerator {
+/** Generates Controller interface and implementation classes for Java/Spring Boot. */
+public class JavaControllerGenerator {
 
     private static final String APIGEN_CORE_PKG = "com.jnzader.apigen.core";
 
     private final String basePackage;
 
-    public ControllerGenerator(String basePackage) {
+    public JavaControllerGenerator(String basePackage) {
         this.basePackage = basePackage;
     }
 

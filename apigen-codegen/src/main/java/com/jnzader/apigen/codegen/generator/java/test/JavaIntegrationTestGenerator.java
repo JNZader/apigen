@@ -1,23 +1,16 @@
-package com.jnzader.apigen.codegen.generator.test;
+package com.jnzader.apigen.codegen.generator.java.test;
 
 import static com.jnzader.apigen.codegen.generator.util.TestValueProvider.getSampleTestValue;
 
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlTable;
 
-/**
- * Generates integration test classes for full stack testing.
- *
- * @deprecated Use {@link
- *     com.jnzader.apigen.codegen.generator.java.test.JavaIntegrationTestGenerator} instead. This
- *     class is maintained for backward compatibility.
- */
-@Deprecated(since = "2.6.0", forRemoval = false)
-public class IntegrationTestGenerator {
+/** Generates integration test classes for Java/Spring Boot. */
+public class JavaIntegrationTestGenerator {
 
     private final String basePackage;
 
-    public IntegrationTestGenerator(String basePackage) {
+    public JavaIntegrationTestGenerator(String basePackage) {
         this.basePackage = basePackage;
     }
 

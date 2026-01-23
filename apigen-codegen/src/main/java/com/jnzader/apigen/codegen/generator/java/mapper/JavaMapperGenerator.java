@@ -1,20 +1,14 @@
-package com.jnzader.apigen.codegen.generator.mapper;
+package com.jnzader.apigen.codegen.generator.java.mapper;
 
 import static com.jnzader.apigen.codegen.generator.util.CodeGenerationUtils.pluralize;
 
-import com.jnzader.apigen.codegen.generator.entity.EntityGenerator.ManyToManyRelation;
+import com.jnzader.apigen.codegen.generator.common.ManyToManyRelation;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.List;
 
-/**
- * Generates MapStruct Mapper interfaces from SQL table definitions.
- *
- * @deprecated Use {@link com.jnzader.apigen.codegen.generator.java.mapper.JavaMapperGenerator}
- *     instead. This class is maintained for backward compatibility.
- */
-@Deprecated(since = "2.6.0", forRemoval = false)
-public class MapperGenerator {
+/** Generates MapStruct Mapper interfaces for Java/Spring Boot. */
+public class JavaMapperGenerator {
 
     private static final String APIGEN_CORE_PKG = "com.jnzader.apigen.core";
     private static final String MAPPING_TARGET = "\n    @Mapping(target = \"";
@@ -50,7 +44,7 @@ public class MapperGenerator {
 
     private final String basePackage;
 
-    public MapperGenerator(String basePackage) {
+    public JavaMapperGenerator(String basePackage) {
         this.basePackage = basePackage;
     }
 
