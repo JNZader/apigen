@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.4](https://github.com/JNZader/apigen/compare/v2.5.3...v2.5.4) (2026-01-23)
+
+### Bug Fixes
+
+* **security:** correct JPA repositories base package ([48fba87](https://github.com/JNZader/apigen/commit/48fba87da0a8e305fa2b75b8ec04ba764bee8602))
+
 ## [2.5.3](https://github.com/JNZader/apigen/compare/v2.5.2...v2.5.3) (2026-01-23)
 
 ### Bug Fixes
