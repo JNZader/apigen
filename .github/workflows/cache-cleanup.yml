@@ -1,0 +1,70 @@
+# ==========================================
+# Cache Cleanup - Prevent storage quota issues
+# ==========================================
+# Runs daily and cleans up GitHub Actions cache
+# if total size exceeds the configured threshold.
+# ==========================================
+
+name: Cache Cleanup
+
+on:
+  schedule:
+    # Daily at 3:00 AM UTC
+    - cron: '0 3 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+env:
+  # Maximum cache size in bytes (8GB = 8589934592)
+  MAX_CACHE_SIZE_BYTES: 8589934592
+
+jobs:
+  cleanup:
+    name: Check and Clean Cache
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check cache size
+        id: cache-check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get total cache size
+          total_size=$(gh api repos/${{ github.repository }}/actions/caches -q '[.actions_caches[].size_in_bytes] | add // 0')
+          total_size_gb=$(echo "scale=2; $total_size / 1073741824" | bc)
+
+          echo "Total cache size: ${total_size_gb}GB (${total_size} bytes)"
+          echo "Threshold: 8GB (${MAX_CACHE_SIZE_BYTES} bytes)"
+
+          echo "total_size=$total_size" >> $GITHUB_OUTPUT
+          echo "total_size_gb=$total_size_gb" >> $GITHUB_OUTPUT
+
+          if [ "$total_size" -gt "$MAX_CACHE_SIZE_BYTES" ]; then
+            echo "needs_cleanup=true" >> $GITHUB_OUTPUT
+            echo "⚠️ Cache exceeds threshold, cleanup needed"
+          else
+            echo "needs_cleanup=false" >> $GITHUB_OUTPUT
+            echo "✅ Cache is within limits"
+          fi
+
+      - name: Delete all caches
+        if: steps.cache-check.outputs.needs_cleanup == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🧹 Cleaning up caches..."
+
+          # Get all cache IDs and delete them
+          gh api repos/${{ github.repository }}/actions/caches --paginate -q '.actions_caches[].id' | while read id; do
+            echo "Deleting cache $id"
+            gh api repos/${{ github.repository }}/actions/caches/$id -X DELETE || true
+          done
+
+          echo "✅ Cache cleanup complete"
+
+      - name: Summary
+        run: |
+          echo "## Cache Cleanup Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Total size before:** ${{ steps.cache-check.outputs.total_size_gb }}GB" >> $GITHUB_STEP_SUMMARY
+          echo "- **Threshold:** 8GB" >> $GITHUB_STEP_SUMMARY
+          echo "- **Cleanup performed:** ${{ steps.cache-check.outputs.needs_cleanup }}" >> $GITHUB_STEP_SUMMARY
