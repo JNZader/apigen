@@ -63,7 +63,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         matchIfMissing = false)
 @EnableConfigurationProperties(SecurityProperties.class)
 @ComponentScan(basePackages = "com.jnzader.apigen.security")
-@EnableJpaRepositories(basePackages = "com.jnzader.apigen.security.infrastructure.repository")
+@EnableJpaRepositories(basePackages = "com.jnzader.apigen.security.domain.repository")
 @Import({SecurityConfig.class, OAuth2SecurityConfig.class})
 public class ApigenSecurityAutoConfiguration {
 
