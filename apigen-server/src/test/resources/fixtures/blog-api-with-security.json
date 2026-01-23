@@ -1,0 +1,27 @@
+{
+  "project": {
+    "name": "My API",
+    "groupId": "com.example",
+    "artifactId": "my-api",
+    "modules": {
+      "core": true,
+      "security": true
+    },
+    "features": {
+      "hateoas": true,
+      "swagger": true,
+      "softDelete": true,
+      "auditing": true,
+      "caching": true,
+      "docker": true
+    },
+    "database": {
+      "type": "postgresql",
+      "name": "appdb",
+      "username": "appuser",
+      "password": "changeme",
+      "port": 5432
+    }
+  },
+  "sql": "CREATE TABLE authors (\n    id BIGINT PRIMARY KEY,\n    name VARCHAR(255) NOT NULL,\n    email VARCHAR(255) NOT NULL UNIQUE,\n    bio TEXT,\n    avatar_url VARCHAR(500)\n);\n\nCREATE TABLE categories (\n    id BIGINT PRIMARY KEY,\n    name VARCHAR(100) NOT NULL UNIQUE,\n    slug VARCHAR(100) NOT NULL UNIQUE,\n    description TEXT\n);\n\nCREATE TABLE posts (\n    id BIGINT PRIMARY KEY,\n    title VARCHAR(200) NOT NULL,\n    slug VARCHAR(200) NOT NULL UNIQUE,\n    content TEXT NOT NULL,\n    excerpt VARCHAR(500),\n    published BOOLEAN NOT NULL DEFAULT FALSE,\n    published_at TIMESTAMP,\n    featured_image VARCHAR(500),\n    author_id BIGINT NOT NULL REFERENCES authors(id),\n    category_id BIGINT REFERENCES categories(id)\n);\n\nCREATE TABLE tags (\n    id BIGINT PRIMARY KEY,\n    name VARCHAR(50) NOT NULL UNIQUE,\n    slug VARCHAR(50) NOT NULL UNIQUE\n);\n\nCREATE TABLE post_tags (\n    post_id BIGINT NOT NULL REFERENCES posts(id),\n    tag_id BIGINT NOT NULL REFERENCES tags(id),\n    PRIMARY KEY (post_id, tag_id)\n);\n\nCREATE TABLE comments (\n    id BIGINT PRIMARY KEY,\n    author_name VARCHAR(100) NOT NULL,\n    author_email VARCHAR(255) NOT NULL,\n    content TEXT NOT NULL,\n    approved BOOLEAN NOT NULL DEFAULT FALSE,\n    post_id BIGINT NOT NULL REFERENCES posts(id)\n);"
+}
