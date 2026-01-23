@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.10](https://github.com/JNZader/apigen/compare/v2.5.9...v2.5.10) (2026-01-23)
+
+### Code Refactoring
+
+* **codegen:** add multi-language architecture with generator registry ([5823188](https://github.com/JNZader/apigen/commit/58231883c87f25c4235d305f30646f7361d90179))
+
+### CI/CD
+
+* make artifact uploads continue on error to handle quota limits ([eeeac27](https://github.com/JNZader/apigen/commit/eeeac27758894694c80cb84be55e50dd20c0456f))
+
 ## [2.5.9](https://github.com/JNZader/apigen/compare/v2.5.8...v2.5.9) (2026-01-23)
 
 ### Code Refactoring
