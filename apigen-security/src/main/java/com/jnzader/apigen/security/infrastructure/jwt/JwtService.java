@@ -1,7 +1,5 @@
 package com.jnzader.apigen.security.infrastructure.jwt;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jnzader.apigen.security.application.service.TokenBlacklistService;
 import com.jnzader.apigen.security.domain.entity.User;
 import com.jnzader.apigen.security.infrastructure.config.SecurityProperties;
@@ -29,6 +27,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Service for JWT token generation and validation.
@@ -57,7 +57,7 @@ public class JwtService {
 
     private final SecurityProperties securityProperties;
     private final TokenBlacklistService blacklistService;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper jsonMapper;
     private final SecretKey currentKey;
     private final String currentKeyId;
     private final boolean rotationEnabled;
@@ -68,10 +68,10 @@ public class JwtService {
     public JwtService(
             SecurityProperties securityProperties,
             TokenBlacklistService blacklistService,
-            ObjectMapper objectMapper) {
+            JsonMapper jsonMapper) {
         this.securityProperties = securityProperties;
         this.blacklistService = blacklistService;
-        this.objectMapper = objectMapper;
+        this.jsonMapper = jsonMapper;
 
         // Initialize current key
         this.currentKey =
@@ -233,10 +233,10 @@ public class JwtService {
         return currentKey;
     }
 
-    /** Extracts the kid from header JSON using ObjectMapper. */
+    /** Extracts the kid from header JSON using JsonMapper. */
     private String extractKidFromHeader(String headerJson) {
         try {
-            Map<String, Object> header = objectMapper.readValue(headerJson, MAP_TYPE);
+            Map<String, Object> header = jsonMapper.readValue(headerJson, MAP_TYPE);
             Object kid = header.get("kid");
             return kid != null ? kid.toString() : null;
         } catch (Exception e) {
