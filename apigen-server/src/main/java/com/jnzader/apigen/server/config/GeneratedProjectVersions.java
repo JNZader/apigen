@@ -50,11 +50,18 @@ public final class GeneratedProjectVersions {
     public static final String SPRING_DEPENDENCY_MANAGEMENT_VERSION = "1.1.7";
 
     // ==========================================================================
+    // Language Versions
+    // ==========================================================================
+
+    /** Kotlin version for generated Kotlin projects. */
+    public static final String KOTLIN_VERSION = "2.3.0";
+
+    // ==========================================================================
     // Library Versions
     // ==========================================================================
 
-    /** SpringDoc OpenAPI version for Swagger UI. */
-    public static final String SPRINGDOC_VERSION = "2.8.9";
+    /** SpringDoc OpenAPI version for Swagger UI (3.x for Spring Boot 4.x). */
+    public static final String SPRINGDOC_VERSION = "3.0.1";
 
     /** MapStruct version for DTO mapping. */
     public static final String MAPSTRUCT_VERSION = "1.6.3";
