@@ -64,6 +64,37 @@ public final class CodeGenerationUtils {
                     "permits",
                     "non-sealed");
 
+    private static final Set<String> KOTLIN_KEYWORDS =
+            Set.of(
+                    "as",
+                    "break",
+                    "class",
+                    "continue",
+                    "do",
+                    "else",
+                    "false",
+                    "for",
+                    "fun",
+                    "if",
+                    "in",
+                    "interface",
+                    "is",
+                    "null",
+                    "object",
+                    "package",
+                    "return",
+                    "super",
+                    "this",
+                    "throw",
+                    "true",
+                    "try",
+                    "typealias",
+                    "typeof",
+                    "val",
+                    "var",
+                    "when",
+                    "while");
+
     private CodeGenerationUtils() {
         // Utility class
     }
@@ -122,5 +153,30 @@ public final class CodeGenerationUtils {
      */
     public static boolean isJavaKeyword(String name) {
         return JAVA_KEYWORDS.contains(name.toLowerCase());
+    }
+
+    /**
+     * Checks if a string is a Kotlin keyword.
+     *
+     * @param name the string to check
+     * @return true if it's a Kotlin keyword
+     */
+    public static boolean isKotlinKeyword(String name) {
+        return KOTLIN_KEYWORDS.contains(name.toLowerCase());
+    }
+
+    /**
+     * Ensures a field name is safe for Kotlin (not a Kotlin keyword).
+     *
+     * <p>In Kotlin, reserved keywords can be used as identifiers by wrapping them in backticks.
+     *
+     * @param name the field name to check
+     * @return the safe field name, with backticks if it's a keyword
+     */
+    public static String safeKotlinFieldName(String name) {
+        if (isKotlinKeyword(name)) {
+            return "`" + name + "`";
+        }
+        return name;
     }
 }
