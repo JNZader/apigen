@@ -125,6 +125,9 @@ test {
         return "rootProject.name = '%s'%n".formatted(artifactId);
     }
 
+    /** Maximum JVM target supported by the Kotlin Gradle plugin's JvmTarget enum. */
+    private static final int MAX_KOTLIN_JVM_TARGET = 21;
+
     /**
      * Generates the build.gradle.kts file content for Kotlin projects.
      *
@@ -142,6 +145,10 @@ test {
                         : GeneratedProjectVersions.JAVA_VERSION;
         String groupId = config.getGroupId() != null ? config.getGroupId() : "com.example";
         String kotlinVersion = "2.1.0";
+
+        // Kotlin JvmTarget enum only supports up to JVM_21
+        // Cap the target to avoid "Unresolved reference 'JVM_25'" errors
+        String kotlinJvmTarget = getKotlinJvmTarget(javaVersion);
 
         StringBuilder deps = new StringBuilder();
 
@@ -238,12 +245,27 @@ tasks.withType<Test> {
                         groupId,
                         GeneratedProjectVersions.INITIAL_PROJECT_VERSION,
                         javaVersion,
-                        javaVersion,
+                        kotlinJvmTarget,
                         deps,
                         GeneratedProjectVersions.SPRINGDOC_VERSION,
                         dbDeps,
                         GeneratedProjectVersions.MAPSTRUCT_VERSION,
                         GeneratedProjectVersions.MAPSTRUCT_VERSION);
+    }
+
+    /**
+     * Gets the Kotlin JVM target, capped at the maximum supported by the Kotlin Gradle plugin.
+     *
+     * @param javaVersion the requested Java version
+     * @return the Kotlin JVM target (max 21)
+     */
+    private String getKotlinJvmTarget(String javaVersion) {
+        try {
+            int version = Integer.parseInt(javaVersion);
+            return String.valueOf(Math.min(version, MAX_KOTLIN_JVM_TARGET));
+        } catch (NumberFormatException e) {
+            return String.valueOf(MAX_KOTLIN_JVM_TARGET);
+        }
     }
 
     /**
