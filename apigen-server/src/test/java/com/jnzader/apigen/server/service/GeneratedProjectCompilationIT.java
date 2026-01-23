@@ -1,7 +1,9 @@
 package com.jnzader.apigen.server.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
+import com.jnzader.apigen.server.config.GeneratedProjectVersions;
 import com.jnzader.apigen.server.dto.GenerateRequest;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -11,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,6 +45,10 @@ import tools.jackson.databind.json.JsonMapper;
 @DisplayName("Generated Project Compilation Integration Tests")
 @Tag("integration")
 class GeneratedProjectCompilationIT {
+
+    /** Pattern to detect JitPack dependency resolution failures. */
+    private static final Pattern JITPACK_DEPENDENCY_ERROR =
+            Pattern.compile("Could not (find|resolve).*apigen-(core|security)");
 
     private GeneratorService generatorService;
     private JsonMapper jsonMapper;
@@ -158,22 +165,196 @@ class GeneratedProjectCompilationIT {
             gradlew.toFile().setExecutable(true);
         }
 
-        // Run context test - this verifies the Spring context loads successfully
-        // This catches BeanDefinitionOverrideException and other runtime issues
+        // Try with fallback versions if JitPack dependency is not available
+        String lastOutput = "";
+        for (String version : GeneratedProjectVersions.FALLBACK_VERSIONS) {
+            // Update build.gradle to use this version
+            updateApigenVersionInBuildGradle(projectDir, version);
+
+            // Run context test
+            ProcessBuilder pb =
+                    new ProcessBuilder(
+                                    "./gradlew",
+                                    "test",
+                                    "--tests",
+                                    "ApplicationContextTest",
+                                    "--no-daemon",
+                                    "--refresh-dependencies")
+                            .directory(projectDir.toFile())
+                            .redirectErrorStream(true);
+
+            Process process = pb.start();
+
+            // Capture output
+            StringBuilder output = new StringBuilder();
+            try (BufferedReader reader =
+                    new BufferedReader(
+                            new InputStreamReader(
+                                    process.getInputStream(), StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    output.append(line).append("\n");
+                }
+            }
+
+            boolean finished = process.waitFor(5, TimeUnit.MINUTES);
+            int exitCode = finished ? process.exitValue() : -1;
+            lastOutput = output.toString();
+
+            if (exitCode == 0) {
+                return; // Success!
+            }
+
+            // Check if it's a JitPack dependency error - if so, try next version
+            if (isJitPackDependencyError(lastOutput)) {
+                System.out.println(
+                        "JitPack dependency not available for "
+                                + version
+                                + ", trying next fallback...");
+                continue;
+            }
+
+            // It's a different error, fail immediately
+            fail("Generated project context test failed.\n\nBuild output:\n%s", lastOutput);
+        }
+
+        // All versions failed
+        fail(
+                "Generated project context test failed with all fallback versions.\n\n"
+                        + "Last output:\n"
+                        + "%s",
+                lastOutput);
+    }
+
+    @Test
+    @DisplayName("Generated Kotlin project should compile successfully")
+    @EnabledIfEnvironmentVariable(named = "CI_COMPILE_GENERATED_PROJECT", matches = "true")
+    void generatedKotlinProjectShouldCompile() throws IOException, InterruptedException {
+        // Load Kotlin fixture
+        GenerateRequest request = loadFixture("fixtures/blog-api-kotlin.json");
+        String artifactId = request.getProject().getArtifactId();
+
+        // Generate Kotlin project
+        byte[] zipBytes = generatorService.generateProject(request);
+
+        // Extract to temp directory
+        extractZipToDirectory(zipBytes, tempDir);
+
+        Path projectDir = tempDir.resolve(artifactId);
+
+        // Make gradlew executable
+        Path gradlew = projectDir.resolve("gradlew");
+        if (Files.exists(gradlew)) {
+            gradlew.toFile().setExecutable(true);
+        }
+
+        // Try with fallback versions if JitPack dependency is not available
+        String lastOutput = "";
+        for (String version : GeneratedProjectVersions.FALLBACK_VERSIONS) {
+            // Update build.gradle.kts to use this version
+            updateApigenVersionInBuildGradle(projectDir, version);
+
+            // Run Kotlin compilation
+            ProcessBuilder pb =
+                    new ProcessBuilder(
+                                    "./gradlew",
+                                    "compileKotlin",
+                                    "--no-daemon",
+                                    "--refresh-dependencies")
+                            .directory(projectDir.toFile())
+                            .redirectErrorStream(true);
+
+            Process process = pb.start();
+
+            StringBuilder output = new StringBuilder();
+            try (BufferedReader reader =
+                    new BufferedReader(
+                            new InputStreamReader(
+                                    process.getInputStream(), StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    output.append(line).append("\n");
+                }
+            }
+
+            boolean finished = process.waitFor(5, TimeUnit.MINUTES);
+            int exitCode = finished ? process.exitValue() : -1;
+            lastOutput = output.toString();
+
+            if (exitCode == 0) {
+                return; // Success!
+            }
+
+            // Check if it's a JitPack dependency error - if so, try next version
+            if (isJitPackDependencyError(lastOutput)) {
+                System.out.println(
+                        "JitPack dependency not available for "
+                                + version
+                                + ", trying next fallback...");
+                continue;
+            }
+
+            // It's a different error, fail immediately
+            fail("Generated Kotlin project compilation failed.\n\nBuild output:\n%s", lastOutput);
+        }
+
+        // All versions failed
+        fail(
+                "Generated Kotlin project compilation failed with all fallback versions.\n\n"
+                        + "Last output:\n"
+                        + "%s",
+                lastOutput);
+    }
+
+    @Test
+    @DisplayName("Generated C# project should compile successfully")
+    @EnabledIfEnvironmentVariable(named = "CI_COMPILE_GENERATED_PROJECT", matches = "true")
+    void generatedCSharpProjectShouldCompile() throws IOException, InterruptedException {
+        // Load C# fixture
+        GenerateRequest request = loadFixture("fixtures/blog-api-csharp.json");
+        String artifactId = request.getProject().getArtifactId();
+
+        // Generate C# project
+        byte[] zipBytes = generatorService.generateProject(request);
+
+        // Extract to temp directory
+        extractZipToDirectory(zipBytes, tempDir);
+
+        Path projectDir = tempDir.resolve(artifactId);
+
+        // Run dotnet build - verifies all .cs files compile correctly
         ProcessBuilder pb =
-                new ProcessBuilder(
-                                "./gradlew",
-                                "test",
-                                "--tests",
-                                "ApplicationContextTest",
-                                "--no-daemon")
+                new ProcessBuilder("dotnet", "build", "--no-restore")
                         .directory(projectDir.toFile())
                         .redirectErrorStream(true);
 
+        // First restore packages
+        ProcessBuilder restorePb =
+                new ProcessBuilder("dotnet", "restore")
+                        .directory(projectDir.toFile())
+                        .redirectErrorStream(true);
+
+        Process restoreProcess = restorePb.start();
+        StringBuilder restoreOutput = new StringBuilder();
+        try (BufferedReader reader =
+                new BufferedReader(
+                        new InputStreamReader(
+                                restoreProcess.getInputStream(), StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                restoreOutput.append(line).append("\n");
+            }
+        }
+        restoreProcess.waitFor(3, TimeUnit.MINUTES);
+
+        // Now build
         Process process = pb.start();
 
-        // Capture output
         StringBuilder output = new StringBuilder();
+        output.append("=== dotnet restore output ===\n");
+        output.append(restoreOutput);
+        output.append("\n=== dotnet build output ===\n");
+
         try (BufferedReader reader =
                 new BufferedReader(
                         new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
@@ -187,9 +368,7 @@ class GeneratedProjectCompilationIT {
         int exitCode = finished ? process.exitValue() : -1;
 
         assertThat(exitCode)
-                .as(
-                        "Generated project context test should pass.\n\nBuild output:\n%s",
-                        output.toString())
+                .as("Generated C# project should compile.\n\nBuild output:\n%s", output.toString())
                 .isZero();
     }
 
@@ -234,6 +413,44 @@ class GeneratedProjectCompilationIT {
                 }
                 zis.closeEntry();
             }
+        }
+    }
+
+    /**
+     * Checks if the build output indicates a JitPack dependency resolution failure. This happens
+     * when a new version is tagged but JitPack hasn't built it yet or the build failed.
+     */
+    private boolean isJitPackDependencyError(String output) {
+        return JITPACK_DEPENDENCY_ERROR.matcher(output).find();
+    }
+
+    /**
+     * Updates the APiGen version in the project's build.gradle or build.gradle.kts file. This is
+     * used by the fallback mechanism when a JitPack version is not available.
+     */
+    private void updateApigenVersionInBuildGradle(Path projectDir, String version)
+            throws IOException {
+        // Try build.gradle first (Java/Groovy)
+        Path buildGradle = projectDir.resolve("build.gradle");
+        if (Files.exists(buildGradle)) {
+            String content = Files.readString(buildGradle, StandardCharsets.UTF_8);
+            content =
+                    content.replaceAll(
+                            "com\\.github\\.jnzader\\.apigen:apigen-(core|security):v[\\d.]+",
+                            "com.github.jnzader.apigen:apigen-$1:" + version);
+            Files.writeString(buildGradle, content, StandardCharsets.UTF_8);
+            return;
+        }
+
+        // Try build.gradle.kts (Kotlin DSL)
+        Path buildGradleKts = projectDir.resolve("build.gradle.kts");
+        if (Files.exists(buildGradleKts)) {
+            String content = Files.readString(buildGradleKts, StandardCharsets.UTF_8);
+            content =
+                    content.replaceAll(
+                            "com\\.github\\.jnzader\\.apigen:apigen-(core|security):v[\\d.]+",
+                            "com.github.jnzader.apigen:apigen-$1:" + version);
+            Files.writeString(buildGradleKts, content, StandardCharsets.UTF_8);
         }
     }
 }

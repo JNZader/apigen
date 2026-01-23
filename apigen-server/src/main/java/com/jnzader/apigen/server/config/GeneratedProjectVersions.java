@@ -1,5 +1,7 @@
 package com.jnzader.apigen.server.config;
 
+import java.util.List;
+
 /**
  * Centralized configuration for versions used in generated projects. Change values here to update
  * all generated project dependencies.
@@ -22,6 +24,12 @@ public final class GeneratedProjectVersions {
     /** APiGen Security version for generated projects (from JitPack). */
     public static final String APIGEN_SECURITY_VERSION = "v2.6.0";
 
+    /**
+     * Fallback versions to try if the primary version is not available on JitPack. Used by
+     * integration tests to handle JitPack build delays or failures.
+     */
+    public static final List<String> FALLBACK_VERSIONS = List.of("v2.6.0", "v2.5.10", "v2.5.9");
+
     // ==========================================================================
     // Core Platform Versions
     // ==========================================================================
@@ -42,11 +50,18 @@ public final class GeneratedProjectVersions {
     public static final String SPRING_DEPENDENCY_MANAGEMENT_VERSION = "1.1.7";
 
     // ==========================================================================
+    // Language Versions
+    // ==========================================================================
+
+    /** Kotlin version for generated Kotlin projects. */
+    public static final String KOTLIN_VERSION = "2.3.0";
+
+    // ==========================================================================
     // Library Versions
     // ==========================================================================
 
-    /** SpringDoc OpenAPI version for Swagger UI. */
-    public static final String SPRINGDOC_VERSION = "2.8.9";
+    /** SpringDoc OpenAPI version for Swagger UI (3.x for Spring Boot 4.x). */
+    public static final String SPRINGDOC_VERSION = "3.0.1";
 
     /** MapStruct version for DTO mapping. */
     public static final String MAPSTRUCT_VERSION = "1.6.3";

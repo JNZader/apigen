@@ -39,6 +39,10 @@ subprojects {
             mavenCentral()
         }
 
+        // Override Spring Boot's logback version to fix CVE-2026-1225
+        // This works with spring-dependency-management plugin
+        ext['logback.version'] = '1.5.25'
+
         dependencies {
             // Errorprone for static analysis
             errorprone 'com.google.errorprone:error_prone_core:2.46.0'

@@ -47,7 +47,8 @@ public class KotlinDTOGenerator {
             if (!validations.isEmpty()) {
                 fields.append("\n    ").append(validations);
             }
-            fields.append("\n    val ").append(fieldName).append(": ");
+            // Use var for MapStruct compatibility (needs write accessors)
+            fields.append("\n    var ").append(fieldName).append(": ");
             fields.append(kotlinType);
             if (isNullable) {
                 fields.append("? = null,");
@@ -59,13 +60,13 @@ public class KotlinDTOGenerator {
         // Add relation IDs (not full objects to avoid circular refs)
         for (SqlSchema.TableRelationship rel : relations) {
             String fieldName = rel.getForeignKey().getJavaFieldName() + "Id";
-            fields.append("\n    val ").append(fieldName).append(": Long? = null,");
+            fields.append("\n    var ").append(fieldName).append(": Long? = null,");
         }
 
         // Add ManyToMany IDs
         for (ManyToManyRelation rel : manyToManyRelations) {
             String fieldName = pluralize(rel.targetTable().getEntityVariableName()) + "Ids";
-            fields.append("\n    val ").append(fieldName).append(": List<Long>? = null,");
+            fields.append("\n    var ").append(fieldName).append(": List<Long>? = null,");
         }
 
         return
@@ -77,9 +78,9 @@ package %s.%s.application.dto
 data class %sDTO(
     @field:Null(groups = [ValidationGroups.Create::class], message = "ID debe ser nulo al crear")
     @field:NotNull(groups = [ValidationGroups.Update::class], message = "ID es requerido al actualizar")
-    override val id: Long? = null,
+    var id: Long? = null,
 
-    val activo: Boolean = true,%s
+    var activo: Boolean = true,%s
 ) : BaseDTO {
 
     override fun id(): Long? = this.id
