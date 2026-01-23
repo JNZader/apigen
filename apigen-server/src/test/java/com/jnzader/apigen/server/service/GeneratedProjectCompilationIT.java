@@ -119,13 +119,16 @@ class GeneratedProjectCompilationIT {
     void generatedProjectWithSecurityShouldCompile() throws IOException, InterruptedException {
         // Load fixture
         GenerateRequest request = loadFixture("fixtures/blog-api-with-security.json");
+        String artifactId = request.getProject().getArtifactId();
 
         // Generate project
         byte[] zipBytes = generatorService.generateProject(request);
 
-        // Extract to temp directory
-        Path projectDir = tempDir.resolve("my-api");
-        extractZipToDirectory(zipBytes, projectDir);
+        // Extract to temp directory (ZIP already contains artifactId/ prefix)
+        extractZipToDirectory(zipBytes, tempDir);
+
+        // Project is now at tempDir/my-api/
+        Path projectDir = tempDir.resolve(artifactId);
 
         // Make gradlew executable
         Path gradlew = projectDir.resolve("gradlew");
