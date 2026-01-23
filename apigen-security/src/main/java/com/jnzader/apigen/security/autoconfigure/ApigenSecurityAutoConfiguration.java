@@ -8,6 +8,7 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
@@ -64,6 +65,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EnableConfigurationProperties(SecurityProperties.class)
 @ComponentScan(basePackages = "com.jnzader.apigen.security")
 @EnableJpaRepositories(basePackages = "com.jnzader.apigen.security.domain.repository")
+@EntityScan(basePackages = "com.jnzader.apigen.security.domain.entity")
 @Import({SecurityConfig.class, OAuth2SecurityConfig.class})
 public class ApigenSecurityAutoConfiguration {
 
