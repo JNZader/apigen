@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.0](https://github.com/JNZader/apigen/compare/v2.5.10...v2.6.0) (2026-01-23)
+
+### Features
+
+* **codegen:** add Kotlin/Spring Boot project generator ([4c95556](https://github.com/JNZader/apigen/commit/4c9555664449f42bf8b4d86033db35e0cbcd690e))
+
 ## [2.5.10](https://github.com/JNZader/apigen/compare/v2.5.9...v2.5.10) (2026-01-23)
 
 ### Code Refactoring
