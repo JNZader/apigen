@@ -57,6 +57,10 @@ dependencies {
 
         // Hypersistence Utils (N+1 detection, query analysis)
         api 'io.hypersistence:hypersistence-utils-hibernate-70:3.14.1'
+
+        // Security fix: override transitive logback from Spring Boot (CVE-2026-1225)
+        api 'ch.qos.logback:logback-core:1.5.25'
+        api 'ch.qos.logback:logback-classic:1.5.25'
     }
 }
 

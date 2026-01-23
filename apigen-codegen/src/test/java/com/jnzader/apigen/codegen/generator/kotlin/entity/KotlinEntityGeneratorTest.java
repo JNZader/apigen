@@ -1,0 +1,329 @@
+package com.jnzader.apigen.codegen.generator.kotlin.entity;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import com.jnzader.apigen.codegen.generator.common.ManyToManyRelation;
+import com.jnzader.apigen.codegen.model.*;
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+
+@DisplayName("KotlinEntityGenerator Tests")
+class KotlinEntityGeneratorTest {
+
+    private KotlinEntityGenerator entityGenerator;
+
+    @BeforeEach
+    void setUp() {
+        entityGenerator = new KotlinEntityGenerator("com.example");
+    }
+
+    @Nested
+    @DisplayName("generate()")
+    class GenerateTests {
+
+        @Test
+        @DisplayName("Should generate Kotlin open class with package and imports")
+        void shouldGenerateKotlinOpenClassWithPackageAndImports() {
+            SqlTable table = createSimpleTable("products");
+
+            String result = entityGenerator.generate(table, List.of(), List.of(), List.of());
+
+            assertThat(result)
+                    .contains("package com.example.products.domain.entity")
+                    .contains("@Entity")
+                    .contains("@Table(name = \"products\")")
+                    .contains("@Audited")
+                    .contains("open class Product(")
+                    .contains(") : Base()");
+        }
+
+        @Test
+        @DisplayName("Should generate entity with var field and Kotlin syntax")
+        void shouldGenerateEntityWithVarFieldAndKotlinSyntax() {
+            SqlTable table =
+                    createTableWithColumn(
+                            "products", createColumn("title", "String", false, false, 255));
+
+            String result = entityGenerator.generate(table, List.of(), List.of(), List.of());
+
+            assertThat(result)
+                    .contains("@Column(name = \"title\", nullable = false, length = 255)")
+                    .contains("var title: String");
+        }
+
+        @Test
+        @DisplayName("Should generate nullable field with Kotlin nullable type")
+        void shouldGenerateNullableFieldWithKotlinNullableType() {
+            SqlTable table =
+                    createTableWithColumn(
+                            "products", createColumn("description", "String", true, false, 1000));
+
+            String result = entityGenerator.generate(table, List.of(), List.of(), List.of());
+
+            assertThat(result)
+                    .contains("@Column(name = \"description\", length = 1000)")
+                    .contains("var description: String? = null");
+        }
+
+        @Test
+        @DisplayName("Should generate unique field with unique = true")
+        void shouldGenerateUniqueFieldWithUniqueTrue() {
+            SqlTable table =
+                    createTableWithColumn(
+                            "users", createColumn("email", "String", false, true, 100));
+
+            String result = entityGenerator.generate(table, List.of(), List.of(), List.of());
+
+            assertThat(result).contains("unique = true");
+        }
+
+        @Test
+        @DisplayName("Should generate entity with BigDecimal field")
+        void shouldGenerateEntityWithBigDecimalField() {
+            SqlColumn column =
+                    SqlColumn.builder()
+                            .name("price")
+                            .javaType("BigDecimal")
+                            .nullable(false)
+                            .unique(false)
+                            .build();
+
+            SqlTable table = createTableWithColumn("products", column);
+
+            String result = entityGenerator.generate(table, List.of(), List.of(), List.of());
+
+            assertThat(result)
+                    .contains("import java.math.BigDecimal")
+                    .contains("var price: BigDecimal");
+        }
+
+        @Test
+        @DisplayName("Should generate ManyToOne relationship with nullable reference")
+        void shouldGenerateManyToOneRelationshipWithNullableReference() {
+            SqlTable sourceTable = createSimpleTable("orders");
+            SqlTable targetTable = createSimpleTable("customers");
+
+            SqlForeignKey fk =
+                    SqlForeignKey.builder()
+                            .columnName("customer_id")
+                            .referencedTable("customers")
+                            .referencedColumn("id")
+                            .build();
+
+            SqlSchema.TableRelationship relationship =
+                    SqlSchema.TableRelationship.builder()
+                            .sourceTable(sourceTable)
+                            .targetTable(targetTable)
+                            .foreignKey(fk)
+                            .relationType(RelationType.MANY_TO_ONE)
+                            .build();
+
+            String result =
+                    entityGenerator.generate(
+                            sourceTable, List.of(relationship), List.of(), List.of());
+
+            assertThat(result)
+                    .contains("@ManyToOne(fetch = FetchType.LAZY)")
+                    .contains("@JoinColumn(name = \"customer_id\")")
+                    .contains("var customer: Customer? = null")
+                    .contains("import com.example.customers.domain.entity.Customer");
+        }
+
+        @Test
+        @DisplayName("Should generate OneToOne relationship")
+        void shouldGenerateOneToOneRelationship() {
+            SqlTable sourceTable = createSimpleTable("users");
+            SqlTable targetTable = createSimpleTable("profiles");
+
+            SqlForeignKey fk =
+                    SqlForeignKey.builder()
+                            .columnName("profile_id")
+                            .referencedTable("profiles")
+                            .referencedColumn("id")
+                            .build();
+
+            SqlSchema.TableRelationship relationship =
+                    SqlSchema.TableRelationship.builder()
+                            .sourceTable(sourceTable)
+                            .targetTable(targetTable)
+                            .foreignKey(fk)
+                            .relationType(RelationType.ONE_TO_ONE)
+                            .build();
+
+            String result =
+                    entityGenerator.generate(
+                            sourceTable, List.of(relationship), List.of(), List.of());
+
+            assertThat(result)
+                    .contains("@OneToOne(fetch = FetchType.LAZY)")
+                    .contains("@JoinColumn(name = \"profile_id\", unique = true)")
+                    .contains("var profile: Profile? = null");
+        }
+
+        @Test
+        @DisplayName("Should generate OneToMany inverse relationship with MutableList")
+        void shouldGenerateOneToManyInverseRelationshipWithMutableList() {
+            SqlTable sourceTable = createSimpleTable("orders");
+            SqlTable targetTable = createSimpleTable("customers");
+
+            SqlForeignKey fk =
+                    SqlForeignKey.builder()
+                            .columnName("customer_id")
+                            .referencedTable("customers")
+                            .referencedColumn("id")
+                            .build();
+
+            SqlSchema.TableRelationship relationship =
+                    SqlSchema.TableRelationship.builder()
+                            .sourceTable(sourceTable)
+                            .targetTable(targetTable)
+                            .foreignKey(fk)
+                            .relationType(RelationType.MANY_TO_ONE)
+                            .build();
+
+            String result =
+                    entityGenerator.generate(
+                            targetTable, List.of(), List.of(relationship), List.of());
+
+            assertThat(result)
+                    .contains(
+                            "@OneToMany(mappedBy = \"customer\", cascade = [CascadeType.PERSIST,"
+                                    + " CascadeType.MERGE], orphanRemoval = true)")
+                    .contains("var orders: MutableList<Order> = mutableListOf()");
+        }
+
+        @Test
+        @DisplayName("Should generate ManyToMany relationship with MutableList")
+        void shouldGenerateManyToManyRelationshipWithMutableList() {
+            SqlTable sourceTable = createSimpleTable("students");
+            SqlTable targetTable = createSimpleTable("courses");
+
+            ManyToManyRelation m2m =
+                    new ManyToManyRelation(
+                            "student_courses", "student_id", "course_id", targetTable);
+
+            String result =
+                    entityGenerator.generate(sourceTable, List.of(), List.of(), List.of(m2m));
+
+            assertThat(result)
+                    .contains("@ManyToMany")
+                    .contains("@JoinTable(")
+                    .contains("name = \"student_courses\"")
+                    .contains("joinColumns = [JoinColumn(name = \"student_id\")]")
+                    .contains("inverseJoinColumns = [JoinColumn(name = \"course_id\")]")
+                    .contains("var courses: MutableList<Course> = mutableListOf()");
+        }
+
+        @Test
+        @DisplayName("Should generate entity with indexes using Kotlin array syntax")
+        void shouldGenerateEntityWithIndexesUsingKotlinArraySyntax() {
+            SqlIndex index =
+                    SqlIndex.builder()
+                            .name("idx_products_sku")
+                            .columns(List.of("sku"))
+                            .unique(false)
+                            .build();
+
+            SqlTable table =
+                    SqlTable.builder()
+                            .name("products")
+                            .columns(
+                                    List.of(
+                                            SqlColumn.builder()
+                                                    .name("id")
+                                                    .javaType("Long")
+                                                    .primaryKey(true)
+                                                    .build(),
+                                            SqlColumn.builder()
+                                                    .name("sku")
+                                                    .javaType("String")
+                                                    .nullable(false)
+                                                    .build()))
+                            .indexes(List.of(index))
+                            .foreignKeys(new ArrayList<>())
+                            .build();
+
+            String result = entityGenerator.generate(table, List.of(), List.of(), List.of());
+
+            assertThat(result)
+                    .contains("@Table(name = \"products\", indexes = [")
+                    .contains("@Index");
+        }
+
+        @Test
+        @DisplayName("Should handle Kotlin reserved keywords with backticks")
+        void shouldHandleKotlinReservedKeywordsWithBackticks() {
+            SqlColumn column =
+                    SqlColumn.builder().name("object").javaType("String").nullable(true).build();
+
+            SqlTable table = createTableWithColumn("items", column);
+
+            String result = entityGenerator.generate(table, List.of(), List.of(), List.of());
+
+            assertThat(result).contains("var `object`: String? = null");
+        }
+
+        @Test
+        @DisplayName("Should use Kotlin Int type for Integer")
+        void shouldUseKotlinIntTypeForInteger() {
+            SqlColumn column =
+                    SqlColumn.builder()
+                            .name("quantity")
+                            .javaType("Integer")
+                            .nullable(false)
+                            .build();
+
+            SqlTable table = createTableWithColumn("products", column);
+
+            String result = entityGenerator.generate(table, List.of(), List.of(), List.of());
+
+            assertThat(result).contains("var quantity: Int");
+        }
+    }
+
+    private SqlTable createSimpleTable(String tableName) {
+        return SqlTable.builder()
+                .name(tableName)
+                .columns(
+                        List.of(
+                                SqlColumn.builder()
+                                        .name("id")
+                                        .javaType("Long")
+                                        .primaryKey(true)
+                                        .build()))
+                .foreignKeys(new ArrayList<>())
+                .indexes(new ArrayList<>())
+                .build();
+    }
+
+    private SqlTable createTableWithColumn(String tableName, SqlColumn column) {
+        return SqlTable.builder()
+                .name(tableName)
+                .columns(
+                        List.of(
+                                SqlColumn.builder()
+                                        .name("id")
+                                        .javaType("Long")
+                                        .primaryKey(true)
+                                        .build(),
+                                column))
+                .foreignKeys(new ArrayList<>())
+                .indexes(new ArrayList<>())
+                .build();
+    }
+
+    private SqlColumn createColumn(
+            String name, String type, boolean nullable, boolean unique, Integer length) {
+        return SqlColumn.builder()
+                .name(name)
+                .javaType(type)
+                .nullable(nullable)
+                .unique(unique)
+                .length(length)
+                .build();
+    }
+}
