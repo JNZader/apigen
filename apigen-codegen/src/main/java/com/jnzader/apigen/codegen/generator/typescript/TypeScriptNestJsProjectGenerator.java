@@ -17,6 +17,7 @@ import com.jnzader.apigen.codegen.generator.typescript.security.reset.TypeScript
 import com.jnzader.apigen.codegen.generator.typescript.security.social.TypeScriptSocialLoginGenerator;
 import com.jnzader.apigen.codegen.generator.typescript.service.TypeScriptServiceGenerator;
 import com.jnzader.apigen.codegen.generator.typescript.storage.TypeScriptFileStorageGenerator;
+import com.jnzader.apigen.codegen.generator.typescript.test.TypeScriptTestGenerator;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.ArrayList;
@@ -69,7 +70,10 @@ public class TypeScriptNestJsProjectGenerator implements ProjectGenerator {
                     Feature.SOCIAL_LOGIN,
                     Feature.FILE_UPLOAD,
                     Feature.S3_STORAGE,
-                    Feature.AZURE_STORAGE);
+                    Feature.AZURE_STORAGE,
+                    // Testing
+                    Feature.UNIT_TESTS,
+                    Feature.INTEGRATION_TESTS);
 
     private final TypeScriptTypeMapper typeMapper = new TypeScriptTypeMapper();
 
@@ -202,6 +206,24 @@ public class TypeScriptNestJsProjectGenerator implements ProjectGenerator {
         // Generate test directory structure
         files.put("test/.gitkeep", "");
         files.put("test/jest-e2e.json", generateJestE2eConfig());
+
+        // Generate tests for each entity
+        if (config.isFeatureEnabled(Feature.UNIT_TESTS)
+                || config.isFeatureEnabled(Feature.INTEGRATION_TESTS)) {
+            TypeScriptTestGenerator testGenerator = new TypeScriptTestGenerator();
+
+            for (SqlTable table : schema.getEntityTables()) {
+                if (config.isFeatureEnabled(Feature.UNIT_TESTS)) {
+                    files.putAll(testGenerator.generateTests(table));
+                }
+                if (config.isFeatureEnabled(Feature.INTEGRATION_TESTS)) {
+                    String kebabName = typeMapper.toKebabCase(table.getEntityName());
+                    files.put(
+                            "test/" + kebabName + ".e2e-spec.ts",
+                            testGenerator.generateE2eTest(table));
+                }
+            }
+        }
 
         return files;
     }

@@ -17,6 +17,7 @@ import com.jnzader.apigen.codegen.generator.go.security.reset.GoPasswordResetGen
 import com.jnzader.apigen.codegen.generator.go.security.social.GoSocialLoginGenerator;
 import com.jnzader.apigen.codegen.generator.go.service.GoServiceGenerator;
 import com.jnzader.apigen.codegen.generator.go.storage.GoFileStorageGenerator;
+import com.jnzader.apigen.codegen.generator.gogin.test.GoGinTestGenerator;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.ArrayList;
@@ -69,7 +70,10 @@ public class GoGinProjectGenerator implements ProjectGenerator {
                     Feature.SOCIAL_LOGIN,
                     Feature.FILE_UPLOAD,
                     Feature.S3_STORAGE,
-                    Feature.AZURE_STORAGE);
+                    Feature.AZURE_STORAGE,
+                    // Testing
+                    Feature.UNIT_TESTS,
+                    Feature.INTEGRATION_TESTS);
 
     private final GoTypeMapper typeMapper = new GoTypeMapper();
 
@@ -197,6 +201,24 @@ public class GoGinProjectGenerator implements ProjectGenerator {
 
         // Generate docs directory placeholder
         files.put("docs/.gitkeep", "");
+
+        // Generate tests for each entity
+        if (config.isFeatureEnabled(Feature.UNIT_TESTS)
+                || config.isFeatureEnabled(Feature.INTEGRATION_TESTS)) {
+            GoGinTestGenerator testGenerator = new GoGinTestGenerator();
+
+            for (SqlTable table : schema.getEntityTables()) {
+                if (config.isFeatureEnabled(Feature.UNIT_TESTS)) {
+                    files.putAll(testGenerator.generateTests(table));
+                }
+                if (config.isFeatureEnabled(Feature.INTEGRATION_TESTS)) {
+                    String snakeName = typeMapper.toSnakeCase(table.getEntityName());
+                    files.put(
+                            "internal/integration/" + snakeName + "_integration_test.go",
+                            testGenerator.generateIntegrationTest(table, moduleName));
+                }
+            }
+        }
 
         return files;
     }
