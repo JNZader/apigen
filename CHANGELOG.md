@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.17.0](https://github.com/JNZader/apigen/compare/v2.16.0...v2.17.0) (2026-01-24)
+
+### Features
+
+* **codegen:** add native Feature Pack 2025 generators for Go/Chi ([02e77bf](https://github.com/JNZader/apigen/commit/02e77bfd53eea1782d64e28cdc3c5757fb3a65cf))
+
 ## [2.16.0](https://github.com/JNZader/apigen/compare/v2.15.1...v2.16.0) (2026-01-24)
 
 ### Features
