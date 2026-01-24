@@ -71,7 +71,6 @@ public class PhpConfigGenerator {
         return files;
     }
 
-    @SuppressWarnings("java:S1172") // hasRateLimit reserved for future Redis dependencies
     private String generateComposerJson(boolean hasJwtAuth, boolean hasRateLimit) {
         StringBuilder require = new StringBuilder();
         require.append("        \"php\": \"^").append(PHP_VERSION).append("\",\n");
@@ -81,6 +80,10 @@ public class PhpConfigGenerator {
 
         if (hasJwtAuth) {
             require.append(",\n        \"laravel/sanctum\": \"^4.0\"");
+        }
+
+        if (hasRateLimit) {
+            require.append(",\n        \"predis/predis\": \"^2.3\"");
         }
 
         return """

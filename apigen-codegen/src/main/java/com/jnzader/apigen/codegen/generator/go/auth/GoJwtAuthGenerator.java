@@ -21,7 +21,6 @@ public class GoJwtAuthGenerator {
     private static final int DEFAULT_ACCESS_TOKEN_HOURS = 1;
     private static final int DEFAULT_REFRESH_TOKEN_HOURS = 168; // 7 days
 
-    @SuppressWarnings("java:S1068") // Reserved for future module-aware generation
     private final String moduleName;
 
     public GoJwtAuthGenerator(String moduleName) {
@@ -62,7 +61,65 @@ public class GoJwtAuthGenerator {
         // Auth Routes Helper
         files.put("internal/auth/routes.go", generateAuthRoutes());
 
+        // Integration documentation with module-specific imports
+        files.put("internal/auth/INTEGRATION.md", generateIntegrationDoc());
+
         return files;
+    }
+
+    private String generateIntegrationDoc() {
+        return """
+        # JWT Authentication Integration
+
+        ## Setup in main.go
+
+        Add the auth import to your main.go:
+
+        ```go
+        import (
+            "%s/internal/auth"
+        )
+        ```
+
+        ## Initialize and configure routes
+
+        ```go
+        func main() {
+            // ... database setup ...
+
+            r := gin.Default()
+
+            // Setup auth routes (public: register, login, refresh)
+            // Protected routes require AuthMiddleware
+            auth.SetupAuthRoutes(r.Group("/api"), db)
+
+            // For custom protected routes, use the middleware:
+            jwtService := auth.GetJWTService()
+            protected := r.Group("/api/protected")
+            protected.Use(auth.AuthMiddleware(jwtService))
+            {
+                protected.GET("/data", yourHandler)
+            }
+
+            r.Run(":8080")
+        }
+        ```
+
+        ## Environment Variables
+
+        - `JWT_SECRET` - Secret key for signing tokens (required in production)
+
+        ## Endpoints
+
+        | Method | Path | Description | Auth |
+        |--------|------|-------------|------|
+        | POST | /api/auth/register | Register new user | No |
+        | POST | /api/auth/login | Login and get tokens | No |
+        | POST | /api/auth/refresh | Refresh access token | No |
+        | GET | /api/auth/profile | Get current user | Yes |
+        | PUT | /api/auth/password | Change password | Yes |
+        """
+                .formatted(moduleName);
     }
 
     /** Generates with default settings. */

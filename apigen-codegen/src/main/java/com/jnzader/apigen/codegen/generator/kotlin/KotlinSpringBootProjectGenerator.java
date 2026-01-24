@@ -5,6 +5,7 @@ import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
 import com.jnzader.apigen.codegen.generator.api.ProjectGenerator;
 import com.jnzader.apigen.codegen.generator.common.ManyToManyRelation;
+import com.jnzader.apigen.codegen.generator.java.jte.JteGenerator;
 import com.jnzader.apigen.codegen.generator.kotlin.controller.KotlinControllerGenerator;
 import com.jnzader.apigen.codegen.generator.kotlin.dto.KotlinDTOGenerator;
 import com.jnzader.apigen.codegen.generator.kotlin.entity.KotlinEntityGenerator;
@@ -81,7 +82,8 @@ public class KotlinSpringBootProjectGenerator implements ProjectGenerator {
                     Feature.MAIL_SERVICE,
                     Feature.FILE_UPLOAD,
                     Feature.S3_STORAGE,
-                    Feature.AZURE_STORAGE);
+                    Feature.AZURE_STORAGE,
+                    Feature.JTE_TEMPLATES);
 
     // Package path constants
     private static final String PKG_DOMAIN_ENTITY = "domain/entity";
@@ -383,8 +385,7 @@ public class KotlinSpringBootProjectGenerator implements ProjectGenerator {
         return errors;
     }
 
-    /** Generates Feature Pack files (mail, storage, social login, password reset). */
-    @SuppressWarnings("java:S1172") // schema reserved for future entity-based features
+    /** Generates Feature Pack files (mail, storage, social login, password reset, jte). */
     private void generateFeaturePackFiles(
             Map<String, String> files,
             SqlSchema schema,
@@ -430,6 +431,15 @@ public class KotlinSpringBootProjectGenerator implements ProjectGenerator {
             // Enable Google and GitHub by default, disable LinkedIn, auto-create user, link by
             // email
             files.putAll(socialLoginGenerator.generate(true, true, false, true, true));
+        }
+
+        // jte Templates (language-agnostic, uses Java's JteGenerator)
+        if (config.isFeatureEnabled(Feature.JTE_TEMPLATES)) {
+            JteGenerator jteGenerator = new JteGenerator(config.getBasePackage());
+            // Generate admin and CRUD views with Tailwind + Alpine, path /admin
+            files.putAll(
+                    jteGenerator.generate(
+                            schema.getEntityTables(), true, true, true, true, "/admin"));
         }
     }
 

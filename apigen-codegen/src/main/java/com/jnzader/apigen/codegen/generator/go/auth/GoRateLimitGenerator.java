@@ -21,7 +21,6 @@ public class GoRateLimitGenerator {
     private static final int DEFAULT_BURST_SIZE = 50;
     private static final boolean DEFAULT_USE_REDIS = false;
 
-    @SuppressWarnings("java:S1068") // Reserved for future module-aware generation
     private final String moduleName;
 
     public GoRateLimitGenerator(String moduleName) {
@@ -56,7 +55,73 @@ public class GoRateLimitGenerator {
         // Rate limit response helpers
         files.put("internal/middleware/rate_limit_response.go", generateRateLimitResponse());
 
+        // Integration documentation with module-specific imports
+        files.put("internal/middleware/RATE_LIMIT.md", generateRateLimitDoc(useRedis));
+
         return files;
+    }
+
+    private String generateRateLimitDoc(boolean useRedis) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("# Rate Limiting Integration\n\n");
+        sb.append("## Setup in main.go\n\n");
+        sb.append("Add the middleware import to your main.go:\n\n");
+        sb.append("```go\n");
+        sb.append("import (\n");
+        sb.append("    \"").append(moduleName).append("/internal/middleware\"\n");
+        sb.append(")\n");
+        sb.append("```\n\n");
+        sb.append("## Basic Usage\n\n");
+        sb.append("```go\n");
+        sb.append("func main() {\n");
+        sb.append("    r := gin.Default()\n\n");
+        sb.append("    // Apply global rate limiting\n");
+        sb.append("    limiter := middleware.NewDefaultRateLimiter()\n");
+        sb.append("    r.Use(middleware.RateLimiterMiddleware(limiter, middleware.IPKeyFunc))\n\n");
+        sb.append("    // Or apply to specific routes\n");
+        sb.append("    api := r.Group(\"/api\")\n");
+        sb.append("    api.Use(middleware.RateLimiterMiddleware(\n");
+        sb.append("        middleware.NewAPIRateLimiter(),\n");
+        sb.append("        middleware.IPKeyFunc,\n");
+        sb.append("    ))\n\n");
+        sb.append("    // Stricter limits for auth endpoints\n");
+        sb.append("    auth := r.Group(\"/auth\")\n");
+        sb.append("    auth.Use(middleware.RateLimiterMiddleware(\n");
+        sb.append("        middleware.NewAuthRateLimiter(),\n");
+        sb.append("        middleware.IPKeyFunc,\n");
+        sb.append("    ))\n");
+        sb.append("}\n");
+        sb.append("```\n\n");
+        sb.append("## Available Rate Limiters\n\n");
+        sb.append("| Function | Limit | Use Case |\n");
+        sb.append("|----------|-------|----------|\n");
+        sb.append("| `NewDefaultRateLimiter()` | 100/s | General endpoints |\n");
+        sb.append("| `NewAPIRateLimiter()` | 60/s | API endpoints |\n");
+        sb.append("| `NewAuthRateLimiter()` | 5/s | Login/Register |\n");
+        sb.append("| `NewHeavyRateLimiter()` | 10/s | Resource-intensive ops |\n\n");
+        sb.append("## Key Functions\n\n");
+        sb.append("- `IPKeyFunc` - Rate limit by client IP\n");
+        sb.append("- `UserKeyFunc` - Rate limit by user ID (requires auth)\n");
+        sb.append("- `CombinedKeyFunc` - Rate limit by IP + path\n\n");
+        sb.append("## Environment Variables\n\n");
+        sb.append("| Variable | Default | Description |\n");
+        sb.append("|----------|---------|-------------|\n");
+        sb.append("| `RATE_LIMIT_REQUESTS_PER_SECOND` | 100 | Default limit |\n");
+        sb.append("| `RATE_LIMIT_BURST` | 50 | Burst size |\n");
+        sb.append("| `RATE_LIMIT_API` | 60 | API endpoint limit |\n");
+        sb.append("| `RATE_LIMIT_AUTH` | 5 | Auth endpoint limit |\n");
+
+        if (useRedis) {
+            sb.append("\n## Redis Configuration\n\n");
+            sb.append("For distributed rate limiting across multiple instances:\n\n");
+            sb.append("| Variable | Default | Description |\n");
+            sb.append("|----------|---------|-------------|\n");
+            sb.append("| `RATE_LIMIT_USE_REDIS` | false | Enable Redis storage |\n");
+            sb.append("| `REDIS_ADDR` | localhost:6379 | Redis address |\n");
+            sb.append("| `REDIS_DB` | 0 | Redis database |\n");
+        }
+
+        return sb.toString();
     }
 
     /** Generates with default settings. */

@@ -102,10 +102,18 @@ public class GoChiConfigGenerator {
         return sb.toString();
     }
 
-    @SuppressWarnings("java:S1172") // Schema reserved for entity registration
     private String generateMainGo(SqlSchema schema) {
         StringBuilder sb = new StringBuilder();
         sb.append("package main\n\n");
+
+        // Generate entity list comment
+        if (!schema.getEntityTables().isEmpty()) {
+            sb.append("// Available entities:\n");
+            for (SqlTable table : schema.getEntityTables()) {
+                sb.append("//   - ").append(table.getEntityName()).append("\n");
+            }
+            sb.append("\n");
+        }
 
         sb.append("import (\n");
         sb.append("\t\"context\"\n");
