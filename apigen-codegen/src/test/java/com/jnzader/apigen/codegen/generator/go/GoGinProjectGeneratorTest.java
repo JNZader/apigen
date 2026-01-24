@@ -304,7 +304,7 @@ class GoGinProjectGeneratorTest {
 
             String goModContent = files.get("go.mod");
             assertThat(goModContent)
-                    .contains("module github/com/user/myapi")
+                    .contains("module github.com/user/myapi")
                     .contains("github.com/gin-gonic/gin")
                     .contains("gorm.io/gorm")
                     .contains("gorm.io/driver/postgres");

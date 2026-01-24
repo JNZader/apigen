@@ -221,8 +221,12 @@ public class PhpTypeMapper implements LanguageTypeMapper {
             case "Boolean", "boolean" ->
                     method.append("$table->boolean('").append(columnName).append("')");
             case "BigDecimal" -> {
-                int precision = column.getPrecision() > 0 ? column.getPrecision() : 19;
-                int scale = column.getScale() > 0 ? column.getScale() : 2;
+                int precision =
+                        column.getPrecision() != null && column.getPrecision() > 0
+                                ? column.getPrecision()
+                                : 19;
+                int scale =
+                        column.getScale() != null && column.getScale() > 0 ? column.getScale() : 2;
                 method.append("$table->decimal('")
                         .append(columnName)
                         .append("', ")

@@ -76,7 +76,7 @@ public class TypeScriptControllerGenerator {
                 .append("ResponseDto } from '../dto/")
                 .append(entityKebab)
                 .append("-response.dto';\n");
-        sb.append("import { PaginatedResponseDto } from '../dto/paginated-response.dto';\n");
+        sb.append("import { PaginatedResponseDto } from '../../../dto/paginated-response.dto';\n");
         sb.append("\n");
 
         // Class definition

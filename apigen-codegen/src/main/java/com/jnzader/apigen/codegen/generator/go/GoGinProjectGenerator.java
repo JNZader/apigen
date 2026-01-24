@@ -209,8 +209,10 @@ public class GoGinProjectGenerator implements ProjectGenerator {
         // If a base package is provided, use it as the module base
         String basePackage = config.getBasePackage();
         if (basePackage != null && !basePackage.isBlank()) {
-            // Convert Java-style package to Go module (com.example -> github.com/example)
-            String moduleBase = basePackage.replace(".", "/");
+            // If already in Go module format (contains slash), use as-is
+            // Otherwise convert Java-style package to Go module (com.example -> com/example)
+            String moduleBase =
+                    basePackage.contains("/") ? basePackage : basePackage.replace(".", "/");
             return moduleBase + "/" + snakeName;
         }
 
