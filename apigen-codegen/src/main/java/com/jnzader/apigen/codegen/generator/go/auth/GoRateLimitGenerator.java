@@ -21,7 +21,7 @@ public class GoRateLimitGenerator {
     private static final int DEFAULT_BURST_SIZE = 50;
     private static final boolean DEFAULT_USE_REDIS = false;
 
-    @SuppressWarnings("UnusedVariable") // Reserved for future module-aware generation
+    @SuppressWarnings("java:S1068") // Reserved for future module-aware generation
     private final String moduleName;
 
     public GoRateLimitGenerator(String moduleName) {

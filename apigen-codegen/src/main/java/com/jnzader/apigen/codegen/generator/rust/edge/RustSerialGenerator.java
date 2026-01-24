@@ -24,7 +24,7 @@ import com.jnzader.apigen.codegen.generator.rust.RustTypeMapper;
  * @author APiGen
  * @since 2.12.0
  */
-@SuppressWarnings("UnusedVariable") // Reserved for future feature flags
+@SuppressWarnings("java:S1068") // Reserved for future feature flags
 public class RustSerialGenerator {
 
     private final RustTypeMapper typeMapper;

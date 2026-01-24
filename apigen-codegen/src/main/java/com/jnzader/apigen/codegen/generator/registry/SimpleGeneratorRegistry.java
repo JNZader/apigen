@@ -67,9 +67,7 @@ public class SimpleGeneratorRegistry implements GeneratorRegistry {
 
     @Override
     public List<ProjectGenerator> getGeneratorsByFeature(Feature feature) {
-        return generators.values().stream()
-                .filter(gen -> gen.supports(feature))
-                .collect(Collectors.toList());
+        return generators.values().stream().filter(gen -> gen.supports(feature)).toList();
     }
 
     @Override
@@ -80,7 +78,7 @@ public class SimpleGeneratorRegistry implements GeneratorRegistry {
         String normalizedLang = normalizeKey(language);
         return generators.values().stream()
                 .filter(gen -> normalizeKey(gen.getLanguage()).equals(normalizedLang))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override

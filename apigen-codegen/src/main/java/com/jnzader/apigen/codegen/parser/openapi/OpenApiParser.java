@@ -126,9 +126,11 @@ public class OpenApiParser {
 
         // Get schemas from components
         if (openAPI.getComponents() != null && openAPI.getComponents().getSchemas() != null) {
-            Map<String, Schema> schemas = openAPI.getComponents().getSchemas();
+            @SuppressWarnings("unchecked")
+            Map<String, Schema<?>> schemas =
+                    (Map<String, Schema<?>>) (Map<?, ?>) openAPI.getComponents().getSchemas();
 
-            for (Map.Entry<String, Schema> entry : schemas.entrySet()) {
+            for (Map.Entry<String, Schema<?>> entry : schemas.entrySet()) {
                 String schemaName = entry.getKey();
                 Schema<?> schema = entry.getValue();
 
@@ -208,9 +210,11 @@ public class OpenApiParser {
             return junctionTables;
         }
 
-        Map<String, Schema> schemas = openAPI.getComponents().getSchemas();
+        @SuppressWarnings("unchecked")
+        Map<String, Schema<?>> schemas =
+                (Map<String, Schema<?>>) (Map<?, ?>) openAPI.getComponents().getSchemas();
 
-        for (Map.Entry<String, Schema> entry : schemas.entrySet()) {
+        for (Map.Entry<String, Schema<?>> entry : schemas.entrySet()) {
             String schemaName = entry.getKey();
             Schema<?> schema = entry.getValue();
 
@@ -218,7 +222,10 @@ public class OpenApiParser {
                 continue;
             }
 
-            for (Map.Entry<String, Schema> propEntry : schema.getProperties().entrySet()) {
+            @SuppressWarnings("unchecked")
+            Map<String, Schema<?>> properties =
+                    (Map<String, Schema<?>>) (Map<?, ?>) schema.getProperties();
+            for (Map.Entry<String, Schema<?>> propEntry : properties.entrySet()) {
                 String propertyName = propEntry.getKey();
                 Schema<?> propSchema = propEntry.getValue();
 
@@ -263,7 +270,7 @@ public class OpenApiParser {
      * @return true if has reverse reference
      */
     private boolean hasReverseArrayRef(
-            Schema<?> schema, String sourceSchemaName, Map<String, Schema> allSchemas) {
+            Schema<?> schema, String sourceSchemaName, Map<String, Schema<?>> allSchemas) {
         if (schema.getProperties() == null) {
             return false;
         }

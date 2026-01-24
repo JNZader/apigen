@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
  * @author APiGen
  * @since 2.12.0
  */
-@SuppressWarnings("UnusedVariable") // Fields reserved for future features
+@SuppressWarnings("java:S1068") // Fields reserved for future features
 public class RustRepositoryGenerator {
 
     private final RustTypeMapper typeMapper;

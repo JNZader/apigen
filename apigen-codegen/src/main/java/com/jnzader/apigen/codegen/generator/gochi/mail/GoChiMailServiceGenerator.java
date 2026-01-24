@@ -24,7 +24,7 @@ import java.util.Map;
  * @author APiGen
  * @since 2.16.0
  */
-@SuppressWarnings("UnusedVariable") // moduleName kept for API consistency with other generators
+@SuppressWarnings("java:S1068") // moduleName kept for API consistency with other generators
 public class GoChiMailServiceGenerator {
 
     private final String moduleName;

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 
 /** Generates GORM model structs from SQL table definitions for Go/Gin. */
+@SuppressWarnings("java:S1068") // moduleName reserved for future module-aware generation
 public class GoModelGenerator {
 
     private final GoTypeMapper typeMapper;

@@ -190,15 +190,17 @@ public class OpenApiTypeMapper {
         return null;
     }
 
+    private static final int[] EMPTY_INT_ARRAY = new int[0];
+
     /**
      * Extracts precision and scale from a DECIMAL SQL type.
      *
      * @param sqlType the SQL type string
-     * @return int array [precision, scale] or null if not a DECIMAL
+     * @return int array [precision, scale] or empty array if not a DECIMAL
      */
     public static int[] extractPrecisionScale(String sqlType) {
         if (sqlType == null || !sqlType.toUpperCase().startsWith("DECIMAL")) {
-            return null;
+            return EMPTY_INT_ARRAY;
         }
 
         int start = sqlType.indexOf('(');
@@ -210,9 +212,9 @@ public class OpenApiTypeMapper {
                 int scale = parts.length > 1 ? Integer.parseInt(parts[1].trim()) : 0;
                 return new int[] {precision, scale};
             } catch (NumberFormatException e) {
-                return null;
+                return EMPTY_INT_ARRAY;
             }
         }
-        return null;
+        return EMPTY_INT_ARRAY;
     }
 }

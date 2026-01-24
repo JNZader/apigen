@@ -28,7 +28,7 @@ import java.util.List;
  * @author APiGen
  * @since 2.12.0
  */
-@SuppressWarnings("UnusedVariable") // typeMapper reserved for future type generation
+@SuppressWarnings("java:S1068") // typeMapper reserved for future type generation
 public class RustConfigGenerator {
 
     private final RustTypeMapper typeMapper;

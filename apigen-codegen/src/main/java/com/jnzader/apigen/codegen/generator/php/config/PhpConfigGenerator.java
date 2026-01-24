@@ -71,7 +71,7 @@ public class PhpConfigGenerator {
         return files;
     }
 
-    @SuppressWarnings("UnusedVariable") // hasRateLimit reserved for future Redis dependencies
+    @SuppressWarnings("java:S1172") // hasRateLimit reserved for future Redis dependencies
     private String generateComposerJson(boolean hasJwtAuth, boolean hasRateLimit) {
         StringBuilder require = new StringBuilder();
         require.append("        \"php\": \"^").append(PHP_VERSION).append("\",\n");

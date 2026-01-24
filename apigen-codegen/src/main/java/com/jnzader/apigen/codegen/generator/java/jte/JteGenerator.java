@@ -426,13 +426,19 @@ public class JteGenerator {
 
         // ID column
         columns.append("<th class=\"px-4 py-3 text-left\">ID</th>\n");
-        rows.append("<td class=\"px-4 py-3\">${" + entityVar + ".id()}</td>\n");
+        rows.append("<td class=\"px-4 py-3\">${").append(entityVar).append(".id()}</td>\n");
 
         // Business columns
         for (var col : table.getBusinessColumns()) {
             String fieldName = col.getJavaFieldName();
-            columns.append("<th class=\"px-4 py-3 text-left\">" + fieldName + "</th>\n");
-            rows.append("<td class=\"px-4 py-3\">${" + entityVar + "." + fieldName + "()}</td>\n");
+            columns.append("<th class=\"px-4 py-3 text-left\">")
+                    .append(fieldName)
+                    .append("</th>\n");
+            rows.append("<td class=\"px-4 py-3\">${")
+                    .append(entityVar)
+                    .append(".")
+                    .append(fieldName)
+                    .append("()}</td>\n");
         }
 
         return """

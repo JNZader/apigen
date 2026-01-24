@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Locale;
 
 /** Generates repository layer using pgx (raw SQL, no ORM). */
-@SuppressWarnings("UnusedVariable") // Options field reserved for future feature flags
+@SuppressWarnings("java:S1068") // Options field reserved for future feature flags
 public class GoChiRepositoryGenerator {
 
     private final GoChiTypeMapper typeMapper;

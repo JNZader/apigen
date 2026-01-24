@@ -21,7 +21,7 @@ public class GoJwtAuthGenerator {
     private static final int DEFAULT_ACCESS_TOKEN_HOURS = 1;
     private static final int DEFAULT_REFRESH_TOKEN_HOURS = 168; // 7 days
 
-    @SuppressWarnings("UnusedVariable") // Reserved for future module-aware generation
+    @SuppressWarnings("java:S1068") // Reserved for future module-aware generation
     private final String moduleName;
 
     public GoJwtAuthGenerator(String moduleName) {
