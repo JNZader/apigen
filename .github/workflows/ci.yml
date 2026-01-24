@@ -733,6 +733,52 @@ jobs:
             apigen-server/build/test-results/
           retention-days: 1
 
+  test-generated-rust-axum:
+    name: Test Generated Rust/Axum Project
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: true
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run Rust/Axum generated project compilation test
+        run: ./gradlew :apigen-server:test --tests "GeneratedProjectCompilationIT.generatedRustAxumProjectShouldCompile" --no-daemon
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          CI_COMPILE_GENERATED_PROJECT: true
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        continue-on-error: true
+        with:
+          name: test-results-generated-rust-axum
+          path: |
+            apigen-server/build/reports/tests/
+            apigen-server/build/test-results/
+          retention-days: 1
+
   # ============================================
   # Summary Job - Aggregates all results
   # ============================================
@@ -756,6 +802,7 @@ jobs:
       - test-generated-typescript
       - test-generated-go
       - test-generated-go-chi
+      - test-generated-rust-axum
     if: always()
 
     steps:
@@ -791,6 +838,8 @@ jobs:
           echo "| PHP/Laravel | ${{ needs.test-generated-php.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| TypeScript/NestJS | ${{ needs.test-generated-typescript.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Go/Gin | ${{ needs.test-generated-go.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Go/Chi | ${{ needs.test-generated-go-chi.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Rust/Axum | ${{ needs.test-generated-rust-axum.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
 
   # ============================================
   # Code Quality
