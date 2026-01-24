@@ -10,8 +10,12 @@ import com.jnzader.apigen.codegen.generator.csharp.controller.CSharpControllerGe
 import com.jnzader.apigen.codegen.generator.csharp.dbcontext.CSharpDbContextGenerator;
 import com.jnzader.apigen.codegen.generator.csharp.dto.CSharpDTOGenerator;
 import com.jnzader.apigen.codegen.generator.csharp.entity.CSharpEntityGenerator;
+import com.jnzader.apigen.codegen.generator.csharp.mail.CSharpMailServiceGenerator;
 import com.jnzader.apigen.codegen.generator.csharp.repository.CSharpRepositoryGenerator;
+import com.jnzader.apigen.codegen.generator.csharp.security.reset.CSharpPasswordResetGenerator;
+import com.jnzader.apigen.codegen.generator.csharp.security.social.CSharpSocialLoginGenerator;
 import com.jnzader.apigen.codegen.generator.csharp.service.CSharpServiceGenerator;
+import com.jnzader.apigen.codegen.generator.csharp.storage.CSharpFileStorageGenerator;
 import com.jnzader.apigen.codegen.model.SqlForeignKey;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
@@ -67,7 +71,14 @@ public class CSharpAspNetCoreProjectGenerator implements ProjectGenerator {
                     Feature.MANY_TO_MANY,
                     Feature.ONE_TO_MANY,
                     Feature.MANY_TO_ONE,
-                    Feature.BATCH_OPERATIONS);
+                    Feature.BATCH_OPERATIONS,
+                    // Feature Pack 2025
+                    Feature.MAIL_SERVICE,
+                    Feature.PASSWORD_RESET,
+                    Feature.SOCIAL_LOGIN,
+                    Feature.FILE_UPLOAD,
+                    Feature.S3_STORAGE,
+                    Feature.AZURE_STORAGE);
 
     private final CSharpTypeMapper typeMapper = new CSharpTypeMapper();
 
@@ -199,7 +210,46 @@ public class CSharpAspNetCoreProjectGenerator implements ProjectGenerator {
         // Generate configuration files
         files.putAll(configGenerator.generate(schema, config));
 
+        // Generate Feature Pack 2025 files
+        generateFeaturePackFiles(files, config, baseNamespace);
+
         return files;
+    }
+
+    /** Generates Feature Pack 2025 files based on enabled features. */
+    private void generateFeaturePackFiles(
+            Map<String, String> files, ProjectConfig config, String baseNamespace) {
+        // Mail Service
+        if (config.isFeatureEnabled(Feature.MAIL_SERVICE)) {
+            CSharpMailServiceGenerator mailGenerator =
+                    new CSharpMailServiceGenerator(baseNamespace);
+            boolean hasPasswordReset = config.isFeatureEnabled(Feature.PASSWORD_RESET);
+            files.putAll(mailGenerator.generate(true, hasPasswordReset, true));
+        }
+
+        // Password Reset
+        if (config.isFeatureEnabled(Feature.PASSWORD_RESET)) {
+            CSharpPasswordResetGenerator resetGenerator =
+                    new CSharpPasswordResetGenerator(baseNamespace);
+            // 30 minute token expiration
+            files.putAll(resetGenerator.generate(30));
+        }
+
+        // Social Login (OAuth2)
+        if (config.isFeatureEnabled(Feature.SOCIAL_LOGIN)) {
+            CSharpSocialLoginGenerator socialGenerator =
+                    new CSharpSocialLoginGenerator(baseNamespace);
+            files.putAll(socialGenerator.generate(List.of("google", "github")));
+        }
+
+        // File Storage
+        if (config.isFeatureEnabled(Feature.FILE_UPLOAD)) {
+            CSharpFileStorageGenerator storageGenerator =
+                    new CSharpFileStorageGenerator(baseNamespace);
+            boolean useS3 = config.isFeatureEnabled(Feature.S3_STORAGE);
+            boolean useAzure = config.isFeatureEnabled(Feature.AZURE_STORAGE);
+            files.putAll(storageGenerator.generate(useS3, useAzure));
+        }
     }
 
     @Override

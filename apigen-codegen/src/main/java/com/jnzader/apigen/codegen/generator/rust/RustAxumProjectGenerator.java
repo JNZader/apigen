@@ -26,11 +26,15 @@ import com.jnzader.apigen.codegen.generator.rust.edge.RustMqttGenerator;
 import com.jnzader.apigen.codegen.generator.rust.edge.RustOnnxGenerator;
 import com.jnzader.apigen.codegen.generator.rust.edge.RustSerialGenerator;
 import com.jnzader.apigen.codegen.generator.rust.handler.RustHandlerGenerator;
+import com.jnzader.apigen.codegen.generator.rust.mail.RustMailServiceGenerator;
 import com.jnzader.apigen.codegen.generator.rust.middleware.RustMiddlewareGenerator;
 import com.jnzader.apigen.codegen.generator.rust.model.RustModelGenerator;
 import com.jnzader.apigen.codegen.generator.rust.repository.RustRepositoryGenerator;
 import com.jnzader.apigen.codegen.generator.rust.router.RustRouterGenerator;
+import com.jnzader.apigen.codegen.generator.rust.security.reset.RustPasswordResetGenerator;
+import com.jnzader.apigen.codegen.generator.rust.security.social.RustSocialLoginGenerator;
 import com.jnzader.apigen.codegen.generator.rust.service.RustServiceGenerator;
+import com.jnzader.apigen.codegen.generator.rust.storage.RustFileStorageGenerator;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.ArrayList;
@@ -74,7 +78,14 @@ public class RustAxumProjectGenerator implements ProjectGenerator {
                     Feature.ONE_TO_MANY,
                     // Security features
                     Feature.JWT_AUTH,
-                    Feature.RATE_LIMITING);
+                    Feature.RATE_LIMITING,
+                    // Feature Pack 2025
+                    Feature.MAIL_SERVICE,
+                    Feature.PASSWORD_RESET,
+                    Feature.SOCIAL_LOGIN,
+                    Feature.FILE_UPLOAD,
+                    Feature.S3_STORAGE,
+                    Feature.AZURE_STORAGE);
 
     private final RustTypeMapper typeMapper = new RustTypeMapper();
 
@@ -278,6 +289,40 @@ public class RustAxumProjectGenerator implements ProjectGenerator {
             files.put("src/inference/onnx.rs", onnxGenerator.generateOnnx());
         }
 
+        // === Feature Pack 2025 ===
+        generateFeaturePackFiles(files, config);
+
         return files;
+    }
+
+    /** Generates Feature Pack 2025 files based on enabled features. */
+    private void generateFeaturePackFiles(Map<String, String> files, ProjectConfig config) {
+        // Mail Service
+        if (config.isFeatureEnabled(Feature.MAIL_SERVICE)) {
+            RustMailServiceGenerator mailGenerator = new RustMailServiceGenerator();
+            boolean hasPasswordReset = config.isFeatureEnabled(Feature.PASSWORD_RESET);
+            files.putAll(mailGenerator.generate(true, hasPasswordReset, true));
+        }
+
+        // Password Reset
+        if (config.isFeatureEnabled(Feature.PASSWORD_RESET)) {
+            RustPasswordResetGenerator resetGenerator = new RustPasswordResetGenerator();
+            // 30 minute token expiration
+            files.putAll(resetGenerator.generate(30));
+        }
+
+        // Social Login (OAuth2)
+        if (config.isFeatureEnabled(Feature.SOCIAL_LOGIN)) {
+            RustSocialLoginGenerator socialGenerator = new RustSocialLoginGenerator();
+            files.putAll(socialGenerator.generate(List.of("google", "github")));
+        }
+
+        // File Storage
+        if (config.isFeatureEnabled(Feature.FILE_UPLOAD)) {
+            RustFileStorageGenerator storageGenerator = new RustFileStorageGenerator();
+            boolean useS3 = config.isFeatureEnabled(Feature.S3_STORAGE);
+            boolean useAzure = config.isFeatureEnabled(Feature.AZURE_STORAGE);
+            files.putAll(storageGenerator.generate(useS3, useAzure));
+        }
     }
 }

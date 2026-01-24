@@ -7,11 +7,15 @@ import com.jnzader.apigen.codegen.generator.api.ProjectGenerator;
 import com.jnzader.apigen.codegen.generator.python.auth.PythonJwtAuthGenerator;
 import com.jnzader.apigen.codegen.generator.python.auth.PythonRateLimitGenerator;
 import com.jnzader.apigen.codegen.generator.python.config.PythonConfigGenerator;
+import com.jnzader.apigen.codegen.generator.python.mail.PythonMailServiceGenerator;
 import com.jnzader.apigen.codegen.generator.python.model.PythonModelGenerator;
 import com.jnzader.apigen.codegen.generator.python.repository.PythonRepositoryGenerator;
 import com.jnzader.apigen.codegen.generator.python.router.PythonRouterGenerator;
 import com.jnzader.apigen.codegen.generator.python.schema.PythonSchemaGenerator;
+import com.jnzader.apigen.codegen.generator.python.security.reset.PythonPasswordResetGenerator;
+import com.jnzader.apigen.codegen.generator.python.security.social.PythonSocialLoginGenerator;
 import com.jnzader.apigen.codegen.generator.python.service.PythonServiceGenerator;
+import com.jnzader.apigen.codegen.generator.python.storage.PythonFileStorageGenerator;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.ArrayList;
@@ -56,7 +60,14 @@ public class PythonFastApiProjectGenerator implements ProjectGenerator {
                     Feature.ONE_TO_MANY,
                     // Security features
                     Feature.JWT_AUTH,
-                    Feature.RATE_LIMITING);
+                    Feature.RATE_LIMITING,
+                    // Feature Pack 2025
+                    Feature.MAIL_SERVICE,
+                    Feature.PASSWORD_RESET,
+                    Feature.SOCIAL_LOGIN,
+                    Feature.FILE_UPLOAD,
+                    Feature.S3_STORAGE,
+                    Feature.AZURE_STORAGE);
 
     private final PythonTypeMapper typeMapper = new PythonTypeMapper();
 
@@ -200,6 +211,37 @@ public class PythonFastApiProjectGenerator implements ProjectGenerator {
             PythonRateLimitGenerator rateLimitGenerator = new PythonRateLimitGenerator();
             // 100 requests per minute, no Redis by default
             files.putAll(rateLimitGenerator.generate("100/minute", false));
+        }
+
+        // Mail Service
+        if (config.isFeatureEnabled(Feature.MAIL_SERVICE)) {
+            PythonMailServiceGenerator mailGenerator = new PythonMailServiceGenerator();
+            boolean hasPasswordReset = config.isFeatureEnabled(Feature.PASSWORD_RESET);
+            files.putAll(mailGenerator.generate(true, hasPasswordReset, true));
+        }
+
+        // Password Reset
+        if (config.isFeatureEnabled(Feature.PASSWORD_RESET)) {
+            PythonPasswordResetGenerator resetGenerator = new PythonPasswordResetGenerator();
+            files.putAll(resetGenerator.generate(30)); // 30 minute token expiration
+        }
+
+        // Social Login
+        if (config.isFeatureEnabled(Feature.SOCIAL_LOGIN)) {
+            PythonSocialLoginGenerator socialGenerator = new PythonSocialLoginGenerator();
+            files.putAll(socialGenerator.generate(List.of("google", "github", "linkedin")));
+        }
+
+        // File Upload/Storage
+        if (config.isFeatureEnabled(Feature.FILE_UPLOAD)) {
+            PythonFileStorageGenerator storageGenerator = new PythonFileStorageGenerator();
+            String storageType = "local";
+            if (config.isFeatureEnabled(Feature.S3_STORAGE)) {
+                storageType = "s3";
+            } else if (config.isFeatureEnabled(Feature.AZURE_STORAGE)) {
+                storageType = "azure";
+            }
+            files.putAll(storageGenerator.generate(storageType));
         }
     }
 
