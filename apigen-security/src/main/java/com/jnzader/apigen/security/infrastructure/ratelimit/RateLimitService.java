@@ -62,10 +62,10 @@ public class RateLimitService {
     // In-memory storage
     private final Map<String, Bucket> localBuckets = new ConcurrentHashMap<>();
 
-    // Redis storage (initialized lazily)
-    private ProxyManager<String> redisProxyManager;
-    private RedisClient redisClient;
-    private StatefulRedisConnection<String, byte[]> redisConnection;
+    // Redis storage (initialized lazily in @PostConstruct, volatile for thread visibility)
+    private volatile ProxyManager<String> redisProxyManager;
+    private volatile RedisClient redisClient;
+    private volatile StatefulRedisConnection<String, byte[]> redisConnection;
 
     public RateLimitService(
             SecurityProperties securityProperties, RedisConnectionFactory redisConnectionFactory) {
