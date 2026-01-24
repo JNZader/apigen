@@ -40,8 +40,8 @@ public class PhpLaravelProjectGenerator implements ProjectGenerator {
 
     private static final String LANGUAGE = "php";
     private static final String FRAMEWORK = "laravel";
-    private static final String DEFAULT_PHP_VERSION = "8.3";
-    private static final String DEFAULT_FRAMEWORK_VERSION = "11.0";
+    private static final String DEFAULT_PHP_VERSION = "8.4";
+    private static final String DEFAULT_FRAMEWORK_VERSION = "12.0";
 
     private static final Set<Feature> SUPPORTED_FEATURES =
             Set.of(

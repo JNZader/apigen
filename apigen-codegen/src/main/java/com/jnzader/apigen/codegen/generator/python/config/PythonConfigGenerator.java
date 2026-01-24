@@ -24,9 +24,9 @@ import java.util.Map;
 public class PythonConfigGenerator {
 
     private static final String PYTHON_VERSION = "3.12";
-    private static final String FASTAPI_VERSION = "0.115.0";
-    private static final String SQLALCHEMY_VERSION = "2.0.36";
-    private static final String PYDANTIC_VERSION = "2.10.0";
+    private static final String FASTAPI_VERSION = "0.128.0";
+    private static final String SQLALCHEMY_VERSION = "2.0.46";
+    private static final String PYDANTIC_VERSION = "2.12.5";
 
     private final String projectName;
     private final PythonTypeMapper typeMapper;

@@ -43,9 +43,9 @@ class KotlinSpringBootProjectGeneratorTest {
         }
 
         @Test
-        @DisplayName("Should return Kotlin / Spring Boot 3.x as display name")
+        @DisplayName("Should return Kotlin / Spring Boot 4.x as display name")
         void shouldReturnCorrectDisplayName() {
-            assertThat(generator.getDisplayName()).isEqualTo("Kotlin / Spring Boot 3.x");
+            assertThat(generator.getDisplayName()).isEqualTo("Kotlin / Spring Boot 4.x");
         }
 
         @Test
@@ -57,7 +57,7 @@ class KotlinSpringBootProjectGeneratorTest {
         @Test
         @DisplayName("Should return default Spring Boot version")
         void shouldReturnDefaultSpringBootVersion() {
-            assertThat(generator.getDefaultFrameworkVersion()).isEqualTo("3.2.0");
+            assertThat(generator.getDefaultFrameworkVersion()).isEqualTo("4.0.0");
         }
     }
 

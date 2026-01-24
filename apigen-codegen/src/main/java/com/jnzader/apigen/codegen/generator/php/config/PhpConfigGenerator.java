@@ -22,8 +22,8 @@ import java.util.Map;
  */
 public class PhpConfigGenerator {
 
-    private static final String PHP_VERSION = "8.3";
-    private static final String LARAVEL_VERSION = "^11.0";
+    private static final String PHP_VERSION = "8.4";
+    private static final String LARAVEL_VERSION = "^12.0";
 
     private final String projectName;
     private final PhpTypeMapper typeMapper;
