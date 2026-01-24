@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.15.1](https://github.com/JNZader/apigen/compare/v2.15.0...v2.15.1) (2026-01-24)
+
+### Bug Fixes
+
+* **deps:** upgrade netty and rhino for security vulnerabilities ([68a8bc8](https://github.com/JNZader/apigen/commit/68a8bc8b1180b12fc17f9e28524122e5d8e7ac9f))
+
 ## [2.15.0](https://github.com/JNZader/apigen/compare/v2.14.0...v2.15.0) (2026-01-24)
 
 ### Features
