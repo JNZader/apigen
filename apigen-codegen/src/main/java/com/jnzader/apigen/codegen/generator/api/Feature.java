@@ -74,5 +74,30 @@ public enum Feature {
     GRAPHQL,
 
     /** gRPC support */
-    GRPC
+    GRPC,
+
+    // ==========================================================================
+    // New Feature Pack Features (v2.13.0+)
+    // ==========================================================================
+
+    /** Social login with OAuth2 providers (Google, GitHub, LinkedIn) */
+    SOCIAL_LOGIN,
+
+    /** Password reset flow with email verification */
+    PASSWORD_RESET,
+
+    /** Email service with templates */
+    MAIL_SERVICE,
+
+    /** File upload with local storage */
+    FILE_UPLOAD,
+
+    /** File storage with AWS S3 */
+    S3_STORAGE,
+
+    /** File storage with Azure Blob Storage */
+    AZURE_STORAGE,
+
+    /** Server-side templates with jte */
+    JTE_TEMPLATES
 }

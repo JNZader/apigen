@@ -15,3 +15,13 @@ logging:
 spring.servlet.multipart:
   max-file-size: 10MB
   max-request-size: 10MB
+
+# GitHub OAuth Integration
+# Configure via environment variables for security:
+#   GITHUB_CLIENT_ID=your-client-id
+#   GITHUB_CLIENT_SECRET=your-client-secret
+github:
+  client-id: ${GITHUB_CLIENT_ID:}
+  client-secret: ${GITHUB_CLIENT_SECRET:}
+  redirect-uri: ${GITHUB_REDIRECT_URI:http://localhost:8081/api/github/callback}
+  scopes: repo,user:email

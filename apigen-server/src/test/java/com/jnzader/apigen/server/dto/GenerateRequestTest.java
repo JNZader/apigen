@@ -348,8 +348,8 @@ class GenerateRequestTest {
         }
 
         @Test
-        @DisplayName("Should require SQL schema")
-        void shouldRequireSqlSchema() {
+        @DisplayName("Should accept request without SQL when OpenAPI spec is provided")
+        void shouldAcceptOpenApiSpecAsAlternativeToSql() {
             GenerateRequest request =
                     GenerateRequest.builder()
                             .project(
@@ -358,10 +358,29 @@ class GenerateRequestTest {
                                             .groupId("com.example")
                                             .artifactId("test-api")
                                             .build())
+                            .openApiSpec("openapi: 3.0.0\ninfo:\n  title: Test API")
                             .build();
 
             Set<ConstraintViolation<GenerateRequest>> violations = validator.validate(request);
-            assertThat(violations).extracting(v -> v.getPropertyPath().toString()).contains("sql");
+            assertThat(violations).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Should accept request with SQL input")
+        void shouldAcceptSqlInput() {
+            GenerateRequest request =
+                    GenerateRequest.builder()
+                            .project(
+                                    GenerateRequest.ProjectConfig.builder()
+                                            .name("Test")
+                                            .groupId("com.example")
+                                            .artifactId("test-api")
+                                            .build())
+                            .sql("CREATE TABLE test (id BIGINT)")
+                            .build();
+
+            Set<ConstraintViolation<GenerateRequest>> violations = validator.validate(request);
+            assertThat(violations).isEmpty();
         }
 
         @Test

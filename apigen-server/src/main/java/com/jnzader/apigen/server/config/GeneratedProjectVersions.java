@@ -70,6 +70,22 @@ public final class GeneratedProjectVersions {
     public static final String LOMBOK_MAPSTRUCT_BINDING_VERSION = "0.2.0";
 
     // ==========================================================================
+    // Feature Pack Library Versions
+    // ==========================================================================
+
+    /** AWS SDK v2 version for S3 file storage. */
+    public static final String AWS_SDK_VERSION = "2.31.47";
+
+    /** Azure Storage Blob version for Azure file storage. */
+    public static final String AZURE_STORAGE_BLOB_VERSION = "12.31.0";
+
+    /** jte template engine version. */
+    public static final String JTE_VERSION = "3.1.17";
+
+    /** Swagger Parser version for OpenAPI import. */
+    public static final String SWAGGER_PARSER_VERSION = "2.1.30";
+
+    // ==========================================================================
     // Database Driver Versions (optional, for reference)
     // ==========================================================================
 

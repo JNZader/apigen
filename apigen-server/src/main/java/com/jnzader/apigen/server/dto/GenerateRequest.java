@@ -30,10 +30,15 @@ public class GenerateRequest {
 
     /**
      * SQL schema to generate code from. This is the CREATE TABLE statements exported from the web
-     * designer.
+     * designer. Either sql or openApiSpec must be provided.
      */
-    @NotBlank(message = "SQL schema is required")
     private String sql;
+
+    /**
+     * OpenAPI specification (YAML or JSON) to generate code from. Alternative to SQL schema input.
+     * Either sql or openApiSpec must be provided.
+     */
+    private String openApiSpec;
 
     @Data
     @Builder
@@ -74,6 +79,18 @@ public class GenerateRequest {
         @Valid private RateLimitConfig rateLimitConfig;
 
         @Valid private SecurityConfigDTO securityConfig;
+
+        /** Mail service configuration. */
+        @Valid private MailConfig mailConfig;
+
+        /** File storage configuration. */
+        @Valid private StorageConfig storageConfig;
+
+        /** Social login configuration. */
+        @Valid private SocialLoginConfig socialLoginConfig;
+
+        /** jte templates configuration. */
+        @Valid private JteConfig jteConfig;
 
         /**
          * Optional base package override. If not provided, it will be computed from groupId and
@@ -120,6 +137,21 @@ public class GenerateRequest {
         @Builder.Default private boolean caching = true;
 
         @Builder.Default private boolean docker = true;
+
+        /** Enable social login generation. */
+        @Builder.Default private boolean socialLogin = false;
+
+        /** Enable password reset flow generation. */
+        @Builder.Default private boolean passwordReset = false;
+
+        /** Enable mail service generation. */
+        @Builder.Default private boolean mailService = false;
+
+        /** Enable file upload generation. */
+        @Builder.Default private boolean fileUpload = false;
+
+        /** Enable jte templates generation. */
+        @Builder.Default private boolean jteTemplates = false;
     }
 
     @Data
@@ -343,5 +375,134 @@ public class GenerateRequest {
         public String getFramework() {
             return framework != null ? framework : "spring-boot";
         }
+    }
+
+    /** Mail service configuration. */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MailConfig {
+        /** Enable mail service generation. */
+        @Builder.Default private boolean enabled = false;
+
+        /** SMTP host. */
+        @Builder.Default private String host = "smtp.example.com";
+
+        /** SMTP port. */
+        @Builder.Default private int port = 587;
+
+        /** SMTP username. */
+        private String username;
+
+        /** Use STARTTLS. */
+        @Builder.Default private boolean starttls = true;
+
+        /** From email address. */
+        @Builder.Default private String fromAddress = "noreply@example.com";
+
+        /** From name. */
+        @Builder.Default private String fromName = "Application";
+
+        /** Generate welcome email template. */
+        @Builder.Default private boolean generateWelcomeTemplate = true;
+
+        /** Generate password reset email template. */
+        @Builder.Default private boolean generatePasswordResetTemplate = true;
+
+        /** Generate notification email template. */
+        @Builder.Default private boolean generateNotificationTemplate = true;
+    }
+
+    /** File storage configuration. */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class StorageConfig {
+        /** Storage type: local, s3, azure. */
+        @Builder.Default private String type = "local";
+
+        /** Local storage path (for local type). */
+        @Builder.Default private String localPath = "./uploads";
+
+        /** Maximum file size in MB. */
+        @Builder.Default private int maxFileSizeMb = 10;
+
+        /** Allowed file extensions (comma-separated). */
+        @Builder.Default
+        private String allowedExtensions = "jpg,jpeg,png,gif,pdf,doc,docx,xls,xlsx";
+
+        /** S3 bucket name (for s3 type). */
+        private String s3Bucket;
+
+        /** S3 region (for s3 type). */
+        @Builder.Default private String s3Region = "us-east-1";
+
+        /** Azure container name (for azure type). */
+        private String azureContainer;
+
+        /** Azure connection string environment variable name (for azure type). */
+        @Builder.Default
+        private String azureConnectionStringEnv = "AZURE_STORAGE_CONNECTION_STRING";
+
+        /** Generate file metadata entity. */
+        @Builder.Default private boolean generateMetadataEntity = true;
+    }
+
+    /** Social login configuration. */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class SocialLoginConfig {
+        /** Enable social login generation. */
+        @Builder.Default private boolean enabled = false;
+
+        /** Enable Google OAuth2. */
+        @Builder.Default private boolean google = false;
+
+        /** Enable GitHub OAuth2. */
+        @Builder.Default private boolean github = false;
+
+        /** Enable LinkedIn OAuth2. */
+        @Builder.Default private boolean linkedin = false;
+
+        /** Redirect URL after successful login. */
+        @Builder.Default private String successRedirectUrl = "/";
+
+        /** Redirect URL after failed login. */
+        @Builder.Default private String failureRedirectUrl = "/login?error";
+
+        /** Auto-create user on first login. */
+        @Builder.Default private boolean autoCreateUser = true;
+
+        /** Link social account to existing user by email. */
+        @Builder.Default private boolean linkByEmail = true;
+    }
+
+    /** jte templates configuration. */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class JteConfig {
+        /** Enable jte templates generation. */
+        @Builder.Default private boolean enabled = false;
+
+        /** Generate admin dashboard. */
+        @Builder.Default private boolean generateAdmin = true;
+
+        /** Generate CRUD views for entities. */
+        @Builder.Default private boolean generateCrudViews = true;
+
+        /** Include Tailwind CSS. */
+        @Builder.Default private boolean includeTailwind = true;
+
+        /** Include Alpine.js for interactivity. */
+        @Builder.Default private boolean includeAlpine = true;
+
+        /** Admin path prefix. */
+        @Builder.Default private String adminPath = "/admin";
     }
 }
