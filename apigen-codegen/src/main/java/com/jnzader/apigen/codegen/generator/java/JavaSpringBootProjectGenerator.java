@@ -94,7 +94,7 @@ public class JavaSpringBootProjectGenerator implements ProjectGenerator {
 
     @Override
     public String getDisplayName() {
-        return "Java / Spring Boot 3.x";
+        return "Java / Spring Boot 4.x";
     }
 
     @Override

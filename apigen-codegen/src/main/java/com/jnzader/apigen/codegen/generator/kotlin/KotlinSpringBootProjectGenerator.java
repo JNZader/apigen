@@ -94,7 +94,7 @@ public class KotlinSpringBootProjectGenerator implements ProjectGenerator {
 
     @Override
     public String getDisplayName() {
-        return "Kotlin / Spring Boot 3.x";
+        return "Kotlin / Spring Boot 4.x";
     }
 
     @Override
