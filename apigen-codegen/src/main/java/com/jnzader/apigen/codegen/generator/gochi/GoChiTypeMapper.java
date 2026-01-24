@@ -168,6 +168,7 @@ public class GoChiTypeMapper implements LanguageTypeMapper {
         }
         return name.replaceAll("([a-z])([A-Z])", "$1_$2")
                 .replaceAll("-", "_")
+                .replaceAll("\\s+", "_")
                 .toLowerCase(Locale.ROOT);
     }
 

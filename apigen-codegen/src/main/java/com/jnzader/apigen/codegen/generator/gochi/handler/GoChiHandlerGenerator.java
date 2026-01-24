@@ -84,8 +84,51 @@ public class GoChiHandlerGenerator {
         // Delete handler
         generateDelete(sb, entityName, handlerName);
 
-        // Helper functions
-        generateHelpers(sb);
+        return sb.toString();
+    }
+
+    /** Generates the shared helpers.go file with common utility functions. */
+    public String generateHelpers() {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("package handler\n\n");
+
+        sb.append("import (\n");
+        sb.append("\t\"encoding/json\"\n");
+        sb.append("\t\"errors\"\n");
+        sb.append("\t\"net/http\"\n\n");
+        sb.append("\t\"github.com/go-playground/validator/v10\"\n\n");
+        sb.append("\t\"").append(moduleName).append("/internal/dto\"\n");
+        sb.append(")\n\n");
+
+        sb.append("// writeJSON writes a JSON response.\n");
+        sb.append("func writeJSON(w http.ResponseWriter, status int, data any) {\n");
+        sb.append("\tw.Header().Set(\"Content-Type\", \"application/json\")\n");
+        sb.append("\tw.WriteHeader(status)\n");
+        sb.append("\t_ = json.NewEncoder(w).Encode(data)\n");
+        sb.append("}\n\n");
+
+        sb.append("// writeError writes an error response.\n");
+        sb.append("func writeError(w http.ResponseWriter, status int, message string) {\n");
+        sb.append("\twriteJSON(w, status, dto.NewErrorResponse(status, message))\n");
+        sb.append("}\n\n");
+
+        sb.append("// writeValidationError writes a validation error response.\n");
+        sb.append("func writeValidationError(w http.ResponseWriter, err error) {\n");
+        sb.append("\tvar validationErrors validator.ValidationErrors\n");
+        sb.append("\tif errors.As(err, &validationErrors) {\n");
+        sb.append("\t\tdetails := make(map[string]string)\n");
+        sb.append("\t\tfor _, fieldErr := range validationErrors {\n");
+        sb.append("\t\t\tdetails[fieldErr.Field()] = fieldErr.Tag()\n");
+        sb.append("\t\t}\n");
+        sb.append(
+                "\t\twriteJSON(w, http.StatusBadRequest,"
+                        + " dto.NewErrorResponse(http.StatusBadRequest, \"validation"
+                        + " failed\").WithDetails(details))\n");
+        sb.append("\t\treturn\n");
+        sb.append("\t}\n");
+        sb.append("\twriteError(w, http.StatusBadRequest, \"validation failed\")\n");
+        sb.append("}\n");
 
         return sb.toString();
     }
@@ -235,37 +278,6 @@ public class GoChiHandlerGenerator {
         sb.append("\t\treturn\n");
         sb.append("\t}\n\n");
         sb.append("\tw.WriteHeader(http.StatusNoContent)\n");
-        sb.append("}\n\n");
-    }
-
-    private void generateHelpers(StringBuilder sb) {
-        sb.append("// writeJSON writes a JSON response.\n");
-        sb.append("func writeJSON(w http.ResponseWriter, status int, data any) {\n");
-        sb.append("\tw.Header().Set(\"Content-Type\", \"application/json\")\n");
-        sb.append("\tw.WriteHeader(status)\n");
-        sb.append("\t_ = json.NewEncoder(w).Encode(data)\n");
-        sb.append("}\n\n");
-
-        sb.append("// writeError writes an error response.\n");
-        sb.append("func writeError(w http.ResponseWriter, status int, message string) {\n");
-        sb.append("\twriteJSON(w, status, dto.NewErrorResponse(status, message))\n");
-        sb.append("}\n\n");
-
-        sb.append("// writeValidationError writes a validation error response.\n");
-        sb.append("func writeValidationError(w http.ResponseWriter, err error) {\n");
-        sb.append("\tvar validationErrors validator.ValidationErrors\n");
-        sb.append("\tif errors.As(err, &validationErrors) {\n");
-        sb.append("\t\tdetails := make(map[string]string)\n");
-        sb.append("\t\tfor _, fieldErr := range validationErrors {\n");
-        sb.append("\t\t\tdetails[fieldErr.Field()] = fieldErr.Tag()\n");
-        sb.append("\t\t}\n");
-        sb.append(
-                "\t\twriteJSON(w, http.StatusBadRequest,"
-                        + " dto.NewErrorResponse(http.StatusBadRequest, \"validation"
-                        + " failed\").WithDetails(details))\n");
-        sb.append("\t\treturn\n");
-        sb.append("\t}\n");
-        sb.append("\twriteError(w, http.StatusBadRequest, \"validation failed\")\n");
         sb.append("}\n");
     }
 }

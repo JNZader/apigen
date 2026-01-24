@@ -37,8 +37,7 @@ public class GoChiRepositoryGenerator {
         sb.append("import (\n");
         sb.append("\t\"context\"\n");
         sb.append("\t\"errors\"\n");
-        sb.append("\t\"fmt\"\n");
-        sb.append("\t\"time\"\n\n");
+        sb.append("\t\"fmt\"\n\n");
         sb.append("\t\"").append(moduleName).append("/internal/model\"\n");
         sb.append("\t\"github.com/jackc/pgx/v5\"\n");
         sb.append("\t\"github.com/jackc/pgx/v5/pgxpool\"\n");

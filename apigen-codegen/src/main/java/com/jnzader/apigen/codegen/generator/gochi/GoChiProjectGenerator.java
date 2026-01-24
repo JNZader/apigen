@@ -143,6 +143,9 @@ public class GoChiProjectGenerator implements ProjectGenerator {
         // Generate router
         files.put("internal/router/router.go", routerGenerator.generate(schema));
 
+        // Generate health check handler (required by router)
+        files.put("internal/handler/health.go", routerGenerator.generateHealthHandler());
+
         // Generate database layer
         files.put(
                 "internal/database/postgres.go", repositoryGenerator.generateDatabaseConnection());
@@ -193,6 +196,9 @@ public class GoChiProjectGenerator implements ProjectGenerator {
                     handlerGenerator.generate(table));
         }
 
+        // Generate shared handler helpers
+        files.put("internal/handler/helpers.go", handlerGenerator.generateHelpers());
+
         // Generate optional components
         if (options.useRedis()) {
             files.put("internal/cache/redis.go", configGenerator.generateRedis());
@@ -211,6 +217,9 @@ public class GoChiProjectGenerator implements ProjectGenerator {
         }
 
         if (options.useJwt()) {
+            // JWT middleware in middleware package (used by router as mw.JWTAuth)
+            files.put("internal/middleware/jwt.go", middlewareGenerator.generateJwtMiddleware());
+            // Auth utilities in auth package
             files.put("internal/auth/jwt.go", middlewareGenerator.generateJwtAuth());
             files.put("internal/auth/password.go", middlewareGenerator.generatePasswordHash());
         }

@@ -158,7 +158,9 @@ public class GoChiDtoGenerator {
 
     private void appendResponseField(StringBuilder sb, SqlColumn column) {
         String fieldName = typeMapper.toExportedName(column.getName());
-        String fieldType = typeMapper.mapJavaTypeToGo(column.getJavaType(), column.isNullable());
+        // Use pointer types for nullable fields in DTOs (cleaner for JSON serialization)
+        String baseType = typeMapper.mapJavaTypeToGo(column.getJavaType());
+        String fieldType = column.isNullable() ? "*" + baseType : baseType;
         String jsonName = typeMapper.toSnakeCase(column.getName());
 
         sb.append("\t").append(fieldName);
@@ -177,8 +179,9 @@ public class GoChiDtoGenerator {
         imports.add("time"); // For audit fields
 
         for (SqlColumn column : table.getColumns()) {
+            // Use non-nullable types for imports since DTOs use pointer types for nullable
             String imp = typeMapper.getImportForType(column.getJavaType(), false);
-            if (imp != null && !imp.contains("pgtype")) {
+            if (imp != null) {
                 imports.add(imp);
             }
         }

@@ -20,7 +20,9 @@ public class GoChiMiddlewareGenerator {
         sb.append("package middleware\n\n");
 
         sb.append("import (\n");
-        sb.append("\t\"context\"\n");
+        if (options.useMultiTenant()) {
+            sb.append("\t\"context\"\n");
+        }
         sb.append("\t\"log/slog\"\n");
         sb.append("\t\"net/http\"\n");
         sb.append("\t\"sync\"\n");
@@ -227,7 +229,7 @@ public class GoChiMiddlewareGenerator {
         sb.append("func GenerateToken(userID int64, email, role string) (string, error) {\n");
         sb.append("\tcfg := config.Get()\n");
         sb.append("\tsecret := []byte(cfg.JWT.Secret)\n");
-        sb.append("\texpiration := time.Duration(cfg.JWT.ExpirationMinutes) * time.Minute\n\n");
+        sb.append("\texpiration := time.Duration(cfg.JWT.ExpirationHours) * time.Hour\n\n");
         sb.append("\tclaims := &Claims{\n");
         sb.append("\t\tRegisteredClaims: jwt.RegisteredClaims{\n");
         sb.append("\t\t\tExpiresAt: jwt.NewNumericDate(time.Now().Add(expiration)),\n");
@@ -311,10 +313,7 @@ public class GoChiMiddlewareGenerator {
         sb.append("\t\"").append(moduleName).append("/internal/config\"\n");
         sb.append(")\n\n");
 
-        // Context keys
-        sb.append("// ContextKey is a custom type for context keys.\n");
-        sb.append("type ContextKey string\n\n");
-
+        // Context keys (ContextKey type is defined in middleware.go)
         sb.append("const (\n");
         sb.append("\t// UserIDKey is the context key for user ID.\n");
         sb.append("\tUserIDKey ContextKey = \"userID\"\n");
@@ -389,7 +388,7 @@ public class GoChiMiddlewareGenerator {
         sb.append("func GenerateToken(userID int64, email, role string) (string, error) {\n");
         sb.append("\tcfg := config.Get()\n");
         sb.append("\tsecret := []byte(cfg.JWT.Secret)\n");
-        sb.append("\texpiration := time.Duration(cfg.JWT.ExpirationMinutes) * time.Minute\n\n");
+        sb.append("\texpiration := time.Duration(cfg.JWT.ExpirationHours) * time.Hour\n\n");
         sb.append("\tclaims := &Claims{\n");
         sb.append("\t\tRegisteredClaims: jwt.RegisteredClaims{\n");
         sb.append("\t\t\tExpiresAt: jwt.NewNumericDate(time.Now().Add(expiration)),\n");

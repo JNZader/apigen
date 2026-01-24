@@ -60,8 +60,9 @@ public class GoChiModelGenerator {
             }
 
             String fieldName = typeMapper.toExportedName(column.getName());
-            String fieldType =
-                    typeMapper.mapJavaTypeToGo(column.getJavaType(), column.isNullable());
+            // Use pointer types for nullable fields (pgx v5 handles pointers well)
+            String baseType = typeMapper.mapJavaTypeToGo(column.getJavaType());
+            String fieldType = column.isNullable() ? "*" + baseType : baseType;
             String jsonName = typeMapper.toSnakeCase(column.getName());
             String dbName = column.getName().toLowerCase();
 
@@ -122,7 +123,8 @@ public class GoChiModelGenerator {
         imports.add("time"); // Always need time for audit fields
 
         for (SqlColumn column : table.getColumns()) {
-            String imp = typeMapper.getImportForType(column.getJavaType(), column.isNullable());
+            // Use non-nullable imports since we use pointer types for nullable fields
+            String imp = typeMapper.getImportForType(column.getJavaType(), false);
             if (imp != null) {
                 imports.add(imp);
             }

@@ -117,10 +117,7 @@ public class GoChiConfigGenerator {
         sb.append("\n");
         sb.append("\t\"").append(moduleName).append("/internal/config\"\n");
         sb.append("\t\"").append(moduleName).append("/internal/database\"\n");
-        sb.append("\t\"").append(moduleName).append("/internal/handler\"\n");
-        sb.append("\t\"").append(moduleName).append("/internal/repository\"\n");
         sb.append("\t\"").append(moduleName).append("/internal/router\"\n");
-        sb.append("\t\"").append(moduleName).append("/internal/service\"\n");
         if (options.useRedis()) {
             sb.append("\t\"").append(moduleName).append("/internal/cache\"\n");
         }
@@ -200,50 +197,8 @@ public class GoChiConfigGenerator {
             sb.append("\tdefer mqttClient.Disconnect(250)\n\n");
         }
 
-        sb.append("\t// Initialize repositories\n");
-        for (SqlTable table : schema.getEntityTables()) {
-            String name = typeMapper.toExportedName(table.getEntityName());
-            String varName = typeMapper.toUnexportedName(name) + "Repo";
-            sb.append("\t")
-                    .append(varName)
-                    .append(" := repository.New")
-                    .append(name)
-                    .append("Repository(db)\n");
-        }
-        sb.append("\n");
-
-        sb.append("\t// Initialize services\n");
-        for (SqlTable table : schema.getEntityTables()) {
-            String name = typeMapper.toExportedName(table.getEntityName());
-            String repoVar = typeMapper.toUnexportedName(name) + "Repo";
-            String svcVar = typeMapper.toUnexportedName(name) + "Svc";
-            sb.append("\t")
-                    .append(svcVar)
-                    .append(" := service.New")
-                    .append(name)
-                    .append("Service(")
-                    .append(repoVar)
-                    .append(")\n");
-        }
-        sb.append("\n");
-
-        sb.append("\t// Initialize handlers\n");
-        sb.append("\thandlers := &router.Handlers{\n");
-        for (SqlTable table : schema.getEntityTables()) {
-            String name = typeMapper.toExportedName(table.getEntityName());
-            String svcVar = typeMapper.toUnexportedName(name) + "Svc";
-            sb.append("\t\t")
-                    .append(name)
-                    .append(": handler.New")
-                    .append(name)
-                    .append("Handler(")
-                    .append(svcVar)
-                    .append("),\n");
-        }
-        sb.append("\t}\n\n");
-
-        sb.append("\t// Setup router\n");
-        sb.append("\tr := router.New(cfg, handlers)\n\n");
+        sb.append("\t// Setup router (creates repositories, services, handlers internally)\n");
+        sb.append("\tr := router.NewRouter(db, logger)\n\n");
 
         sb.append("\t// Create server\n");
         sb.append("\tsrv := &http.Server{\n");
@@ -295,6 +250,15 @@ public class GoChiConfigGenerator {
         sb.append("\t\"strings\"\n\n");
         sb.append("\t\"github.com/spf13/viper\"\n");
         sb.append(")\n\n");
+
+        // Global config variable
+        sb.append("var config *Config\n\n");
+
+        sb.append("// Get returns the global config instance.\n");
+        sb.append("// Must be called after Load() has been called.\n");
+        sb.append("func Get() *Config {\n");
+        sb.append("\treturn config\n");
+        sb.append("}\n\n");
 
         sb.append("// Config holds all application configuration.\n");
         sb.append("type Config struct {\n");
@@ -440,6 +404,9 @@ public class GoChiConfigGenerator {
         sb.append("\tif err := v.Unmarshal(&cfg); err != nil {\n");
         sb.append("\t\treturn nil, fmt.Errorf(\"error unmarshaling config: %w\", err)\n");
         sb.append("\t}\n\n");
+
+        sb.append("\t// Store in global for Get() to access\n");
+        sb.append("\tconfig = &cfg\n\n");
 
         sb.append("\treturn &cfg, nil\n");
         sb.append("}\n");
