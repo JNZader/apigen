@@ -35,6 +35,7 @@ import com.jnzader.apigen.codegen.generator.rust.security.reset.RustPasswordRese
 import com.jnzader.apigen.codegen.generator.rust.security.social.RustSocialLoginGenerator;
 import com.jnzader.apigen.codegen.generator.rust.service.RustServiceGenerator;
 import com.jnzader.apigen.codegen.generator.rust.storage.RustFileStorageGenerator;
+import com.jnzader.apigen.codegen.generator.rust.test.RustTestGenerator;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.ArrayList;
@@ -85,7 +86,10 @@ public class RustAxumProjectGenerator implements ProjectGenerator {
                     Feature.SOCIAL_LOGIN,
                     Feature.FILE_UPLOAD,
                     Feature.S3_STORAGE,
-                    Feature.AZURE_STORAGE);
+                    Feature.AZURE_STORAGE,
+                    // Testing
+                    Feature.UNIT_TESTS,
+                    Feature.INTEGRATION_TESTS);
 
     private final RustTypeMapper typeMapper = new RustTypeMapper();
 
@@ -291,6 +295,24 @@ public class RustAxumProjectGenerator implements ProjectGenerator {
 
         // === Feature Pack 2025 ===
         generateFeaturePackFiles(files, config);
+
+        // Generate tests for each entity
+        if (config.isFeatureEnabled(Feature.UNIT_TESTS)
+                || config.isFeatureEnabled(Feature.INTEGRATION_TESTS)) {
+            RustTestGenerator testGenerator = new RustTestGenerator();
+
+            for (SqlTable table : schema.getEntityTables()) {
+                if (config.isFeatureEnabled(Feature.UNIT_TESTS)) {
+                    files.putAll(testGenerator.generateTests(table));
+                }
+                if (config.isFeatureEnabled(Feature.INTEGRATION_TESTS)) {
+                    String snakeName = typeMapper.toSnakeCase(table.getEntityName());
+                    files.put(
+                            "tests/integration_" + snakeName + "_test.rs",
+                            testGenerator.generateIntegrationTest(table));
+                }
+            }
+        }
 
         return files;
     }

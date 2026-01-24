@@ -17,6 +17,7 @@ import com.jnzader.apigen.codegen.generator.php.security.reset.PhpPasswordResetG
 import com.jnzader.apigen.codegen.generator.php.security.social.PhpSocialLoginGenerator;
 import com.jnzader.apigen.codegen.generator.php.service.PhpServiceGenerator;
 import com.jnzader.apigen.codegen.generator.php.storage.PhpFileStorageGenerator;
+import com.jnzader.apigen.codegen.generator.php.test.PhpTestGenerator;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.ArrayList;
@@ -69,7 +70,10 @@ public class PhpLaravelProjectGenerator implements ProjectGenerator {
                     Feature.SOCIAL_LOGIN,
                     Feature.FILE_UPLOAD,
                     Feature.S3_STORAGE,
-                    Feature.AZURE_STORAGE);
+                    Feature.AZURE_STORAGE,
+                    // Testing
+                    Feature.UNIT_TESTS,
+                    Feature.INTEGRATION_TESTS);
 
     private final PhpTypeMapper typeMapper = new PhpTypeMapper();
 
@@ -210,6 +214,16 @@ public class PhpLaravelProjectGenerator implements ProjectGenerator {
         // Generate tests directory structure
         files.put("tests/Feature/.gitkeep", "");
         files.put("tests/Unit/.gitkeep", "");
+
+        // Generate tests for each entity
+        if (config.isFeatureEnabled(Feature.UNIT_TESTS)
+                || config.isFeatureEnabled(Feature.INTEGRATION_TESTS)) {
+            PhpTestGenerator testGenerator = new PhpTestGenerator();
+
+            for (SqlTable table : schema.getEntityTables()) {
+                files.putAll(testGenerator.generateTests(table));
+            }
+        }
 
         return files;
     }

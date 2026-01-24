@@ -16,6 +16,7 @@ import com.jnzader.apigen.codegen.generator.python.security.reset.PythonPassword
 import com.jnzader.apigen.codegen.generator.python.security.social.PythonSocialLoginGenerator;
 import com.jnzader.apigen.codegen.generator.python.service.PythonServiceGenerator;
 import com.jnzader.apigen.codegen.generator.python.storage.PythonFileStorageGenerator;
+import com.jnzader.apigen.codegen.generator.python.test.PythonTestGenerator;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.ArrayList;
@@ -67,7 +68,10 @@ public class PythonFastApiProjectGenerator implements ProjectGenerator {
                     Feature.SOCIAL_LOGIN,
                     Feature.FILE_UPLOAD,
                     Feature.S3_STORAGE,
-                    Feature.AZURE_STORAGE);
+                    Feature.AZURE_STORAGE,
+                    // Testing
+                    Feature.UNIT_TESTS,
+                    Feature.INTEGRATION_TESTS);
 
     private final PythonTypeMapper typeMapper = new PythonTypeMapper();
 
@@ -182,6 +186,25 @@ public class PythonFastApiProjectGenerator implements ProjectGenerator {
         // Generate tests directory structure
         files.put("tests/__init__.py", "");
         files.put("tests/conftest.py", generateConftest());
+
+        // Generate tests for each entity
+        if (config.isFeatureEnabled(Feature.UNIT_TESTS)
+                || config.isFeatureEnabled(Feature.INTEGRATION_TESTS)) {
+            PythonTestGenerator testGenerator = new PythonTestGenerator();
+
+            for (SqlTable table : schema.getEntityTables()) {
+                if (config.isFeatureEnabled(Feature.UNIT_TESTS)) {
+                    files.putAll(testGenerator.generateTests(table));
+                }
+                if (config.isFeatureEnabled(Feature.INTEGRATION_TESTS)) {
+                    String snakeName = typeMapper.toSnakeCase(table.getEntityName());
+                    files.put(
+                            "tests/integration/test_" + snakeName + "_api.py",
+                            testGenerator.generateIntegrationTest(table));
+                }
+            }
+            files.put("tests/integration/__init__.py", "");
+        }
 
         return files;
     }
