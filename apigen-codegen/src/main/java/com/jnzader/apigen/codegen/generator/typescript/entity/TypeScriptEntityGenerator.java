@@ -97,7 +97,7 @@ public class TypeScriptEntityGenerator {
             sb.append("  OneToMany,\n");
         }
         sb.append("} from 'typeorm';\n");
-        sb.append("import { BaseEntity } from './base.entity';\n");
+        sb.append("import { BaseEntity } from '../../../entities/base.entity';\n");
 
         // Import related entities
         for (SqlSchema.TableRelationship rel : relationships) {

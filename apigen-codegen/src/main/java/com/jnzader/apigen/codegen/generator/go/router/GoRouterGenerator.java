@@ -134,7 +134,7 @@ public class GoRouterGenerator {
      */
     public String generateMiddleware() {
         return """
-        package middleware
+        package router
 
         import (
         	"log"
