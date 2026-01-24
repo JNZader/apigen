@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.0](https://github.com/JNZader/apigen/compare/v2.6.0...v2.7.0) (2026-01-24)
+
+### Features
+
+* **codegen:** add C#/ASP.NET Core project generator ([f2353ea](https://github.com/JNZader/apigen/commit/f2353eaf74a835ada815908c65c0c1458cddbe4e))
+* **codegen:** add Python/FastAPI project generator ([72c96a1](https://github.com/JNZader/apigen/commit/72c96a1f65d6a0917a8fe31a59071100417182cf))
+
+### Bug Fixes
+
+* **ci:** use .NET 8.0 SDK and fix architecture tests ([1693594](https://github.com/JNZader/apigen/commit/1693594d3ec2c01aab4b9c8c8993717232fb873d))
+* **ci:** use valid GitHub Actions versions in docs workflow ([ceee388](https://github.com/JNZader/apigen/commit/ceee388f7a1d77f055386b4cc6c346e5953611fe))
+* **codegen:** add AutoMapper DI extensions package for .NET 8.0 ([4d7bc79](https://github.com/JNZader/apigen/commit/4d7bc79faac0b34861d5b22e3ee5a19b57aea1c4))
+* **codegen:** cap Kotlin JvmTarget at JVM_21 ([11e6ccd](https://github.com/JNZader/apigen/commit/11e6ccd8f626065ca1e3f892d3181e87412702a7))
+* **codegen:** language-aware project generation and integration tests ([85c721c](https://github.com/JNZader/apigen/commit/85c721cdcdad40c2a9c9541ca6221cea8d5cd7a8))
+* **codegen:** revert C# to .NET 9.0 for CI stability ([e7bfb20](https://github.com/JNZader/apigen/commit/e7bfb20cf726c16bdd6ec3258f2b94c24cc2c75f))
+* **codegen:** use .NET 8.0 for CI stability ([069198b](https://github.com/JNZader/apigen/commit/069198bc7477967d7ec68dfea2855894b0f76cfb))
+* **deps:** upgrade logback to 1.5.25 for CVE-2026-1225 ([3469f67](https://github.com/JNZader/apigen/commit/3469f67918d3592749ae773a0a0abbfc349110f6))
+
+### CI/CD
+
+* add timeouts, concurrency, and update all workflows ([239cdef](https://github.com/JNZader/apigen/commit/239cdef5b32b0bcc8307be84448267ad4493cbb5))
+* remove continue-on-error and update .NET SDK to 10.0 ([255b620](https://github.com/JNZader/apigen/commit/255b6207f37de2de6d3ac1241d96904fa74f8a7d))
+* separate integration tests into per-language jobs ([62e54df](https://github.com/JNZader/apigen/commit/62e54df90c12198fe6e34043e1c2bbf35bbf708f))
+
 ## [2.6.0](https://github.com/JNZader/apigen/compare/v2.5.10...v2.6.0) (2026-01-23)
 
 ### Features
