@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.0](https://github.com/JNZader/apigen/compare/v2.8.0...v2.9.0) (2026-01-24)
+
+### Features
+
+* **codegen:** add TypeScript/NestJS project generator ([17092d8](https://github.com/JNZader/apigen/commit/17092d83aaa3b7f0d170fcacb9907956da02d4b4))
+
+### Bug Fixes
+
+* **codegen:** update display names and tests for Spring Boot 4.x ([3d417eb](https://github.com/JNZader/apigen/commit/3d417eba89eb4a26b7b69b1e40fa5763bc62a872))
+
 ## [2.8.0](https://github.com/JNZader/apigen/compare/v2.7.0...v2.8.0) (2026-01-24)
 
 ### Features
