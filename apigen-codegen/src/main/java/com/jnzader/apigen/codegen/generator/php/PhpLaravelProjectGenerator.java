@@ -8,11 +8,15 @@ import com.jnzader.apigen.codegen.generator.php.auth.PhpJwtAuthGenerator;
 import com.jnzader.apigen.codegen.generator.php.auth.PhpRateLimitGenerator;
 import com.jnzader.apigen.codegen.generator.php.config.PhpConfigGenerator;
 import com.jnzader.apigen.codegen.generator.php.controller.PhpControllerGenerator;
+import com.jnzader.apigen.codegen.generator.php.mail.PhpMailServiceGenerator;
 import com.jnzader.apigen.codegen.generator.php.migration.PhpMigrationGenerator;
 import com.jnzader.apigen.codegen.generator.php.model.PhpModelGenerator;
 import com.jnzader.apigen.codegen.generator.php.request.PhpRequestGenerator;
 import com.jnzader.apigen.codegen.generator.php.resource.PhpResourceGenerator;
+import com.jnzader.apigen.codegen.generator.php.security.reset.PhpPasswordResetGenerator;
+import com.jnzader.apigen.codegen.generator.php.security.social.PhpSocialLoginGenerator;
 import com.jnzader.apigen.codegen.generator.php.service.PhpServiceGenerator;
+import com.jnzader.apigen.codegen.generator.php.storage.PhpFileStorageGenerator;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.ArrayList;
@@ -58,7 +62,14 @@ public class PhpLaravelProjectGenerator implements ProjectGenerator {
                     Feature.ONE_TO_MANY,
                     // Security features
                     Feature.JWT_AUTH,
-                    Feature.RATE_LIMITING);
+                    Feature.RATE_LIMITING,
+                    // Feature Pack 2025
+                    Feature.MAIL_SERVICE,
+                    Feature.PASSWORD_RESET,
+                    Feature.SOCIAL_LOGIN,
+                    Feature.FILE_UPLOAD,
+                    Feature.S3_STORAGE,
+                    Feature.AZURE_STORAGE);
 
     private final PhpTypeMapper typeMapper = new PhpTypeMapper();
 
@@ -217,6 +228,36 @@ public class PhpLaravelProjectGenerator implements ProjectGenerator {
             PhpRateLimitGenerator rateLimitGenerator = new PhpRateLimitGenerator();
             // 60 requests per minute, no Redis by default
             files.putAll(rateLimitGenerator.generate(60, false));
+        }
+
+        // Feature Pack 2025
+
+        // Mail Service
+        if (config.isFeatureEnabled(Feature.MAIL_SERVICE)) {
+            PhpMailServiceGenerator mailGenerator = new PhpMailServiceGenerator();
+            boolean hasPasswordReset = config.isFeatureEnabled(Feature.PASSWORD_RESET);
+            files.putAll(mailGenerator.generate(true, hasPasswordReset, true));
+        }
+
+        // Password Reset
+        if (config.isFeatureEnabled(Feature.PASSWORD_RESET)) {
+            PhpPasswordResetGenerator resetGenerator = new PhpPasswordResetGenerator();
+            // 30 minute token expiration
+            files.putAll(resetGenerator.generate(30));
+        }
+
+        // Social Login (Laravel Socialite)
+        if (config.isFeatureEnabled(Feature.SOCIAL_LOGIN)) {
+            PhpSocialLoginGenerator socialGenerator = new PhpSocialLoginGenerator();
+            files.putAll(socialGenerator.generate(List.of("google", "github")));
+        }
+
+        // File Storage
+        if (config.isFeatureEnabled(Feature.FILE_UPLOAD)) {
+            PhpFileStorageGenerator storageGenerator = new PhpFileStorageGenerator();
+            boolean useS3 = config.isFeatureEnabled(Feature.S3_STORAGE);
+            boolean useAzure = config.isFeatureEnabled(Feature.AZURE_STORAGE);
+            files.putAll(storageGenerator.generate(useS3, useAzure));
         }
     }
 

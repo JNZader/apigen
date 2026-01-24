@@ -9,10 +9,14 @@ import com.jnzader.apigen.codegen.generator.go.auth.GoRateLimitGenerator;
 import com.jnzader.apigen.codegen.generator.go.config.GoConfigGenerator;
 import com.jnzader.apigen.codegen.generator.go.dto.GoDtoGenerator;
 import com.jnzader.apigen.codegen.generator.go.handler.GoHandlerGenerator;
+import com.jnzader.apigen.codegen.generator.go.mail.GoMailServiceGenerator;
 import com.jnzader.apigen.codegen.generator.go.model.GoModelGenerator;
 import com.jnzader.apigen.codegen.generator.go.repository.GoRepositoryGenerator;
 import com.jnzader.apigen.codegen.generator.go.router.GoRouterGenerator;
+import com.jnzader.apigen.codegen.generator.go.security.reset.GoPasswordResetGenerator;
+import com.jnzader.apigen.codegen.generator.go.security.social.GoSocialLoginGenerator;
 import com.jnzader.apigen.codegen.generator.go.service.GoServiceGenerator;
+import com.jnzader.apigen.codegen.generator.go.storage.GoFileStorageGenerator;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.ArrayList;
@@ -58,7 +62,14 @@ public class GoGinProjectGenerator implements ProjectGenerator {
                     Feature.ONE_TO_MANY,
                     // Security features
                     Feature.JWT_AUTH,
-                    Feature.RATE_LIMITING);
+                    Feature.RATE_LIMITING,
+                    // Feature Pack 2025
+                    Feature.MAIL_SERVICE,
+                    Feature.PASSWORD_RESET,
+                    Feature.SOCIAL_LOGIN,
+                    Feature.FILE_UPLOAD,
+                    Feature.S3_STORAGE,
+                    Feature.AZURE_STORAGE);
 
     private final GoTypeMapper typeMapper = new GoTypeMapper();
 
@@ -205,6 +216,36 @@ public class GoGinProjectGenerator implements ProjectGenerator {
             GoRateLimitGenerator rateLimitGenerator = new GoRateLimitGenerator(moduleName);
             // 100 requests per second, 50 burst, no Redis by default
             files.putAll(rateLimitGenerator.generate(100, 50, false));
+        }
+
+        // Feature Pack 2025
+
+        // Mail Service
+        if (config.isFeatureEnabled(Feature.MAIL_SERVICE)) {
+            GoMailServiceGenerator mailGenerator = new GoMailServiceGenerator(moduleName);
+            boolean hasPasswordReset = config.isFeatureEnabled(Feature.PASSWORD_RESET);
+            files.putAll(mailGenerator.generate(true, hasPasswordReset, true));
+        }
+
+        // Password Reset
+        if (config.isFeatureEnabled(Feature.PASSWORD_RESET)) {
+            GoPasswordResetGenerator resetGenerator = new GoPasswordResetGenerator(moduleName);
+            // 30 minute token expiration
+            files.putAll(resetGenerator.generate(30));
+        }
+
+        // Social Login (OAuth2)
+        if (config.isFeatureEnabled(Feature.SOCIAL_LOGIN)) {
+            GoSocialLoginGenerator socialGenerator = new GoSocialLoginGenerator(moduleName);
+            files.putAll(socialGenerator.generate(List.of("google", "github")));
+        }
+
+        // File Storage
+        if (config.isFeatureEnabled(Feature.FILE_UPLOAD)) {
+            GoFileStorageGenerator storageGenerator = new GoFileStorageGenerator(moduleName);
+            boolean useS3 = config.isFeatureEnabled(Feature.S3_STORAGE);
+            boolean useAzure = config.isFeatureEnabled(Feature.AZURE_STORAGE);
+            files.putAll(storageGenerator.generate(useS3, useAzure));
         }
     }
 

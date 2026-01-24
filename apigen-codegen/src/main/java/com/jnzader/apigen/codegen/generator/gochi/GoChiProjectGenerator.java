@@ -4,6 +4,10 @@ import com.jnzader.apigen.codegen.generator.api.Feature;
 import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
 import com.jnzader.apigen.codegen.generator.api.ProjectGenerator;
+import com.jnzader.apigen.codegen.generator.go.mail.GoMailServiceGenerator;
+import com.jnzader.apigen.codegen.generator.go.security.reset.GoPasswordResetGenerator;
+import com.jnzader.apigen.codegen.generator.go.security.social.GoSocialLoginGenerator;
+import com.jnzader.apigen.codegen.generator.go.storage.GoFileStorageGenerator;
 import com.jnzader.apigen.codegen.generator.gochi.config.GoChiConfigGenerator;
 import com.jnzader.apigen.codegen.generator.gochi.dto.GoChiDtoGenerator;
 import com.jnzader.apigen.codegen.generator.gochi.handler.GoChiHandlerGenerator;
@@ -63,7 +67,14 @@ public class GoChiProjectGenerator implements ProjectGenerator {
                     Feature.INTEGRATION_TESTS,
                     // Security features
                     Feature.JWT_AUTH,
-                    Feature.RATE_LIMITING);
+                    Feature.RATE_LIMITING,
+                    // Feature Pack 2025
+                    Feature.MAIL_SERVICE,
+                    Feature.PASSWORD_RESET,
+                    Feature.SOCIAL_LOGIN,
+                    Feature.FILE_UPLOAD,
+                    Feature.S3_STORAGE,
+                    Feature.AZURE_STORAGE);
 
     private final GoChiTypeMapper typeMapper = new GoChiTypeMapper();
 
@@ -227,10 +238,45 @@ public class GoChiProjectGenerator implements ProjectGenerator {
             files.put("internal/auth/password.go", middlewareGenerator.generatePasswordHash());
         }
 
+        // Feature Pack 2025
+        generateFeaturePackFiles(files, config, moduleName);
+
         // Docs placeholder
         files.put("docs/.gitkeep", "");
 
         return files;
+    }
+
+    /** Generates Feature Pack 2025 files based on enabled features. */
+    private void generateFeaturePackFiles(
+            Map<String, String> files, ProjectConfig config, String moduleName) {
+        // Mail Service
+        if (config.isFeatureEnabled(Feature.MAIL_SERVICE)) {
+            GoMailServiceGenerator mailGenerator = new GoMailServiceGenerator(moduleName);
+            boolean hasPasswordReset = config.isFeatureEnabled(Feature.PASSWORD_RESET);
+            files.putAll(mailGenerator.generate(true, hasPasswordReset, true));
+        }
+
+        // Password Reset
+        if (config.isFeatureEnabled(Feature.PASSWORD_RESET)) {
+            GoPasswordResetGenerator resetGenerator = new GoPasswordResetGenerator(moduleName);
+            // 30 minute token expiration
+            files.putAll(resetGenerator.generate(30));
+        }
+
+        // Social Login (OAuth2)
+        if (config.isFeatureEnabled(Feature.SOCIAL_LOGIN)) {
+            GoSocialLoginGenerator socialGenerator = new GoSocialLoginGenerator(moduleName);
+            files.putAll(socialGenerator.generate(List.of("google", "github")));
+        }
+
+        // File Storage
+        if (config.isFeatureEnabled(Feature.FILE_UPLOAD)) {
+            GoFileStorageGenerator storageGenerator = new GoFileStorageGenerator(moduleName);
+            boolean useS3 = config.isFeatureEnabled(Feature.S3_STORAGE);
+            boolean useAzure = config.isFeatureEnabled(Feature.AZURE_STORAGE);
+            files.putAll(storageGenerator.generate(useS3, useAzure));
+        }
     }
 
     @Override

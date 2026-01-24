@@ -10,9 +10,13 @@ import com.jnzader.apigen.codegen.generator.typescript.config.TypeScriptConfigGe
 import com.jnzader.apigen.codegen.generator.typescript.controller.TypeScriptControllerGenerator;
 import com.jnzader.apigen.codegen.generator.typescript.dto.TypeScriptDTOGenerator;
 import com.jnzader.apigen.codegen.generator.typescript.entity.TypeScriptEntityGenerator;
+import com.jnzader.apigen.codegen.generator.typescript.mail.TypeScriptMailServiceGenerator;
 import com.jnzader.apigen.codegen.generator.typescript.module.TypeScriptModuleGenerator;
 import com.jnzader.apigen.codegen.generator.typescript.repository.TypeScriptRepositoryGenerator;
+import com.jnzader.apigen.codegen.generator.typescript.security.reset.TypeScriptPasswordResetGenerator;
+import com.jnzader.apigen.codegen.generator.typescript.security.social.TypeScriptSocialLoginGenerator;
 import com.jnzader.apigen.codegen.generator.typescript.service.TypeScriptServiceGenerator;
+import com.jnzader.apigen.codegen.generator.typescript.storage.TypeScriptFileStorageGenerator;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.ArrayList;
@@ -58,7 +62,14 @@ public class TypeScriptNestJsProjectGenerator implements ProjectGenerator {
                     Feature.ONE_TO_MANY,
                     // Security features
                     Feature.JWT_AUTH,
-                    Feature.RATE_LIMITING);
+                    Feature.RATE_LIMITING,
+                    // Feature Pack 2025
+                    Feature.MAIL_SERVICE,
+                    Feature.PASSWORD_RESET,
+                    Feature.SOCIAL_LOGIN,
+                    Feature.FILE_UPLOAD,
+                    Feature.S3_STORAGE,
+                    Feature.AZURE_STORAGE);
 
     private final TypeScriptTypeMapper typeMapper = new TypeScriptTypeMapper();
 
@@ -209,6 +220,37 @@ public class TypeScriptNestJsProjectGenerator implements ProjectGenerator {
             TypeScriptRateLimitGenerator rateLimitGenerator = new TypeScriptRateLimitGenerator();
             // 60 seconds TTL, 100 requests limit, no Redis by default
             files.putAll(rateLimitGenerator.generate(60, 100, false));
+        }
+
+        // Feature Pack 2025
+
+        // Mail Service
+        if (config.isFeatureEnabled(Feature.MAIL_SERVICE)) {
+            TypeScriptMailServiceGenerator mailGenerator = new TypeScriptMailServiceGenerator();
+            boolean hasPasswordReset = config.isFeatureEnabled(Feature.PASSWORD_RESET);
+            files.putAll(mailGenerator.generate(true, hasPasswordReset, true));
+        }
+
+        // Password Reset
+        if (config.isFeatureEnabled(Feature.PASSWORD_RESET)) {
+            TypeScriptPasswordResetGenerator resetGenerator =
+                    new TypeScriptPasswordResetGenerator();
+            // 30 minute token expiration
+            files.putAll(resetGenerator.generate(30));
+        }
+
+        // Social Login (OAuth2)
+        if (config.isFeatureEnabled(Feature.SOCIAL_LOGIN)) {
+            TypeScriptSocialLoginGenerator socialGenerator = new TypeScriptSocialLoginGenerator();
+            files.putAll(socialGenerator.generate(List.of("google", "github")));
+        }
+
+        // File Storage
+        if (config.isFeatureEnabled(Feature.FILE_UPLOAD)) {
+            TypeScriptFileStorageGenerator storageGenerator = new TypeScriptFileStorageGenerator();
+            boolean useS3 = config.isFeatureEnabled(Feature.S3_STORAGE);
+            boolean useAzure = config.isFeatureEnabled(Feature.AZURE_STORAGE);
+            files.putAll(storageGenerator.generate(useS3, useAzure));
         }
     }
 
