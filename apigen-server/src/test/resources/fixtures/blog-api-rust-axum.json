@@ -15,7 +15,12 @@
       "softDelete": true,
       "auditing": true,
       "caching": false,
-      "docker": true
+      "docker": true,
+      "socialLogin": false,
+      "passwordReset": false,
+      "mailService": false,
+      "fileUpload": false,
+      "jteTemplates": false
     },
     "database": {
       "type": "postgresql",

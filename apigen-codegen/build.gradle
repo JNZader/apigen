@@ -11,6 +11,7 @@ description = 'APiGen CodeGen - Code generation utilities for entities, services
 ext {
     jsqlparserVersion = '5.3'      // Latest: supports JDK 17+
     lombokVersion = '1.18.42'      // Latest: supports Java 25
+    swaggerParserVersion = '2.1.30'  // OpenAPI/Swagger parser
 }
 
 java {
@@ -28,6 +29,9 @@ repositories {
 dependencies {
     // SQL Parser for code generation from SQL schema
     api "com.github.jsqlparser:jsqlparser:${jsqlparserVersion}"
+
+    // OpenAPI/Swagger Parser for code generation from OpenAPI specs
+    api "io.swagger.parser.v3:swagger-parser:${swaggerParserVersion}"
 
     // Logging
     implementation 'org.slf4j:slf4j-api:2.0.17'

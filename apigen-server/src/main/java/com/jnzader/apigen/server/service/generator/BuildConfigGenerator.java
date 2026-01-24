@@ -42,6 +42,9 @@ public class BuildConfigGenerator {
                             .formatted(GeneratedProjectVersions.APIGEN_SECURITY_VERSION));
         }
 
+        // Feature Pack dependencies
+        deps.append(generateFeaturePackDependencies(config));
+
         String dbDeps = generateDatabaseDependencies(config);
 
         return
@@ -165,6 +168,9 @@ test {
                     "    implementation(\"com.github.jnzader.apigen:apigen-security:%s\")\n"
                             .formatted(GeneratedProjectVersions.APIGEN_SECURITY_VERSION));
         }
+
+        // Feature Pack dependencies
+        deps.append(generateKotlinFeaturePackDependencies(config));
 
         String dbDeps = generateKotlinDatabaseDependencies(config);
 
@@ -340,6 +346,131 @@ tasks.withType<Test> {
             default ->
                     deps.append("    runtimeOnly 'org.postgresql:postgresql'")
                             .append(PRODUCTION_DB_COMMENT);
+        }
+
+        return deps.toString();
+    }
+
+    /**
+     * Generates feature pack dependencies for Kotlin DSL based on enabled features.
+     *
+     * @param config the project configuration
+     * @return the feature pack dependencies
+     */
+    private String generateKotlinFeaturePackDependencies(GenerateRequest.ProjectConfig config) {
+        StringBuilder deps = new StringBuilder();
+        GenerateRequest.FeaturesConfig features = config.getFeatures();
+        if (features == null) {
+            return "";
+        }
+
+        // Mail Service
+        if (features.isMailService()) {
+            deps.append("\n    // Mail Service\n");
+            deps.append(
+                    "    implementation(\"org.springframework.boot:spring-boot-starter-mail\")\n");
+            deps.append(
+                    "    implementation(\"org.springframework.boot:spring-boot-starter-thymeleaf\")\n");
+        }
+
+        // File Upload / Storage
+        if (features.isFileUpload()) {
+            GenerateRequest.StorageConfig storageConfig = config.getStorageConfig();
+            String storageType =
+                    storageConfig != null ? storageConfig.getType().toLowerCase() : "local";
+
+            if ("s3".equals(storageType)) {
+                deps.append("\n    // AWS S3 Storage\n");
+                deps.append(
+                        "    implementation(\"software.amazon.awssdk:s3:%s\")\n"
+                                .formatted(GeneratedProjectVersions.AWS_SDK_VERSION));
+                deps.append(
+                        "    implementation(\"software.amazon.awssdk:sts:%s\")\n"
+                                .formatted(GeneratedProjectVersions.AWS_SDK_VERSION));
+            } else if ("azure".equals(storageType)) {
+                deps.append("\n    // Azure Blob Storage\n");
+                deps.append(
+                        "    implementation(\"com.azure:azure-storage-blob:%s\")\n"
+                                .formatted(GeneratedProjectVersions.AZURE_STORAGE_BLOB_VERSION));
+            }
+        }
+
+        // jte Templates
+        if (features.isJteTemplates()) {
+            deps.append("\n    // jte Templates\n");
+            deps.append(
+                    "    implementation(\"gg.jte:jte-spring-boot-starter-3:%s\")\n"
+                            .formatted(GeneratedProjectVersions.JTE_VERSION));
+        }
+
+        // Social Login (uses Spring Security OAuth2 Client)
+        if (features.isSocialLogin()) {
+            deps.append("\n    // Social Login (OAuth2 Client)\n");
+            deps.append(
+                    "    implementation(\"org.springframework.boot:spring-boot-starter-oauth2-client\")\n");
+        }
+
+        return deps.toString();
+    }
+
+    /**
+     * Generates feature pack dependencies based on enabled features.
+     *
+     * @param config the project configuration
+     * @return the feature pack dependencies
+     */
+    private String generateFeaturePackDependencies(GenerateRequest.ProjectConfig config) {
+        StringBuilder deps = new StringBuilder();
+        GenerateRequest.FeaturesConfig features = config.getFeatures();
+        if (features == null) {
+            return "";
+        }
+
+        // Mail Service
+        if (features.isMailService()) {
+            deps.append("\n    // Mail Service\n");
+            deps.append("    implementation 'org.springframework.boot:spring-boot-starter-mail'\n");
+            deps.append(
+                    "    implementation"
+                            + " 'org.springframework.boot:spring-boot-starter-thymeleaf'\n");
+        }
+
+        // File Upload / Storage
+        if (features.isFileUpload()) {
+            GenerateRequest.StorageConfig storageConfig = config.getStorageConfig();
+            String storageType =
+                    storageConfig != null ? storageConfig.getType().toLowerCase() : "local";
+
+            if ("s3".equals(storageType)) {
+                deps.append("\n    // AWS S3 Storage\n");
+                deps.append(
+                        "    implementation 'software.amazon.awssdk:s3:%s'\n"
+                                .formatted(GeneratedProjectVersions.AWS_SDK_VERSION));
+                deps.append(
+                        "    implementation 'software.amazon.awssdk:sts:%s'\n"
+                                .formatted(GeneratedProjectVersions.AWS_SDK_VERSION));
+            } else if ("azure".equals(storageType)) {
+                deps.append("\n    // Azure Blob Storage\n");
+                deps.append(
+                        "    implementation 'com.azure:azure-storage-blob:%s'\n"
+                                .formatted(GeneratedProjectVersions.AZURE_STORAGE_BLOB_VERSION));
+            }
+        }
+
+        // jte Templates
+        if (features.isJteTemplates()) {
+            deps.append("\n    // jte Templates\n");
+            deps.append(
+                    "    implementation 'gg.jte:jte-spring-boot-starter-3:%s'\n"
+                            .formatted(GeneratedProjectVersions.JTE_VERSION));
+        }
+
+        // Social Login (uses Spring Security OAuth2 Client)
+        if (features.isSocialLogin()) {
+            deps.append("\n    // Social Login (OAuth2 Client)\n");
+            deps.append(
+                    "    implementation"
+                            + " 'org.springframework.boot:spring-boot-starter-oauth2-client'\n");
         }
 
         return deps.toString();

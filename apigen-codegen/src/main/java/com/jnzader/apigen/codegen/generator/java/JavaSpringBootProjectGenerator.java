@@ -8,9 +8,14 @@ import com.jnzader.apigen.codegen.generator.common.ManyToManyRelation;
 import com.jnzader.apigen.codegen.generator.java.controller.JavaControllerGenerator;
 import com.jnzader.apigen.codegen.generator.java.dto.JavaDTOGenerator;
 import com.jnzader.apigen.codegen.generator.java.entity.JavaEntityGenerator;
+import com.jnzader.apigen.codegen.generator.java.jte.JteGenerator;
+import com.jnzader.apigen.codegen.generator.java.mail.MailServiceGenerator;
 import com.jnzader.apigen.codegen.generator.java.mapper.JavaMapperGenerator;
 import com.jnzader.apigen.codegen.generator.java.repository.JavaRepositoryGenerator;
+import com.jnzader.apigen.codegen.generator.java.security.reset.PasswordResetGenerator;
+import com.jnzader.apigen.codegen.generator.java.security.social.SocialLoginGenerator;
 import com.jnzader.apigen.codegen.generator.java.service.JavaServiceGenerator;
+import com.jnzader.apigen.codegen.generator.java.storage.FileStorageGenerator;
 import com.jnzader.apigen.codegen.generator.java.test.JavaTestGenerator;
 import com.jnzader.apigen.codegen.generator.migration.MigrationGenerator;
 import com.jnzader.apigen.codegen.model.SqlForeignKey;
@@ -70,7 +75,15 @@ public class JavaSpringBootProjectGenerator implements ProjectGenerator {
                     Feature.MANY_TO_MANY,
                     Feature.ONE_TO_MANY,
                     Feature.MANY_TO_ONE,
-                    Feature.BATCH_OPERATIONS);
+                    Feature.BATCH_OPERATIONS,
+                    // Feature Pack 2025
+                    Feature.SOCIAL_LOGIN,
+                    Feature.PASSWORD_RESET,
+                    Feature.MAIL_SERVICE,
+                    Feature.FILE_UPLOAD,
+                    Feature.S3_STORAGE,
+                    Feature.AZURE_STORAGE,
+                    Feature.JTE_TEMPLATES);
 
     // Package path constants
     private static final String PKG_DOMAIN_ENTITY = "domain/entity";
@@ -339,7 +352,67 @@ public class JavaSpringBootProjectGenerator implements ProjectGenerator {
             }
         }
 
+        // Generate Feature Pack files (cross-cutting concerns)
+        generateFeaturePackFiles(files, schema, config);
+
         return files;
+    }
+
+    /** Generates Feature Pack files (mail, storage, social login, password reset, jte). */
+    private void generateFeaturePackFiles(
+            Map<String, String> files, SqlSchema schema, ProjectConfig config) {
+        String basePackage = config.getBasePackage();
+
+        // Mail Service
+        if (config.isFeatureEnabled(Feature.MAIL_SERVICE)) {
+            MailServiceGenerator mailGenerator = new MailServiceGenerator(basePackage);
+            // Generate all templates: welcome, password reset, notification
+            files.putAll(mailGenerator.generate(true, true, true));
+        }
+
+        // Password Reset (requires Mail Service)
+        if (config.isFeatureEnabled(Feature.PASSWORD_RESET)) {
+            PasswordResetGenerator passwordResetGenerator = new PasswordResetGenerator(basePackage);
+            // Token expiration: 60 minutes by default
+            files.putAll(passwordResetGenerator.generate(60));
+        }
+
+        // File Storage
+        if (config.isFeatureEnabled(Feature.FILE_UPLOAD)
+                || config.isFeatureEnabled(Feature.S3_STORAGE)
+                || config.isFeatureEnabled(Feature.AZURE_STORAGE)) {
+
+            String storageType = "local";
+            if (config.isFeatureEnabled(Feature.S3_STORAGE)) {
+                storageType = "s3";
+            } else if (config.isFeatureEnabled(Feature.AZURE_STORAGE)) {
+                storageType = "azure";
+            }
+
+            FileStorageGenerator storageGenerator = new FileStorageGenerator(basePackage);
+            // Max file size: 10MB, allowed extensions: jpg,jpeg,png,gif,pdf,doc,docx, generate
+            // metadata entity
+            files.putAll(
+                    storageGenerator.generate(
+                            storageType, 10, "jpg,jpeg,png,gif,pdf,doc,docx", true));
+        }
+
+        // Social Login
+        if (config.isFeatureEnabled(Feature.SOCIAL_LOGIN)) {
+            SocialLoginGenerator socialLoginGenerator = new SocialLoginGenerator(basePackage);
+            // Enable Google and GitHub by default, disable LinkedIn, auto-create user, link by
+            // email
+            files.putAll(socialLoginGenerator.generate(true, true, false, true, true));
+        }
+
+        // jte Templates
+        if (config.isFeatureEnabled(Feature.JTE_TEMPLATES)) {
+            JteGenerator jteGenerator = new JteGenerator(basePackage);
+            // Generate admin and CRUD views with Tailwind + Alpine, path /admin
+            files.putAll(
+                    jteGenerator.generate(
+                            schema.getEntityTables(), true, true, true, true, "/admin"));
+        }
     }
 
     @Override
