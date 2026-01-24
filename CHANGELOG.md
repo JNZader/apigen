@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.11.0](https://github.com/JNZader/apigen/compare/v2.10.0...v2.11.0) (2026-01-24)
+
+### Features
+
+* **codegen:** add Go/Chi Router generator with modular features ([1d7f528](https://github.com/JNZader/apigen/commit/1d7f528888aa974dd8d56d6a5a8bb641c9912155))
+
+### Bug Fixes
+
+* **codegen:** resolve Go/Chi generated project compilation errors ([5efbdf4](https://github.com/JNZader/apigen/commit/5efbdf480882bc80aec13fb5ed8803f64aeb7257))
+* **server:** support explicit basePackage for Go module paths ([b0398ff](https://github.com/JNZader/apigen/commit/b0398ffa14e98ad8f48dcef61e8780bd66400445))
+
+### CI/CD
+
+* add Go/Chi project compilation test job ([f54aa44](https://github.com/JNZader/apigen/commit/f54aa44ac41d5dc5fce98687cf995a39b9c3c250))
+
 ## [2.10.0](https://github.com/JNZader/apigen/compare/v2.9.0...v2.10.0) (2026-01-24)
 
 ### Features
