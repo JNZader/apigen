@@ -71,8 +71,17 @@ public final class VersionContext {
         if (current == null || expectedVersion == null) {
             return false;
         }
-        return current.equals(expectedVersion)
-                || current.split("\\.")[0].equals(expectedVersion.split("\\.")[0]);
+        // Exact match
+        if (current.equals(expectedVersion)) {
+            return true;
+        }
+        // Major version match (e.g., "1" matches "1.0")
+        String[] currentParts = current.split("\\.");
+        String[] expectedParts = expectedVersion.split("\\.");
+        if (currentParts.length == 0 || expectedParts.length == 0) {
+            return false;
+        }
+        return currentParts[0].equals(expectedParts[0]);
     }
 
     /**

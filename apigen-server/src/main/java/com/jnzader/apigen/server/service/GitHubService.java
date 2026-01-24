@@ -8,6 +8,7 @@ import com.jnzader.apigen.server.dto.github.CreateRepoRequest;
 import com.jnzader.apigen.server.dto.github.CreateRepoResponse;
 import com.jnzader.apigen.server.dto.github.GitHubAuthResponse;
 import com.jnzader.apigen.server.dto.github.PushProjectResponse;
+import com.jnzader.apigen.server.exception.GitHubException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
@@ -91,6 +92,14 @@ public class GitHubService {
                             .bodyToMono(String.class)
                             .block();
 
+            if (tokenResponse == null) {
+                log.error("GitHub OAuth: empty response when exchanging code for token");
+                return GitHubAuthResponse.builder()
+                        .authenticated(false)
+                        .error("Failed to authenticate: empty response from GitHub")
+                        .build();
+            }
+
             JsonNode tokenJson = objectMapper.readTree(tokenResponse);
 
             if (tokenJson.has("error")) {
@@ -143,6 +152,10 @@ public class GitHubService {
                         .bodyToMono(JsonNode.class)
                         .block();
 
+        if (userJson == null) {
+            throw new GitHubException("Failed to fetch user info: empty response from GitHub API");
+        }
+
         return GitHubAuthResponse.builder()
                 .login(userJson.has("login") ? userJson.get("login").asText() : null)
                 .name(userJson.has("name") ? userJson.get("name").asText() : null)
@@ -190,6 +203,11 @@ public class GitHubService {
                             .retrieve()
                             .bodyToMono(JsonNode.class)
                             .block();
+
+            if (response == null) {
+                throw new GitHubException(
+                        "Failed to create repository: empty response from GitHub API");
+            }
 
             CreateRepoResponse repoResponse =
                     CreateRepoResponse.builder()
@@ -368,7 +386,16 @@ public class GitHubService {
                             .bodyToMono(JsonNode.class)
                             .block();
 
-            return response.get("object").get("sha").asText();
+            if (response == null || !response.has("object")) {
+                log.debug("Branch {} does not exist or empty response", branch);
+                return null;
+            }
+            JsonNode objectNode = response.get("object");
+            if (objectNode == null || !objectNode.has("sha")) {
+                log.debug("No SHA found for branch {}", branch);
+                return null;
+            }
+            return objectNode.get("sha").asText();
         } catch (Exception e) {
             log.debug("Branch {} does not exist yet", branch);
             return null;
@@ -386,10 +413,14 @@ public class GitHubService {
                         .bodyToMono(JsonNode.class)
                         .block();
 
-        if (response == null) {
-            throw new IllegalStateException("Failed to get commit info from GitHub");
+        if (response == null || !response.has("tree")) {
+            throw new GitHubException("Failed to get commit info from GitHub: missing tree data");
         }
-        return response.get("tree").get("sha").asText();
+        JsonNode treeNode = response.get("tree");
+        if (treeNode == null || !treeNode.has("sha")) {
+            throw new GitHubException("Failed to get tree SHA from GitHub commit");
+        }
+        return treeNode.get("sha").asText();
     }
 
     /** Creates a blob for file content. */
@@ -409,8 +440,8 @@ public class GitHubService {
                         .bodyToMono(JsonNode.class)
                         .block();
 
-        if (response == null) {
-            throw new IllegalStateException("Failed to create blob on GitHub");
+        if (response == null || !response.has("sha")) {
+            throw new GitHubException("Failed to create blob on GitHub: missing SHA in response");
         }
         return response.get("sha").asText();
     }
@@ -439,8 +470,8 @@ public class GitHubService {
                         .bodyToMono(JsonNode.class)
                         .block();
 
-        if (response == null) {
-            throw new IllegalStateException("Failed to create tree on GitHub");
+        if (response == null || !response.has("sha")) {
+            throw new GitHubException("Failed to create tree on GitHub: missing SHA in response");
         }
         return response.get("sha").asText();
     }
@@ -473,8 +504,8 @@ public class GitHubService {
                         .bodyToMono(JsonNode.class)
                         .block();
 
-        if (response == null) {
-            throw new IllegalStateException("Failed to create commit on GitHub");
+        if (response == null || !response.has("sha")) {
+            throw new GitHubException("Failed to create commit on GitHub: missing SHA in response");
         }
         return response.get("sha").asText();
     }
