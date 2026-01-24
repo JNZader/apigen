@@ -71,7 +71,10 @@ public class RustAxumProjectGenerator implements ProjectGenerator {
                     Feature.PAGINATION,
                     Feature.DOCKER,
                     Feature.MANY_TO_ONE,
-                    Feature.ONE_TO_MANY);
+                    Feature.ONE_TO_MANY,
+                    // Security features
+                    Feature.JWT_AUTH,
+                    Feature.RATE_LIMITING);
 
     private final RustTypeMapper typeMapper = new RustTypeMapper();
 
@@ -233,7 +236,7 @@ public class RustAxumProjectGenerator implements ProjectGenerator {
         files.put("src/router.rs", routerGenerator.generate(tables));
 
         // === Middleware (optional) ===
-        if (options.useJwt() || options.useArgon2()) {
+        if (options.useJwt() || options.useArgon2() || options.useRateLimiting()) {
             files.put("src/middleware/mod.rs", middlewareGenerator.generateModRs());
             if (options.useJwt()) {
                 files.put("src/middleware/jwt.rs", middlewareGenerator.generateJwtMiddleware());
@@ -242,6 +245,11 @@ public class RustAxumProjectGenerator implements ProjectGenerator {
             if (options.useArgon2()) {
                 files.put(
                         "src/middleware/password.rs", middlewareGenerator.generatePasswordModule());
+            }
+            if (options.useRateLimiting()) {
+                files.put(
+                        "src/middleware/rate_limit.rs",
+                        middlewareGenerator.generateRateLimitMiddleware());
             }
         }
 

@@ -6,6 +6,7 @@ import com.jnzader.apigen.codegen.generator.typescript.TypeScriptTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -42,30 +43,103 @@ public class TypeScriptConfigGenerator {
      * @return map of file paths to content
      */
     public Map<String, String> generate(SqlSchema schema, ProjectConfig config) {
+        return generate(schema, config, false, false);
+    }
+
+    /**
+     * Generates all configuration files with security features.
+     *
+     * @param schema the SQL schema
+     * @param config the project configuration
+     * @param hasJwtAuth whether JWT authentication is enabled
+     * @param hasRateLimit whether rate limiting is enabled
+     * @return map of file paths to content
+     */
+    public Map<String, String> generate(
+            SqlSchema schema, ProjectConfig config, boolean hasJwtAuth, boolean hasRateLimit) {
         Map<String, String> files = new LinkedHashMap<>();
 
-        files.put("package.json", generatePackageJson());
+        files.put("package.json", generatePackageJson(hasJwtAuth, hasRateLimit));
         files.put("tsconfig.json", generateTsConfig());
         files.put("tsconfig.build.json", generateTsBuildConfig());
         files.put("nest-cli.json", generateNestCliJson());
-        files.put(".env.example", generateEnvExample());
-        files.put(".env", generateEnvExample());
+        files.put(".env.example", generateEnvExample(hasJwtAuth, hasRateLimit));
+        files.put(".env", generateEnvExample(hasJwtAuth, hasRateLimit));
         files.put(".gitignore", generateGitignore());
-        files.put("README.md", generateReadme(schema));
+        files.put("README.md", generateReadme(schema, hasJwtAuth, hasRateLimit));
         files.put(".prettierrc", generatePrettierRc());
         files.put(".eslintrc.js", generateEslintRc());
 
         if (config.isFeatureEnabled(Feature.DOCKER)) {
             files.put("Dockerfile", generateDockerfile());
-            files.put("docker-compose.yml", generateDockerCompose());
+            files.put("docker-compose.yml", generateDockerCompose(hasRateLimit));
             files.put(".dockerignore", generateDockerignore());
         }
 
         return files;
     }
 
-    private String generatePackageJson() {
+    private String generatePackageJson(boolean hasJwtAuth, boolean hasRateLimit) {
         String kebabName = typeMapper.toKebabCase(projectName);
+
+        StringBuilder deps = new StringBuilder();
+        deps.append("    \"@nestjs/common\": \"^11.1.0\",\n");
+        deps.append("    \"@nestjs/config\": \"^4.0.0\",\n");
+        deps.append("    \"@nestjs/core\": \"^11.1.0\",\n");
+        deps.append("    \"@nestjs/platform-express\": \"^11.1.0\",\n");
+        deps.append("    \"@nestjs/swagger\": \"^11.1.0\",\n");
+        deps.append("    \"@nestjs/typeorm\": \"^11.0.0\",\n");
+
+        // JWT Authentication dependencies
+        if (hasJwtAuth) {
+            deps.append("    \"@nestjs/jwt\": \"^11.0.0\",\n");
+            deps.append("    \"@nestjs/passport\": \"^11.0.0\",\n");
+            deps.append("    \"passport\": \"^0.7.0\",\n");
+            deps.append("    \"passport-jwt\": \"^4.0.1\",\n");
+            deps.append("    \"bcrypt\": \"^6.0.0\",\n");
+        }
+
+        // Rate Limiting dependencies
+        if (hasRateLimit) {
+            deps.append("    \"@nestjs/throttler\": \"^6.4.0\",\n");
+        }
+
+        deps.append("    \"class-transformer\": \"^0.5.1\",\n");
+        deps.append("    \"class-validator\": \"^0.14.3\",\n");
+        deps.append("    \"pg\": \"^8.17.1\",\n");
+        deps.append("    \"reflect-metadata\": \"^0.2.2\",\n");
+        deps.append("    \"rxjs\": \"^7.8.2\",\n");
+        deps.append("    \"typeorm\": \"^0.3.28\"");
+
+        StringBuilder devDeps = new StringBuilder();
+        devDeps.append("    \"@nestjs/cli\": \"^11.0.0\",\n");
+        devDeps.append("    \"@nestjs/schematics\": \"^11.0.0\",\n");
+        devDeps.append("    \"@nestjs/testing\": \"^11.1.0\",\n");
+        devDeps.append("    \"@types/express\": \"^4.17.21\",\n");
+        devDeps.append("    \"@types/jest\": \"^29.5.14\",\n");
+        devDeps.append("    \"@types/node\": \"^22.10.0\",\n");
+
+        // JWT dev dependencies
+        if (hasJwtAuth) {
+            devDeps.append("    \"@types/passport-jwt\": \"^4.0.1\",\n");
+            devDeps.append("    \"@types/bcrypt\": \"^5.0.2\",\n");
+        }
+
+        devDeps.append("    \"@typescript-eslint/eslint-plugin\": \"^8.20.0\",\n");
+        devDeps.append("    \"@typescript-eslint/parser\": \"^8.20.0\",\n");
+        devDeps.append("    \"eslint\": \"^9.18.0\",\n");
+        devDeps.append("    \"eslint-config-prettier\": \"^10.0.0\",\n");
+        devDeps.append("    \"eslint-plugin-prettier\": \"^5.2.3\",\n");
+        devDeps.append("    \"jest\": \"^29.7.0\",\n");
+        devDeps.append("    \"prettier\": \"^3.8.0\",\n");
+        devDeps.append("    \"source-map-support\": \"^0.5.21\",\n");
+        devDeps.append("    \"supertest\": \"^7.0.0\",\n");
+        devDeps.append("    \"ts-jest\": \"^29.2.0\",\n");
+        devDeps.append("    \"ts-loader\": \"^9.5.0\",\n");
+        devDeps.append("    \"ts-node\": \"^10.9.2\",\n");
+        devDeps.append("    \"tsconfig-paths\": \"^4.2.0\",\n");
+        devDeps.append("    \"typescript\": \"^5.9.0\"");
+
         return """
         {
           "name": "%s",
@@ -93,40 +167,10 @@ public class TypeScriptConfigGenerator {
             "migration:revert": "npm run typeorm -- migration:revert -d src/config/data-source.ts"
           },
           "dependencies": {
-            "@nestjs/common": "^11.1.0",
-            "@nestjs/config": "^4.0.0",
-            "@nestjs/core": "^11.1.0",
-            "@nestjs/platform-express": "^11.1.0",
-            "@nestjs/swagger": "^11.1.0",
-            "@nestjs/typeorm": "^11.0.0",
-            "class-transformer": "^0.5.1",
-            "class-validator": "^0.14.3",
-            "pg": "^8.17.1",
-            "reflect-metadata": "^0.2.2",
-            "rxjs": "^7.8.2",
-            "typeorm": "^0.3.28"
+        %s
           },
           "devDependencies": {
-            "@nestjs/cli": "^11.0.0",
-            "@nestjs/schematics": "^11.0.0",
-            "@nestjs/testing": "^11.1.0",
-            "@types/express": "^4.17.21",
-            "@types/jest": "^29.5.14",
-            "@types/node": "^22.10.0",
-            "@typescript-eslint/eslint-plugin": "^8.20.0",
-            "@typescript-eslint/parser": "^8.20.0",
-            "eslint": "^9.18.0",
-            "eslint-config-prettier": "^10.0.0",
-            "eslint-plugin-prettier": "^5.2.3",
-            "jest": "^29.7.0",
-            "prettier": "^3.8.0",
-            "source-map-support": "^0.5.21",
-            "supertest": "^7.0.0",
-            "ts-jest": "^29.2.0",
-            "ts-loader": "^9.5.0",
-            "ts-node": "^10.9.2",
-            "tsconfig-paths": "^4.2.0",
-            "typescript": "^5.9.0"
+        %s
           },
           "jest": {
             "moduleFileExtensions": ["js", "json", "ts"],
@@ -141,7 +185,7 @@ public class TypeScriptConfigGenerator {
           }
         }
         """
-                .formatted(kebabName);
+                .formatted(kebabName, deps, devDeps);
     }
 
     private String generateTsConfig() {
@@ -194,29 +238,48 @@ public class TypeScriptConfigGenerator {
         """;
     }
 
-    private String generateEnvExample() {
+    private String generateEnvExample(boolean hasJwtAuth, boolean hasRateLimit) {
         String snakeName =
                 projectName
                         .replaceAll("([a-z])([A-Z])", "$1_$2")
                         .replaceAll("-", "_")
-                        .toLowerCase();
-        return """
-        # Application
-        NODE_ENV=development
-        PORT=3000
+                        .toLowerCase(Locale.ROOT);
 
-        # Database
-        DB_HOST=localhost
-        DB_PORT=5432
-        DB_USERNAME=postgres
-        DB_PASSWORD=postgres
-        DB_DATABASE=%s
+        StringBuilder sb = new StringBuilder();
+        sb.append("# Application\n");
+        sb.append("NODE_ENV=development\n");
+        sb.append("PORT=3000\n");
+        sb.append("\n");
+        sb.append("# Database\n");
+        sb.append("DB_HOST=localhost\n");
+        sb.append("DB_PORT=5432\n");
+        sb.append("DB_USERNAME=postgres\n");
+        sb.append("DB_PASSWORD=postgres\n");
+        sb.append("DB_DATABASE=").append(snakeName).append("\n");
 
-        # JWT (optional)
-        JWT_SECRET=your-secret-key
-        JWT_EXPIRATION=3600
-        """
-                .formatted(snakeName);
+        if (hasJwtAuth) {
+            sb.append("\n");
+            sb.append("# JWT Authentication\n");
+            sb.append("JWT_SECRET=your-very-secure-secret-key-change-in-production-min-32-chars\n");
+            sb.append("JWT_ACCESS_EXPIRATION=30m\n");
+            sb.append(
+                    "JWT_REFRESH_SECRET=your-refresh-secret-key-change-in-production-min-32-chars\n");
+            sb.append("JWT_REFRESH_EXPIRATION=7d\n");
+        }
+
+        if (hasRateLimit) {
+            sb.append("\n");
+            sb.append("# Rate Limiting\n");
+            sb.append("RATE_LIMIT_TTL=60000\n");
+            sb.append("RATE_LIMIT_MAX=100\n");
+            sb.append("\n");
+            sb.append("# Redis (optional - for distributed rate limiting)\n");
+            sb.append("# REDIS_HOST=localhost\n");
+            sb.append("# REDIS_PORT=6379\n");
+            sb.append("# REDIS_PASSWORD=\n");
+        }
+
+        return sb.toString();
     }
 
     private String generateGitignore() {
@@ -256,7 +319,7 @@ public class TypeScriptConfigGenerator {
         """;
     }
 
-    private String generateReadme(SqlSchema schema) {
+    private String generateReadme(SqlSchema schema, boolean hasJwtAuth, boolean hasRateLimit) {
         StringBuilder sb = new StringBuilder();
         String kebabName = typeMapper.toKebabCase(projectName);
 
@@ -297,6 +360,45 @@ public class TypeScriptConfigGenerator {
         sb.append("## API Documentation\n\n");
         sb.append("Once the application is running, visit:\n");
         sb.append("- Swagger UI: http://localhost:3000/api/docs\n\n");
+
+        // Authentication documentation
+        if (hasJwtAuth) {
+            sb.append("## Authentication\n\n");
+            sb.append("This API uses JWT (JSON Web Tokens) for authentication.\n\n");
+            sb.append("### Endpoints\n\n");
+            sb.append("| Method | Endpoint | Description |\n");
+            sb.append("|--------|----------|-------------|\n");
+            sb.append("| POST | `/api/auth/register` | Register a new user |\n");
+            sb.append("| POST | `/api/auth/login` | Login and get tokens |\n");
+            sb.append("| POST | `/api/auth/refresh` | Refresh access token |\n");
+            sb.append("| POST | `/api/auth/logout` | Logout (invalidate tokens) |\n");
+            sb.append("| GET | `/api/auth/profile` | Get current user profile |\n");
+            sb.append("| PUT | `/api/auth/password` | Change password |\n\n");
+            sb.append("### Usage\n\n");
+            sb.append("1. Register or login to get access and refresh tokens\n");
+            sb.append("2. Include the access token in the Authorization header:\n");
+            sb.append("   ```\n");
+            sb.append("   Authorization: Bearer <access_token>\n");
+            sb.append("   ```\n");
+            sb.append("3. Use the refresh token to get new access tokens when expired\n\n");
+        }
+
+        // Rate limiting documentation
+        if (hasRateLimit) {
+            sb.append("## Rate Limiting\n\n");
+            sb.append("This API implements rate limiting to prevent abuse.\n\n");
+            sb.append("### Default Limits\n\n");
+            sb.append("| Tier | Limit | Window |\n");
+            sb.append("|------|-------|--------|\n");
+            sb.append("| Standard | 100 requests | 1 minute |\n");
+            sb.append("| Auth | 5 requests | 1 minute |\n");
+            sb.append("| Heavy | 10 requests | 1 minute |\n\n");
+            sb.append("### Headers\n\n");
+            sb.append("Rate limit information is included in response headers:\n");
+            sb.append("- `X-RateLimit-Limit`: Maximum requests allowed\n");
+            sb.append("- `X-RateLimit-Remaining`: Requests remaining\n");
+            sb.append("- `Retry-After`: Seconds until limit resets (when exceeded)\n\n");
+        }
 
         sb.append("## Available Endpoints\n\n");
         for (SqlTable table : schema.getEntityTables()) {
@@ -413,57 +515,89 @@ public class TypeScriptConfigGenerator {
         """;
     }
 
-    private String generateDockerCompose() {
+    private String generateDockerCompose(boolean hasRateLimit) {
         String kebabName = typeMapper.toKebabCase(projectName);
         String snakeName =
                 projectName
                         .replaceAll("([a-z])([A-Z])", "$1_$2")
                         .replaceAll("-", "_")
-                        .toLowerCase();
+                        .toLowerCase(Locale.ROOT);
 
-        return """
-        version: '3.8'
+        StringBuilder sb = new StringBuilder();
+        sb.append("version: '3.8'\n\n");
+        sb.append("services:\n");
+        sb.append("  app:\n");
+        sb.append("    build: .\n");
+        sb.append("    container_name: ").append(kebabName).append("-api\n");
+        sb.append("    ports:\n");
+        sb.append("      - \"3000:3000\"\n");
+        sb.append("    environment:\n");
+        sb.append("      - NODE_ENV=production\n");
+        sb.append("      - DB_HOST=db\n");
+        sb.append("      - DB_PORT=5432\n");
+        sb.append("      - DB_USERNAME=postgres\n");
+        sb.append("      - DB_PASSWORD=postgres\n");
+        sb.append("      - DB_DATABASE=").append(snakeName).append("\n");
 
-        services:
-          app:
-            build: .
-            container_name: %s-api
-            ports:
-              - "3000:3000"
-            environment:
-              - NODE_ENV=production
-              - DB_HOST=db
-              - DB_PORT=5432
-              - DB_USERNAME=postgres
-              - DB_PASSWORD=postgres
-              - DB_DATABASE=%s
-            depends_on:
-              db:
-                condition: service_healthy
-            restart: unless-stopped
+        if (hasRateLimit) {
+            sb.append("      - REDIS_HOST=redis\n");
+            sb.append("      - REDIS_PORT=6379\n");
+        }
 
-          db:
-            image: postgres:16-alpine
-            container_name: %s-db
-            environment:
-              - POSTGRES_USER=postgres
-              - POSTGRES_PASSWORD=postgres
-              - POSTGRES_DB=%s
-            volumes:
-              - postgres_data:/var/lib/postgresql/data
-            ports:
-              - "5432:5432"
-            healthcheck:
-              test: ["CMD-SHELL", "pg_isready -U postgres"]
-              interval: 10s
-              timeout: 5s
-              retries: 5
-            restart: unless-stopped
+        sb.append("    depends_on:\n");
+        sb.append("      db:\n");
+        sb.append("        condition: service_healthy\n");
 
-        volumes:
-          postgres_data:
-        """
-                .formatted(kebabName, snakeName, kebabName, snakeName);
+        if (hasRateLimit) {
+            sb.append("      redis:\n");
+            sb.append("        condition: service_healthy\n");
+        }
+
+        sb.append("    restart: unless-stopped\n\n");
+
+        sb.append("  db:\n");
+        sb.append("    image: postgres:16-alpine\n");
+        sb.append("    container_name: ").append(kebabName).append("-db\n");
+        sb.append("    environment:\n");
+        sb.append("      - POSTGRES_USER=postgres\n");
+        sb.append("      - POSTGRES_PASSWORD=postgres\n");
+        sb.append("      - POSTGRES_DB=").append(snakeName).append("\n");
+        sb.append("    volumes:\n");
+        sb.append("      - postgres_data:/var/lib/postgresql/data\n");
+        sb.append("    ports:\n");
+        sb.append("      - \"5432:5432\"\n");
+        sb.append("    healthcheck:\n");
+        sb.append("      test: [\"CMD-SHELL\", \"pg_isready -U postgres\"]\n");
+        sb.append("      interval: 10s\n");
+        sb.append("      timeout: 5s\n");
+        sb.append("      retries: 5\n");
+        sb.append("    restart: unless-stopped\n");
+
+        if (hasRateLimit) {
+            sb.append("\n");
+            sb.append("  redis:\n");
+            sb.append("    image: redis:7-alpine\n");
+            sb.append("    container_name: ").append(kebabName).append("-redis\n");
+            sb.append("    ports:\n");
+            sb.append("      - \"6379:6379\"\n");
+            sb.append("    volumes:\n");
+            sb.append("      - redis_data:/data\n");
+            sb.append("    healthcheck:\n");
+            sb.append("      test: [\"CMD\", \"redis-cli\", \"ping\"]\n");
+            sb.append("      interval: 10s\n");
+            sb.append("      timeout: 5s\n");
+            sb.append("      retries: 5\n");
+            sb.append("    restart: unless-stopped\n");
+        }
+
+        sb.append("\nvolumes:\n");
+        sb.append("  postgres_data:\n");
+
+        if (hasRateLimit) {
+            sb.append("  redis_data:\n");
+        }
+
+        return sb.toString();
     }
 
     private String generateDockerignore() {

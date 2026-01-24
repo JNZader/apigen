@@ -4,6 +4,8 @@ import com.jnzader.apigen.codegen.generator.api.Feature;
 import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
 import com.jnzader.apigen.codegen.generator.api.ProjectGenerator;
+import com.jnzader.apigen.codegen.generator.python.auth.PythonJwtAuthGenerator;
+import com.jnzader.apigen.codegen.generator.python.auth.PythonRateLimitGenerator;
 import com.jnzader.apigen.codegen.generator.python.config.PythonConfigGenerator;
 import com.jnzader.apigen.codegen.generator.python.model.PythonModelGenerator;
 import com.jnzader.apigen.codegen.generator.python.repository.PythonRepositoryGenerator;
@@ -51,7 +53,10 @@ public class PythonFastApiProjectGenerator implements ProjectGenerator {
                     Feature.OPENAPI,
                     Feature.DOCKER,
                     Feature.MANY_TO_ONE,
-                    Feature.ONE_TO_MANY);
+                    Feature.ONE_TO_MANY,
+                    // Security features
+                    Feature.JWT_AUTH,
+                    Feature.RATE_LIMITING);
 
     private final PythonTypeMapper typeMapper = new PythonTypeMapper();
 
@@ -160,6 +165,9 @@ public class PythonFastApiProjectGenerator implements ProjectGenerator {
         // Generate configuration files
         files.putAll(configGenerator.generate(schema, config));
 
+        // Generate security features
+        generateSecurityFiles(files, config);
+
         // Generate tests directory structure
         files.put("tests/__init__.py", "");
         files.put("tests/conftest.py", generateConftest());
@@ -176,6 +184,23 @@ public class PythonFastApiProjectGenerator implements ProjectGenerator {
         }
 
         return errors;
+    }
+
+    /** Generates security-related files based on enabled features. */
+    private void generateSecurityFiles(Map<String, String> files, ProjectConfig config) {
+        // JWT Authentication
+        if (config.isFeatureEnabled(Feature.JWT_AUTH)) {
+            PythonJwtAuthGenerator jwtGenerator = new PythonJwtAuthGenerator();
+            // 30 minute access token, 7 day refresh token
+            files.putAll(jwtGenerator.generate(30, 7));
+        }
+
+        // Rate Limiting
+        if (config.isFeatureEnabled(Feature.RATE_LIMITING)) {
+            PythonRateLimitGenerator rateLimitGenerator = new PythonRateLimitGenerator();
+            // 100 requests per minute, no Redis by default
+            files.putAll(rateLimitGenerator.generate("100/minute", false));
+        }
     }
 
     /** Generates the pytest conftest.py with common fixtures. */

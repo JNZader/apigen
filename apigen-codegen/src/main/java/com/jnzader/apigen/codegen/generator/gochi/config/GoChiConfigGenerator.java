@@ -102,6 +102,7 @@ public class GoChiConfigGenerator {
         return sb.toString();
     }
 
+    @SuppressWarnings("UnusedVariable") // Schema reserved for entity registration
     private String generateMainGo(SqlSchema schema) {
         StringBuilder sb = new StringBuilder();
         sb.append("package main\n\n");

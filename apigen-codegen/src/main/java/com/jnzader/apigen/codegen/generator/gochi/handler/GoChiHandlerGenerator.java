@@ -3,8 +3,10 @@ package com.jnzader.apigen.codegen.generator.gochi.handler;
 import com.jnzader.apigen.codegen.generator.gochi.GoChiOptions;
 import com.jnzader.apigen.codegen.generator.gochi.GoChiTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlTable;
+import java.util.Locale;
 
 /** Generates HTTP handlers for Go/Chi router. */
+@SuppressWarnings("UnusedVariable") // Options field reserved for future feature flags
 public class GoChiHandlerGenerator {
 
     private final GoChiTypeMapper typeMapper;
@@ -64,7 +66,7 @@ public class GoChiHandlerGenerator {
         sb.append("\t\tservice:  svc,\n");
         sb.append("\t\tvalidate: validate,\n");
         sb.append("\t\tlogger:   logger.With(\"handler\", \"")
-                .append(entityName.toLowerCase())
+                .append(entityName.toLowerCase(Locale.ROOT))
                 .append("\"),\n");
         sb.append("\t}\n");
         sb.append("}\n\n");
@@ -134,7 +136,9 @@ public class GoChiHandlerGenerator {
     }
 
     private void generateGetByID(StringBuilder sb, String entityName, String handlerName) {
-        sb.append("// GetByID handles GET /").append(entityName.toLowerCase()).append("s/{id}\n");
+        sb.append("// GetByID handles GET /")
+                .append(entityName.toLowerCase(Locale.ROOT))
+                .append("s/{id}\n");
         sb.append("func (h *")
                 .append(handlerName)
                 .append(") GetByID(w http.ResponseWriter, r *http.Request) {\n");
@@ -149,12 +153,12 @@ public class GoChiHandlerGenerator {
         sb.append("\tif err != nil {\n");
         sb.append("\t\tif errors.Is(err, service.Err").append(entityName).append("NotFound) {\n");
         sb.append("\t\t\twriteError(w, http.StatusNotFound, \"")
-                .append(entityName.toLowerCase())
+                .append(entityName.toLowerCase(Locale.ROOT))
                 .append(" not found\")\n");
         sb.append("\t\t\treturn\n");
         sb.append("\t\t}\n");
         sb.append("\t\th.logger.Error(\"failed to get ")
-                .append(entityName.toLowerCase())
+                .append(entityName.toLowerCase(Locale.ROOT))
                 .append("\", \"id\", id, \"error\", err)\n");
         sb.append("\t\twriteError(w, http.StatusInternalServerError, \"internal server error\")\n");
         sb.append("\t\treturn\n");
@@ -164,7 +168,9 @@ public class GoChiHandlerGenerator {
     }
 
     private void generateGetAll(StringBuilder sb, String entityName, String handlerName) {
-        sb.append("// GetAll handles GET /").append(entityName.toLowerCase()).append("s\n");
+        sb.append("// GetAll handles GET /")
+                .append(entityName.toLowerCase(Locale.ROOT))
+                .append("s\n");
         sb.append("func (h *")
                 .append(handlerName)
                 .append(") GetAll(w http.ResponseWriter, r *http.Request) {\n");
@@ -174,7 +180,7 @@ public class GoChiHandlerGenerator {
         sb.append("\tresponse, err := h.service.GetAll(r.Context(), params)\n");
         sb.append("\tif err != nil {\n");
         sb.append("\t\th.logger.Error(\"failed to get ")
-                .append(entityName.toLowerCase())
+                .append(entityName.toLowerCase(Locale.ROOT))
                 .append("s\", \"error\", err)\n");
         sb.append("\t\twriteError(w, http.StatusInternalServerError, \"internal server error\")\n");
         sb.append("\t\treturn\n");
@@ -184,7 +190,9 @@ public class GoChiHandlerGenerator {
     }
 
     private void generateCreate(StringBuilder sb, String entityName, String handlerName) {
-        sb.append("// Create handles POST /").append(entityName.toLowerCase()).append("s\n");
+        sb.append("// Create handles POST /")
+                .append(entityName.toLowerCase(Locale.ROOT))
+                .append("s\n");
         sb.append("func (h *")
                 .append(handlerName)
                 .append(") Create(w http.ResponseWriter, r *http.Request) {\n");
@@ -202,7 +210,7 @@ public class GoChiHandlerGenerator {
         sb.append("\tresponse, err := h.service.Create(r.Context(), &req)\n");
         sb.append("\tif err != nil {\n");
         sb.append("\t\th.logger.Error(\"failed to create ")
-                .append(entityName.toLowerCase())
+                .append(entityName.toLowerCase(Locale.ROOT))
                 .append("\", \"error\", err)\n");
         sb.append("\t\twriteError(w, http.StatusInternalServerError, \"internal server error\")\n");
         sb.append("\t\treturn\n");
@@ -212,7 +220,9 @@ public class GoChiHandlerGenerator {
     }
 
     private void generateUpdate(StringBuilder sb, String entityName, String handlerName) {
-        sb.append("// Update handles PUT /").append(entityName.toLowerCase()).append("s/{id}\n");
+        sb.append("// Update handles PUT /")
+                .append(entityName.toLowerCase(Locale.ROOT))
+                .append("s/{id}\n");
         sb.append("func (h *")
                 .append(handlerName)
                 .append(") Update(w http.ResponseWriter, r *http.Request) {\n");
@@ -238,12 +248,12 @@ public class GoChiHandlerGenerator {
         sb.append("\tif err != nil {\n");
         sb.append("\t\tif errors.Is(err, service.Err").append(entityName).append("NotFound) {\n");
         sb.append("\t\t\twriteError(w, http.StatusNotFound, \"")
-                .append(entityName.toLowerCase())
+                .append(entityName.toLowerCase(Locale.ROOT))
                 .append(" not found\")\n");
         sb.append("\t\t\treturn\n");
         sb.append("\t\t}\n");
         sb.append("\t\th.logger.Error(\"failed to update ")
-                .append(entityName.toLowerCase())
+                .append(entityName.toLowerCase(Locale.ROOT))
                 .append("\", \"id\", id, \"error\", err)\n");
         sb.append("\t\twriteError(w, http.StatusInternalServerError, \"internal server error\")\n");
         sb.append("\t\treturn\n");
@@ -253,7 +263,9 @@ public class GoChiHandlerGenerator {
     }
 
     private void generateDelete(StringBuilder sb, String entityName, String handlerName) {
-        sb.append("// Delete handles DELETE /").append(entityName.toLowerCase()).append("s/{id}\n");
+        sb.append("// Delete handles DELETE /")
+                .append(entityName.toLowerCase(Locale.ROOT))
+                .append("s/{id}\n");
         sb.append("func (h *")
                 .append(handlerName)
                 .append(") Delete(w http.ResponseWriter, r *http.Request) {\n");
@@ -267,12 +279,12 @@ public class GoChiHandlerGenerator {
         sb.append("\tif err := h.service.Delete(r.Context(), id); err != nil {\n");
         sb.append("\t\tif errors.Is(err, service.Err").append(entityName).append("NotFound) {\n");
         sb.append("\t\t\twriteError(w, http.StatusNotFound, \"")
-                .append(entityName.toLowerCase())
+                .append(entityName.toLowerCase(Locale.ROOT))
                 .append(" not found\")\n");
         sb.append("\t\t\treturn\n");
         sb.append("\t\t}\n");
         sb.append("\t\th.logger.Error(\"failed to delete ")
-                .append(entityName.toLowerCase())
+                .append(entityName.toLowerCase(Locale.ROOT))
                 .append("\", \"id\", id, \"error\", err)\n");
         sb.append("\t\twriteError(w, http.StatusInternalServerError, \"internal server error\")\n");
         sb.append("\t\treturn\n");

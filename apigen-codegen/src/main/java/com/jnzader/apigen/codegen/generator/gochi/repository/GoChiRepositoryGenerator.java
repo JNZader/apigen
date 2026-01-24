@@ -7,8 +7,10 @@ import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /** Generates repository layer using pgx (raw SQL, no ORM). */
+@SuppressWarnings("UnusedVariable") // Options field reserved for future feature flags
 public class GoChiRepositoryGenerator {
 
     private final GoChiTypeMapper typeMapper;
@@ -30,7 +32,8 @@ public class GoChiRepositoryGenerator {
 
         // Get columns for SQL generation
         List<SqlColumn> columns = getNonBaseColumns(table);
-        List<String> columnNames = columns.stream().map(c -> c.getName().toLowerCase()).toList();
+        List<String> columnNames =
+                columns.stream().map(c -> c.getName().toLowerCase(Locale.ROOT)).toList();
 
         sb.append("package repository\n\n");
 
@@ -51,7 +54,7 @@ public class GoChiRepositoryGenerator {
         sb.append("\tErr")
                 .append(entityName)
                 .append("NotFound = errors.New(\"")
-                .append(entityName.toLowerCase())
+                .append(entityName.toLowerCase(Locale.ROOT))
                 .append(" not found\")\n");
         sb.append(")\n\n");
 
@@ -290,7 +293,7 @@ public class GoChiRepositoryGenerator {
     private List<SqlColumn> getNonBaseColumns(SqlTable table) {
         List<SqlColumn> result = new ArrayList<>();
         for (SqlColumn col : table.getColumns()) {
-            String lower = col.getName().toLowerCase();
+            String lower = col.getName().toLowerCase(Locale.ROOT);
             if (!lower.equals("id")
                     && !lower.equals("created_at")
                     && !lower.equals("updated_at")
@@ -409,7 +412,7 @@ public class GoChiRepositoryGenerator {
             sb.append("\t\t\tid BIGSERIAL PRIMARY KEY,\n");
 
             for (SqlColumn col : table.getColumns()) {
-                String lower = col.getName().toLowerCase();
+                String lower = col.getName().toLowerCase(Locale.ROOT);
                 if (lower.equals("id")
                         || lower.equals("created_at")
                         || lower.equals("updated_at")
@@ -417,7 +420,7 @@ public class GoChiRepositoryGenerator {
                     continue;
                 }
                 sb.append("\t\t\t")
-                        .append(col.getName().toLowerCase())
+                        .append(col.getName().toLowerCase(Locale.ROOT))
                         .append(" ")
                         .append(mapToPostgresType(col));
                 if (!col.isNullable()) {

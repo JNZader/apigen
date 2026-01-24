@@ -4,6 +4,8 @@ import com.jnzader.apigen.codegen.generator.api.Feature;
 import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
 import com.jnzader.apigen.codegen.generator.api.ProjectGenerator;
+import com.jnzader.apigen.codegen.generator.php.auth.PhpJwtAuthGenerator;
+import com.jnzader.apigen.codegen.generator.php.auth.PhpRateLimitGenerator;
 import com.jnzader.apigen.codegen.generator.php.config.PhpConfigGenerator;
 import com.jnzader.apigen.codegen.generator.php.controller.PhpControllerGenerator;
 import com.jnzader.apigen.codegen.generator.php.migration.PhpMigrationGenerator;
@@ -53,7 +55,10 @@ public class PhpLaravelProjectGenerator implements ProjectGenerator {
                     Feature.OPENAPI,
                     Feature.DOCKER,
                     Feature.MANY_TO_ONE,
-                    Feature.ONE_TO_MANY);
+                    Feature.ONE_TO_MANY,
+                    // Security features
+                    Feature.JWT_AUTH,
+                    Feature.RATE_LIMITING);
 
     private final PhpTypeMapper typeMapper = new PhpTypeMapper();
 
@@ -184,13 +189,35 @@ public class PhpLaravelProjectGenerator implements ProjectGenerator {
         }
 
         // Generate configuration files
-        files.putAll(configGenerator.generate(schema, config));
+        boolean hasJwtAuth = config.isFeatureEnabled(Feature.JWT_AUTH);
+        boolean hasRateLimit = config.isFeatureEnabled(Feature.RATE_LIMITING);
+        files.putAll(configGenerator.generate(schema, config, hasJwtAuth, hasRateLimit));
+
+        // Generate security files
+        generateSecurityFiles(files, config);
 
         // Generate tests directory structure
         files.put("tests/Feature/.gitkeep", "");
         files.put("tests/Unit/.gitkeep", "");
 
         return files;
+    }
+
+    /** Generates security-related files based on enabled features. */
+    private void generateSecurityFiles(Map<String, String> files, ProjectConfig config) {
+        // JWT Authentication
+        if (config.isFeatureEnabled(Feature.JWT_AUTH)) {
+            PhpJwtAuthGenerator jwtGenerator = new PhpJwtAuthGenerator();
+            // 60 minute access token, 7 day refresh token
+            files.putAll(jwtGenerator.generate(60, 10080));
+        }
+
+        // Rate Limiting
+        if (config.isFeatureEnabled(Feature.RATE_LIMITING)) {
+            PhpRateLimitGenerator rateLimitGenerator = new PhpRateLimitGenerator();
+            // 60 requests per minute, no Redis by default
+            files.putAll(rateLimitGenerator.generate(60, false));
+        }
     }
 
     @Override

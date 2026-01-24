@@ -5,6 +5,7 @@ import com.jnzader.apigen.codegen.generator.php.PhpTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -41,22 +42,47 @@ public class PhpConfigGenerator {
      * @return map of file paths to content
      */
     public Map<String, String> generate(SqlSchema schema, ProjectConfig config) {
+        return generate(schema, config, false, false);
+    }
+
+    /**
+     * Generates all configuration files with security features.
+     *
+     * @param schema the SQL schema
+     * @param config the project configuration
+     * @param hasJwtAuth whether JWT authentication is enabled
+     * @param hasRateLimit whether rate limiting is enabled
+     * @return map of file paths to content
+     */
+    public Map<String, String> generate(
+            SqlSchema schema, ProjectConfig config, boolean hasJwtAuth, boolean hasRateLimit) {
         Map<String, String> files = new LinkedHashMap<>();
 
-        files.put("composer.json", generateComposerJson());
-        files.put("routes/api.php", generateApiRoutes(schema));
-        files.put(".env.example", generateEnvExample());
+        files.put("composer.json", generateComposerJson(hasJwtAuth, hasRateLimit));
+        files.put("routes/api.php", generateApiRoutes(schema, hasJwtAuth));
+        files.put(".env.example", generateEnvExample(hasJwtAuth, hasRateLimit));
         files.put(".gitignore", generateGitignore());
-        files.put("README.md", generateReadme());
+        files.put("README.md", generateReadme(hasJwtAuth, hasRateLimit));
         files.put("Dockerfile", generateDockerfile());
-        files.put("docker-compose.yml", generateDockerCompose());
+        files.put("docker-compose.yml", generateDockerCompose(hasRateLimit));
         files.put("config/api.php", generateApiConfig());
         files.put("app/Providers/AppServiceProvider.php", generateAppServiceProvider(schema));
 
         return files;
     }
 
-    private String generateComposerJson() {
+    @SuppressWarnings("UnusedVariable") // hasRateLimit reserved for future Redis dependencies
+    private String generateComposerJson(boolean hasJwtAuth, boolean hasRateLimit) {
+        StringBuilder require = new StringBuilder();
+        require.append("        \"php\": \"^").append(PHP_VERSION).append("\",\n");
+        require.append("        \"laravel/framework\": \"").append(LARAVEL_VERSION).append("\",\n");
+        require.append("        \"darkaonline/l5-swagger\": \"^8.6\",\n");
+        require.append("        \"spatie/laravel-query-builder\": \"^6.0\"");
+
+        if (hasJwtAuth) {
+            require.append(",\n        \"laravel/sanctum\": \"^4.0\"");
+        }
+
         return """
         {
             "name": "apigen/%s",
@@ -65,10 +91,7 @@ public class PhpConfigGenerator {
             "keywords": ["laravel", "api", "rest"],
             "license": "MIT",
             "require": {
-                "php": "^%s",
-                "laravel/framework": "%s",
-                "darkaonline/l5-swagger": "^8.6",
-                "spatie/laravel-query-builder": "^6.0"
+        %s
             },
             "require-dev": {
                 "fakerphp/faker": "^1.23",
@@ -121,10 +144,10 @@ public class PhpConfigGenerator {
             "prefer-stable": true
         }
         """
-                .formatted(projectName, PHP_VERSION, LARAVEL_VERSION);
+                .formatted(projectName, require);
     }
 
-    private String generateApiRoutes(SqlSchema schema) {
+    private String generateApiRoutes(SqlSchema schema, boolean hasJwtAuth) {
         StringBuilder sb = new StringBuilder();
 
         sb.append("<?php\n\n");
@@ -147,13 +170,25 @@ public class PhpConfigGenerator {
         // Health check
         sb.append("Route::get('/health', fn () => response()->json(['status' => 'healthy']));\n\n");
 
+        // Include auth routes if JWT is enabled
+        if (hasJwtAuth) {
+            sb.append("// Include authentication routes\n");
+            sb.append("require __DIR__ . '/auth.php';\n\n");
+        }
+
         // API v1 routes
-        sb.append("Route::prefix('v1')->group(function () {\n");
+        sb.append("Route::prefix('v1')");
+        if (hasJwtAuth) {
+            sb.append("->middleware('auth:sanctum')");
+        }
+        sb.append("->group(function () {\n");
 
         for (SqlTable table : schema.getEntityTables()) {
             String className = table.getEntityName();
             String pluralName =
-                    typeMapper.pluralize(typeMapper.toCamelCase(className)).toLowerCase();
+                    typeMapper
+                            .pluralize(typeMapper.toCamelCase(className))
+                            .toLowerCase(Locale.ROOT);
 
             sb.append("    // ").append(className).append(" routes\n");
             sb.append("    Route::apiResource('")
@@ -173,41 +208,64 @@ public class PhpConfigGenerator {
         return sb.toString();
     }
 
-    private String generateEnvExample() {
-        return """
-        APP_NAME=%s
-        APP_ENV=local
-        APP_KEY=
-        APP_DEBUG=true
-        APP_TIMEZONE=UTC
-        APP_URL=http://localhost:8000
+    private String generateEnvExample(boolean hasJwtAuth, boolean hasRateLimit) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("APP_NAME=").append(toPascalCase(projectName)).append("\n");
+        sb.append("APP_ENV=local\n");
+        sb.append("APP_KEY=\n");
+        sb.append("APP_DEBUG=true\n");
+        sb.append("APP_TIMEZONE=UTC\n");
+        sb.append("APP_URL=http://localhost:8000\n\n");
 
-        LOG_CHANNEL=stack
-        LOG_DEPRECATIONS_CHANNEL=null
-        LOG_LEVEL=debug
+        sb.append("LOG_CHANNEL=stack\n");
+        sb.append("LOG_DEPRECATIONS_CHANNEL=null\n");
+        sb.append("LOG_LEVEL=debug\n\n");
 
-        DB_CONNECTION=pgsql
-        DB_HOST=127.0.0.1
-        DB_PORT=5432
-        DB_DATABASE=%s
-        DB_USERNAME=postgres
-        DB_PASSWORD=postgres
+        sb.append("DB_CONNECTION=pgsql\n");
+        sb.append("DB_HOST=127.0.0.1\n");
+        sb.append("DB_PORT=5432\n");
+        sb.append("DB_DATABASE=").append(projectName).append("\n");
+        sb.append("DB_USERNAME=postgres\n");
+        sb.append("DB_PASSWORD=postgres\n\n");
 
-        BROADCAST_DRIVER=log
-        CACHE_DRIVER=file
-        FILESYSTEM_DISK=local
-        QUEUE_CONNECTION=sync
-        SESSION_DRIVER=file
-        SESSION_LIFETIME=120
+        sb.append("BROADCAST_DRIVER=log\n");
+        sb.append("CACHE_DRIVER=").append(hasRateLimit ? "redis" : "file").append("\n");
+        sb.append("FILESYSTEM_DISK=local\n");
+        sb.append("QUEUE_CONNECTION=sync\n");
+        sb.append("SESSION_DRIVER=file\n");
+        sb.append("SESSION_LIFETIME=120\n\n");
 
-        L5_SWAGGER_GENERATE_ALWAYS=true
-        L5_SWAGGER_CONST_HOST=http://localhost:8000/api
+        if (hasRateLimit) {
+            sb.append("# Redis Configuration\n");
+            sb.append("REDIS_HOST=127.0.0.1\n");
+            sb.append("REDIS_PASSWORD=null\n");
+            sb.append("REDIS_PORT=6379\n\n");
+        }
 
-        # Pagination
-        API_DEFAULT_PAGE_SIZE=10
-        API_MAX_PAGE_SIZE=100
-        """
-                .formatted(toPascalCase(projectName), projectName);
+        if (hasJwtAuth) {
+            sb.append("# JWT Authentication\n");
+            sb.append(
+                    "SANCTUM_STATEFUL_DOMAINS=localhost,localhost:3000,127.0.0.1,127.0.0.1:8000\n");
+            sb.append("JWT_ACCESS_EXPIRATION=60\n");
+            sb.append("JWT_REFRESH_EXPIRATION=10080\n\n");
+        }
+
+        if (hasRateLimit) {
+            sb.append("# Rate Limiting\n");
+            sb.append("RATE_LIMIT_API=60\n");
+            sb.append("RATE_LIMIT_AUTH=5\n");
+            sb.append("RATE_LIMIT_HEAVY=10\n");
+            sb.append("RATE_LIMIT_CACHE_DRIVER=redis\n\n");
+        }
+
+        sb.append("L5_SWAGGER_GENERATE_ALWAYS=true\n");
+        sb.append("L5_SWAGGER_CONST_HOST=http://localhost:8000/api\n\n");
+
+        sb.append("# Pagination\n");
+        sb.append("API_DEFAULT_PAGE_SIZE=10\n");
+        sb.append("API_MAX_PAGE_SIZE=100\n");
+
+        return sb.toString();
     }
 
     private String generateGitignore() {
@@ -235,70 +293,93 @@ public class PhpConfigGenerator {
         """;
     }
 
-    private String generateReadme() {
-        return """
-        # %s
+    private String generateReadme(boolean hasJwtAuth, boolean hasRateLimit) {
+        StringBuilder sb = new StringBuilder();
 
-        Generated Laravel API project.
+        sb.append("# ").append(toPascalCase(projectName)).append("\n\n");
+        sb.append("Generated Laravel API project.\n\n");
 
-        ## Requirements
+        sb.append("## Requirements\n\n");
+        sb.append("- PHP ").append(PHP_VERSION).append("+\n");
+        sb.append("- Composer 2.x\n");
+        sb.append("- PostgreSQL 15+\n");
+        if (hasRateLimit) {
+            sb.append("- Redis 7+ (for rate limiting)\n");
+        }
+        sb.append("\n");
 
-        - PHP %s+
-        - Composer 2.x
-        - PostgreSQL 15+
+        sb.append("## Setup\n\n");
+        sb.append("```bash\n");
+        sb.append("# Install dependencies\n");
+        sb.append("composer install\n\n");
+        sb.append("# Copy environment file\n");
+        sb.append("cp .env.example .env\n\n");
+        sb.append("# Generate application key\n");
+        sb.append("php artisan key:generate\n\n");
+        sb.append("# Run migrations\n");
+        sb.append("php artisan migrate\n\n");
+        sb.append("# Start development server\n");
+        sb.append("php artisan serve\n");
+        sb.append("```\n\n");
 
-        ## Setup
+        if (hasJwtAuth) {
+            sb.append("## Authentication\n\n");
+            sb.append("This API uses Laravel Sanctum for authentication.\n\n");
+            sb.append("### Endpoints\n\n");
+            sb.append("| Method | Endpoint | Description |\n");
+            sb.append("|--------|----------|-------------|\n");
+            sb.append("| POST | `/api/auth/register` | Register a new user |\n");
+            sb.append("| POST | `/api/auth/login` | Login and get tokens |\n");
+            sb.append("| POST | `/api/auth/refresh` | Refresh access token |\n");
+            sb.append("| POST | `/api/auth/logout` | Logout (revoke tokens) |\n");
+            sb.append("| GET | `/api/auth/profile` | Get current user |\n");
+            sb.append("| PUT | `/api/auth/password` | Change password |\n\n");
+            sb.append("### Usage\n\n");
+            sb.append("1. Register or login to get access token\n");
+            sb.append("2. Include the token in the Authorization header:\n");
+            sb.append("   ```\n");
+            sb.append("   Authorization: Bearer <access_token>\n");
+            sb.append("   ```\n\n");
+        }
 
-        ```bash
-        # Install dependencies
-        composer install
+        if (hasRateLimit) {
+            sb.append("## Rate Limiting\n\n");
+            sb.append("This API implements rate limiting to prevent abuse.\n\n");
+            sb.append("### Default Limits\n\n");
+            sb.append("| Tier | Limit | Window |\n");
+            sb.append("|------|-------|--------|\n");
+            sb.append("| API | 60 requests | 1 minute |\n");
+            sb.append("| Auth | 5 requests | 1 minute |\n");
+            sb.append("| Heavy | 10 requests | 1 minute |\n\n");
+        }
 
-        # Copy environment file
-        cp .env.example .env
+        sb.append("## API Documentation\n\n");
+        sb.append("- Swagger UI: http://localhost:8000/api/documentation\n\n");
+        sb.append("Generate Swagger docs:\n");
+        sb.append("```bash\n");
+        sb.append("php artisan l5-swagger:generate\n");
+        sb.append("```\n\n");
 
-        # Generate application key
-        php artisan key:generate
+        sb.append("## Testing\n\n");
+        sb.append("```bash\n");
+        sb.append("# Run tests\n");
+        sb.append("composer test\n\n");
+        sb.append("# Run tests with coverage\n");
+        sb.append("./vendor/bin/pest --coverage\n");
+        sb.append("```\n\n");
 
-        # Run migrations
-        php artisan migrate
+        sb.append("## Code Style\n\n");
+        sb.append("```bash\n");
+        sb.append("# Fix code style\n");
+        sb.append("composer lint\n");
+        sb.append("```\n\n");
 
-        # Start development server
-        php artisan serve
-        ```
+        sb.append("## Docker\n\n");
+        sb.append("```bash\n");
+        sb.append("docker-compose up -d\n");
+        sb.append("```\n");
 
-        ## API Documentation
-
-        - Swagger UI: http://localhost:8000/api/documentation
-
-        Generate Swagger docs:
-        ```bash
-        php artisan l5-swagger:generate
-        ```
-
-        ## Testing
-
-        ```bash
-        # Run tests
-        composer test
-
-        # Run tests with coverage
-        ./vendor/bin/pest --coverage
-        ```
-
-        ## Code Style
-
-        ```bash
-        # Fix code style
-        composer lint
-        ```
-
-        ## Docker
-
-        ```bash
-        docker-compose up -d
-        ```
-        """
-                .formatted(toPascalCase(projectName), PHP_VERSION);
+        return sb.toString();
     }
 
     private String generateDockerfile() {
@@ -342,63 +423,90 @@ public class PhpConfigGenerator {
                 .formatted(PHP_VERSION);
     }
 
-    private String generateDockerCompose() {
-        return """
-        services:
-          app:
-            build:
-              context: .
-              dockerfile: Dockerfile
-            container_name: %s_app
-            restart: unless-stopped
-            working_dir: /var/www
-            volumes:
-              - .:/var/www
-            networks:
-              - app-network
-            depends_on:
-              - db
+    private String generateDockerCompose(boolean hasRateLimit) {
+        StringBuilder sb = new StringBuilder();
 
-          nginx:
-            image: nginx:alpine
-            container_name: %s_nginx
-            restart: unless-stopped
-            ports:
-              - "8000:80"
-            volumes:
-              - .:/var/www
-              - ./docker/nginx:/etc/nginx/conf.d
-            networks:
-              - app-network
+        sb.append("services:\n");
+        sb.append("  app:\n");
+        sb.append("    build:\n");
+        sb.append("      context: .\n");
+        sb.append("      dockerfile: Dockerfile\n");
+        sb.append("    container_name: ").append(projectName).append("_app\n");
+        sb.append("    restart: unless-stopped\n");
+        sb.append("    working_dir: /var/www\n");
+        sb.append("    volumes:\n");
+        sb.append("      - .:/var/www\n");
+        sb.append("    networks:\n");
+        sb.append("      - app-network\n");
+        sb.append("    depends_on:\n");
+        sb.append("      - db\n");
+        if (hasRateLimit) {
+            sb.append("      - redis\n");
+        }
+        sb.append("\n");
 
-          db:
-            image: postgres:17-alpine
-            container_name: %s_db
-            restart: unless-stopped
-            environment:
-              POSTGRES_USER: postgres
-              POSTGRES_PASSWORD: postgres
-              POSTGRES_DB: %s
-            ports:
-              - "5432:5432"
-            volumes:
-              - postgres_data:/var/lib/postgresql/data
-            healthcheck:
-              test: ["CMD-SHELL", "pg_isready -U postgres"]
-              interval: 5s
-              timeout: 5s
-              retries: 5
-            networks:
-              - app-network
+        sb.append("  nginx:\n");
+        sb.append("    image: nginx:alpine\n");
+        sb.append("    container_name: ").append(projectName).append("_nginx\n");
+        sb.append("    restart: unless-stopped\n");
+        sb.append("    ports:\n");
+        sb.append("      - \"8000:80\"\n");
+        sb.append("    volumes:\n");
+        sb.append("      - .:/var/www\n");
+        sb.append("      - ./docker/nginx:/etc/nginx/conf.d\n");
+        sb.append("    networks:\n");
+        sb.append("      - app-network\n\n");
 
-        networks:
-          app-network:
-            driver: bridge
+        sb.append("  db:\n");
+        sb.append("    image: postgres:17-alpine\n");
+        sb.append("    container_name: ").append(projectName).append("_db\n");
+        sb.append("    restart: unless-stopped\n");
+        sb.append("    environment:\n");
+        sb.append("      POSTGRES_USER: postgres\n");
+        sb.append("      POSTGRES_PASSWORD: postgres\n");
+        sb.append("      POSTGRES_DB: ").append(projectName).append("\n");
+        sb.append("    ports:\n");
+        sb.append("      - \"5432:5432\"\n");
+        sb.append("    volumes:\n");
+        sb.append("      - postgres_data:/var/lib/postgresql/data\n");
+        sb.append("    healthcheck:\n");
+        sb.append("      test: [\"CMD-SHELL\", \"pg_isready -U postgres\"]\n");
+        sb.append("      interval: 5s\n");
+        sb.append("      timeout: 5s\n");
+        sb.append("      retries: 5\n");
+        sb.append("    networks:\n");
+        sb.append("      - app-network\n");
 
-        volumes:
-          postgres_data:
-        """
-                .formatted(projectName, projectName, projectName, projectName);
+        if (hasRateLimit) {
+            sb.append("\n");
+            sb.append("  redis:\n");
+            sb.append("    image: redis:7-alpine\n");
+            sb.append("    container_name: ").append(projectName).append("_redis\n");
+            sb.append("    restart: unless-stopped\n");
+            sb.append("    ports:\n");
+            sb.append("      - \"6379:6379\"\n");
+            sb.append("    volumes:\n");
+            sb.append("      - redis_data:/data\n");
+            sb.append("    healthcheck:\n");
+            sb.append("      test: [\"CMD\", \"redis-cli\", \"ping\"]\n");
+            sb.append("      interval: 5s\n");
+            sb.append("      timeout: 5s\n");
+            sb.append("      retries: 5\n");
+            sb.append("    networks:\n");
+            sb.append("      - app-network\n");
+        }
+
+        sb.append("\nnetworks:\n");
+        sb.append("  app-network:\n");
+        sb.append("    driver: bridge\n");
+
+        sb.append("\nvolumes:\n");
+        sb.append("  postgres_data:\n");
+        if (hasRateLimit) {
+            sb.append("  redis_data:\n");
+        }
+
+        return sb.toString();
     }
 
     private String generateApiConfig() {
@@ -477,9 +585,12 @@ public class PhpConfigGenerator {
 
     private String toSnakeCase(String name) {
         if (name == null) return "";
-        return name.replaceAll("([a-z])([A-Z])", "$1_$2").replaceAll("[.-]", "_").toLowerCase();
+        return name.replaceAll("([a-z])([A-Z])", "$1_$2")
+                .replaceAll("[.-]", "_")
+                .toLowerCase(Locale.ROOT);
     }
 
+    @SuppressWarnings("LoopOverCharArray")
     private String toPascalCase(String name) {
         if (name == null || name.isEmpty()) return name;
         StringBuilder result = new StringBuilder();

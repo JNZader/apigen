@@ -15,6 +15,7 @@
  */
 package com.jnzader.apigen.codegen.generator.rust;
 
+import com.jnzader.apigen.codegen.generator.api.Feature;
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
 import java.util.Map;
 
@@ -57,6 +58,7 @@ public record RustAxumOptions(
         // Auth/Security
         boolean useJwt,
         boolean useArgon2,
+        boolean useRateLimiting,
 
         // Observability
         boolean useTracing,
@@ -81,6 +83,7 @@ public record RustAxumOptions(
                 false, // useNdarray
                 true, // useJwt
                 true, // useArgon2
+                true, // useRateLimiting
                 true, // useTracing
                 true, // useOpenTelemetry
                 true, // useDocker
@@ -103,6 +106,7 @@ public record RustAxumOptions(
                 false, // useNdarray
                 true, // useJwt
                 true, // useArgon2
+                true, // useRateLimiting
                 true, // useTracing
                 true, // useOpenTelemetry
                 true, // useDocker
@@ -125,6 +129,7 @@ public record RustAxumOptions(
                 true, // useNdarray
                 false, // useJwt
                 false, // useArgon2
+                false, // useRateLimiting (edge anomaly doesn't need rate limiting)
                 true, // useTracing
                 false, // useOpenTelemetry
                 true, // useDocker
@@ -147,6 +152,7 @@ public record RustAxumOptions(
                 true, // useNdarray
                 true, // useJwt
                 true, // useArgon2
+                true, // useRateLimiting
                 true, // useTracing
                 true, // useOpenTelemetry
                 true, // useDocker
@@ -160,17 +166,29 @@ public record RustAxumOptions(
      * @param config the project configuration
      * @return configured options
      */
+    @SuppressWarnings("java:S1541") // Cognitive complexity is acceptable for builder pattern
     public static RustAxumOptions fromConfig(ProjectConfig config) {
         Map<String, Object> options = config.getOptions();
 
         String preset = getStringOption(options, "preset", "cloud");
         RustAxumOptions base =
-                switch (preset.toLowerCase()) {
+                switch (preset.toLowerCase(java.util.Locale.ROOT)) {
                     case "edge-gateway" -> edgeGatewayDefaults();
                     case "edge-anomaly" -> edgeAnomalyDefaults();
                     case "edge-ai" -> edgeAiDefaults();
                     default -> cloudDefaults();
                 };
+
+        // Check for Feature flags (Feature.JWT_AUTH enables jwt and argon2)
+        boolean jwtEnabled =
+                config.isFeatureEnabled(Feature.JWT_AUTH)
+                        || getBoolOption(options, "useJwt", base.useJwt());
+        boolean argon2Enabled = jwtEnabled || getBoolOption(options, "useArgon2", base.useArgon2());
+
+        // Check for Feature.RATE_LIMITING
+        boolean rateLimitEnabled =
+                config.isFeatureEnabled(Feature.RATE_LIMITING)
+                        || getBoolOption(options, "useRateLimiting", base.useRateLimiting());
 
         return new RustAxumOptions(
                 getBoolOption(options, "usePostgres", base.usePostgres()),
@@ -183,8 +201,9 @@ public record RustAxumOptions(
                 getBoolOption(options, "useOnnx", base.useOnnx()),
                 getBoolOption(options, "useTokenizers", base.useTokenizers()),
                 getBoolOption(options, "useNdarray", base.useNdarray()),
-                getBoolOption(options, "useJwt", base.useJwt()),
-                getBoolOption(options, "useArgon2", base.useArgon2()),
+                jwtEnabled,
+                argon2Enabled,
+                rateLimitEnabled,
                 getBoolOption(options, "useTracing", base.useTracing()),
                 getBoolOption(options, "useOpenTelemetry", base.useOpenTelemetry()),
                 getBoolOption(options, "useDocker", base.useDocker()),

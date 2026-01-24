@@ -28,6 +28,7 @@ import java.util.List;
  * @author APiGen
  * @since 2.12.0
  */
+@SuppressWarnings("UnusedVariable") // typeMapper reserved for future type generation
 public class RustConfigGenerator {
 
     private final RustTypeMapper typeMapper;
@@ -149,6 +150,11 @@ public class RustConfigGenerator {
         // Argon2
         if (options.useArgon2()) {
             sb.append("argon2 = \"0.5\"\n");
+        }
+
+        // Rate limiting
+        if (options.useRateLimiting()) {
+            sb.append("governor = \"0.7\"\n");
         }
 
         // OpenTelemetry
@@ -548,7 +554,7 @@ public class RustConfigGenerator {
         sb.append("pub mod handlers;\n");
         sb.append("pub mod router;\n");
 
-        if (options.useJwt()) {
+        if (options.useJwt() || options.useArgon2() || options.useRateLimiting()) {
             sb.append("pub mod middleware;\n");
         }
 

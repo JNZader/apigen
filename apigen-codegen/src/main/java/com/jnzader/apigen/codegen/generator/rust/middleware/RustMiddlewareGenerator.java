@@ -24,6 +24,7 @@ import com.jnzader.apigen.codegen.generator.rust.RustTypeMapper;
  * @author APiGen
  * @since 2.12.0
  */
+@SuppressWarnings("UnusedVariable") // typeMapper reserved for future middleware types
 public class RustMiddlewareGenerator {
 
     private final RustTypeMapper typeMapper;
@@ -54,6 +55,11 @@ public class RustMiddlewareGenerator {
         if (options.useArgon2()) {
             sb.append("mod password;\n");
             sb.append("pub use password::*;\n");
+        }
+
+        if (options.useRateLimiting()) {
+            sb.append("mod rate_limit;\n");
+            sb.append("pub use rate_limit::*;\n");
         }
 
         return sb.toString();
@@ -233,6 +239,137 @@ public class RustMiddlewareGenerator {
         sb.append("    let parsed_hash = PasswordHash::new(hash)?;\n");
         sb.append("    let argon2 = Argon2::default();\n");
         sb.append("    Ok(argon2.verify_password(password.as_bytes(), &parsed_hash).is_ok())\n");
+        sb.append("}\n");
+
+        return sb.toString();
+    }
+
+    /**
+     * Generates the rate limiting middleware using governor crate.
+     *
+     * @return the rate limit module content
+     */
+    public String generateRateLimitMiddleware() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("//! Rate limiting middleware using governor.\n\n");
+
+        sb.append("use axum::{\n");
+        sb.append("    body::Body,\n");
+        sb.append("    extract::{ConnectInfo, Request},\n");
+        sb.append("    http::StatusCode,\n");
+        sb.append("    middleware::Next,\n");
+        sb.append("    response::{IntoResponse, Response},\n");
+        sb.append("};\n");
+        sb.append("use governor::{\n");
+        sb.append("    clock::DefaultClock,\n");
+        sb.append("    state::{InMemoryState, NotKeyed},\n");
+        sb.append("    Quota, RateLimiter,\n");
+        sb.append("};\n");
+        sb.append("use std::{\n");
+        sb.append("    collections::HashMap,\n");
+        sb.append("    net::SocketAddr,\n");
+        sb.append("    num::NonZeroU32,\n");
+        sb.append("    sync::{Arc, RwLock},\n");
+        sb.append("    time::Duration,\n");
+        sb.append("};\n\n");
+
+        // Type aliases
+        sb.append("/// Per-IP rate limiter type.\n");
+        sb.append(
+                "pub type IpRateLimiter = RateLimiter<NotKeyed, InMemoryState, DefaultClock>;\n\n");
+
+        // Rate limiter store
+        sb.append("/// Store for per-IP rate limiters.\n");
+        sb.append("#[derive(Clone)]\n");
+        sb.append("pub struct RateLimiterStore {\n");
+        sb.append("    limiters: Arc<RwLock<HashMap<String, Arc<IpRateLimiter>>>>,\n");
+        sb.append("    quota: Quota,\n");
+        sb.append("}\n\n");
+
+        sb.append("impl RateLimiterStore {\n");
+        sb.append("    /// Creates a new rate limiter store.\n");
+        sb.append("    pub fn new(requests_per_second: u32, burst_size: u32) -> Self {\n");
+        sb.append("        let quota = Quota::per_second(NonZeroU32::new(requests_per_second)");
+        sb.append(".expect(\"rate must be > 0\"))\n");
+        sb.append(
+                "            .allow_burst(NonZeroU32::new(burst_size).expect(\"burst must >"
+                        + " 0\"));\n");
+        sb.append("        Self {\n");
+        sb.append("            limiters: Arc::new(RwLock::new(HashMap::new())),\n");
+        sb.append("            quota,\n");
+        sb.append("        }\n");
+        sb.append("    }\n\n");
+
+        sb.append("    /// Gets or creates a rate limiter for the given IP.\n");
+        sb.append("    pub fn get_limiter(&self, ip: &str) -> Arc<IpRateLimiter> {\n");
+        sb.append("        // Try read lock first\n");
+        sb.append("        {\n");
+        sb.append("            let read = self.limiters.read().unwrap();\n");
+        sb.append("            if let Some(limiter) = read.get(ip) {\n");
+        sb.append("                return Arc::clone(limiter);\n");
+        sb.append("            }\n");
+        sb.append("        }\n\n");
+        sb.append("        // Need to create new limiter\n");
+        sb.append("        let mut write = self.limiters.write().unwrap();\n");
+        sb.append("        // Double-check after acquiring write lock\n");
+        sb.append("        if let Some(limiter) = write.get(ip) {\n");
+        sb.append("            return Arc::clone(limiter);\n");
+        sb.append("        }\n\n");
+        sb.append("        let limiter = Arc::new(RateLimiter::direct(self.quota.clone()));\n");
+        sb.append("        write.insert(ip.to_string(), Arc::clone(&limiter));\n");
+        sb.append("        limiter\n");
+        sb.append("    }\n");
+        sb.append("}\n\n");
+
+        // Rate limit error response
+        sb.append("/// Rate limit exceeded error response.\n");
+        sb.append("#[derive(serde::Serialize)]\n");
+        sb.append("pub struct RateLimitError {\n");
+        sb.append("    pub error: String,\n");
+        sb.append("    pub retry_after_seconds: u64,\n");
+        sb.append("}\n\n");
+
+        sb.append("impl IntoResponse for RateLimitError {\n");
+        sb.append("    fn into_response(self) -> Response {\n");
+        sb.append("        let body = serde_json::to_string(&self).unwrap_or_default();\n");
+        sb.append("        Response::builder()\n");
+        sb.append("            .status(StatusCode::TOO_MANY_REQUESTS)\n");
+        sb.append("            .header(\"Content-Type\", \"application/json\")\n");
+        sb.append("            .header(\"Retry-After\", self.retry_after_seconds.to_string())\n");
+        sb.append("            .body(Body::from(body))\n");
+        sb.append("            .unwrap()\n");
+        sb.append("    }\n");
+        sb.append("}\n\n");
+
+        // Middleware function
+        sb.append("/// Rate limiting middleware.\n");
+        sb.append("pub async fn rate_limit(\n");
+        sb.append("    ConnectInfo(addr): ConnectInfo<SocketAddr>,\n");
+        sb.append("    axum::Extension(store): axum::Extension<RateLimiterStore>,\n");
+        sb.append("    request: Request,\n");
+        sb.append("    next: Next,\n");
+        sb.append(") -> Result<Response, RateLimitError> {\n");
+        sb.append("    let ip = addr.ip().to_string();\n");
+        sb.append("    let limiter = store.get_limiter(&ip);\n\n");
+
+        sb.append("    match limiter.check() {\n");
+        sb.append("        Ok(_) => Ok(next.run(request).await),\n");
+        sb.append("        Err(not_until) => {\n");
+        sb.append(
+                "            let wait_time = not_until.wait_time_from(DefaultClock::default());\n");
+        sb.append("            Err(RateLimitError {\n");
+        sb.append("                error: \"Rate limit exceeded\".to_string(),\n");
+        sb.append("                retry_after_seconds: wait_time.as_secs(),\n");
+        sb.append("            })\n");
+        sb.append("        }\n");
+        sb.append("    }\n");
+        sb.append("}\n\n");
+
+        // Builder function
+        sb.append("/// Creates a rate limiter layer with the given configuration.\n");
+        sb.append("pub fn rate_limiter_layer(requests_per_second: u32, burst_size: u32) -> ");
+        sb.append("axum::Extension<RateLimiterStore> {\n");
+        sb.append("    axum::Extension(RateLimiterStore::new(requests_per_second, burst_size))\n");
         sb.append("}\n");
 
         return sb.toString();

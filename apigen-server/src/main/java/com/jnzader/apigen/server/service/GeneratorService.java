@@ -19,6 +19,7 @@ import com.jnzader.apigen.codegen.generator.rust.RustAxumProjectGenerator;
 import com.jnzader.apigen.codegen.generator.typescript.TypeScriptNestJsProjectGenerator;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.parser.SqlSchemaParser;
+import com.jnzader.apigen.codegen.parser.openapi.OpenApiParser;
 import com.jnzader.apigen.server.dto.GenerateRequest;
 import com.jnzader.apigen.server.dto.GenerateResponse;
 import com.jnzader.apigen.server.service.generator.ApiTestingGenerator;
@@ -34,6 +35,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -50,6 +52,7 @@ import org.springframework.stereotype.Service;
 public class GeneratorService {
 
     private final SqlSchemaParser schemaParser;
+    private final OpenApiParser openApiParser;
     private final BuildConfigGenerator buildConfigGenerator;
     private final ApplicationConfigGenerator applicationConfigGenerator;
     private final ProjectStructureGenerator projectStructureGenerator;
@@ -61,6 +64,7 @@ public class GeneratorService {
 
     public GeneratorService() {
         this.schemaParser = new SqlSchemaParser();
+        this.openApiParser = new OpenApiParser();
         this.buildConfigGenerator = new BuildConfigGenerator();
         this.applicationConfigGenerator = new ApplicationConfigGenerator();
         this.projectStructureGenerator = new ProjectStructureGenerator();
@@ -123,8 +127,17 @@ public class GeneratorService {
         Path tempDir = Files.createTempDirectory("apigen-" + artifactId);
 
         try {
-            log.info("Parsing SQL schema...");
-            SqlSchema schema = schemaParser.parseString(sql);
+            // Parse schema from either SQL or OpenAPI spec
+            SqlSchema schema;
+            String openApiSpec = request.getOpenApiSpec();
+
+            if (openApiSpec != null && !openApiSpec.isBlank()) {
+                log.info("Parsing OpenAPI specification...");
+                schema = openApiParser.parse(openApiSpec);
+            } else {
+                log.info("Parsing SQL schema...");
+                schema = schemaParser.parseString(sql);
+            }
 
             log.info(
                     "Found {} tables, {} junction tables",
@@ -207,6 +220,25 @@ public class GeneratorService {
             if (features.isCaching()) enabledFeatures.add(Feature.CACHING);
             if (features.isSwagger()) enabledFeatures.add(Feature.OPENAPI);
             if (features.isDocker()) enabledFeatures.add(Feature.DOCKER);
+
+            // Feature Pack 2025
+            if (features.isSocialLogin()) enabledFeatures.add(Feature.SOCIAL_LOGIN);
+            if (features.isPasswordReset()) enabledFeatures.add(Feature.PASSWORD_RESET);
+            if (features.isMailService()) enabledFeatures.add(Feature.MAIL_SERVICE);
+            if (features.isFileUpload()) {
+                enabledFeatures.add(Feature.FILE_UPLOAD);
+                // Check storage type for S3 or Azure
+                GenerateRequest.StorageConfig storageConfig = reqConfig.getStorageConfig();
+                if (storageConfig != null) {
+                    String storageType = storageConfig.getType().toLowerCase(Locale.ROOT);
+                    if ("s3".equals(storageType)) {
+                        enabledFeatures.add(Feature.S3_STORAGE);
+                    } else if ("azure".equals(storageType)) {
+                        enabledFeatures.add(Feature.AZURE_STORAGE);
+                    }
+                }
+            }
+            if (features.isJteTemplates()) enabledFeatures.add(Feature.JTE_TEMPLATES);
         }
 
         // Map database config
@@ -251,7 +283,15 @@ public class GeneratorService {
         List<String> errors = new ArrayList<>();
 
         try {
-            SqlSchema schema = schemaParser.parseString(request.getSql());
+            // Parse schema from either SQL or OpenAPI spec
+            SqlSchema schema;
+            String openApiSpec = request.getOpenApiSpec();
+
+            if (openApiSpec != null && !openApiSpec.isBlank()) {
+                schema = openApiParser.parse(openApiSpec);
+            } else {
+                schema = schemaParser.parseString(request.getSql());
+            }
 
             if (schema.getEntityTables().isEmpty()) {
                 errors.add("No valid entity tables found in SQL schema");
@@ -378,6 +418,7 @@ public class GeneratorService {
     }
 
     /** Generates Java-specific project files (build.gradle, Application.java, etc.). */
+    @SuppressWarnings("UnusedVariable") // schema reserved for future migration generation
     private void generateJavaProjectFiles(
             Path projectRoot, GenerateRequest.ProjectConfig config, SqlSchema schema)
             throws IOException {
@@ -430,6 +471,7 @@ public class GeneratorService {
     }
 
     /** Generates Kotlin-specific project files (build.gradle.kts, Application.kt, etc.). */
+    @SuppressWarnings("UnusedVariable") // schema reserved for future migration generation
     private void generateKotlinProjectFiles(
             Path projectRoot, GenerateRequest.ProjectConfig config, SqlSchema schema)
             throws IOException {
@@ -482,6 +524,7 @@ public class GeneratorService {
     }
 
     /** Generates C#-specific project files (appsettings.json already generated by codegen). */
+    @SuppressWarnings("UnusedVariable") // config reserved for future SDK version configuration
     private void generateCSharpProjectFiles(Path projectRoot, GenerateRequest.ProjectConfig config)
             throws IOException {
         // C# projects have their config files generated by CSharpConfigGenerator

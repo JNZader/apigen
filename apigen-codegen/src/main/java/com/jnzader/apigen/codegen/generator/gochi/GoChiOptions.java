@@ -1,5 +1,6 @@
 package com.jnzader.apigen.codegen.generator.gochi;
 
+import com.jnzader.apigen.codegen.generator.api.Feature;
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
 import java.util.Map;
 
@@ -74,13 +75,39 @@ public record GoChiOptions(
     /** Parse options from project config options. */
     public static GoChiOptions fromConfig(ProjectConfig config) {
         Map<String, Object> options = config.getOptions();
-        if (options == null || options.isEmpty()) {
-            return cloudDefaults();
-        }
 
         // Check for preset
-        String preset = getStringOption(options, "preset", "cloud");
+        String preset = options != null ? getStringOption(options, "preset", "cloud") : "cloud";
         GoChiOptions base = "edge".equalsIgnoreCase(preset) ? edgeDefaults() : cloudDefaults();
+
+        // Check for Feature flags (Feature.JWT_AUTH enables jwt and bcrypt)
+        boolean jwtEnabled =
+                config.isFeatureEnabled(Feature.JWT_AUTH)
+                        || (options != null && getBoolOption(options, "jwt", base.useJwt()));
+        boolean bcryptEnabled =
+                jwtEnabled
+                        || (options != null && getBoolOption(options, "bcrypt", base.useBcrypt()));
+
+        // Check for Feature.RATE_LIMITING (rate limiting is always built-in for Chi)
+        // Feature flag doesn't change behavior since rate limiting is already included
+        // but enables the feature in the supported features list
+
+        if (options == null || options.isEmpty()) {
+            // Return defaults with Feature flag overrides
+            return new GoChiOptions(
+                    base.usePostgres(),
+                    base.useSqlite(),
+                    base.useTimescaleDb(),
+                    base.useMultiTenant(),
+                    base.useRedis(),
+                    base.useNats(),
+                    base.useMqtt(),
+                    jwtEnabled,
+                    bcryptEnabled,
+                    base.useOpenTelemetry(),
+                    base.postgresSchema(),
+                    base.useRls());
+        }
 
         // Override with specific options
         return new GoChiOptions(
@@ -91,8 +118,8 @@ public record GoChiOptions(
                 getBoolOption(options, "redis", base.useRedis()),
                 getBoolOption(options, "nats", base.useNats()),
                 getBoolOption(options, "mqtt", base.useMqtt()),
-                getBoolOption(options, "jwt", base.useJwt()),
-                getBoolOption(options, "bcrypt", base.useBcrypt()),
+                jwtEnabled,
+                bcryptEnabled,
                 getBoolOption(options, "opentelemetry", base.useOpenTelemetry()),
                 getStringOption(options, "postgresSchema", base.postgresSchema()),
                 getBoolOption(options, "rls", base.useRls()));

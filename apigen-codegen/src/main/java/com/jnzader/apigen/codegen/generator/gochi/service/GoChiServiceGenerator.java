@@ -4,8 +4,10 @@ import com.jnzader.apigen.codegen.generator.gochi.GoChiOptions;
 import com.jnzader.apigen.codegen.generator.gochi.GoChiTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlTable;
+import java.util.Locale;
 
 /** Generates service layer for Go/Chi. */
+@SuppressWarnings("UnusedVariable") // Options field reserved for future feature flags
 public class GoChiServiceGenerator {
 
     private final GoChiTypeMapper typeMapper;
@@ -43,7 +45,7 @@ public class GoChiServiceGenerator {
         sb.append("\tErr")
                 .append(entityName)
                 .append("NotFound = errors.New(\"")
-                .append(entityName.toLowerCase())
+                .append(entityName.toLowerCase(Locale.ROOT))
                 .append(" not found\")\n");
         sb.append(")\n\n");
 
@@ -264,7 +266,7 @@ public class GoChiServiceGenerator {
     }
 
     private boolean isBaseField(String columnName) {
-        String lower = columnName.toLowerCase();
+        String lower = columnName.toLowerCase(Locale.ROOT);
         return lower.equals("id")
                 || lower.equals("created_at")
                 || lower.equals("updated_at")
