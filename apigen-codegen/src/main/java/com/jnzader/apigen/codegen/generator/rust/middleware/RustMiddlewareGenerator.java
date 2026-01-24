@@ -261,7 +261,7 @@ public class RustMiddlewareGenerator {
         sb.append("    response::{IntoResponse, Response},\n");
         sb.append("};\n");
         sb.append("use governor::{\n");
-        sb.append("    clock::DefaultClock,\n");
+        sb.append("    clock::{Clock, DefaultClock},\n");
         sb.append("    state::{InMemoryState, NotKeyed},\n");
         sb.append("    Quota, RateLimiter,\n");
         sb.append("};\n");
@@ -356,7 +356,8 @@ public class RustMiddlewareGenerator {
         sb.append("        Ok(_) => Ok(next.run(request).await),\n");
         sb.append("        Err(not_until) => {\n");
         sb.append(
-                "            let wait_time = not_until.wait_time_from(DefaultClock::default());\n");
+                "            let wait_time ="
+                        + " not_until.wait_time_from(DefaultClock::default().now());\n");
         sb.append("            Err(RateLimitError {\n");
         sb.append("                error: \"Rate limit exceeded\".to_string(),\n");
         sb.append("                retry_after_seconds: wait_time.as_secs(),\n");
