@@ -115,7 +115,7 @@ public class GoServiceGenerator {
         sb.append("\t\t}\n");
         sb.append("\t\treturn nil, err\n");
         sb.append("\t}\n");
-        sb.append("\treturn toResponse(entity), nil\n");
+        sb.append("\treturn to").append(entityName).append("Response(entity), nil\n");
         sb.append("}\n\n");
 
         // GetAll
@@ -136,7 +136,7 @@ public class GoServiceGenerator {
                 .append(entityName)
                 .append("Response, len(entities))\n");
         sb.append("\tfor i, entity := range entities {\n");
-        sb.append("\t\tresponses[i] = *toResponse(&entity)\n");
+        sb.append("\t\tresponses[i] = *to").append(entityName).append("Response(&entity)\n");
         sb.append("\t}\n\n");
         sb.append("\treturn dto.NewPaginatedResponse(responses, page, size, total), nil\n");
         sb.append("}\n\n");
@@ -150,11 +150,11 @@ public class GoServiceGenerator {
                 .append("Request) (*dto.")
                 .append(entityName)
                 .append("Response, error) {\n");
-        sb.append("\tentity := toEntity(req)\n");
+        sb.append("\tentity := to").append(entityName).append("Entity(req)\n");
         sb.append("\tif err := s.repo.Create(ctx, entity); err != nil {\n");
         sb.append("\t\treturn nil, err\n");
         sb.append("\t}\n");
-        sb.append("\treturn toResponse(entity), nil\n");
+        sb.append("\treturn to").append(entityName).append("Response(entity), nil\n");
         sb.append("}\n\n");
 
         // Update
@@ -175,11 +175,11 @@ public class GoServiceGenerator {
         sb.append("\t\t}\n");
         sb.append("\t\treturn nil, err\n");
         sb.append("\t}\n\n");
-        sb.append("\tupdateEntity(entity, req)\n");
+        sb.append("\tupdate").append(entityName).append("Entity(entity, req)\n");
         sb.append("\tif err := s.repo.Update(ctx, entity); err != nil {\n");
         sb.append("\t\treturn nil, err\n");
         sb.append("\t}\n");
-        sb.append("\treturn toResponse(entity), nil\n");
+        sb.append("\treturn to").append(entityName).append("Response(entity), nil\n");
         sb.append("}\n\n");
 
         // Delete
@@ -194,9 +194,13 @@ public class GoServiceGenerator {
         sb.append("\treturn err\n");
         sb.append("}\n\n");
 
-        // Mapper functions
-        sb.append("// toEntity converts a create request to an entity.\n");
-        sb.append("func toEntity(req *dto.Create")
+        // Mapper functions (entity-specific to avoid redeclaration in same package)
+        sb.append("// to")
+                .append(entityName)
+                .append("Entity converts a create request to an entity.\n");
+        sb.append("func to")
+                .append(entityName)
+                .append("Entity(req *dto.Create")
                 .append(entityName)
                 .append("Request) *models.")
                 .append(entityName)
@@ -206,8 +210,12 @@ public class GoServiceGenerator {
         sb.append("\t}\n");
         sb.append("}\n\n");
 
-        sb.append("// updateEntity updates entity fields from an update request.\n");
-        sb.append("func updateEntity(entity *models.")
+        sb.append("// update")
+                .append(entityName)
+                .append("Entity updates entity fields from an update request.\n");
+        sb.append("func update")
+                .append(entityName)
+                .append("Entity(entity *models.")
                 .append(entityName)
                 .append(", req *dto.Update")
                 .append(entityName)
@@ -215,8 +223,12 @@ public class GoServiceGenerator {
         appendUpdateMappings(sb, table);
         sb.append("}\n\n");
 
-        sb.append("// toResponse converts an entity to a response DTO.\n");
-        sb.append("func toResponse(entity *models.")
+        sb.append("// to")
+                .append(entityName)
+                .append("Response converts an entity to a response DTO.\n");
+        sb.append("func to")
+                .append(entityName)
+                .append("Response(entity *models.")
                 .append(entityName)
                 .append(") *dto.")
                 .append(entityName)

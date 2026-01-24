@@ -308,7 +308,7 @@ public class GoConfigGenerator {
         func autoMigrate(db *gorm.DB) error {
         	return db.AutoMigrate(
         		// Add your models here
-        		&models.Base{},
+        		&models.BaseModel{},
         	)
         }
         """

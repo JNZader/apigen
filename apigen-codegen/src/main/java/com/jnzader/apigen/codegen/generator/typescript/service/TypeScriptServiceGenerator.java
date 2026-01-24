@@ -206,13 +206,13 @@ public class TypeScriptServiceGenerator {
                 .append(className)
                 .append("ResponseDto {\n");
         sb.append("    return {\n");
+        sb.append("      ...entity,\n");
         sb.append("      id: entity.id,\n");
         sb.append("      activo: entity.activo,\n");
         sb.append("      createdAt: entity.createdAt,\n");
         sb.append("      updatedAt: entity.updatedAt,\n");
         sb.append("      createdBy: entity.createdBy,\n");
         sb.append("      updatedBy: entity.updatedBy,\n");
-        sb.append("      ...entity,\n");
         sb.append("    } as ").append(className).append("ResponseDto;\n");
         sb.append("  }\n");
 
