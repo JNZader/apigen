@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.16.0](https://github.com/JNZader/apigen/compare/v2.15.1...v2.16.0) (2026-01-24)
+
+### Features
+
+* **codegen:** add test generator for Go/Chi projects ([4d4efe8](https://github.com/JNZader/apigen/commit/4d4efe8dd5d1d312be519a85fd5994c6fcc86599))
+* **codegen:** add test generators for all language frameworks ([ac0d5d3](https://github.com/JNZader/apigen/commit/ac0d5d31e9f5c9bab5b16ac6121365ea4002e907))
+
 ## [2.15.1](https://github.com/JNZader/apigen/compare/v2.15.0...v2.15.1) (2026-01-24)
 
 ### Bug Fixes
