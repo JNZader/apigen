@@ -119,8 +119,8 @@ public class TypeScriptControllerGenerator {
                 .append(className)
                 .append("ResponseDto>> {\n");
         sb.append(
-                "    return this.service.findAll(+page, +size, includeInactive === true ||"
-                        + " includeInactive === 'true');\n");
+                "    return this.service.findAll(+page, +size,"
+                        + " String(includeInactive) === 'true');\n");
         sb.append("  }\n\n");
 
         // GET by ID (show)

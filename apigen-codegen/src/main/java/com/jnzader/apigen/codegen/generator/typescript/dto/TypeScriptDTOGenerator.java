@@ -154,7 +154,7 @@ public class TypeScriptDTOGenerator {
         sb.append("import { ");
         sb.append(String.join(", ", apiDecorators));
         sb.append(" } from '@nestjs/swagger';\n");
-        sb.append("import { BaseResponseDto } from './base-response.dto';\n");
+        sb.append("import { BaseResponseDto } from '../../../dto/base-response.dto';\n");
         sb.append("\n");
 
         // Class definition

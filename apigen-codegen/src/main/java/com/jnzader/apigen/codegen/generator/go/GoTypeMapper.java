@@ -368,7 +368,11 @@ public class GoTypeMapper implements LanguageTypeMapper {
         if (name == null || name.isEmpty()) {
             return name;
         }
-        return name.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase();
+        // Replace spaces and hyphens with underscores, then convert camelCase to snake_case
+        return name.replaceAll("[\\s-]+", "_")
+                .replaceAll("([a-z])([A-Z])", "$1_$2")
+                .toLowerCase()
+                .replaceAll("_+", "_"); // Normalize multiple underscores
     }
 
     /**
