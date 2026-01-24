@@ -416,6 +416,199 @@ class GeneratedProjectCompilationIT {
         }
     }
 
+    @Test
+    @DisplayName("Generated Python/FastAPI project should pass syntax check")
+    @EnabledIfEnvironmentVariable(named = "CI_COMPILE_GENERATED_PROJECT", matches = "true")
+    void generatedPythonProjectShouldCompile() throws IOException, InterruptedException {
+        // Load Python fixture
+        GenerateRequest request = loadFixture("fixtures/blog-api-python.json");
+        String artifactId = request.getProject().getArtifactId();
+
+        // Generate Python project
+        byte[] zipBytes = generatorService.generateProject(request);
+
+        // Extract to temp directory
+        extractZipToDirectory(zipBytes, tempDir);
+
+        Path projectDir = tempDir.resolve(artifactId);
+
+        // Run Python syntax check on all .py files
+        ProcessBuilder pb =
+                new ProcessBuilder("python", "-m", "py_compile")
+                        .directory(projectDir.toFile())
+                        .redirectErrorStream(true);
+
+        // Find all Python files and check syntax
+        StringBuilder allOutput = new StringBuilder();
+        boolean allPassed = true;
+
+        try (var paths = Files.walk(projectDir)) {
+            for (Path pyFile : paths.filter(p -> p.toString().endsWith(".py")).toList()) {
+                ProcessBuilder syntaxCheck =
+                        new ProcessBuilder("python", "-m", "py_compile", pyFile.toString())
+                                .directory(projectDir.toFile())
+                                .redirectErrorStream(true);
+
+                Process process = syntaxCheck.start();
+                StringBuilder output = new StringBuilder();
+                try (BufferedReader reader =
+                        new BufferedReader(
+                                new InputStreamReader(
+                                        process.getInputStream(), StandardCharsets.UTF_8))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        output.append(line).append("\n");
+                    }
+                }
+
+                boolean finished = process.waitFor(1, TimeUnit.MINUTES);
+                int exitCode = finished ? process.exitValue() : -1;
+
+                if (exitCode != 0) {
+                    allPassed = false;
+                    allOutput
+                            .append("Failed: ")
+                            .append(pyFile.getFileName())
+                            .append("\n")
+                            .append(output)
+                            .append("\n");
+                }
+            }
+        }
+
+        assertThat(allPassed)
+                .as(
+                        "All Python files should have valid syntax.\n\nErrors:\n%s",
+                        allOutput.toString())
+                .isTrue();
+    }
+
+    @Test
+    @DisplayName("Generated PHP/Laravel project should pass syntax check")
+    @EnabledIfEnvironmentVariable(named = "CI_COMPILE_GENERATED_PROJECT", matches = "true")
+    void generatedPhpProjectShouldCompile() throws IOException, InterruptedException {
+        // Load PHP fixture
+        GenerateRequest request = loadFixture("fixtures/blog-api-php.json");
+        String artifactId = request.getProject().getArtifactId();
+
+        // Generate PHP project
+        byte[] zipBytes = generatorService.generateProject(request);
+
+        // Extract to temp directory
+        extractZipToDirectory(zipBytes, tempDir);
+
+        Path projectDir = tempDir.resolve(artifactId);
+
+        // Run PHP syntax check on all .php files
+        StringBuilder allOutput = new StringBuilder();
+        boolean allPassed = true;
+
+        try (var paths = Files.walk(projectDir)) {
+            for (Path phpFile : paths.filter(p -> p.toString().endsWith(".php")).toList()) {
+                ProcessBuilder syntaxCheck =
+                        new ProcessBuilder("php", "-l", phpFile.toString())
+                                .directory(projectDir.toFile())
+                                .redirectErrorStream(true);
+
+                Process process = syntaxCheck.start();
+                StringBuilder output = new StringBuilder();
+                try (BufferedReader reader =
+                        new BufferedReader(
+                                new InputStreamReader(
+                                        process.getInputStream(), StandardCharsets.UTF_8))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        output.append(line).append("\n");
+                    }
+                }
+
+                boolean finished = process.waitFor(1, TimeUnit.MINUTES);
+                int exitCode = finished ? process.exitValue() : -1;
+
+                if (exitCode != 0) {
+                    allPassed = false;
+                    allOutput
+                            .append("Failed: ")
+                            .append(phpFile.getFileName())
+                            .append("\n")
+                            .append(output)
+                            .append("\n");
+                }
+            }
+        }
+
+        assertThat(allPassed)
+                .as("All PHP files should have valid syntax.\n\nErrors:\n%s", allOutput.toString())
+                .isTrue();
+    }
+
+    @Test
+    @DisplayName("Generated TypeScript/NestJS project should compile")
+    @EnabledIfEnvironmentVariable(named = "CI_COMPILE_GENERATED_PROJECT", matches = "true")
+    void generatedTypeScriptProjectShouldCompile() throws IOException, InterruptedException {
+        // Load TypeScript fixture
+        GenerateRequest request = loadFixture("fixtures/blog-api-typescript.json");
+        String artifactId = request.getProject().getArtifactId();
+
+        // Generate TypeScript project
+        byte[] zipBytes = generatorService.generateProject(request);
+
+        // Extract to temp directory
+        extractZipToDirectory(zipBytes, tempDir);
+
+        Path projectDir = tempDir.resolve(artifactId);
+
+        // Run npm install
+        ProcessBuilder installPb =
+                new ProcessBuilder("npm", "install")
+                        .directory(projectDir.toFile())
+                        .redirectErrorStream(true);
+
+        Process installProcess = installPb.start();
+        StringBuilder installOutput = new StringBuilder();
+        try (BufferedReader reader =
+                new BufferedReader(
+                        new InputStreamReader(
+                                installProcess.getInputStream(), StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                installOutput.append(line).append("\n");
+            }
+        }
+        installProcess.waitFor(5, TimeUnit.MINUTES);
+
+        // Run TypeScript compilation
+        ProcessBuilder buildPb =
+                new ProcessBuilder("npm", "run", "build")
+                        .directory(projectDir.toFile())
+                        .redirectErrorStream(true);
+
+        Process buildProcess = buildPb.start();
+        StringBuilder buildOutput = new StringBuilder();
+        buildOutput.append("=== npm install output ===\n");
+        buildOutput.append(installOutput);
+        buildOutput.append("\n=== npm run build output ===\n");
+
+        try (BufferedReader reader =
+                new BufferedReader(
+                        new InputStreamReader(
+                                buildProcess.getInputStream(), StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                buildOutput.append(line).append("\n");
+            }
+        }
+
+        boolean finished = buildProcess.waitFor(5, TimeUnit.MINUTES);
+        int exitCode = finished ? buildProcess.exitValue() : -1;
+
+        assertThat(exitCode)
+                .as(
+                        "Generated TypeScript project should compile.\n\nBuild output:\n%s",
+                        buildOutput.toString())
+                .isZero();
+    }
+
     /**
      * Checks if the build output indicates a JitPack dependency resolution failure. This happens
      * when a new version is tagged but JitPack hasn't built it yet or the build failed.

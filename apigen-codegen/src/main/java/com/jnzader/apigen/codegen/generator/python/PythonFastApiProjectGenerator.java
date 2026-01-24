@@ -39,7 +39,7 @@ public class PythonFastApiProjectGenerator implements ProjectGenerator {
     private static final String LANGUAGE = "python";
     private static final String FRAMEWORK = "fastapi";
     private static final String DEFAULT_PYTHON_VERSION = "3.12";
-    private static final String DEFAULT_FRAMEWORK_VERSION = "0.115.0";
+    private static final String DEFAULT_FRAMEWORK_VERSION = "0.128.0";
 
     private static final Set<Feature> SUPPORTED_FEATURES =
             Set.of(

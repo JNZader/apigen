@@ -47,7 +47,7 @@ public class KotlinSpringBootProjectGenerator implements ProjectGenerator {
     private static final String LANGUAGE = "kotlin";
     private static final String FRAMEWORK = "spring-boot";
     private static final String DEFAULT_KOTLIN_VERSION = "2.1.0";
-    private static final String DEFAULT_SPRING_BOOT_VERSION = "3.2.0";
+    private static final String DEFAULT_SPRING_BOOT_VERSION = "4.0.0";
 
     private static final Set<Feature> SUPPORTED_FEATURES =
             Set.of(

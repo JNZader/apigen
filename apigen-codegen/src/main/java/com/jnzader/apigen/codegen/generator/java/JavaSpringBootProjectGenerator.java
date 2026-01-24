@@ -46,8 +46,8 @@ public class JavaSpringBootProjectGenerator implements ProjectGenerator {
 
     private static final String LANGUAGE = "java";
     private static final String FRAMEWORK = "spring-boot";
-    private static final String DEFAULT_JAVA_VERSION = "21";
-    private static final String DEFAULT_SPRING_BOOT_VERSION = "3.2.0";
+    private static final String DEFAULT_JAVA_VERSION = "25";
+    private static final String DEFAULT_SPRING_BOOT_VERSION = "4.0.0";
 
     private static final Set<Feature> SUPPORTED_FEATURES =
             Set.of(
