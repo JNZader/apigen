@@ -384,7 +384,7 @@ public class KotlinSpringBootProjectGenerator implements ProjectGenerator {
     }
 
     /** Generates Feature Pack files (mail, storage, social login, password reset). */
-    @SuppressWarnings("unused")
+    @SuppressWarnings("java:S1172") // schema reserved for future entity-based features
     private void generateFeaturePackFiles(
             Map<String, String> files,
             SqlSchema schema,
