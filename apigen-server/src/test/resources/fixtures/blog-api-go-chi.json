@@ -1,0 +1,38 @@
+{
+  "project": {
+    "name": "My Go Chi API",
+    "groupId": "github.com/user",
+    "artifactId": "my-go-chi-api",
+    "basePackage": "github.com/user",
+    "modules": {
+      "core": true,
+      "security": false
+    },
+    "features": {
+      "hateoas": false,
+      "swagger": true,
+      "softDelete": true,
+      "auditing": true,
+      "caching": false,
+      "docker": true
+    },
+    "database": {
+      "type": "postgresql",
+      "name": "appdb",
+      "username": "appuser",
+      "password": "changeme",
+      "port": 5432
+    },
+    "options": {
+      "preset": "cloud",
+      "jwt": true,
+      "redis": false,
+      "nats": false
+    }
+  },
+  "target": {
+    "language": "go",
+    "framework": "chi"
+  },
+  "sql": "CREATE TABLE products (\n    id BIGINT PRIMARY KEY,\n    name VARCHAR(255) NOT NULL,\n    description TEXT,\n    price DECIMAL(10,2) NOT NULL,\n    stock INTEGER NOT NULL DEFAULT 0,\n    active BOOLEAN NOT NULL DEFAULT TRUE\n);\n\nCREATE TABLE categories (\n    id BIGINT PRIMARY KEY,\n    name VARCHAR(100) NOT NULL UNIQUE,\n    slug VARCHAR(100) NOT NULL UNIQUE\n);"
+}
