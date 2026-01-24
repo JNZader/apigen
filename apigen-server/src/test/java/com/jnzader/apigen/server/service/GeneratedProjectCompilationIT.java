@@ -743,6 +743,52 @@ class GeneratedProjectCompilationIT {
                 .isZero();
     }
 
+    @Test
+    @DisplayName("Generated Rust/Axum project should compile")
+    @EnabledIfEnvironmentVariable(named = "CI_COMPILE_GENERATED_PROJECT", matches = "true")
+    void generatedRustAxumProjectShouldCompile() throws IOException, InterruptedException {
+        // Load Rust/Axum fixture
+        GenerateRequest request = loadFixture("fixtures/blog-api-rust-axum.json");
+        String artifactId = request.getProject().getArtifactId();
+
+        // Generate Rust/Axum project
+        byte[] zipBytes = generatorService.generateProject(request);
+
+        // Extract to temp directory
+        extractZipToDirectory(zipBytes, tempDir);
+
+        Path projectDir = tempDir.resolve(artifactId);
+
+        // Run cargo check (faster than full build, validates compilation)
+        ProcessBuilder checkPb =
+                new ProcessBuilder("cargo", "check")
+                        .directory(projectDir.toFile())
+                        .redirectErrorStream(true);
+
+        Process checkProcess = checkPb.start();
+        StringBuilder checkOutput = new StringBuilder();
+        checkOutput.append("=== cargo check output ===\n");
+
+        try (BufferedReader reader =
+                new BufferedReader(
+                        new InputStreamReader(
+                                checkProcess.getInputStream(), StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                checkOutput.append(line).append("\n");
+            }
+        }
+
+        boolean finished = checkProcess.waitFor(10, TimeUnit.MINUTES);
+        int exitCode = finished ? checkProcess.exitValue() : -1;
+
+        assertThat(exitCode)
+                .as(
+                        "Generated Rust/Axum project should compile.\n\nBuild output:\n%s",
+                        checkOutput.toString())
+                .isZero();
+    }
+
     /**
      * Checks if the build output indicates a JitPack dependency resolution failure. This happens
      * when a new version is tagged but JitPack hasn't built it yet or the build failed.
