@@ -166,7 +166,10 @@ public class PhpRequestGenerator {
         switch (javaType) {
             case "String" -> {
                 rules.add("'string'");
-                int maxLength = column.getLength() > 0 ? column.getLength() : 255;
+                int maxLength =
+                        column.getLength() != null && column.getLength() > 0
+                                ? column.getLength()
+                                : 255;
                 rules.add("'max:" + maxLength + "'");
 
                 // Email validation for email fields

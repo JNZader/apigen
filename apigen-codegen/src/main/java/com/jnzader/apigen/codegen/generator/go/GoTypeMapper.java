@@ -203,7 +203,10 @@ public class GoTypeMapper implements LanguageTypeMapper {
 
         return switch (javaType) {
             case "String" -> {
-                int length = column.getLength() > 0 ? column.getLength() : 255;
+                int length =
+                        column.getLength() != null && column.getLength() > 0
+                                ? column.getLength()
+                                : 255;
                 if (length > 65535) {
                     yield "text";
                 } else {
@@ -215,8 +218,12 @@ public class GoTypeMapper implements LanguageTypeMapper {
             case "Double", "double" -> "double precision";
             case "Float", "float" -> "real";
             case "BigDecimal" -> {
-                int precision = column.getPrecision() > 0 ? column.getPrecision() : 10;
-                int scale = column.getScale() > 0 ? column.getScale() : 2;
+                int precision =
+                        column.getPrecision() != null && column.getPrecision() > 0
+                                ? column.getPrecision()
+                                : 10;
+                int scale =
+                        column.getScale() != null && column.getScale() > 0 ? column.getScale() : 2;
                 yield "decimal(" + precision + "," + scale + ")";
             }
             case "Boolean", "boolean" -> "boolean";
@@ -248,7 +255,10 @@ public class GoTypeMapper implements LanguageTypeMapper {
         // Type-specific validations
         switch (javaType) {
             case "String" -> {
-                int maxLength = column.getLength() > 0 ? column.getLength() : 255;
+                int maxLength =
+                        column.getLength() != null && column.getLength() > 0
+                                ? column.getLength()
+                                : 255;
                 if (tag.length() > 0) tag.append(",");
                 tag.append("max=").append(maxLength);
 

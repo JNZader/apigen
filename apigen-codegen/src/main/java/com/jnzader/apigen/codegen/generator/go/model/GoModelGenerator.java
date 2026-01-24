@@ -101,7 +101,9 @@ public class GoModelGenerator {
             if (column.isUnique()) {
                 sb.append(";uniqueIndex");
             }
-            if (column.getLength() > 0 && "String".equals(column.getJavaType())) {
+            if (column.getLength() != null
+                    && column.getLength() > 0
+                    && "String".equals(column.getJavaType())) {
                 sb.append(";size:").append(column.getLength());
             }
             if (column.getDefaultValue() != null && !column.getDefaultValue().isEmpty()) {

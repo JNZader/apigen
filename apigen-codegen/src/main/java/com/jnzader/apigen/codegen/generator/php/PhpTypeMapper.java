@@ -194,7 +194,10 @@ public class PhpTypeMapper implements LanguageTypeMapper {
 
         switch (javaType) {
             case "String" -> {
-                int length = column.getLength() > 0 ? column.getLength() : 255;
+                int length =
+                        column.getLength() != null && column.getLength() > 0
+                                ? column.getLength()
+                                : 255;
                 if (length > 65535) {
                     method.append("$table->longText('").append(columnName).append("')");
                 } else if (length > 255) {
@@ -261,7 +264,11 @@ public class PhpTypeMapper implements LanguageTypeMapper {
         return switch (javaType) {
             case "Integer", "int", "Long", "long" -> "integer";
             case "Double", "double", "Float", "float" -> "float";
-            case "BigDecimal" -> "decimal:" + (column.getScale() > 0 ? column.getScale() : 2);
+            case "BigDecimal" ->
+                    "decimal:"
+                            + (column.getScale() != null && column.getScale() > 0
+                                    ? column.getScale()
+                                    : 2);
             case "Boolean", "boolean" -> "boolean";
             case "LocalDate" -> "date";
             case "LocalDateTime", "Instant", "ZonedDateTime" -> "datetime";
