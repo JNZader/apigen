@@ -289,6 +289,9 @@ public class OpenApiSchemaConverter {
      * @return the table name
      */
     public static String toTableName(String schemaName) {
+        if (schemaName == null || schemaName.isEmpty()) {
+            return schemaName;
+        }
         String snakeCase = camelToSnakeCase(schemaName);
         return toPlural(snakeCase.toLowerCase(Locale.ROOT));
     }
@@ -300,6 +303,9 @@ public class OpenApiSchemaConverter {
      * @return the column name
      */
     public static String toColumnName(String propertyName) {
+        if (propertyName == null || propertyName.isEmpty()) {
+            return propertyName;
+        }
         return camelToSnakeCase(propertyName).toLowerCase(Locale.ROOT);
     }
 

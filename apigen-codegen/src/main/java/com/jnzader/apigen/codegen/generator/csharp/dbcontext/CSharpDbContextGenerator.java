@@ -175,6 +175,9 @@ public class CSharpDbContextGenerator {
     }
 
     private String toPlural(String name) {
+        if (name == null || name.isEmpty()) {
+            return name;
+        }
         if (name.endsWith("y")) {
             return name.substring(0, name.length() - 1) + "ies";
         } else if (name.endsWith("s") || name.endsWith("x") || name.endsWith("ch")) {

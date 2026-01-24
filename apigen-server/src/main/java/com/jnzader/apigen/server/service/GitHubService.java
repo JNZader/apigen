@@ -386,6 +386,9 @@ public class GitHubService {
                         .bodyToMono(JsonNode.class)
                         .block();
 
+        if (response == null) {
+            throw new IllegalStateException("Failed to get commit info from GitHub");
+        }
         return response.get("tree").get("sha").asText();
     }
 
@@ -406,6 +409,9 @@ public class GitHubService {
                         .bodyToMono(JsonNode.class)
                         .block();
 
+        if (response == null) {
+            throw new IllegalStateException("Failed to create blob on GitHub");
+        }
         return response.get("sha").asText();
     }
 
@@ -433,6 +439,9 @@ public class GitHubService {
                         .bodyToMono(JsonNode.class)
                         .block();
 
+        if (response == null) {
+            throw new IllegalStateException("Failed to create tree on GitHub");
+        }
         return response.get("sha").asText();
     }
 
@@ -464,6 +473,9 @@ public class GitHubService {
                         .bodyToMono(JsonNode.class)
                         .block();
 
+        if (response == null) {
+            throw new IllegalStateException("Failed to create commit on GitHub");
+        }
         return response.get("sha").asText();
     }
 
