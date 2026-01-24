@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.14.0](https://github.com/JNZader/apigen/compare/v2.13.0...v2.14.0) (2026-01-24)
+
+### Features
+
+* **codegen:** add JWT auth and rate limiting for all generators ([364de26](https://github.com/JNZader/apigen/commit/364de263cfd00b68216f71cb01c35f8f0792f112))
+
+### Bug Fixes
+
+* **codegen:** correct governor crate wait_time_from API usage ([cc29668](https://github.com/JNZader/apigen/commit/cc2966804a9edfaf385c255b3ed94f4296b122d9))
+
 ## [2.13.0](https://github.com/JNZader/apigen/compare/v2.12.0...v2.13.0) (2026-01-24)
 
 ### Features
