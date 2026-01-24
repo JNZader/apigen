@@ -75,8 +75,20 @@ public class GenerateRequest {
 
         @Valid private SecurityConfigDTO securityConfig;
 
-        /** Generate the base package from groupId and artifactId. */
+        /**
+         * Optional base package override. If not provided, it will be computed from groupId and
+         * artifactId. For Go projects, this should be in module format (e.g., "github.com/user").
+         */
+        private String basePackage;
+
+        /**
+         * Get the base package. If explicitly set, returns that value. Otherwise, computes it from
+         * groupId and artifactId (Java-style: com.example.myapi).
+         */
         public String getBasePackage() {
+            if (basePackage != null && !basePackage.isBlank()) {
+                return basePackage;
+            }
             String sanitizedArtifact = artifactId.replace("-", "");
             return groupId + "." + sanitizedArtifact;
         }
