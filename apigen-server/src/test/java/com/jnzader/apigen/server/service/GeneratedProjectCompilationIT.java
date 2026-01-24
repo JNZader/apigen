@@ -676,6 +676,73 @@ class GeneratedProjectCompilationIT {
                 .isZero();
     }
 
+    @Test
+    @DisplayName("Generated Go/Chi project should compile")
+    @EnabledIfEnvironmentVariable(named = "CI_COMPILE_GENERATED_PROJECT", matches = "true")
+    void generatedGoChiProjectShouldCompile() throws IOException, InterruptedException {
+        // Load Go/Chi fixture
+        GenerateRequest request = loadFixture("fixtures/blog-api-go-chi.json");
+        String artifactId = request.getProject().getArtifactId();
+
+        // Generate Go/Chi project
+        byte[] zipBytes = generatorService.generateProject(request);
+
+        // Extract to temp directory
+        extractZipToDirectory(zipBytes, tempDir);
+
+        Path projectDir = tempDir.resolve(artifactId);
+
+        // Initialize go module and download dependencies
+        ProcessBuilder modPb =
+                new ProcessBuilder("go", "mod", "tidy")
+                        .directory(projectDir.toFile())
+                        .redirectErrorStream(true);
+
+        Process modProcess = modPb.start();
+        StringBuilder modOutput = new StringBuilder();
+        try (BufferedReader reader =
+                new BufferedReader(
+                        new InputStreamReader(
+                                modProcess.getInputStream(), StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                modOutput.append(line).append("\n");
+            }
+        }
+        modProcess.waitFor(3, TimeUnit.MINUTES);
+
+        // Run Go build
+        ProcessBuilder buildPb =
+                new ProcessBuilder("go", "build", "./...")
+                        .directory(projectDir.toFile())
+                        .redirectErrorStream(true);
+
+        Process buildProcess = buildPb.start();
+        StringBuilder buildOutput = new StringBuilder();
+        buildOutput.append("=== go mod tidy output ===\n");
+        buildOutput.append(modOutput);
+        buildOutput.append("\n=== go build output ===\n");
+
+        try (BufferedReader reader =
+                new BufferedReader(
+                        new InputStreamReader(
+                                buildProcess.getInputStream(), StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                buildOutput.append(line).append("\n");
+            }
+        }
+
+        boolean finished = buildProcess.waitFor(5, TimeUnit.MINUTES);
+        int exitCode = finished ? buildProcess.exitValue() : -1;
+
+        assertThat(exitCode)
+                .as(
+                        "Generated Go/Chi project should compile.\n\nBuild output:\n%s",
+                        buildOutput.toString())
+                .isZero();
+    }
+
     /**
      * Checks if the build output indicates a JitPack dependency resolution failure. This happens
      * when a new version is tagged but JitPack hasn't built it yet or the build failed.
