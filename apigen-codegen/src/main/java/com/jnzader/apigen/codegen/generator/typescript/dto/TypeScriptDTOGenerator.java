@@ -154,7 +154,7 @@ public class TypeScriptDTOGenerator {
         sb.append("import { ");
         sb.append(String.join(", ", apiDecorators));
         sb.append(" } from '@nestjs/swagger';\n");
-        sb.append("import { BaseResponseDto } from './base-response.dto';\n");
+        sb.append("import { BaseResponseDto } from '../../../dto/base-response.dto';\n");
         sb.append("\n");
 
         // Class definition
@@ -303,7 +303,10 @@ public class TypeScriptDTOGenerator {
             switch (javaType) {
                 case "String" -> {
                     sb.append("  @IsString()\n");
-                    int maxLength = column.getLength() > 0 ? column.getLength() : 255;
+                    int maxLength =
+                            column.getLength() != null && column.getLength() > 0
+                                    ? column.getLength()
+                                    : 255;
                     sb.append("  @MaxLength(").append(maxLength).append(")\n");
 
                     if (column.getName().toLowerCase().contains("email")) {

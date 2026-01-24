@@ -184,7 +184,10 @@ public class TypeScriptTypeMapper implements LanguageTypeMapper {
 
         return switch (javaType) {
             case "String" -> {
-                int length = column.getLength() > 0 ? column.getLength() : 255;
+                int length =
+                        column.getLength() != null && column.getLength() > 0
+                                ? column.getLength()
+                                : 255;
                 if (length > 65535) {
                     yield "text";
                 } else if (length > 255) {
@@ -228,7 +231,10 @@ public class TypeScriptTypeMapper implements LanguageTypeMapper {
         switch (javaType) {
             case "String" -> {
                 decorators.append("  @IsString()\n");
-                int maxLength = column.getLength() > 0 ? column.getLength() : 255;
+                int maxLength =
+                        column.getLength() != null && column.getLength() > 0
+                                ? column.getLength()
+                                : 255;
                 decorators.append("  @MaxLength(").append(maxLength).append(")\n");
 
                 // Email validation

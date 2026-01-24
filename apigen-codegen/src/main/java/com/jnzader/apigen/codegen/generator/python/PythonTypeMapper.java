@@ -158,7 +158,10 @@ public class PythonTypeMapper implements LanguageTypeMapper {
 
         return switch (javaType) {
             case "String" -> {
-                int length = column.getLength() > 0 ? column.getLength() : 255;
+                int length =
+                        column.getLength() != null && column.getLength() > 0
+                                ? column.getLength()
+                                : 255;
                 yield "String(" + length + ")";
             }
             case "Integer", "int" -> "Integer";
@@ -167,8 +170,12 @@ public class PythonTypeMapper implements LanguageTypeMapper {
             case "Float", "float" -> "Float";
             case "Boolean", "boolean" -> "Boolean";
             case "BigDecimal" -> {
-                int precision = column.getPrecision() > 0 ? column.getPrecision() : 19;
-                int scale = column.getScale() > 0 ? column.getScale() : 2;
+                int precision =
+                        column.getPrecision() != null && column.getPrecision() > 0
+                                ? column.getPrecision()
+                                : 19;
+                int scale =
+                        column.getScale() != null && column.getScale() > 0 ? column.getScale() : 2;
                 yield "Numeric(" + precision + ", " + scale + ")";
             }
             case "LocalDate" -> "Date";

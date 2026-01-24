@@ -97,7 +97,7 @@ public class TypeScriptEntityGenerator {
             sb.append("  OneToMany,\n");
         }
         sb.append("} from 'typeorm';\n");
-        sb.append("import { BaseEntity } from './base.entity';\n");
+        sb.append("import { BaseEntity } from '../../../entities/base.entity';\n");
 
         // Import related entities
         for (SqlSchema.TableRelationship rel : relationships) {
@@ -153,7 +153,10 @@ public class TypeScriptEntityGenerator {
 
             // Type for varchar with length
             if ("String".equals(column.getJavaType())) {
-                int length = column.getLength() > 0 ? column.getLength() : 255;
+                int length =
+                        column.getLength() != null && column.getLength() > 0
+                                ? column.getLength()
+                                : 255;
                 if (length <= 255) {
                     sb.append("    length: ").append(length).append(",\n");
                 } else if (length <= 65535) {
@@ -165,8 +168,12 @@ public class TypeScriptEntityGenerator {
 
             // Precision and scale for decimals
             if ("BigDecimal".equals(column.getJavaType())) {
-                int precision = column.getPrecision() > 0 ? column.getPrecision() : 19;
-                int scale = column.getScale() > 0 ? column.getScale() : 2;
+                int precision =
+                        column.getPrecision() != null && column.getPrecision() > 0
+                                ? column.getPrecision()
+                                : 19;
+                int scale =
+                        column.getScale() != null && column.getScale() > 0 ? column.getScale() : 2;
                 sb.append("    type: 'decimal',\n");
                 sb.append("    precision: ").append(precision).append(",\n");
                 sb.append("    scale: ").append(scale).append(",\n");

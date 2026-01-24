@@ -503,6 +503,190 @@ jobs:
             apigen-server/build/test-results/
           retention-days: 1
 
+  test-generated-python:
+    name: Test Generated Python Project
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: true
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run Python generated project syntax test
+        run: ./gradlew :apigen-server:test --tests "GeneratedProjectCompilationIT.generatedPythonProjectShouldCompile" --no-daemon
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          CI_COMPILE_GENERATED_PROJECT: true
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        continue-on-error: true
+        with:
+          name: test-results-generated-python
+          path: |
+            apigen-server/build/reports/tests/
+            apigen-server/build/test-results/
+          retention-days: 1
+
+  test-generated-php:
+    name: Test Generated PHP Project
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: true
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run PHP generated project syntax test
+        run: ./gradlew :apigen-server:test --tests "GeneratedProjectCompilationIT.generatedPhpProjectShouldCompile" --no-daemon
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          CI_COMPILE_GENERATED_PROJECT: true
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        continue-on-error: true
+        with:
+          name: test-results-generated-php
+          path: |
+            apigen-server/build/reports/tests/
+            apigen-server/build/test-results/
+          retention-days: 1
+
+  test-generated-typescript:
+    name: Test Generated TypeScript Project
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: true
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run TypeScript generated project compilation test
+        run: ./gradlew :apigen-server:test --tests "GeneratedProjectCompilationIT.generatedTypeScriptProjectShouldCompile" --no-daemon
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          CI_COMPILE_GENERATED_PROJECT: true
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        continue-on-error: true
+        with:
+          name: test-results-generated-typescript
+          path: |
+            apigen-server/build/reports/tests/
+            apigen-server/build/test-results/
+          retention-days: 1
+
+  test-generated-go:
+    name: Test Generated Go Project
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: true
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run Go generated project compilation test
+        run: ./gradlew :apigen-server:test --tests "GeneratedProjectCompilationIT.generatedGoProjectShouldCompile" --no-daemon
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          CI_COMPILE_GENERATED_PROJECT: true
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        continue-on-error: true
+        with:
+          name: test-results-generated-go
+          path: |
+            apigen-server/build/reports/tests/
+            apigen-server/build/test-results/
+          retention-days: 1
+
   # ============================================
   # Summary Job - Aggregates all results
   # ============================================
@@ -521,6 +705,10 @@ jobs:
       - test-generated-java
       - test-generated-kotlin
       - test-generated-csharp
+      - test-generated-python
+      - test-generated-php
+      - test-generated-typescript
+      - test-generated-go
     if: always()
 
     steps:
@@ -552,6 +740,10 @@ jobs:
           echo "| Java/Spring Boot | ${{ needs.test-generated-java.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Kotlin/Spring Boot | ${{ needs.test-generated-kotlin.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| C#/ASP.NET Core | ${{ needs.test-generated-csharp.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Python/FastAPI | ${{ needs.test-generated-python.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| PHP/Laravel | ${{ needs.test-generated-php.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| TypeScript/NestJS | ${{ needs.test-generated-typescript.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Go/Gin | ${{ needs.test-generated-go.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
 
   # ============================================
   # Code Quality
