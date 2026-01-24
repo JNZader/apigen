@@ -8,6 +8,7 @@ import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
 import com.jnzader.apigen.codegen.generator.api.ProjectGenerator;
 import com.jnzader.apigen.codegen.generator.csharp.CSharpAspNetCoreProjectGenerator;
 import com.jnzader.apigen.codegen.generator.go.GoGinProjectGenerator;
+import com.jnzader.apigen.codegen.generator.gochi.GoChiProjectGenerator;
 import com.jnzader.apigen.codegen.generator.java.JavaSpringBootProjectGenerator;
 import com.jnzader.apigen.codegen.generator.kotlin.KotlinSpringBootProjectGenerator;
 import com.jnzader.apigen.codegen.generator.php.PhpLaravelProjectGenerator;
@@ -79,6 +80,7 @@ public class GeneratorService {
         registry.register(new PhpLaravelProjectGenerator());
         registry.register(new TypeScriptNestJsProjectGenerator());
         registry.register(new GoGinProjectGenerator());
+        registry.register(new GoChiProjectGenerator());
         return registry;
     }
 
