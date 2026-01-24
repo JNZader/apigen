@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.10.0](https://github.com/JNZader/apigen/compare/v2.9.0...v2.10.0) (2026-01-24)
+
+### Features
+
+* **codegen:** add Go/Gin project generator ([a131fd0](https://github.com/JNZader/apigen/commit/a131fd0284e377436da2f337ef950672ed021b6d))
+
+### Bug Fixes
+
+* **codegen:** fix Go and TypeScript CI compilation errors ([6ab795a](https://github.com/JNZader/apigen/commit/6ab795a757f4ff040b92aed19bda8966c69a7cc9))
+* **codegen:** handle null length/scale/precision in type mappers ([e991219](https://github.com/JNZader/apigen/commit/e99121994b20b78314ce9fe3a7f5c7b5ab32a95b))
+* **codegen:** resolve generated project compilation issues ([54e7f08](https://github.com/JNZader/apigen/commit/54e7f088c4f95885b1b5ad17ecaef0600fa67ba8))
+* **codegen:** resolve Go and TypeScript generated project issues ([3be7777](https://github.com/JNZader/apigen/commit/3be7777efffb23887f7377c33d6ef95f969f8a13))
+* **codegen:** resolve remaining generated project issues ([be36fb2](https://github.com/JNZader/apigen/commit/be36fb2b8b55a3927aff0710ac00c14ca5188f27))
+
+### CI/CD
+
+* add generated project tests for all languages ([e7535b9](https://github.com/JNZader/apigen/commit/e7535b9414039fc1a52814f2137ab0d621cac38a))
+
 ## [2.9.0](https://github.com/JNZader/apigen/compare/v2.8.0...v2.9.0) (2026-01-24)
 
 ### Features
