@@ -60,7 +60,10 @@ public class GoChiProjectGenerator implements ProjectGenerator {
                     Feature.ONE_TO_MANY,
                     Feature.CACHING,
                     Feature.UNIT_TESTS,
-                    Feature.INTEGRATION_TESTS);
+                    Feature.INTEGRATION_TESTS,
+                    // Security features
+                    Feature.JWT_AUTH,
+                    Feature.RATE_LIMITING);
 
     private final GoChiTypeMapper typeMapper = new GoChiTypeMapper();
 

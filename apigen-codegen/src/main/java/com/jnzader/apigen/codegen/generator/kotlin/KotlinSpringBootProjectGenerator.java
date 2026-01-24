@@ -8,9 +8,13 @@ import com.jnzader.apigen.codegen.generator.common.ManyToManyRelation;
 import com.jnzader.apigen.codegen.generator.kotlin.controller.KotlinControllerGenerator;
 import com.jnzader.apigen.codegen.generator.kotlin.dto.KotlinDTOGenerator;
 import com.jnzader.apigen.codegen.generator.kotlin.entity.KotlinEntityGenerator;
+import com.jnzader.apigen.codegen.generator.kotlin.mail.KotlinMailServiceGenerator;
 import com.jnzader.apigen.codegen.generator.kotlin.mapper.KotlinMapperGenerator;
 import com.jnzader.apigen.codegen.generator.kotlin.repository.KotlinRepositoryGenerator;
+import com.jnzader.apigen.codegen.generator.kotlin.security.reset.KotlinPasswordResetGenerator;
+import com.jnzader.apigen.codegen.generator.kotlin.security.social.KotlinSocialLoginGenerator;
 import com.jnzader.apigen.codegen.generator.kotlin.service.KotlinServiceGenerator;
+import com.jnzader.apigen.codegen.generator.kotlin.storage.KotlinFileStorageGenerator;
 import com.jnzader.apigen.codegen.generator.kotlin.test.KotlinTestGenerator;
 import com.jnzader.apigen.codegen.generator.migration.MigrationGenerator;
 import com.jnzader.apigen.codegen.model.SqlForeignKey;
@@ -70,7 +74,14 @@ public class KotlinSpringBootProjectGenerator implements ProjectGenerator {
                     Feature.MANY_TO_MANY,
                     Feature.ONE_TO_MANY,
                     Feature.MANY_TO_ONE,
-                    Feature.BATCH_OPERATIONS);
+                    Feature.BATCH_OPERATIONS,
+                    // Feature Pack 2025
+                    Feature.SOCIAL_LOGIN,
+                    Feature.PASSWORD_RESET,
+                    Feature.MAIL_SERVICE,
+                    Feature.FILE_UPLOAD,
+                    Feature.S3_STORAGE,
+                    Feature.AZURE_STORAGE);
 
     // Package path constants
     private static final String PKG_DOMAIN_ENTITY = "domain/entity";
@@ -141,6 +152,15 @@ public class KotlinSpringBootProjectGenerator implements ProjectGenerator {
         }
 
         int migrationVersion = 2;
+
+        // Initialize Feature Pack generators
+        KotlinMailServiceGenerator mailGenerator = new KotlinMailServiceGenerator(basePackage);
+        KotlinPasswordResetGenerator passwordResetGenerator =
+                new KotlinPasswordResetGenerator(basePackage);
+        KotlinSocialLoginGenerator socialLoginGenerator =
+                new KotlinSocialLoginGenerator(basePackage);
+        KotlinFileStorageGenerator fileStorageGenerator =
+                new KotlinFileStorageGenerator(basePackage);
 
         // Generate code for each entity table
         for (SqlTable table : schema.getEntityTables()) {
@@ -339,6 +359,16 @@ public class KotlinSpringBootProjectGenerator implements ProjectGenerator {
             }
         }
 
+        // Generate Feature Pack files (cross-cutting concerns)
+        generateFeaturePackFiles(
+                files,
+                schema,
+                config,
+                mailGenerator,
+                passwordResetGenerator,
+                socialLoginGenerator,
+                fileStorageGenerator);
+
         return files;
     }
 
@@ -351,6 +381,56 @@ public class KotlinSpringBootProjectGenerator implements ProjectGenerator {
         }
 
         return errors;
+    }
+
+    /** Generates Feature Pack files (mail, storage, social login, password reset). */
+    @SuppressWarnings("unused")
+    private void generateFeaturePackFiles(
+            Map<String, String> files,
+            SqlSchema schema,
+            ProjectConfig config,
+            KotlinMailServiceGenerator mailGenerator,
+            KotlinPasswordResetGenerator passwordResetGenerator,
+            KotlinSocialLoginGenerator socialLoginGenerator,
+            KotlinFileStorageGenerator fileStorageGenerator) {
+
+        // Mail Service
+        if (config.isFeatureEnabled(Feature.MAIL_SERVICE)) {
+            // Generate all templates: welcome, password reset, notification
+            files.putAll(mailGenerator.generate(true, true, true));
+        }
+
+        // Password Reset (requires Mail Service)
+        if (config.isFeatureEnabled(Feature.PASSWORD_RESET)) {
+            // Token expiration: 60 minutes by default
+            files.putAll(passwordResetGenerator.generate(60));
+        }
+
+        // File Storage
+        if (config.isFeatureEnabled(Feature.FILE_UPLOAD)
+                || config.isFeatureEnabled(Feature.S3_STORAGE)
+                || config.isFeatureEnabled(Feature.AZURE_STORAGE)) {
+
+            String storageType = "local";
+            if (config.isFeatureEnabled(Feature.S3_STORAGE)) {
+                storageType = "s3";
+            } else if (config.isFeatureEnabled(Feature.AZURE_STORAGE)) {
+                storageType = "azure";
+            }
+
+            // Max file size: 10MB, allowed extensions: jpg,jpeg,png,gif,pdf,doc,docx, generate
+            // metadata entity
+            files.putAll(
+                    fileStorageGenerator.generate(
+                            storageType, 10, "jpg,jpeg,png,gif,pdf,doc,docx", true));
+        }
+
+        // Social Login
+        if (config.isFeatureEnabled(Feature.SOCIAL_LOGIN)) {
+            // Enable Google and GitHub by default, disable LinkedIn, auto-create user, link by
+            // email
+            files.putAll(socialLoginGenerator.generate(true, true, false, true, true));
+        }
     }
 
     /** Finds many-to-many relationships for a table through junction tables. */

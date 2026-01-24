@@ -6,6 +6,7 @@ import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 /** Generates DTO structs for Go/Chi with validation tags. */
@@ -37,7 +38,7 @@ public class GoChiDtoGenerator {
         sb.append("// Create")
                 .append(entityName)
                 .append("Request is the request body for creating a ")
-                .append(entityName.toLowerCase())
+                .append(entityName.toLowerCase(Locale.ROOT))
                 .append(".\n");
         sb.append("type Create").append(entityName).append("Request struct {\n");
         for (SqlColumn column : table.getColumns()) {
@@ -66,7 +67,7 @@ public class GoChiDtoGenerator {
         sb.append("// Update")
                 .append(entityName)
                 .append("Request is the request body for updating a ")
-                .append(entityName.toLowerCase())
+                .append(entityName.toLowerCase(Locale.ROOT))
                 .append(".\n");
         sb.append("type Update").append(entityName).append("Request struct {\n");
         for (SqlColumn column : table.getColumns()) {
@@ -95,7 +96,7 @@ public class GoChiDtoGenerator {
         sb.append("// ")
                 .append(entityName)
                 .append("Response is the response body for a ")
-                .append(entityName.toLowerCase())
+                .append(entityName.toLowerCase(Locale.ROOT))
                 .append(".\n");
         sb.append("type ").append(entityName).append("Response struct {\n");
         sb.append("\tID        int64     `json:\"id\"`\n");
@@ -190,7 +191,7 @@ public class GoChiDtoGenerator {
     }
 
     private boolean isBaseField(String columnName) {
-        String lower = columnName.toLowerCase();
+        String lower = columnName.toLowerCase(Locale.ROOT);
         return lower.equals("id")
                 || lower.equals("created_at")
                 || lower.equals("updated_at")

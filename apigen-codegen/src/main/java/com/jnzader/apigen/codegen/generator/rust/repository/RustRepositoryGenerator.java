@@ -20,7 +20,6 @@ import com.jnzader.apigen.codegen.generator.rust.RustTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -29,13 +28,11 @@ import java.util.stream.Collectors;
  * @author APiGen
  * @since 2.12.0
  */
+@SuppressWarnings("UnusedVariable") // Fields reserved for future features
 public class RustRepositoryGenerator {
 
     private final RustTypeMapper typeMapper;
     private final RustAxumOptions options;
-
-    private static final Set<String> AUDIT_FIELDS =
-            Set.of("created_at", "updated_at", "deleted_at");
 
     public RustRepositoryGenerator(RustTypeMapper typeMapper, RustAxumOptions options) {
         this.typeMapper = typeMapper;
@@ -99,7 +96,6 @@ public class RustRepositoryGenerator {
 
         // Get column info
         SqlColumn pkColumn = findPrimaryKeyColumn(table);
-        String pkFieldName = typeMapper.toFieldName(pkColumn.getName());
         String pkType = typeMapper.mapColumnType(pkColumn);
 
         List<SqlColumn> insertColumns =

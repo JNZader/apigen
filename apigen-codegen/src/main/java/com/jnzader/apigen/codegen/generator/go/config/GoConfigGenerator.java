@@ -6,6 +6,7 @@ import com.jnzader.apigen.codegen.generator.go.GoTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -42,52 +43,73 @@ public class GoConfigGenerator {
      * @return map of file paths to content
      */
     public Map<String, String> generate(SqlSchema schema, ProjectConfig config) {
+        return generate(schema, config, false, false);
+    }
+
+    /**
+     * Generates all configuration files with security features.
+     *
+     * @param schema the SQL schema
+     * @param config the project configuration
+     * @param hasJwtAuth whether JWT authentication is enabled
+     * @param hasRateLimit whether rate limiting is enabled
+     * @return map of file paths to content
+     */
+    public Map<String, String> generate(
+            SqlSchema schema, ProjectConfig config, boolean hasJwtAuth, boolean hasRateLimit) {
         Map<String, String> files = new LinkedHashMap<>();
 
-        files.put("go.mod", generateGoMod());
-        files.put("main.go", generateMainGo(schema));
-        files.put(".env.example", generateEnvExample());
-        files.put(".env", generateEnvExample());
+        files.put("go.mod", generateGoMod(hasJwtAuth, hasRateLimit));
+        files.put("main.go", generateMainGo(schema, hasJwtAuth, hasRateLimit));
+        files.put(".env.example", generateEnvExample(hasJwtAuth, hasRateLimit));
+        files.put(".env", generateEnvExample(hasJwtAuth, hasRateLimit));
         files.put(".gitignore", generateGitignore());
-        files.put("README.md", generateReadme(schema));
+        files.put("README.md", generateReadme(schema, hasJwtAuth, hasRateLimit));
         files.put("Makefile", generateMakefile());
 
         // Config package
-        files.put("internal/config/config.go", generateConfigGo());
+        files.put("internal/config/config.go", generateConfigGo(hasJwtAuth, hasRateLimit));
         files.put("internal/config/database.go", generateDatabaseGo());
 
         if (config.isFeatureEnabled(Feature.DOCKER)) {
             files.put("Dockerfile", generateDockerfile());
-            files.put("docker-compose.yml", generateDockerCompose());
+            files.put("docker-compose.yml", generateDockerCompose(hasRateLimit));
             files.put(".dockerignore", generateDockerignore());
         }
 
         return files;
     }
 
-    private String generateGoMod() {
-        return """
-        module %s
+    private String generateGoMod(boolean hasJwtAuth, boolean hasRateLimit) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("module ").append(moduleName).append("\n\n");
+        sb.append("go 1.23\n\n");
+        sb.append("require (\n");
+        sb.append("\tgithub.com/gin-gonic/gin v1.10.0\n");
+        sb.append("\tgithub.com/go-playground/validator/v10 v10.26.0\n");
+        sb.append("\tgithub.com/google/uuid v1.6.0\n");
+        sb.append("\tgithub.com/joho/godotenv v1.5.1\n");
+        sb.append("\tgithub.com/shopspring/decimal v1.4.0\n");
+        sb.append("\tgithub.com/swaggo/files v1.0.1\n");
+        sb.append("\tgithub.com/swaggo/gin-swagger v1.6.0\n");
+        sb.append("\tgithub.com/swaggo/swag v1.16.4\n");
+        sb.append("\tgorm.io/driver/postgres v1.5.11\n");
+        sb.append("\tgorm.io/gorm v1.25.12\n");
 
-        go 1.23
+        if (hasJwtAuth) {
+            sb.append("\tgithub.com/golang-jwt/jwt/v5 v5.2.1\n");
+            sb.append("\tgolang.org/x/crypto v0.31.0\n");
+        }
 
-        require (
-        	github.com/gin-gonic/gin v1.10.0
-        	github.com/go-playground/validator/v10 v10.26.0
-        	github.com/google/uuid v1.6.0
-        	github.com/joho/godotenv v1.5.1
-        	github.com/shopspring/decimal v1.4.0
-        	github.com/swaggo/files v1.0.1
-        	github.com/swaggo/gin-swagger v1.6.0
-        	github.com/swaggo/swag v1.16.4
-        	gorm.io/driver/postgres v1.5.11
-        	gorm.io/gorm v1.25.12
-        )
-        """
-                .formatted(moduleName);
+        if (hasRateLimit) {
+            sb.append("\tgithub.com/redis/go-redis/v9 v9.7.0\n");
+        }
+
+        sb.append(")\n");
+        return sb.toString();
     }
 
-    private String generateMainGo(SqlSchema schema) {
+    private String generateMainGo(SqlSchema schema, boolean hasJwtAuth, boolean hasRateLimit) {
         StringBuilder sb = new StringBuilder();
 
         sb.append("package main\n\n");
@@ -96,8 +118,14 @@ public class GoConfigGenerator {
         sb.append("\t\"log\"\n");
         sb.append("\t\"os\"\n");
         sb.append("\n");
+        if (hasJwtAuth) {
+            sb.append("\t\"").append(moduleName).append("/internal/auth\"\n");
+        }
         sb.append("\t\"").append(moduleName).append("/internal/config\"\n");
         sb.append("\t\"").append(moduleName).append("/internal/handler\"\n");
+        if (hasRateLimit) {
+            sb.append("\t\"").append(moduleName).append("/internal/middleware\"\n");
+        }
         sb.append("\t\"").append(moduleName).append("/internal/repository\"\n");
         sb.append("\t\"").append(moduleName).append("/internal/router\"\n");
         sb.append("\t\"").append(moduleName).append("/internal/service\"\n");
@@ -109,7 +137,13 @@ public class GoConfigGenerator {
         sb.append("// @version         1.0\n");
         sb.append("// @description     REST API generated by APiGen\n");
         sb.append("// @host            localhost:8080\n");
-        sb.append("// @BasePath        /api/v1\n\n");
+        sb.append("// @BasePath        /api/v1\n");
+        if (hasJwtAuth) {
+            sb.append("// @securityDefinitions.apikey BearerAuth\n");
+            sb.append("// @in header\n");
+            sb.append("// @name Authorization\n");
+        }
+        sb.append("\n");
 
         sb.append("func main() {\n");
         sb.append("\t// Load environment variables\n");
@@ -125,6 +159,13 @@ public class GoConfigGenerator {
         sb.append("\tif err != nil {\n");
         sb.append("\t\tlog.Fatalf(\"Failed to connect to database: %v\", err)\n");
         sb.append("\t}\n\n");
+
+        if (hasJwtAuth) {
+            sb.append("\t// Auto-migrate auth user model\n");
+            sb.append("\tif err := db.AutoMigrate(&auth.User{}); err != nil {\n");
+            sb.append("\t\tlog.Fatalf(\"Failed to migrate auth models: %v\", err)\n");
+            sb.append("\t}\n\n");
+        }
 
         sb.append("\t// Initialize repositories\n");
         for (SqlTable table : schema.getEntityTables()) {
@@ -171,6 +212,19 @@ public class GoConfigGenerator {
         sb.append("\t// Setup router\n");
         sb.append("\tr := router.SetupRouter(handlers)\n\n");
 
+        if (hasJwtAuth) {
+            sb.append("\t// Setup authentication routes\n");
+            sb.append("\tauth.SetupAuthRoutes(r.Group(\"/api/v1\"), db)\n\n");
+        }
+
+        if (hasRateLimit) {
+            sb.append("\t// Setup rate limiting\n");
+            sb.append("\trateLimiter := middleware.NewDefaultRateLimiter()\n");
+            sb.append(
+                    "\tr.Use(middleware.RateLimiterMiddleware(rateLimiter,"
+                            + " middleware.IPKeyFunc))\n\n");
+        }
+
         sb.append("\t// Start server\n");
         sb.append("\tport := os.Getenv(\"PORT\")\n");
         sb.append("\tif port == \"\" {\n");
@@ -186,65 +240,128 @@ public class GoConfigGenerator {
         return sb.toString();
     }
 
-    private String generateConfigGo() {
-        return """
-        package config
+    private String generateConfigGo(boolean hasJwtAuth, boolean hasRateLimit) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("package config\n\n");
+        sb.append("import (\n");
+        sb.append("\t\"os\"\n");
+        sb.append("\t\"strconv\"\n");
+        if (hasRateLimit) {
+            sb.append("\t\"time\"\n");
+        }
+        sb.append(")\n\n");
 
-        import (
-        	"os"
-        	"strconv"
-        )
+        sb.append("// Config holds application configuration.\n");
+        sb.append("type Config struct {\n");
+        sb.append("\tPort        string\n");
+        sb.append("\tEnvironment string\n");
+        sb.append("\tDatabase    DatabaseConfig\n");
+        if (hasJwtAuth) {
+            sb.append("\tJWT         JWTConfig\n");
+        }
+        if (hasRateLimit) {
+            sb.append("\tRateLimit   RateLimitConfig\n");
+        }
+        sb.append("}\n\n");
 
-        // Config holds application configuration.
-        type Config struct {
-        	Port        string
-        	Environment string
-        	Database    DatabaseConfig
+        sb.append("// DatabaseConfig holds database configuration.\n");
+        sb.append("type DatabaseConfig struct {\n");
+        sb.append("\tHost     string\n");
+        sb.append("\tPort     int\n");
+        sb.append("\tUser     string\n");
+        sb.append("\tPassword string\n");
+        sb.append("\tDBName   string\n");
+        sb.append("\tSSLMode  string\n");
+        sb.append("}\n\n");
+
+        if (hasJwtAuth) {
+            sb.append("// JWTConfig holds JWT configuration.\n");
+            sb.append("type JWTConfig struct {\n");
+            sb.append("\tSecret           string\n");
+            sb.append("\tExpirationHours  int\n");
+            sb.append("\tRefreshHours     int\n");
+            sb.append("}\n\n");
         }
 
-        // DatabaseConfig holds database configuration.
-        type DatabaseConfig struct {
-        	Host     string
-        	Port     int
-        	User     string
-        	Password string
-        	DBName   string
-        	SSLMode  string
+        if (hasRateLimit) {
+            sb.append("// RateLimitConfig holds rate limiting configuration.\n");
+            sb.append("type RateLimitConfig struct {\n");
+            sb.append("\tEnabled           bool\n");
+            sb.append("\tRequestsPerSecond int\n");
+            sb.append("\tBurst             int\n");
+            sb.append("\tWindow            time.Duration\n");
+            sb.append("}\n\n");
         }
 
-        // Load loads configuration from environment variables.
-        func Load() *Config {
-        	return &Config{
-        		Port:        getEnv("PORT", "8080"),
-        		Environment: getEnv("ENVIRONMENT", "development"),
-        		Database: DatabaseConfig{
-        			Host:     getEnv("DB_HOST", "localhost"),
-        			Port:     getEnvAsInt("DB_PORT", 5432),
-        			User:     getEnv("DB_USER", "postgres"),
-        			Password: getEnv("DB_PASSWORD", "postgres"),
-        			DBName:   getEnv("DB_NAME", "%s"),
-        			SSLMode:  getEnv("DB_SSLMODE", "disable"),
-        		},
-        	}
+        sb.append("// Load loads configuration from environment variables.\n");
+        sb.append("func Load() *Config {\n");
+        sb.append("\treturn &Config{\n");
+        sb.append("\t\tPort:        getEnv(\"PORT\", \"8080\"),\n");
+        sb.append("\t\tEnvironment: getEnv(\"ENVIRONMENT\", \"development\"),\n");
+        sb.append("\t\tDatabase: DatabaseConfig{\n");
+        sb.append("\t\t\tHost:     getEnv(\"DB_HOST\", \"localhost\"),\n");
+        sb.append("\t\t\tPort:     getEnvAsInt(\"DB_PORT\", 5432),\n");
+        sb.append("\t\t\tUser:     getEnv(\"DB_USER\", \"postgres\"),\n");
+        sb.append("\t\t\tPassword: getEnv(\"DB_PASSWORD\", \"postgres\"),\n");
+        sb.append("\t\t\tDBName:   getEnv(\"DB_NAME\", \"")
+                .append(toSnakeCase(getProjectName()))
+                .append("\"),\n");
+        sb.append("\t\t\tSSLMode:  getEnv(\"DB_SSLMODE\", \"disable\"),\n");
+        sb.append("\t\t},\n");
+
+        if (hasJwtAuth) {
+            sb.append("\t\tJWT: JWTConfig{\n");
+            sb.append("\t\t\tSecret:          getEnv(\"JWT_SECRET\", \"your-secret-key\"),\n");
+            sb.append("\t\t\tExpirationHours: getEnvAsInt(\"JWT_EXPIRATION_HOURS\", 1),\n");
+            sb.append("\t\t\tRefreshHours:    getEnvAsInt(\"JWT_REFRESH_HOURS\", 168),\n");
+            sb.append("\t\t},\n");
         }
 
-        func getEnv(key, defaultValue string) string {
-        	if value := os.Getenv(key); value != "" {
-        		return value
-        	}
-        	return defaultValue
+        if (hasRateLimit) {
+            sb.append("\t\tRateLimit: RateLimitConfig{\n");
+            sb.append("\t\t\tEnabled:           getEnvAsBool(\"RATE_LIMIT_ENABLED\", true),\n");
+            sb.append(
+                    "\t\t\tRequestsPerSecond: getEnvAsInt(\"RATE_LIMIT_REQUESTS_PER_SECOND\","
+                            + " 100),\n");
+            sb.append("\t\t\tBurst:             getEnvAsInt(\"RATE_LIMIT_BURST\", 50),\n");
+            sb.append(
+                    "\t\t\tWindow:           "
+                            + " time.Duration(getEnvAsInt(\"RATE_LIMIT_WINDOW_SECONDS\", 1)) *"
+                            + " time.Second,\n");
+            sb.append("\t\t},\n");
         }
 
-        func getEnvAsInt(key string, defaultValue int) int {
-        	if value := os.Getenv(key); value != "" {
-        		if i, err := strconv.Atoi(value); err == nil {
-        			return i
-        		}
-        	}
-        	return defaultValue
+        sb.append("\t}\n");
+        sb.append("}\n\n");
+
+        sb.append("func getEnv(key, defaultValue string) string {\n");
+        sb.append("\tif value := os.Getenv(key); value != \"\" {\n");
+        sb.append("\t\treturn value\n");
+        sb.append("\t}\n");
+        sb.append("\treturn defaultValue\n");
+        sb.append("}\n\n");
+
+        sb.append("func getEnvAsInt(key string, defaultValue int) int {\n");
+        sb.append("\tif value := os.Getenv(key); value != \"\" {\n");
+        sb.append("\t\tif i, err := strconv.Atoi(value); err == nil {\n");
+        sb.append("\t\t\treturn i\n");
+        sb.append("\t\t}\n");
+        sb.append("\t}\n");
+        sb.append("\treturn defaultValue\n");
+        sb.append("}\n");
+
+        if (hasRateLimit) {
+            sb.append("\nfunc getEnvAsBool(key string, defaultValue bool) bool {\n");
+            sb.append("\tif value := os.Getenv(key); value != \"\" {\n");
+            sb.append("\t\tif b, err := strconv.ParseBool(value); err == nil {\n");
+            sb.append("\t\t\treturn b\n");
+            sb.append("\t\t}\n");
+            sb.append("\t}\n");
+            sb.append("\treturn defaultValue\n");
+            sb.append("}\n");
         }
-        """
-                .formatted(toSnakeCase(getProjectName()));
+
+        return sb.toString();
     }
 
     private String generateDatabaseGo() {
@@ -315,25 +432,39 @@ public class GoConfigGenerator {
                 .formatted(moduleName);
     }
 
-    private String generateEnvExample() {
-        return """
-        # Application
-        PORT=8080
-        ENVIRONMENT=development
+    private String generateEnvExample(boolean hasJwtAuth, boolean hasRateLimit) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("# Application\n");
+        sb.append("PORT=8080\n");
+        sb.append("ENVIRONMENT=development\n\n");
 
-        # Database
-        DB_HOST=localhost
-        DB_PORT=5432
-        DB_USER=postgres
-        DB_PASSWORD=postgres
-        DB_NAME=%s
-        DB_SSLMODE=disable
+        sb.append("# Database\n");
+        sb.append("DB_HOST=localhost\n");
+        sb.append("DB_PORT=5432\n");
+        sb.append("DB_USER=postgres\n");
+        sb.append("DB_PASSWORD=postgres\n");
+        sb.append("DB_NAME=").append(toSnakeCase(getProjectName())).append("\n");
+        sb.append("DB_SSLMODE=disable\n\n");
 
-        # JWT (optional)
-        JWT_SECRET=your-secret-key
-        JWT_EXPIRATION_HOURS=24
-        """
-                .formatted(toSnakeCase(getProjectName()));
+        if (hasJwtAuth) {
+            sb.append("# JWT Authentication\n");
+            sb.append("JWT_SECRET=your-secret-key-change-in-production\n");
+            sb.append("JWT_EXPIRATION_HOURS=1\n");
+            sb.append("JWT_REFRESH_HOURS=168\n\n");
+        }
+
+        if (hasRateLimit) {
+            sb.append("# Rate Limiting\n");
+            sb.append("RATE_LIMIT_ENABLED=true\n");
+            sb.append("RATE_LIMIT_REQUESTS_PER_SECOND=100\n");
+            sb.append("RATE_LIMIT_BURST=50\n");
+            sb.append("RATE_LIMIT_WINDOW_SECONDS=1\n");
+            sb.append("RATE_LIMIT_USE_REDIS=false\n");
+            sb.append("REDIS_ADDR=localhost:6379\n");
+            sb.append("REDIS_DB=0\n\n");
+        }
+
+        return sb.toString();
     }
 
     private String generateGitignore() {
@@ -377,7 +508,7 @@ public class GoConfigGenerator {
         """;
     }
 
-    private String generateReadme(SqlSchema schema) {
+    private String generateReadme(SqlSchema schema, boolean hasJwtAuth, boolean hasRateLimit) {
         StringBuilder sb = new StringBuilder();
         String projectName = getProjectName();
 
@@ -387,6 +518,9 @@ public class GoConfigGenerator {
         sb.append("## Requirements\n\n");
         sb.append("- Go 1.23+\n");
         sb.append("- PostgreSQL 15+\n");
+        if (hasRateLimit) {
+            sb.append("- Redis 7+ (optional, for distributed rate limiting)\n");
+        }
         sb.append("- Make (optional)\n\n");
 
         sb.append("## Getting Started\n\n");
@@ -430,6 +564,39 @@ public class GoConfigGenerator {
         sb.append("- Swagger UI: http://localhost:8080/swagger/index.html\n");
         sb.append("- Health check: http://localhost:8080/health\n\n");
 
+        if (hasJwtAuth) {
+            sb.append("## Authentication\n\n");
+            sb.append("This API uses JWT for authentication.\n\n");
+            sb.append("### Endpoints\n\n");
+            sb.append("| Method | Endpoint | Description |\n");
+            sb.append("|--------|----------|-------------|\n");
+            sb.append("| POST | `/api/v1/auth/register` | Register a new user |\n");
+            sb.append("| POST | `/api/v1/auth/login` | Login and get tokens |\n");
+            sb.append("| POST | `/api/v1/auth/refresh` | Refresh access token |\n");
+            sb.append("| GET | `/api/v1/auth/profile` | Get current user |\n");
+            sb.append("| PUT | `/api/v1/auth/password` | Change password |\n\n");
+            sb.append("### Usage\n\n");
+            sb.append("1. Register or login to get access token\n");
+            sb.append("2. Include the token in the Authorization header:\n");
+            sb.append("   ```\n");
+            sb.append("   Authorization: Bearer <access_token>\n");
+            sb.append("   ```\n\n");
+        }
+
+        if (hasRateLimit) {
+            sb.append("## Rate Limiting\n\n");
+            sb.append("This API implements rate limiting to prevent abuse.\n\n");
+            sb.append("### Configuration\n\n");
+            sb.append("| Setting | Default | Description |\n");
+            sb.append("|---------|---------|-------------|\n");
+            sb.append("| RATE_LIMIT_REQUESTS_PER_SECOND | 100 | Max requests per second |\n");
+            sb.append("| RATE_LIMIT_BURST | 50 | Burst size |\n\n");
+            sb.append("### Response Headers\n\n");
+            sb.append("- `X-RateLimit-Limit`: Max requests allowed\n");
+            sb.append("- `X-RateLimit-Remaining`: Remaining requests\n");
+            sb.append("- `X-RateLimit-Reset`: Reset timestamp\n\n");
+        }
+
         sb.append("## Available Endpoints\n\n");
         for (SqlTable table : schema.getEntityTables()) {
             String entityName = table.getEntityName();
@@ -471,9 +638,15 @@ public class GoConfigGenerator {
         sb.append(".\n");
         sb.append("├── main.go                 # Application entry point\n");
         sb.append("├── internal/\n");
+        if (hasJwtAuth) {
+            sb.append("│   ├── auth/              # Authentication\n");
+        }
         sb.append("│   ├── config/            # Configuration\n");
         sb.append("│   ├── dto/               # Data Transfer Objects\n");
         sb.append("│   ├── handler/           # HTTP handlers\n");
+        if (hasRateLimit) {
+            sb.append("│   ├── middleware/        # Middleware (rate limiting)\n");
+        }
         sb.append("│   ├── models/            # GORM models\n");
         sb.append("│   ├── repository/        # Data access layer\n");
         sb.append("│   ├── router/            # Route definitions\n");
@@ -595,51 +768,79 @@ public class GoConfigGenerator {
                 .formatted(binaryName, binaryName, binaryName);
     }
 
-    private String generateDockerCompose() {
+    private String generateDockerCompose(boolean hasRateLimit) {
         String projectName = toSnakeCase(getProjectName());
-        return """
-        services:
-          app:
-            build: .
-            container_name: %s-api
-            ports:
-              - "8080:8080"
-            environment:
-              - PORT=8080
-              - ENVIRONMENT=production
-              - DB_HOST=db
-              - DB_PORT=5432
-              - DB_USER=postgres
-              - DB_PASSWORD=postgres
-              - DB_NAME=%s
-              - DB_SSLMODE=disable
-            depends_on:
-              db:
-                condition: service_healthy
-            restart: unless-stopped
+        StringBuilder sb = new StringBuilder();
 
-          db:
-            image: postgres:16-alpine
-            container_name: %s-db
-            environment:
-              - POSTGRES_USER=postgres
-              - POSTGRES_PASSWORD=postgres
-              - POSTGRES_DB=%s
-            volumes:
-              - postgres_data:/var/lib/postgresql/data
-            ports:
-              - "5432:5432"
-            healthcheck:
-              test: ["CMD-SHELL", "pg_isready -U postgres"]
-              interval: 10s
-              timeout: 5s
-              retries: 5
-            restart: unless-stopped
+        sb.append("services:\n");
+        sb.append("  app:\n");
+        sb.append("    build: .\n");
+        sb.append("    container_name: ").append(projectName).append("-api\n");
+        sb.append("    ports:\n");
+        sb.append("      - \"8080:8080\"\n");
+        sb.append("    environment:\n");
+        sb.append("      - PORT=8080\n");
+        sb.append("      - ENVIRONMENT=production\n");
+        sb.append("      - DB_HOST=db\n");
+        sb.append("      - DB_PORT=5432\n");
+        sb.append("      - DB_USER=postgres\n");
+        sb.append("      - DB_PASSWORD=postgres\n");
+        sb.append("      - DB_NAME=").append(projectName).append("\n");
+        sb.append("      - DB_SSLMODE=disable\n");
+        if (hasRateLimit) {
+            sb.append("      - RATE_LIMIT_USE_REDIS=true\n");
+            sb.append("      - REDIS_ADDR=redis:6379\n");
+        }
+        sb.append("    depends_on:\n");
+        sb.append("      db:\n");
+        sb.append("        condition: service_healthy\n");
+        if (hasRateLimit) {
+            sb.append("      redis:\n");
+            sb.append("        condition: service_healthy\n");
+        }
+        sb.append("    restart: unless-stopped\n\n");
 
-        volumes:
-          postgres_data:
-        """
-                .formatted(projectName, projectName, projectName, projectName);
+        sb.append("  db:\n");
+        sb.append("    image: postgres:17-alpine\n");
+        sb.append("    container_name: ").append(projectName).append("-db\n");
+        sb.append("    environment:\n");
+        sb.append("      - POSTGRES_USER=postgres\n");
+        sb.append("      - POSTGRES_PASSWORD=postgres\n");
+        sb.append("      - POSTGRES_DB=").append(projectName).append("\n");
+        sb.append("    volumes:\n");
+        sb.append("      - postgres_data:/var/lib/postgresql/data\n");
+        sb.append("    ports:\n");
+        sb.append("      - \"5432:5432\"\n");
+        sb.append("    healthcheck:\n");
+        sb.append("      test: [\"CMD-SHELL\", \"pg_isready -U postgres\"]\n");
+        sb.append("      interval: 10s\n");
+        sb.append("      timeout: 5s\n");
+        sb.append("      retries: 5\n");
+        sb.append("    restart: unless-stopped\n");
+
+        if (hasRateLimit) {
+            sb.append("\n  redis:\n");
+            sb.append("    image: redis:7-alpine\n");
+            sb.append("    container_name: ").append(projectName).append("-redis\n");
+            sb.append("    ports:\n");
+            sb.append("      - \"6379:6379\"\n");
+            sb.append("    volumes:\n");
+            sb.append("      - redis_data:/data\n");
+            sb.append("    healthcheck:\n");
+            sb.append("      test: [\"CMD\", \"redis-cli\", \"ping\"]\n");
+            sb.append("      interval: 10s\n");
+            sb.append("      timeout: 5s\n");
+            sb.append("      retries: 5\n");
+            sb.append("    restart: unless-stopped\n");
+        }
+
+        sb.append("\nvolumes:\n");
+        sb.append("  postgres_data:\n");
+        if (hasRateLimit) {
+            sb.append("  redis_data:\n");
+        }
+
+        return sb.toString();
     }
 
     private String generateDockerignore() {
@@ -671,6 +872,8 @@ public class GoConfigGenerator {
     }
 
     private String toSnakeCase(String name) {
-        return name.replaceAll("([a-z])([A-Z])", "$1_$2").replaceAll("-", "_").toLowerCase();
+        return name.replaceAll("([a-z])([A-Z])", "$1_$2")
+                .replaceAll("-", "_")
+                .toLowerCase(Locale.ROOT);
     }
 }

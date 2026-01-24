@@ -4,6 +4,8 @@ import com.jnzader.apigen.codegen.generator.api.Feature;
 import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
 import com.jnzader.apigen.codegen.generator.api.ProjectGenerator;
+import com.jnzader.apigen.codegen.generator.go.auth.GoJwtAuthGenerator;
+import com.jnzader.apigen.codegen.generator.go.auth.GoRateLimitGenerator;
 import com.jnzader.apigen.codegen.generator.go.config.GoConfigGenerator;
 import com.jnzader.apigen.codegen.generator.go.dto.GoDtoGenerator;
 import com.jnzader.apigen.codegen.generator.go.handler.GoHandlerGenerator;
@@ -53,7 +55,10 @@ public class GoGinProjectGenerator implements ProjectGenerator {
                     Feature.OPENAPI,
                     Feature.DOCKER,
                     Feature.MANY_TO_ONE,
-                    Feature.ONE_TO_MANY);
+                    Feature.ONE_TO_MANY,
+                    // Security features
+                    Feature.JWT_AUTH,
+                    Feature.RATE_LIMITING);
 
     private final GoTypeMapper typeMapper = new GoTypeMapper();
 
@@ -172,12 +177,35 @@ public class GoGinProjectGenerator implements ProjectGenerator {
         }
 
         // Generate configuration files
-        files.putAll(configGenerator.generate(schema, config));
+        boolean hasJwtAuth = config.isFeatureEnabled(Feature.JWT_AUTH);
+        boolean hasRateLimit = config.isFeatureEnabled(Feature.RATE_LIMITING);
+        files.putAll(configGenerator.generate(schema, config, hasJwtAuth, hasRateLimit));
+
+        // Generate security files
+        generateSecurityFiles(files, config, moduleName);
 
         // Generate docs directory placeholder
         files.put("docs/.gitkeep", "");
 
         return files;
+    }
+
+    /** Generates security-related files based on enabled features. */
+    private void generateSecurityFiles(
+            Map<String, String> files, ProjectConfig config, String moduleName) {
+        // JWT Authentication
+        if (config.isFeatureEnabled(Feature.JWT_AUTH)) {
+            GoJwtAuthGenerator jwtGenerator = new GoJwtAuthGenerator(moduleName);
+            // 1 hour access token, 7 day refresh token
+            files.putAll(jwtGenerator.generate(1, 168));
+        }
+
+        // Rate Limiting
+        if (config.isFeatureEnabled(Feature.RATE_LIMITING)) {
+            GoRateLimitGenerator rateLimitGenerator = new GoRateLimitGenerator(moduleName);
+            // 100 requests per second, 50 burst, no Redis by default
+            files.putAll(rateLimitGenerator.generate(100, 50, false));
+        }
     }
 
     @Override

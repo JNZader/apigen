@@ -4,6 +4,8 @@ import com.jnzader.apigen.codegen.generator.api.Feature;
 import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
 import com.jnzader.apigen.codegen.generator.api.ProjectGenerator;
+import com.jnzader.apigen.codegen.generator.typescript.auth.TypeScriptJwtAuthGenerator;
+import com.jnzader.apigen.codegen.generator.typescript.auth.TypeScriptRateLimitGenerator;
 import com.jnzader.apigen.codegen.generator.typescript.config.TypeScriptConfigGenerator;
 import com.jnzader.apigen.codegen.generator.typescript.controller.TypeScriptControllerGenerator;
 import com.jnzader.apigen.codegen.generator.typescript.dto.TypeScriptDTOGenerator;
@@ -53,7 +55,10 @@ public class TypeScriptNestJsProjectGenerator implements ProjectGenerator {
                     Feature.OPENAPI,
                     Feature.DOCKER,
                     Feature.MANY_TO_ONE,
-                    Feature.ONE_TO_MANY);
+                    Feature.ONE_TO_MANY,
+                    // Security features
+                    Feature.JWT_AUTH,
+                    Feature.RATE_LIMITING);
 
     private final TypeScriptTypeMapper typeMapper = new TypeScriptTypeMapper();
 
@@ -172,11 +177,16 @@ public class TypeScriptNestJsProjectGenerator implements ProjectGenerator {
             files.put(modulePath + "/" + kebabName + ".module.ts", moduleCode);
 
             // 7. Generate index.ts for module barrel export
-            files.put(modulePath + "/index.ts", generateModuleIndex(className, kebabName));
+            files.put(modulePath + "/index.ts", generateModuleIndex(kebabName));
         }
 
         // Generate configuration files
-        files.putAll(configGenerator.generate(schema, config));
+        boolean hasJwtAuth = config.isFeatureEnabled(Feature.JWT_AUTH);
+        boolean hasRateLimit = config.isFeatureEnabled(Feature.RATE_LIMITING);
+        files.putAll(configGenerator.generate(schema, config, hasJwtAuth, hasRateLimit));
+
+        // Generate security files
+        generateSecurityFiles(files, config);
 
         // Generate test directory structure
         files.put("test/.gitkeep", "");
@@ -185,7 +195,24 @@ public class TypeScriptNestJsProjectGenerator implements ProjectGenerator {
         return files;
     }
 
-    private String generateModuleIndex(String className, String kebabName) {
+    /** Generates security-related files based on enabled features. */
+    private void generateSecurityFiles(Map<String, String> files, ProjectConfig config) {
+        // JWT Authentication
+        if (config.isFeatureEnabled(Feature.JWT_AUTH)) {
+            TypeScriptJwtAuthGenerator jwtGenerator = new TypeScriptJwtAuthGenerator();
+            // 30 minute access token, 7 day refresh token
+            files.putAll(jwtGenerator.generate(30, 7 * 24 * 60));
+        }
+
+        // Rate Limiting
+        if (config.isFeatureEnabled(Feature.RATE_LIMITING)) {
+            TypeScriptRateLimitGenerator rateLimitGenerator = new TypeScriptRateLimitGenerator();
+            // 60 seconds TTL, 100 requests limit, no Redis by default
+            files.putAll(rateLimitGenerator.generate(60, 100, false));
+        }
+    }
+
+    private String generateModuleIndex(String kebabName) {
         return """
         export * from './%s.module';
         export * from './entities/%s.entity';

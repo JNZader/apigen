@@ -6,6 +6,7 @@ import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -64,7 +65,7 @@ public class GoChiModelGenerator {
             String baseType = typeMapper.mapJavaTypeToGo(column.getJavaType());
             String fieldType = column.isNullable() ? "*" + baseType : baseType;
             String jsonName = typeMapper.toSnakeCase(column.getName());
-            String dbName = column.getName().toLowerCase();
+            String dbName = column.getName().toLowerCase(Locale.ROOT);
 
             sb.append("\t").append(fieldName);
             sb.append(" ".repeat(Math.max(1, 10 - fieldName.length())));
@@ -92,7 +93,7 @@ public class GoChiModelGenerator {
             sb.append("`json:\"")
                     .append(jsonName)
                     .append(",omitempty\" db:\"")
-                    .append(fkColumn.toLowerCase())
+                    .append(fkColumn.toLowerCase(Locale.ROOT))
                     .append("\"`\n");
         }
 
@@ -134,7 +135,7 @@ public class GoChiModelGenerator {
     }
 
     private boolean isBaseField(String columnName) {
-        String lower = columnName.toLowerCase();
+        String lower = columnName.toLowerCase(Locale.ROOT);
         return lower.equals("id")
                 || lower.equals("created_at")
                 || lower.equals("updated_at")

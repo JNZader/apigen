@@ -8,6 +8,7 @@ import com.jnzader.apigen.server.dto.github.PushProjectResponse;
 import com.jnzader.apigen.server.service.GitHubService;
 import jakarta.validation.Valid;
 import java.net.URI;
+import java.util.Locale;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -223,7 +224,7 @@ public class GitHubController {
             return null;
         }
 
-        if (authorization.toLowerCase().startsWith("bearer ")) {
+        if (authorization.toLowerCase(Locale.ROOT).startsWith("bearer ")) {
             return authorization.substring(7).trim();
         }
 

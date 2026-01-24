@@ -5,6 +5,7 @@ import com.jnzader.apigen.codegen.generator.gochi.GoChiTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.List;
+import java.util.Locale;
 
 /** Generates Chi router configuration. */
 public class GoChiRouterGenerator {
@@ -101,7 +102,7 @@ public class GoChiRouterGenerator {
         // Generate routes for each table
         for (SqlTable table : tables) {
             String entityName = typeMapper.toExportedName(table.getEntityName());
-            String resourcePath = table.getName().toLowerCase();
+            String resourcePath = table.getName().toLowerCase(Locale.ROOT);
             String handlerVar = typeMapper.toUnexportedName(entityName) + "Handler";
             String repoVar = typeMapper.toUnexportedName(entityName) + "Repo";
             String svcVar = typeMapper.toUnexportedName(entityName) + "Svc";

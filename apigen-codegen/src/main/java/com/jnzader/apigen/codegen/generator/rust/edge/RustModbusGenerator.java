@@ -24,6 +24,7 @@ import com.jnzader.apigen.codegen.generator.rust.RustTypeMapper;
  * @author APiGen
  * @since 2.12.0
  */
+@SuppressWarnings("UnusedVariable") // Reserved for future feature flags
 public class RustModbusGenerator {
 
     private final RustTypeMapper typeMapper;
