@@ -16,6 +16,7 @@ import com.jnzader.apigen.codegen.generator.gochi.model.GoChiModelGenerator;
 import com.jnzader.apigen.codegen.generator.gochi.repository.GoChiRepositoryGenerator;
 import com.jnzader.apigen.codegen.generator.gochi.router.GoChiRouterGenerator;
 import com.jnzader.apigen.codegen.generator.gochi.service.GoChiServiceGenerator;
+import com.jnzader.apigen.codegen.generator.gochi.test.GoChiTestGenerator;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.ArrayList;
@@ -240,6 +241,21 @@ public class GoChiProjectGenerator implements ProjectGenerator {
 
         // Feature Pack 2025
         generateFeaturePackFiles(files, config, moduleName);
+
+        // Generate tests if enabled
+        if (config.isFeatureEnabled(Feature.UNIT_TESTS)
+                || config.isFeatureEnabled(Feature.INTEGRATION_TESTS)) {
+            GoChiTestGenerator testGenerator = new GoChiTestGenerator();
+            for (SqlTable table : schema.getEntityTables()) {
+                files.putAll(testGenerator.generateTests(table));
+                if (config.isFeatureEnabled(Feature.INTEGRATION_TESTS)) {
+                    String snakeName = typeMapper.toSnakeCase(table.getEntityName());
+                    files.put(
+                            "tests/integration/" + snakeName + "_integration_test.go",
+                            testGenerator.generateIntegrationTest(table, moduleName));
+                }
+            }
+        }
 
         // Docs placeholder
         files.put("docs/.gitkeep", "");
