@@ -4,18 +4,18 @@ import com.jnzader.apigen.codegen.generator.api.Feature;
 import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
 import com.jnzader.apigen.codegen.generator.api.ProjectGenerator;
-import com.jnzader.apigen.codegen.generator.go.mail.GoMailServiceGenerator;
-import com.jnzader.apigen.codegen.generator.go.security.reset.GoPasswordResetGenerator;
-import com.jnzader.apigen.codegen.generator.go.security.social.GoSocialLoginGenerator;
-import com.jnzader.apigen.codegen.generator.go.storage.GoFileStorageGenerator;
 import com.jnzader.apigen.codegen.generator.gochi.config.GoChiConfigGenerator;
 import com.jnzader.apigen.codegen.generator.gochi.dto.GoChiDtoGenerator;
 import com.jnzader.apigen.codegen.generator.gochi.handler.GoChiHandlerGenerator;
+import com.jnzader.apigen.codegen.generator.gochi.mail.GoChiMailServiceGenerator;
 import com.jnzader.apigen.codegen.generator.gochi.middleware.GoChiMiddlewareGenerator;
 import com.jnzader.apigen.codegen.generator.gochi.model.GoChiModelGenerator;
 import com.jnzader.apigen.codegen.generator.gochi.repository.GoChiRepositoryGenerator;
 import com.jnzader.apigen.codegen.generator.gochi.router.GoChiRouterGenerator;
+import com.jnzader.apigen.codegen.generator.gochi.security.reset.GoChiPasswordResetGenerator;
+import com.jnzader.apigen.codegen.generator.gochi.security.social.GoChiSocialLoginGenerator;
 import com.jnzader.apigen.codegen.generator.gochi.service.GoChiServiceGenerator;
+import com.jnzader.apigen.codegen.generator.gochi.storage.GoChiFileStorageGenerator;
 import com.jnzader.apigen.codegen.generator.gochi.test.GoChiTestGenerator;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
@@ -268,27 +268,28 @@ public class GoChiProjectGenerator implements ProjectGenerator {
             Map<String, String> files, ProjectConfig config, String moduleName) {
         // Mail Service
         if (config.isFeatureEnabled(Feature.MAIL_SERVICE)) {
-            GoMailServiceGenerator mailGenerator = new GoMailServiceGenerator(moduleName);
+            GoChiMailServiceGenerator mailGenerator = new GoChiMailServiceGenerator(moduleName);
             boolean hasPasswordReset = config.isFeatureEnabled(Feature.PASSWORD_RESET);
             files.putAll(mailGenerator.generate(true, hasPasswordReset, true));
         }
 
         // Password Reset
         if (config.isFeatureEnabled(Feature.PASSWORD_RESET)) {
-            GoPasswordResetGenerator resetGenerator = new GoPasswordResetGenerator(moduleName);
+            GoChiPasswordResetGenerator resetGenerator =
+                    new GoChiPasswordResetGenerator(moduleName);
             // 30 minute token expiration
             files.putAll(resetGenerator.generate(30));
         }
 
         // Social Login (OAuth2)
         if (config.isFeatureEnabled(Feature.SOCIAL_LOGIN)) {
-            GoSocialLoginGenerator socialGenerator = new GoSocialLoginGenerator(moduleName);
+            GoChiSocialLoginGenerator socialGenerator = new GoChiSocialLoginGenerator(moduleName);
             files.putAll(socialGenerator.generate(List.of("google", "github")));
         }
 
         // File Storage
         if (config.isFeatureEnabled(Feature.FILE_UPLOAD)) {
-            GoFileStorageGenerator storageGenerator = new GoFileStorageGenerator(moduleName);
+            GoChiFileStorageGenerator storageGenerator = new GoChiFileStorageGenerator(moduleName);
             boolean useS3 = config.isFeatureEnabled(Feature.S3_STORAGE);
             boolean useAzure = config.isFeatureEnabled(Feature.AZURE_STORAGE);
             files.putAll(storageGenerator.generate(useS3, useAzure));
