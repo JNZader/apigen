@@ -43,6 +43,17 @@ subprojects {
         // This works with spring-dependency-management plugin
         ext['logback.version'] = '1.5.25'
 
+        // Override Spring Boot's netty version to fix CVE-2025-67735
+        ext['netty.version'] = '4.2.8.Final'
+
+        // Force resolution of transitive dependencies for security fixes
+        configurations.all {
+            resolutionStrategy {
+                // CVE-2025-66453: rhino from json-schema-validator chain
+                force 'org.mozilla:rhino:1.7.15.1'
+            }
+        }
+
         dependencies {
             // Errorprone for static analysis
             errorprone 'com.google.errorprone:error_prone_core:2.46.0'

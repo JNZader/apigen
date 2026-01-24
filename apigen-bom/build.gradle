@@ -61,6 +61,12 @@ dependencies {
         // Security fix: override transitive logback from Spring Boot (CVE-2026-1225)
         api 'ch.qos.logback:logback-core:1.5.25'
         api 'ch.qos.logback:logback-classic:1.5.25'
+
+        // Security fix: override transitive netty-codec-http from reactor-netty (CVE-2025-67735)
+        api 'io.netty:netty-codec-http:4.2.8.Final'
+
+        // Security fix: override transitive rhino from json-schema-validator chain (CVE-2025-66453)
+        api 'org.mozilla:rhino:1.7.15.1'
     }
 }
 
