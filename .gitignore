@@ -17,8 +17,15 @@ logs/
 CLAUDE.md
 
 ### Project Management ###
-ROADMAP.md
-ROADMAP-MULTILANG.md
+docs/ROADMAP.md
+docs/ROADMAP-MULTILANG.md
+docs/LICENSE-SYSTEM.md
+docs/FEATURE-PACK-2025.md
+docs/GENERATOR-FEATURES-STATUS.md
+docs/FEATURE-PARITY-PLAN.md
+docs/FEATURE-PROPOSALS-2025.md
+docs/APIGEN-WEB-IMPLEMENTATION-PLAN.md
+
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
@@ -53,7 +60,3 @@ out/
 
 ### VS Code ###
 .vscode/
-docs/LICENSE-SYSTEM.md
-docs/FEATURE-PACK-2025.md
-docs/GENERATOR-FEATURES-STATUS.md
-docs/FEATURE-PARITY-PLAN.md
