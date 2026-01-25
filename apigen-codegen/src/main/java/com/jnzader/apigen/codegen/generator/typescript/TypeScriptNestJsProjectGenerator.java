@@ -6,6 +6,8 @@ import com.jnzader.apigen.codegen.generator.api.Feature;
 import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
 import com.jnzader.apigen.codegen.generator.api.ProjectGenerator;
+import com.jnzader.apigen.codegen.generator.dx.DxFeaturesGenerator;
+import com.jnzader.apigen.codegen.generator.dx.DxLanguage;
 import com.jnzader.apigen.codegen.generator.typescript.auth.TypeScriptJwtAuthGenerator;
 import com.jnzader.apigen.codegen.generator.typescript.auth.TypeScriptRateLimitGenerator;
 import com.jnzader.apigen.codegen.generator.typescript.config.TypeScriptConfigGenerator;
@@ -74,7 +76,13 @@ public class TypeScriptNestJsProjectGenerator implements ProjectGenerator {
                     Feature.AZURE_STORAGE,
                     // Testing
                     Feature.UNIT_TESTS,
-                    Feature.INTEGRATION_TESTS);
+                    Feature.INTEGRATION_TESTS,
+                    // Developer Experience Features
+                    Feature.MISE_TASKS,
+                    Feature.PRE_COMMIT,
+                    Feature.SETUP_SCRIPT,
+                    Feature.GITHUB_TEMPLATES,
+                    Feature.DEV_COMPOSE);
 
     private final TypeScriptTypeMapper typeMapper = new TypeScriptTypeMapper();
 
@@ -196,6 +204,13 @@ public class TypeScriptNestJsProjectGenerator implements ProjectGenerator {
 
         // Generate security files
         generateSecurityFiles(files, config);
+
+        // Developer Experience Features
+        if (DxFeaturesGenerator.hasAnyDxFeature(config)) {
+            String projectNameKebab = typeMapper.toKebabCase(projectName);
+            DxFeaturesGenerator dxGenerator = new DxFeaturesGenerator(projectNameKebab);
+            files.putAll(dxGenerator.generate(config, DxLanguage.TYPESCRIPT_NESTJS));
+        }
 
         // Generate test directory structure
         files.put("test/.gitkeep", "");

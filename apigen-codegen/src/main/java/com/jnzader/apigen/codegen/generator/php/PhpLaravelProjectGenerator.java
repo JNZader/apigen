@@ -1,11 +1,14 @@
 package com.jnzader.apigen.codegen.generator.php;
 
+import static com.jnzader.apigen.codegen.generator.util.NamingUtils.toSnakeCase;
 import static com.jnzader.apigen.codegen.generator.util.RelationshipUtils.*;
 
 import com.jnzader.apigen.codegen.generator.api.Feature;
 import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
 import com.jnzader.apigen.codegen.generator.api.ProjectGenerator;
+import com.jnzader.apigen.codegen.generator.dx.DxFeaturesGenerator;
+import com.jnzader.apigen.codegen.generator.dx.DxLanguage;
 import com.jnzader.apigen.codegen.generator.php.auth.PhpJwtAuthGenerator;
 import com.jnzader.apigen.codegen.generator.php.auth.PhpRateLimitGenerator;
 import com.jnzader.apigen.codegen.generator.php.config.PhpConfigGenerator;
@@ -73,7 +76,13 @@ public class PhpLaravelProjectGenerator implements ProjectGenerator {
                     Feature.AZURE_STORAGE,
                     // Testing
                     Feature.UNIT_TESTS,
-                    Feature.INTEGRATION_TESTS);
+                    Feature.INTEGRATION_TESTS,
+                    // Developer Experience Features
+                    Feature.MISE_TASKS,
+                    Feature.PRE_COMMIT,
+                    Feature.SETUP_SCRIPT,
+                    Feature.GITHUB_TEMPLATES,
+                    Feature.DEV_COMPOSE);
 
     private final PhpTypeMapper typeMapper = new PhpTypeMapper();
 
@@ -203,6 +212,13 @@ public class PhpLaravelProjectGenerator implements ProjectGenerator {
 
         // Generate security files
         generateSecurityFiles(files, config);
+
+        // Developer Experience Features
+        if (DxFeaturesGenerator.hasAnyDxFeature(config)) {
+            String projectNameSnake = toSnakeCase(projectName);
+            DxFeaturesGenerator dxGenerator = new DxFeaturesGenerator(projectNameSnake);
+            files.putAll(dxGenerator.generate(config, DxLanguage.PHP_LARAVEL));
+        }
 
         // Generate tests directory structure
         files.put("tests/Feature/.gitkeep", "");

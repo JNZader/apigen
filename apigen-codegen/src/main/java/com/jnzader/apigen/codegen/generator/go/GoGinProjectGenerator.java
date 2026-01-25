@@ -6,6 +6,8 @@ import com.jnzader.apigen.codegen.generator.api.Feature;
 import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
 import com.jnzader.apigen.codegen.generator.api.ProjectGenerator;
+import com.jnzader.apigen.codegen.generator.dx.DxFeaturesGenerator;
+import com.jnzader.apigen.codegen.generator.dx.DxLanguage;
 import com.jnzader.apigen.codegen.generator.go.auth.GoJwtAuthGenerator;
 import com.jnzader.apigen.codegen.generator.go.auth.GoRateLimitGenerator;
 import com.jnzader.apigen.codegen.generator.go.config.GoConfigGenerator;
@@ -74,7 +76,13 @@ public class GoGinProjectGenerator implements ProjectGenerator {
                     Feature.AZURE_STORAGE,
                     // Testing
                     Feature.UNIT_TESTS,
-                    Feature.INTEGRATION_TESTS);
+                    Feature.INTEGRATION_TESTS,
+                    // Developer Experience Features
+                    Feature.MISE_TASKS,
+                    Feature.PRE_COMMIT,
+                    Feature.SETUP_SCRIPT,
+                    Feature.GITHUB_TEMPLATES,
+                    Feature.DEV_COMPOSE);
 
     private final GoTypeMapper typeMapper = new GoTypeMapper();
 
@@ -196,6 +204,13 @@ public class GoGinProjectGenerator implements ProjectGenerator {
         // Generate docs directory placeholder
         files.put("docs/.gitkeep", "");
 
+        // Developer Experience Features
+        if (DxFeaturesGenerator.hasAnyDxFeature(config)) {
+            String projectName = extractProjectName(config);
+            DxFeaturesGenerator dxGenerator = new DxFeaturesGenerator(projectName);
+            files.putAll(dxGenerator.generate(config, DxLanguage.GO_GIN));
+        }
+
         // Generate tests for each entity
         if (config.isFeatureEnabled(Feature.UNIT_TESTS)
                 || config.isFeatureEnabled(Feature.INTEGRATION_TESTS)) {
@@ -274,6 +289,15 @@ public class GoGinProjectGenerator implements ProjectGenerator {
         }
 
         return errors;
+    }
+
+    /** Extracts project name from config. */
+    private String extractProjectName(ProjectConfig config) {
+        String projectName = config.getProjectName();
+        if (projectName == null || projectName.isBlank()) {
+            return "app";
+        }
+        return typeMapper.toSnakeCase(projectName);
     }
 
     /**

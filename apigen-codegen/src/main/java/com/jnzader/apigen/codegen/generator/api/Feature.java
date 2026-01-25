@@ -99,5 +99,24 @@ public enum Feature {
     AZURE_STORAGE,
 
     /** Server-side templates with jte */
-    JTE_TEMPLATES
+    JTE_TEMPLATES,
+
+    // ==========================================================================
+    // Developer Experience Features (v2.19.0+)
+    // ==========================================================================
+
+    /** mise task runner configuration (mise.toml) */
+    MISE_TASKS,
+
+    /** Pre-commit hooks configuration (.pre-commit-config.yaml) */
+    PRE_COMMIT,
+
+    /** Automated setup scripts (scripts/setup.sh, scripts/setup.ps1) */
+    SETUP_SCRIPT,
+
+    /** GitHub PR and Issue templates (.github/) */
+    GITHUB_TEMPLATES,
+
+    /** Enhanced docker-compose for development with profiles */
+    DEV_COMPOSE
 }

@@ -6,6 +6,8 @@ import com.jnzader.apigen.codegen.generator.api.Feature;
 import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
 import com.jnzader.apigen.codegen.generator.api.ProjectGenerator;
+import com.jnzader.apigen.codegen.generator.dx.DxFeaturesGenerator;
+import com.jnzader.apigen.codegen.generator.dx.DxLanguage;
 import com.jnzader.apigen.codegen.generator.python.auth.PythonJwtAuthGenerator;
 import com.jnzader.apigen.codegen.generator.python.auth.PythonRateLimitGenerator;
 import com.jnzader.apigen.codegen.generator.python.config.PythonConfigGenerator;
@@ -72,7 +74,13 @@ public class PythonFastApiProjectGenerator implements ProjectGenerator {
                     Feature.AZURE_STORAGE,
                     // Testing
                     Feature.UNIT_TESTS,
-                    Feature.INTEGRATION_TESTS);
+                    Feature.INTEGRATION_TESTS,
+                    // Developer Experience Features
+                    Feature.MISE_TASKS,
+                    Feature.PRE_COMMIT,
+                    Feature.SETUP_SCRIPT,
+                    Feature.GITHUB_TEMPLATES,
+                    Feature.DEV_COMPOSE);
 
     private final PythonTypeMapper typeMapper = new PythonTypeMapper();
 
@@ -176,6 +184,13 @@ public class PythonFastApiProjectGenerator implements ProjectGenerator {
 
         // Generate security features
         generateSecurityFiles(files, config);
+
+        // Developer Experience Features
+        if (DxFeaturesGenerator.hasAnyDxFeature(config)) {
+            String projectNameSnake = typeMapper.toSnakeCase(projectName);
+            DxFeaturesGenerator dxGenerator = new DxFeaturesGenerator(projectNameSnake);
+            files.putAll(dxGenerator.generate(config, DxLanguage.PYTHON_FASTAPI));
+        }
 
         // Generate tests directory structure
         files.put("tests/__init__.py", "");

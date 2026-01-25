@@ -6,6 +6,8 @@ import com.jnzader.apigen.codegen.generator.api.Feature;
 import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
 import com.jnzader.apigen.codegen.generator.api.ProjectGenerator;
+import com.jnzader.apigen.codegen.generator.dx.DxFeaturesGenerator;
+import com.jnzader.apigen.codegen.generator.dx.DxLanguage;
 import com.jnzader.apigen.codegen.generator.gochi.config.GoChiConfigGenerator;
 import com.jnzader.apigen.codegen.generator.gochi.dto.GoChiDtoGenerator;
 import com.jnzader.apigen.codegen.generator.gochi.handler.GoChiHandlerGenerator;
@@ -75,7 +77,13 @@ public class GoChiProjectGenerator implements ProjectGenerator {
                     Feature.SOCIAL_LOGIN,
                     Feature.FILE_UPLOAD,
                     Feature.S3_STORAGE,
-                    Feature.AZURE_STORAGE);
+                    Feature.AZURE_STORAGE,
+                    // Developer Experience Features
+                    Feature.MISE_TASKS,
+                    Feature.PRE_COMMIT,
+                    Feature.SETUP_SCRIPT,
+                    Feature.GITHUB_TEMPLATES,
+                    Feature.DEV_COMPOSE);
 
     private final GoChiTypeMapper typeMapper = new GoChiTypeMapper();
 
@@ -247,10 +255,26 @@ public class GoChiProjectGenerator implements ProjectGenerator {
             }
         }
 
+        // Developer Experience Features
+        if (DxFeaturesGenerator.hasAnyDxFeature(config)) {
+            String projectName = extractProjectName(config);
+            DxFeaturesGenerator dxGenerator = new DxFeaturesGenerator(projectName);
+            files.putAll(dxGenerator.generate(config, DxLanguage.GO_CHI));
+        }
+
         // Docs placeholder
         files.put("docs/.gitkeep", "");
 
         return files;
+    }
+
+    /** Extracts project name from config. */
+    private String extractProjectName(ProjectConfig config) {
+        String projectName = config.getProjectName();
+        if (projectName == null || projectName.isBlank()) {
+            return "app";
+        }
+        return typeMapper.toSnakeCase(projectName);
     }
 
     /** Generates Feature Pack 2025 files based on enabled features. */

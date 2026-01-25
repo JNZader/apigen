@@ -21,6 +21,8 @@ import com.jnzader.apigen.codegen.generator.api.Feature;
 import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
 import com.jnzader.apigen.codegen.generator.api.ProjectGenerator;
+import com.jnzader.apigen.codegen.generator.dx.DxFeaturesGenerator;
+import com.jnzader.apigen.codegen.generator.dx.DxLanguage;
 import com.jnzader.apigen.codegen.generator.rust.config.RustConfigGenerator;
 import com.jnzader.apigen.codegen.generator.rust.dto.RustDtoGenerator;
 import com.jnzader.apigen.codegen.generator.rust.edge.RustModbusGenerator;
@@ -94,7 +96,13 @@ public class RustAxumProjectGenerator implements ProjectGenerator {
                     Feature.AZURE_STORAGE,
                     // Testing
                     Feature.UNIT_TESTS,
-                    Feature.INTEGRATION_TESTS);
+                    Feature.INTEGRATION_TESTS,
+                    // Developer Experience Features
+                    Feature.MISE_TASKS,
+                    Feature.PRE_COMMIT,
+                    Feature.SETUP_SCRIPT,
+                    Feature.GITHUB_TEMPLATES,
+                    Feature.DEV_COMPOSE);
 
     private final RustTypeMapper typeMapper = new RustTypeMapper();
 
@@ -295,6 +303,13 @@ public class RustAxumProjectGenerator implements ProjectGenerator {
         // === Feature Pack 2025 ===
         generateFeaturePackFiles(files, config);
 
+        // Developer Experience Features
+        if (DxFeaturesGenerator.hasAnyDxFeature(config)) {
+            String projectName = extractProjectName(config);
+            DxFeaturesGenerator dxGenerator = new DxFeaturesGenerator(projectName);
+            files.putAll(dxGenerator.generate(config, DxLanguage.RUST_AXUM));
+        }
+
         // Generate tests for each entity
         if (config.isFeatureEnabled(Feature.UNIT_TESTS)
                 || config.isFeatureEnabled(Feature.INTEGRATION_TESTS)) {
@@ -314,6 +329,15 @@ public class RustAxumProjectGenerator implements ProjectGenerator {
         }
 
         return files;
+    }
+
+    /** Extracts project name from config. */
+    private String extractProjectName(ProjectConfig config) {
+        String projectName = config.getProjectName();
+        if (projectName == null || projectName.isBlank()) {
+            return "app";
+        }
+        return typeMapper.toSnakeCase(projectName);
     }
 
     /** Generates Feature Pack 2025 files based on enabled features. */

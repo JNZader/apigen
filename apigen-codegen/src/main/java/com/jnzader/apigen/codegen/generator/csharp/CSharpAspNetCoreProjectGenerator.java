@@ -8,6 +8,8 @@ import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
 import com.jnzader.apigen.codegen.generator.api.ProjectGenerator;
 import com.jnzader.apigen.codegen.generator.common.ManyToManyRelation;
+import com.jnzader.apigen.codegen.generator.dx.DxFeaturesGenerator;
+import com.jnzader.apigen.codegen.generator.dx.DxLanguage;
 import com.jnzader.apigen.codegen.generator.csharp.config.CSharpConfigGenerator;
 import com.jnzader.apigen.codegen.generator.csharp.controller.CSharpControllerGenerator;
 import com.jnzader.apigen.codegen.generator.csharp.dbcontext.CSharpDbContextGenerator;
@@ -78,7 +80,13 @@ public class CSharpAspNetCoreProjectGenerator implements ProjectGenerator {
                     Feature.SOCIAL_LOGIN,
                     Feature.FILE_UPLOAD,
                     Feature.S3_STORAGE,
-                    Feature.AZURE_STORAGE);
+                    Feature.AZURE_STORAGE,
+                    // Developer Experience Features
+                    Feature.MISE_TASKS,
+                    Feature.PRE_COMMIT,
+                    Feature.SETUP_SCRIPT,
+                    Feature.GITHUB_TEMPLATES,
+                    Feature.DEV_COMPOSE);
 
     private final CSharpTypeMapper typeMapper = new CSharpTypeMapper();
 
@@ -243,6 +251,22 @@ public class CSharpAspNetCoreProjectGenerator implements ProjectGenerator {
             boolean useAzure = config.isFeatureEnabled(Feature.AZURE_STORAGE);
             files.putAll(storageGenerator.generate(useS3, useAzure));
         }
+
+        // Developer Experience Features
+        if (DxFeaturesGenerator.hasAnyDxFeature(config)) {
+            String projectName = extractProjectName(baseNamespace);
+            DxFeaturesGenerator dxGenerator = new DxFeaturesGenerator(projectName);
+            files.putAll(dxGenerator.generate(config, DxLanguage.CSHARP_ASPNET));
+        }
+    }
+
+    /** Extracts project name from base namespace (last segment). */
+    private String extractProjectName(String baseNamespace) {
+        if (baseNamespace == null || baseNamespace.isBlank()) {
+            return "app";
+        }
+        String[] parts = baseNamespace.split("\\.");
+        return parts[parts.length - 1];
     }
 
     @Override
