@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.18.0](https://github.com/JNZader/apigen/compare/v2.17.0...v2.18.0) (2026-01-25)
+
+### Features
+
+* **codegen,server:** implement reserved functionality for unused parameters ([a2a4f88](https://github.com/JNZader/apigen/commit/a2a4f880bc8e0b71ded453e69b5b4f0175027e19))
+
+### Bug Fixes
+
+* **codegen,security:** resolve high severity SonarQube issues ([77dfa0e](https://github.com/JNZader/apigen/commit/77dfa0e1ab18ebd3baecb8b460647ab300ce3cea))
+* **codegen,server:** add null checks to prevent NullPointerExceptions ([089ebc2](https://github.com/JNZader/apigen/commit/089ebc2d2edc762f25dec27bf7dca02b238e23fa))
+* **codegen,server:** resolve all SonarQube issues ([015e5c2](https://github.com/JNZader/apigen/commit/015e5c288b6fd6122b0883e3e9549825f648df04))
+* **codegen,server:** resolve SonarQube MAJOR issues ([72f92b8](https://github.com/JNZader/apigen/commit/72f92b801cd4c400b328319e573bd0129e9cc9a3))
+* **codegen:** fix SuppressWarnings annotation in Kotlin generator ([437c6dc](https://github.com/JNZader/apigen/commit/437c6dc393a456257fa6267258b787a603367532))
+* **codegen:** resolve S125 and S2068 SonarQube issues ([0154a60](https://github.com/JNZader/apigen/commit/0154a60fa3166519f81bf7cb6ca562969758d763))
+* **core,server:** resolve additional high severity SonarQube issues ([e730037](https://github.com/JNZader/apigen/commit/e730037fe383a1784280404bfe0a523c53ad6345))
+
+### Code Refactoring
+
+* **codegen:** reduce code duplication across generators ([3a9fcd4](https://github.com/JNZader/apigen/commit/3a9fcd4c710569540e98057f66d7544490e78e4d))
+
 ## [2.17.0](https://github.com/JNZader/apigen/compare/v2.16.0...v2.17.0) (2026-01-24)
 
 ### Features
