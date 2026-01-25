@@ -149,8 +149,8 @@ dependencies {
     // implementation project(':apigen-security')
 
     // A esto (dependencia de Maven):
-    implementation 'com.jnzader:apigen-core:1.0.0-SNAPSHOT'
-    implementation 'com.jnzader:apigen-security:1.0.0-SNAPSHOT'
+    implementation 'com.github.jnzader.apigen:apigen-core:v2.18.0'
+    implementation 'com.github.jnzader.apigen:apigen-security:v2.18.0'
 }
 ```
 

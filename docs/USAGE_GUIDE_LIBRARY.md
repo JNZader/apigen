@@ -35,13 +35,13 @@ plugins {
 
 dependencies {
     // BOM para gestión de versiones
-    implementation(platform("com.jnzader:apigen-bom:1.0.0-SNAPSHOT"))
+    implementation(platform("com.github.jnzader.apigen:apigen-bom:v2.18.0"))
 
     // Módulo core (obligatorio)
-    implementation("com.jnzader:apigen-core")
+    implementation("com.github.jnzader.apigen:apigen-core")
 
     // Módulo de seguridad (opcional)
-    implementation("com.jnzader:apigen-security")
+    implementation("com.github.jnzader.apigen:apigen-security")
 
     // Base de datos
     runtimeOnly("org.postgresql:postgresql")
@@ -74,13 +74,13 @@ plugins {
 
 dependencies {
     // BOM para gestión de versiones
-    implementation platform('com.jnzader:apigen-bom:1.0.0-SNAPSHOT')
+    implementation platform('com.github.jnzader.apigen:apigen-bom:v2.18.0')
 
     // Módulo core (obligatorio)
-    implementation 'com.jnzader:apigen-core'
+    implementation 'com.github.jnzader.apigen:apigen-core'
 
     // Módulo de seguridad (opcional)
-    implementation 'com.jnzader:apigen-security'
+    implementation 'com.github.jnzader.apigen:apigen-security'
 
     // Base de datos
     runtimeOnly 'org.postgresql:postgresql'
@@ -108,9 +108,9 @@ tasks.withType(JavaCompile).configureEach {
 <dependencyManagement>
     <dependencies>
         <dependency>
-            <groupId>com.jnzader</groupId>
+            <groupId>com.github.jnzader.apigen</groupId>
             <artifactId>apigen-bom</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>v2.18.0</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -120,13 +120,13 @@ tasks.withType(JavaCompile).configureEach {
 <dependencies>
     <!-- Módulo core (obligatorio) -->
     <dependency>
-        <groupId>com.jnzader</groupId>
+        <groupId>com.github.jnzader.apigen</groupId>
         <artifactId>apigen-core</artifactId>
     </dependency>
 
     <!-- Módulo de seguridad (opcional) -->
     <dependency>
-        <groupId>com.jnzader</groupId>
+        <groupId>com.github.jnzader.apigen</groupId>
         <artifactId>apigen-security</artifactId>
     </dependency>
 

@@ -38,15 +38,15 @@ Usa el generador de código cuando:
 ```groovy
 // build.gradle
 dependencies {
-    implementation 'com.jnzader:apigen-codegen:1.0.0-SNAPSHOT'
+    implementation 'com.github.jnzader.apigen:apigen-codegen:v2.18.0'
 }
 ```
 
 ### Como Herramienta CLI
 
 ```bash
-# Descargar el JAR
-curl -L https://github.com/jnzader/apigen/releases/download/v1.0.0/apigen-codegen-1.0.0.jar -o apigen-codegen.jar
+# Descargar el JAR (desde GitHub Releases)
+curl -L https://github.com/jnzader/apigen/releases/latest/download/apigen-codegen.jar -o apigen-codegen.jar
 
 # Ejecutar
 java -jar apigen-codegen.jar schema.sql /path/to/project com.mycompany.api
@@ -61,7 +61,7 @@ cd apigen
 ./gradlew :apigen-codegen:build
 
 # Ejecutar
-java -jar apigen-codegen/build/libs/apigen-codegen-1.0.0-SNAPSHOT.jar
+java -jar apigen-codegen/build/libs/apigen-codegen.jar
 ```
 
 ---

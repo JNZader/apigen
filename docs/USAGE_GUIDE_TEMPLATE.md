@@ -227,7 +227,7 @@ rm -rf apigen-core apigen-security apigen-codegen apigen-bom
 # Cambiar:
 #   implementation project(':apigen-core')
 # A:
-#   implementation 'com.jnzader:apigen-core:1.0.0-SNAPSHOT'
+#   implementation 'com.github.jnzader.apigen:apigen-core:v2.18.0'
 ```
 
 ### Opción C: Mantener como Fork para Contribuir

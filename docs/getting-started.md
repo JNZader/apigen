@@ -44,7 +44,7 @@ repositories {
 ```groovy
 dependencies {
     // Using the BOM for version management
-    implementation platform('com.github.jnzader.apigen:apigen-bom:1.0.0')
+    implementation platform('com.github.jnzader.apigen:apigen-bom:v2.18.0')
 
     // Core module (required)
     implementation 'com.github.jnzader.apigen:apigen-core'
@@ -61,7 +61,7 @@ dependencies {
         <dependency>
             <groupId>com.github.jnzader.apigen</groupId>
             <artifactId>apigen-bom</artifactId>
-            <version>1.0.0</version>
+            <version>v2.18.0</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -80,44 +80,130 @@ dependencies {
 
 ### 1. Create an Entity
 
+Extend the `Base` class from apigen-core:
+
 ```java
-import com.jnzader.apigen.core.annotation.ApiGenCrud;
-import com.jnzader.apigen.core.entity.BaseEntity;
+import com.jnzader.apigen.core.domain.entity.Base;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.Column;
 
 @Entity
-@ApiGenCrud
-public class Product extends BaseEntity {
+@Table(name = "products")
+public class Product extends Base {
 
+    @Column(nullable = false)
     private String name;
+
     private String description;
+
+    @Column(precision = 10, scale = 2)
     private BigDecimal price;
+
     private Integer stock;
 
     // Getters and setters
 }
 ```
 
-### 2. Run Your Application
+The `Base` class provides:
+- `id` - Auto-generated primary key (Long)
+- `createdAt` - Creation timestamp
+- `updatedAt` - Last update timestamp
+- `version` - Optimistic locking
+- `estado` - Soft delete status
 
-That's it! APiGen automatically generates:
+### 2. Create a DTO
 
-- **REST Endpoints:**
-  - `GET /api/products` - List all products (with pagination)
-  - `GET /api/products/{id}` - Get a single product
-  - `POST /api/products` - Create a new product
-  - `PUT /api/products/{id}` - Update a product
-  - `PATCH /api/products/{id}` - Partial update
-  - `DELETE /api/products/{id}` - Delete a product
+```java
+import com.jnzader.apigen.core.application.dto.BaseDTO;
 
-- **Features included:**
-  - HATEOAS links
-  - Filtering with RSQL
-  - Pagination
-  - Validation
-  - Error handling
+public record ProductDTO(
+    Long id,
+    @NotBlank String name,
+    String description,
+    @Positive BigDecimal price,
+    Integer stock
+) implements BaseDTO {}
+```
 
-### 3. Test Your API
+### 3. Create Repository, Mapper, and Service
+
+```java
+// Repository
+import com.jnzader.apigen.core.domain.repository.BaseRepository;
+
+@Repository
+public interface ProductRepository extends BaseRepository<Product, Long> {
+    List<Product> findByNameContainingIgnoreCase(String name);
+}
+
+// Mapper
+import com.jnzader.apigen.core.application.mapper.BaseMapper;
+
+@Mapper(componentModel = "spring")
+public interface ProductMapper extends BaseMapper<Product, ProductDTO> {}
+
+// Service
+import com.jnzader.apigen.core.application.service.impl.BaseServiceImpl;
+
+@Service
+public class ProductService extends BaseServiceImpl<Product, Long> {
+
+    @Override
+    protected Class<Product> getEntityClass() {
+        return Product.class;
+    }
+
+    @Override
+    public String getEntityName() {
+        return "Product";
+    }
+}
+```
+
+### 4. Create Controller
+
+```java
+import com.jnzader.apigen.core.infrastructure.controller.BaseControllerImpl;
+
+@RestController
+@RequestMapping("/api/products")
+public class ProductController extends BaseControllerImpl<Product, ProductDTO, Long> {
+
+    public ProductController(ProductService service,
+                            ProductMapper mapper,
+                            ProductResourceAssembler assembler) {
+        super(service, mapper, assembler);
+    }
+}
+```
+
+### 5. Run Your Application
+
+That's it! APiGen automatically provides these endpoints:
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/products` | List all products (with pagination) |
+| GET | `/api/products/{id}` | Get a single product |
+| POST | `/api/products` | Create a new product |
+| PUT | `/api/products/{id}` | Update a product |
+| PATCH | `/api/products/{id}` | Partial update |
+| DELETE | `/api/products/{id}` | Soft delete a product |
+| DELETE | `/api/products/{id}?permanent=true` | Hard delete |
+| POST | `/api/products/{id}/restore` | Restore soft-deleted |
+| GET | `/api/products/cursor` | Cursor-based pagination |
+
+**Features included automatically:**
+- HATEOAS links
+- Dynamic filtering
+- Pagination (offset and cursor)
+- Validation
+- Error handling (RFC 7807)
+- ETag caching
+
+### 6. Test Your API
 
 ```bash
 # Create a product
@@ -126,14 +212,41 @@ curl -X POST http://localhost:8080/api/products \
   -d '{"name": "Laptop", "price": 999.99}'
 
 # List products with filtering
-curl "http://localhost:8080/api/products?filter=price>500"
+curl "http://localhost:8080/api/products?filter=price:gte:500"
 
 # Get a single product
 curl http://localhost:8080/api/products/1
+
+# Cursor pagination
+curl "http://localhost:8080/api/products/cursor?size=10&sort=id"
+```
+
+## Configuration
+
+Configure APiGen in `application.yml`:
+
+```yaml
+app:
+  api:
+    version: v1
+    base-path: /api
+  rate-limit:
+    enabled: true
+    max-requests: 100
+    window-seconds: 60
+  pagination:
+    default-size: 20
+    max-size: 100
+
+spring:
+  threads:
+    virtual:
+      enabled: true
 ```
 
 ## Next Steps
 
 - [Core Module](modules/core.md) - Learn about core features
 - [Security Module](modules/security.md) - Add authentication
-- [JitPack Deployment](deployment/jitpack.md) - Publish your own library
+- [Features](FEATURES.md) - Complete feature list
+- [Code Generation](USAGE_GUIDE_CODEGEN.md) - Generate projects from SQL

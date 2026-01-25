@@ -159,14 +159,11 @@ mi-nuevo-proyecto/
 ```groovy
 // build.gradle
 dependencies {
-    // BOM para gestión de versiones
-    implementation platform('com.jnzader:apigen-bom:1.0.0-SNAPSHOT')
-
     // Módulo core (obligatorio)
-    implementation 'com.jnzader:apigen-core'
+    implementation 'com.github.jnzader.apigen:apigen-core:v2.18.0'
 
     // Módulo de seguridad (opcional)
-    implementation 'com.jnzader:apigen-security'
+    implementation 'com.github.jnzader.apigen:apigen-security:v2.18.0'
 }
 ```
 
@@ -309,19 +306,19 @@ mi-proyecto/src/main/java/com/miempresa/api/
 // build.gradle (proyecto raíz)
 subprojects {
     dependencies {
-        implementation platform('com.jnzader:apigen-bom:1.0.0-SNAPSHOT')
+        implementation platform('com.github.jnzader.apigen:apigen-bom:v2.18.0')
     }
 }
 
 // module-a/build.gradle
 dependencies {
-    implementation 'com.jnzader:apigen-core'  // Sin versión
+    implementation 'com.github.jnzader.apigen:apigen-core'  // Sin versión
 }
 
 // module-b/build.gradle
 dependencies {
-    implementation 'com.jnzader:apigen-core'      // Misma versión
-    implementation 'com.jnzader:apigen-security'  // Misma versión
+    implementation 'com.github.jnzader.apigen:apigen-core'      // Misma versión
+    implementation 'com.github.jnzader.apigen:apigen-security'  // Misma versión
 }
 ```
 
@@ -332,9 +329,9 @@ dependencies {
 <dependencyManagement>
     <dependencies>
         <dependency>
-            <groupId>com.jnzader</groupId>
+            <groupId>com.github.jnzader.apigen</groupId>
             <artifactId>apigen-bom</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>v2.18.0</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -344,7 +341,7 @@ dependencies {
 <!-- module-a/pom.xml -->
 <dependencies>
     <dependency>
-        <groupId>com.jnzader</groupId>
+        <groupId>com.github.jnzader.apigen</groupId>
         <artifactId>apigen-core</artifactId>
         <!-- versión heredada del BOM -->
     </dependency>

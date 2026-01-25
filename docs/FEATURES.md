@@ -1942,8 +1942,8 @@ public class ProductControllerV2 {
 
     @GetMapping("/{id}")
     @DeprecatedVersion(
-        since = "2024-01-01",
-        sunset = "2025-01-01",
+        since = "2025-01-01",
+        sunset = "2026-07-01",
         successor = "3",
         message = "Use v3 for improved performance",
         migrationGuide = "https://docs.example.com/migration/v2-to-v3"
@@ -1960,8 +1960,8 @@ Para endpoints deprecados, el sistema agrega automáticamente:
 
 ```
 X-API-Version: 2
-Deprecation: Mon, 1 Jan 2024 00:00:00 GMT
-Sunset: Wed, 1 Jan 2025 00:00:00 GMT
+Deprecation: Wed, 1 Jan 2025 00:00:00 GMT
+Sunset: Wed, 1 Jul 2026 00:00:00 GMT
 Link: </api/v3/products>; rel="successor-version"
 ```
 

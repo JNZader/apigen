@@ -45,7 +45,7 @@ repositories {
 **Gradle:**
 ```groovy
 dependencies {
-    implementation platform('com.github.jnzader.apigen:apigen-bom:1.0.0')
+    implementation platform('com.github.jnzader.apigen:apigen-bom:v2.18.0')
     implementation 'com.github.jnzader.apigen:apigen-core'
 }
 ```
@@ -57,7 +57,7 @@ dependencies {
         <dependency>
             <groupId>com.github.jnzader.apigen</groupId>
             <artifactId>apigen-bom</artifactId>
-            <version>1.0.0</version>
+            <version>v2.18.0</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -76,7 +76,7 @@ dependencies {
 
 | Format | Example | Description |
 |--------|---------|-------------|
-| Release tag | `1.0.0` | Stable release |
+| Release tag | `v2.18.0` | Stable release |
 | Commit hash | `abc1234` | Specific commit |
 | Branch-SNAPSHOT | `main-SNAPSHOT` | Latest from branch |
 

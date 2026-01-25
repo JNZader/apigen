@@ -1,19 +1,42 @@
 # APiGen
 
-> Spring Boot REST API Library - Production-ready CRUD in minutes
+> Multi-Language API Generator & Spring Boot REST API Library
 
 ## What is APiGen?
 
-APiGen is a comprehensive library for building production-ready REST APIs with Spring Boot. It provides:
+APiGen is both a **multi-language code generator** (9 languages) and a **Spring Boot library** for building production-ready REST APIs.
 
-- **Complete CRUD operations** with a single annotation
+### Code Generation
+
+Generate complete API projects from SQL schemas in:
+
+| Language | Framework | Features |
+|----------|-----------|----------|
+| Java | Spring Boot 4.x | Full-featured, HATEOAS, JWT, OAuth2 |
+| Kotlin | Spring Boot 4.x | Data classes, coroutines |
+| Python | FastAPI | Async, Pydantic, automatic OpenAPI |
+| TypeScript | NestJS | TypeORM, class-validator |
+| PHP | Laravel | Eloquent, migrations |
+| Go | Gin | GORM, validator |
+| Go | Chi | pgx, Viper, Redis |
+| Rust | Axum | Tokio, sqlx, Edge computing |
+| C# | ASP.NET Core | EF Core, AutoMapper |
+
+### Library Features
+
+- **Complete CRUD operations** with base classes
 - **HATEOAS support** with automatic link generation
-- **Advanced filtering** using RSQL/FIQL syntax
-- **Pagination** with customizable page sizes
+- **Advanced filtering** using dynamic operators
+- **Pagination** (offset and cursor-based)
 - **Soft delete** for data recovery
 - **Auditing** with automatic timestamps
 - **ETag caching** for performance
 - **Domain events** for reactive patterns
+- **JWT/OAuth2 authentication**
+- **Rate limiting** with Bucket4j
+- **GraphQL & gRPC** support
+- **Multi-tenancy**
+- **Event sourcing**
 
 ## Quick Start
 
@@ -30,7 +53,7 @@ repositories {
 
 ```groovy
 dependencies {
-    implementation platform('com.github.jnzader.apigen:apigen-bom:1.0.0')
+    implementation platform('com.github.jnzader.apigen:apigen-bom:v2.18.0')
     implementation 'com.github.jnzader.apigen:apigen-core'
     implementation 'com.github.jnzader.apigen:apigen-security' // Optional
 }
@@ -39,31 +62,68 @@ dependencies {
 ### 3. Create Your Entity
 
 ```java
+import com.jnzader.apigen.core.domain.entity.Base;
+
 @Entity
-@ApiGenCrud
-public class Product extends BaseEntity {
+@Table(name = "products")
+public class Product extends Base {
+
+    @Column(nullable = false)
     private String name;
+
+    @Column(precision = 10, scale = 2)
     private BigDecimal price;
+
     private String description;
 
     // Getters and setters
 }
 ```
 
-That's it! APiGen automatically generates:
+### 4. Extend Base Classes
+
+```java
+// Repository
+@Repository
+public interface ProductRepository extends BaseRepository<Product, Long> {}
+
+// Service
+@Service
+public class ProductService extends BaseServiceImpl<Product, Long> {
+    @Override
+    protected Class<Product> getEntityClass() { return Product.class; }
+
+    @Override
+    public String getEntityName() { return "Product"; }
+}
+
+// Controller
+@RestController
+@RequestMapping("/api/products")
+public class ProductController extends BaseControllerImpl<Product, ProductDTO, Long> {
+    public ProductController(ProductService service, ProductMapper mapper,
+                            ProductResourceAssembler assembler) {
+        super(service, mapper, assembler);
+    }
+}
+```
+
+That's it! APiGen automatically provides:
 - REST endpoints (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`)
-- DTOs and mappers
-- Repository with filtering support
-- Service layer with validation
+- HATEOAS links
+- Filtering support
+- Pagination
+- Validation
+- Error handling
 
 ## Features
 
 | Feature | Description |
 |---------|-------------|
-| CRUD Operations | Full REST API with single annotation |
+| CRUD Operations | Full REST API with base classes |
 | HATEOAS | Automatic hypermedia links |
-| Filtering | RSQL/FIQL query syntax |
-| Pagination | Configurable page sizes |
+| Filtering | Dynamic query operators (12+) |
+| Pagination | Offset and cursor-based |
 | Soft Delete | Recoverable data deletion |
 | Auditing | Automatic created/updated timestamps |
 | ETag Caching | HTTP caching support |
@@ -78,7 +138,7 @@ That's it! APiGen automatically generates:
 |--------|-------------|
 | `apigen-core` | Core CRUD functionality |
 | `apigen-security` | JWT, OAuth2, RBAC authentication |
-| `apigen-codegen` | Code generation utilities |
+| `apigen-codegen` | Multi-language code generation (9 languages) |
 | `apigen-graphql` | GraphQL API support |
 | `apigen-grpc` | gRPC protocol support |
 | `apigen-gateway` | API Gateway with Spring Cloud |
