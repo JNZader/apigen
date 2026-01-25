@@ -1,6 +1,6 @@
 package com.jnzader.apigen.codegen.generator.php;
 
-import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
+import com.jnzader.apigen.codegen.generator.api.AbstractLanguageTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import java.util.HashSet;
 import java.util.Set;
@@ -20,7 +20,7 @@ import java.util.Set;
     "java:S1192",
     "java:S3776"
 }) // S1192: Type mapping strings; S3776: complex type mapping logic
-public class PhpTypeMapper implements LanguageTypeMapper {
+public class PhpTypeMapper extends AbstractLanguageTypeMapper {
 
     private static final Set<String> PHP_KEYWORDS =
             Set.of(
@@ -103,8 +103,40 @@ public class PhpTypeMapper implements LanguageTypeMapper {
                     "__TRAIT__");
 
     @Override
-    public String mapColumnType(SqlColumn column) {
-        return mapJavaTypeToPhp(column.getJavaType());
+    public String mapJavaType(String javaType) {
+        if (javaType == null) {
+            return "string";
+        }
+
+        return switch (javaType) {
+            case "String" -> "string";
+            case "Integer", "int", "Long", "long" -> "int";
+            case "Double", "double", "Float", "float", "BigDecimal" -> "float";
+            case "Boolean", "boolean" -> "bool";
+            case "LocalDate", "LocalDateTime", "Instant", "ZonedDateTime", "LocalTime" -> "Carbon";
+            case "UUID" -> "string";
+            case "byte[]", "Byte[]" -> "string";
+            default -> "string";
+        };
+    }
+
+    @Override
+    protected String getListTypeFormat() {
+        return "array";
+    }
+
+    @Override
+    public String getListType(String elementType) {
+        // PHP uses untyped arrays, so we just return "array"
+        return "array";
+    }
+
+    @Override
+    public String getNullableType(String type) {
+        if (type.startsWith("?")) {
+            return type;
+        }
+        return "?" + type;
     }
 
     @Override
@@ -141,47 +173,6 @@ public class PhpTypeMapper implements LanguageTypeMapper {
     @Override
     public String getPrimaryKeyType() {
         return "int";
-    }
-
-    @Override
-    public Set<String> getPrimaryKeyImports() {
-        return Set.of();
-    }
-
-    @Override
-    public String getListType(String elementType) {
-        return "array";
-    }
-
-    @Override
-    public String getNullableType(String type) {
-        if (type.startsWith("?")) {
-            return type;
-        }
-        return "?" + type;
-    }
-
-    /**
-     * Maps a Java type to its PHP equivalent.
-     *
-     * @param javaType the Java type name
-     * @return the PHP type name
-     */
-    public String mapJavaTypeToPhp(String javaType) {
-        if (javaType == null) {
-            return "string";
-        }
-
-        return switch (javaType) {
-            case "String" -> "string";
-            case "Integer", "int", "Long", "long" -> "int";
-            case "Double", "double", "Float", "float", "BigDecimal" -> "float";
-            case "Boolean", "boolean" -> "bool";
-            case "LocalDate", "LocalDateTime", "Instant", "ZonedDateTime", "LocalTime" -> "Carbon";
-            case "UUID" -> "string";
-            case "byte[]", "Byte[]" -> "string";
-            default -> "string";
-        };
     }
 
     /**

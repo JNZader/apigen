@@ -1,6 +1,6 @@
 package com.jnzader.apigen.codegen.generator.gochi;
 
-import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
+import com.jnzader.apigen.codegen.generator.api.AbstractLanguageTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import java.util.HashSet;
 import java.util.Locale;
@@ -13,7 +13,7 @@ import java.util.Set;
  * <p>Maps SQL types to Go types optimized for pgx (pgtype package for nullable types).
  */
 @SuppressWarnings("java:S1192") // Type mapping strings intentional for readability
-public class GoChiTypeMapper implements LanguageTypeMapper {
+public class GoChiTypeMapper extends AbstractLanguageTypeMapper {
 
     private static final Map<String, String> JAVA_TO_GO =
             Map.ofEntries(
@@ -87,6 +87,61 @@ public class GoChiTypeMapper implements LanguageTypeMapper {
             return JAVA_TO_GO_NULLABLE.getOrDefault(javaType, "any");
         }
         return JAVA_TO_GO.getOrDefault(javaType, "any");
+    }
+
+    @Override
+    public String mapJavaType(String javaType) {
+        return JAVA_TO_GO.getOrDefault(javaType, "any");
+    }
+
+    @Override
+    protected String getListTypeFormat() {
+        return "[]%s";
+    }
+
+    @Override
+    public String getNullableType(String type) {
+        // In Go, we use pgtype for nullable types or pointers
+        return switch (type) {
+            case "string" -> "pgtype.Text";
+            case "int32" -> "pgtype.Int4";
+            case "int64" -> "pgtype.Int8";
+            case "bool" -> "pgtype.Bool";
+            case "float32" -> "pgtype.Float4";
+            case "float64" -> "pgtype.Float8";
+            case "time.Time" -> "pgtype.Timestamptz";
+            case "uuid.UUID" -> "pgtype.UUID";
+            case "decimal.Decimal" -> "pgtype.Numeric";
+            default -> "*" + type; // Use pointer for custom types
+        };
+    }
+
+    @Override
+    public Set<String> getRequiredImports(SqlColumn column) {
+        Set<String> imports = new HashSet<>();
+        String importPath = getImportForType(column.getJavaType(), column.isNullable());
+        if (importPath != null) {
+            imports.add(importPath);
+        }
+        return imports;
+    }
+
+    @Override
+    public String getDefaultValue(SqlColumn column) {
+        String goType = mapColumnType(column);
+        return switch (goType) {
+            case "string", "pgtype.Text" -> "\"\"";
+            case "int32", "int64", "pgtype.Int4", "pgtype.Int8" -> "0";
+            case "float32", "float64", "pgtype.Float4", "pgtype.Float8" -> "0.0";
+            case "bool", "pgtype.Bool" -> "false";
+            case "[]byte" -> "nil";
+            default -> "nil";
+        };
+    }
+
+    @Override
+    public String getPrimaryKeyType() {
+        return "int64";
     }
 
     /**
@@ -257,61 +312,6 @@ public class GoChiTypeMapper implements LanguageTypeMapper {
             case "UUID" -> "github.com/google/uuid";
             case "BigDecimal" -> "github.com/shopspring/decimal";
             default -> null;
-        };
-    }
-
-    @Override
-    public Set<String> getRequiredImports(SqlColumn column) {
-        Set<String> imports = new HashSet<>();
-        String importPath = getImportForType(column.getJavaType(), column.isNullable());
-        if (importPath != null) {
-            imports.add(importPath);
-        }
-        return imports;
-    }
-
-    @Override
-    public String getDefaultValue(SqlColumn column) {
-        String goType = mapColumnType(column);
-        return switch (goType) {
-            case "string", "pgtype.Text" -> "\"\"";
-            case "int32", "int64", "pgtype.Int4", "pgtype.Int8" -> "0";
-            case "float32", "float64", "pgtype.Float4", "pgtype.Float8" -> "0.0";
-            case "bool", "pgtype.Bool" -> "false";
-            case "[]byte" -> "nil";
-            default -> "nil";
-        };
-    }
-
-    @Override
-    public String getPrimaryKeyType() {
-        return "int64";
-    }
-
-    @Override
-    public Set<String> getPrimaryKeyImports() {
-        return Set.of();
-    }
-
-    @Override
-    public String getListType(String elementType) {
-        return "[]" + elementType;
-    }
-
-    @Override
-    public String getNullableType(String type) {
-        // In Go, we use pgtype for nullable types or pointers
-        return switch (type) {
-            case "string" -> "pgtype.Text";
-            case "int32" -> "pgtype.Int4";
-            case "int64" -> "pgtype.Int8";
-            case "bool" -> "pgtype.Bool";
-            case "float32" -> "pgtype.Float4";
-            case "float64" -> "pgtype.Float8";
-            case "time.Time" -> "pgtype.Timestamptz";
-            case "uuid.UUID" -> "pgtype.UUID";
-            case "decimal.Decimal" -> "pgtype.Numeric";
-            default -> "*" + type; // Use pointer for custom types
         };
     }
 }

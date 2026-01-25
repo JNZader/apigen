@@ -15,7 +15,7 @@
  */
 package com.jnzader.apigen.codegen.generator.rust;
 
-import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
+import com.jnzader.apigen.codegen.generator.api.AbstractLanguageTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import java.util.HashSet;
 import java.util.Locale;
@@ -37,7 +37,7 @@ import java.util.regex.Pattern;
     "java:S1192",
     "java:S3776"
 }) // S1192: Type mapping strings; S3776: complex type mapping logic
-public class RustTypeMapper implements LanguageTypeMapper {
+public class RustTypeMapper extends AbstractLanguageTypeMapper {
 
     private static final Pattern ACRONYM_PATTERN = Pattern.compile("(Id|Url|Api|Uuid|Json|Http)");
 
@@ -104,6 +104,34 @@ public class RustTypeMapper implements LanguageTypeMapper {
                     // JSON
                     Map.entry("JSON", "Value"),
                     Map.entry("JSONB", "Value"));
+
+    /** Java type to Rust type mappings. */
+    private static final Map<String, String> JAVA_TYPE_MAPPINGS =
+            Map.ofEntries(
+                    Map.entry("String", "String"),
+                    Map.entry("Integer", "i32"),
+                    Map.entry("int", "i32"),
+                    Map.entry("Long", "i64"),
+                    Map.entry("long", "i64"),
+                    Map.entry("Short", "i16"),
+                    Map.entry("short", "i16"),
+                    Map.entry("Byte", "i8"),
+                    Map.entry("byte", "i8"),
+                    Map.entry("Double", "f64"),
+                    Map.entry("double", "f64"),
+                    Map.entry("Float", "f32"),
+                    Map.entry("float", "f32"),
+                    Map.entry("Boolean", "bool"),
+                    Map.entry("boolean", "bool"),
+                    Map.entry("BigDecimal", "Decimal"),
+                    Map.entry("LocalDate", "NaiveDate"),
+                    Map.entry("LocalDateTime", "NaiveDateTime"),
+                    Map.entry("LocalTime", "NaiveTime"),
+                    Map.entry("Instant", "DateTime<Utc>"),
+                    Map.entry("ZonedDateTime", "DateTime<Utc>"),
+                    Map.entry("UUID", "Uuid"),
+                    Map.entry("byte[]", "Vec<u8>"),
+                    Map.entry("Byte[]", "Vec<u8>"));
 
     /** Crate imports required for specific types. */
     private static final Map<String, String> TYPE_IMPORTS =
@@ -183,6 +211,27 @@ public class RustTypeMapper implements LanguageTypeMapper {
     }
 
     @Override
+    public String mapJavaType(String javaType) {
+        if (javaType == null) {
+            return "String";
+        }
+        return JAVA_TYPE_MAPPINGS.getOrDefault(javaType, "String");
+    }
+
+    @Override
+    protected String getListTypeFormat() {
+        return "Vec<%s>";
+    }
+
+    @Override
+    public String getNullableType(String type) {
+        if (type.startsWith("Option<")) {
+            return type;
+        }
+        return "Option<" + type + ">";
+    }
+
+    @Override
     public Set<String> getRequiredImports(SqlColumn column) {
         Set<String> imports = new HashSet<>();
         String sqlType = column.getSqlType().toUpperCase(Locale.ROOT);
@@ -221,24 +270,6 @@ public class RustTypeMapper implements LanguageTypeMapper {
     @Override
     public String getPrimaryKeyType() {
         return "i64";
-    }
-
-    @Override
-    public Set<String> getPrimaryKeyImports() {
-        return Set.of();
-    }
-
-    @Override
-    public String getListType(String elementType) {
-        return "Vec<" + elementType + ">";
-    }
-
-    @Override
-    public String getNullableType(String type) {
-        if (type.startsWith("Option<")) {
-            return type;
-        }
-        return "Option<" + type + ">";
     }
 
     /**

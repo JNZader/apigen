@@ -1,5 +1,7 @@
 package com.jnzader.apigen.codegen.generator.csharp.dbcontext;
 
+import static com.jnzader.apigen.codegen.generator.util.NamingUtils.*;
+
 import com.jnzader.apigen.codegen.generator.common.ManyToManyRelation;
 import com.jnzader.apigen.codegen.model.SqlForeignKey;
 import com.jnzader.apigen.codegen.model.SqlSchema;
@@ -177,36 +179,5 @@ public class CSharpDbContextGenerator {
         }
 
         return result;
-    }
-
-    private String toPlural(String name) {
-        if (name == null || name.isEmpty()) {
-            return name;
-        }
-        if (name.endsWith("y")) {
-            return name.substring(0, name.length() - 1) + "ies";
-        } else if (name.endsWith("s") || name.endsWith("x") || name.endsWith("ch")) {
-            return name + "es";
-        }
-        return name + "s";
-    }
-
-    private String toPascalCase(String name) {
-        if (name == null || name.isEmpty()) {
-            return name;
-        }
-        StringBuilder result = new StringBuilder();
-        boolean capitalizeNext = true;
-        for (char c : name.toCharArray()) {
-            if (c == '_' || c == '-') {
-                capitalizeNext = true;
-            } else if (capitalizeNext) {
-                result.append(Character.toUpperCase(c));
-                capitalizeNext = false;
-            } else {
-                result.append(Character.toLowerCase(c));
-            }
-        }
-        return result.toString();
     }
 }

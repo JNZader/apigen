@@ -15,6 +15,8 @@
  */
 package com.jnzader.apigen.codegen.generator.rust;
 
+import static com.jnzader.apigen.codegen.generator.util.RelationshipUtils.*;
+
 import com.jnzader.apigen.codegen.generator.api.Feature;
 import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
@@ -39,7 +41,6 @@ import com.jnzader.apigen.codegen.generator.rust.test.RustTestGenerator;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -175,12 +176,8 @@ public class RustAxumProjectGenerator implements ProjectGenerator {
         List<SqlTable> tables = schema.getEntityTables();
 
         // Build relationship map
-        Map<String, List<SqlSchema.TableRelationship>> relationshipsByTable = new HashMap<>();
-        for (SqlSchema.TableRelationship rel : schema.getAllRelationships()) {
-            relationshipsByTable
-                    .computeIfAbsent(rel.getSourceTable().getName(), k -> new ArrayList<>())
-                    .add(rel);
-        }
+        Map<String, List<SqlSchema.TableRelationship>> relationshipsByTable =
+                buildRelationshipsByTable(schema);
 
         // === Root config files ===
         files.put("Cargo.toml", configGenerator.generateCargoToml());
@@ -207,7 +204,7 @@ public class RustAxumProjectGenerator implements ProjectGenerator {
         for (SqlTable table : tables) {
             String moduleName = typeMapper.toModuleName(table.getName());
             List<SqlSchema.TableRelationship> tableRelations =
-                    relationshipsByTable.getOrDefault(table.getName(), Collections.emptyList());
+                    getRelationshipsForTable(table.getName(), relationshipsByTable);
             files.put(
                     "src/models/" + moduleName + ".rs",
                     modelGenerator.generate(table, tableRelations));

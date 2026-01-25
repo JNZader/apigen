@@ -1,5 +1,7 @@
 package com.jnzader.apigen.codegen.generator.csharp.repository;
 
+import static com.jnzader.apigen.codegen.generator.util.NamingUtils.*;
+
 import com.jnzader.apigen.codegen.generator.csharp.CSharpTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlTable;
@@ -64,7 +66,7 @@ public class CSharpRepositoryGenerator {
                         .append("Async(")
                         .append(csharpType)
                         .append(" ")
-                        .append(toCamelCase(fieldName))
+                        .append(toCamelCase(col.getJavaFieldName()))
                         .append(", CancellationToken cancellationToken = default);\n\n");
             }
         }
@@ -124,7 +126,7 @@ public class CSharpRepositoryGenerator {
             if (col.isUnique() && !col.isPrimaryKey()) {
                 String fieldName = toPascalCase(col.getJavaFieldName());
                 String csharpType = typeMapper.mapColumnType(col);
-                String paramName = toCamelCase(fieldName);
+                String paramName = toCamelCase(col.getJavaFieldName());
 
                 sb.append("\n");
                 sb.append("    /// <inheritdoc />\n");
@@ -149,32 +151,5 @@ public class CSharpRepositoryGenerator {
 
         sb.append("}\n");
         return sb.toString();
-    }
-
-    private String toPascalCase(String name) {
-        if (name == null || name.isEmpty()) {
-            return name;
-        }
-        StringBuilder result = new StringBuilder();
-        boolean capitalizeNext = true;
-        for (char c : name.toCharArray()) {
-            if (c == '_' || c == '-') {
-                capitalizeNext = true;
-            } else if (capitalizeNext) {
-                result.append(Character.toUpperCase(c));
-                capitalizeNext = false;
-            } else {
-                result.append(Character.toLowerCase(c));
-            }
-        }
-        return result.toString();
-    }
-
-    private String toCamelCase(String name) {
-        String pascal = toPascalCase(name);
-        if (pascal == null || pascal.isEmpty()) {
-            return pascal;
-        }
-        return Character.toLowerCase(pascal.charAt(0)) + pascal.substring(1);
     }
 }

@@ -1,8 +1,9 @@
 package com.jnzader.apigen.codegen.generator.python.config;
 
+import static com.jnzader.apigen.codegen.generator.util.NamingUtils.*;
+
 import com.jnzader.apigen.codegen.generator.api.Feature;
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
-import com.jnzader.apigen.codegen.generator.python.PythonTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.LinkedHashMap;
@@ -31,11 +32,9 @@ public class PythonConfigGenerator {
     private static final String PYDANTIC_VERSION = "2.12.5";
 
     private final String projectName;
-    private final PythonTypeMapper typeMapper;
 
     public PythonConfigGenerator(String projectName) {
         this.projectName = toSnakeCase(projectName);
-        this.typeMapper = new PythonTypeMapper();
     }
 
     /**
@@ -177,7 +176,7 @@ public class PythonConfigGenerator {
 
         // Import routers
         for (SqlTable table : schema.getEntityTables()) {
-            String varName = typeMapper.toSnakeCase(table.getEntityName());
+            String varName = toSnakeCase(table.getEntityName());
             sb.append("from app.routers.").append(varName).append("_router import router as ");
             sb.append(varName).append("_router\n");
         }
@@ -232,7 +231,7 @@ public class PythonConfigGenerator {
         // Include entity routers
         sb.append("# Include routers\n");
         for (SqlTable table : schema.getEntityTables()) {
-            String varName = typeMapper.toSnakeCase(table.getEntityName());
+            String varName = toSnakeCase(table.getEntityName());
             sb.append("app.include_router(").append(varName).append("_router)\n");
         }
         sb.append("\n\n");
@@ -584,27 +583,5 @@ public class PythonConfigGenerator {
         sb.append("  postgres_data:\n");
 
         return sb.toString();
-    }
-
-    private String toSnakeCase(String name) {
-        if (name == null) return "";
-        return name.replaceAll("([a-z])([A-Z])", "$1_$2").replaceAll("[.-]", "_").toLowerCase();
-    }
-
-    private String toPascalCase(String name) {
-        if (name == null || name.isEmpty()) return name;
-        StringBuilder result = new StringBuilder();
-        boolean capitalizeNext = true;
-        for (char c : name.toCharArray()) {
-            if (c == '_' || c == '-' || c == '.') {
-                capitalizeNext = true;
-            } else if (capitalizeNext) {
-                result.append(Character.toUpperCase(c));
-                capitalizeNext = false;
-            } else {
-                result.append(c);
-            }
-        }
-        return result.toString();
     }
 }

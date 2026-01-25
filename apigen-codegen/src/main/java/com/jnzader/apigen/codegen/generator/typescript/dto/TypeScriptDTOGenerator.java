@@ -1,5 +1,7 @@
 package com.jnzader.apigen.codegen.generator.typescript.dto;
 
+import static com.jnzader.apigen.codegen.generator.util.NamingUtils.*;
+
 import com.jnzader.apigen.codegen.generator.typescript.TypeScriptTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlSchema;
@@ -362,17 +364,5 @@ public class TypeScriptDTOGenerator {
         sb.append("}\n");
 
         return sb.toString();
-    }
-
-    private boolean isAuditField(String columnName) {
-        String lower = columnName.toLowerCase();
-        return lower.equals("id")
-                || lower.equals("activo")
-                || lower.equals("created_at")
-                || lower.equals("updated_at")
-                || lower.equals("created_by")
-                || lower.equals("updated_by")
-                || lower.equals("deleted_at")
-                || lower.equals("deleted_by");
     }
 }

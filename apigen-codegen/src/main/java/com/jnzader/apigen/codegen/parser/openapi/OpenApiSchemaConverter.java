@@ -1,5 +1,7 @@
 package com.jnzader.apigen.codegen.parser.openapi;
 
+import static com.jnzader.apigen.codegen.generator.util.NamingUtils.*;
+
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlForeignKey;
 import com.jnzader.apigen.codegen.model.SqlTable;
@@ -284,7 +286,7 @@ public class OpenApiSchemaConverter {
         if (schemaName == null || schemaName.isEmpty()) {
             return schemaName;
         }
-        String snakeCase = camelToSnakeCase(schemaName);
+        String snakeCase = toSnakeCase(schemaName);
         return toPlural(snakeCase.toLowerCase(Locale.ROOT));
     }
 
@@ -298,61 +300,6 @@ public class OpenApiSchemaConverter {
         if (propertyName == null || propertyName.isEmpty()) {
             return propertyName;
         }
-        return camelToSnakeCase(propertyName).toLowerCase(Locale.ROOT);
-    }
-
-    /**
-     * Converts camelCase to snake_case.
-     *
-     * @param input the camelCase string
-     * @return the snake_case string
-     */
-    private static String camelToSnakeCase(String input) {
-        if (input == null || input.isEmpty()) {
-            return input;
-        }
-
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < input.length(); i++) {
-            char c = input.charAt(i);
-            if (Character.isUpperCase(c)) {
-                if (i > 0) {
-                    result.append('_');
-                }
-                result.append(Character.toLowerCase(c));
-            } else {
-                result.append(c);
-            }
-        }
-        return result.toString();
-    }
-
-    /**
-     * Converts singular to plural form.
-     *
-     * @param singular the singular form
-     * @return the plural form
-     */
-    private static String toPlural(String singular) {
-        if (singular == null || singular.isEmpty()) {
-            return singular;
-        }
-
-        if (singular.endsWith("y")
-                && singular.length() > 1
-                && !isVowel(singular.charAt(singular.length() - 2))) {
-            return singular.substring(0, singular.length() - 1) + "ies";
-        }
-        if (singular.endsWith("s")
-                || singular.endsWith("x")
-                || singular.endsWith("ch")
-                || singular.endsWith("sh")) {
-            return singular + "es";
-        }
-        return singular + "s";
-    }
-
-    private static boolean isVowel(char c) {
-        return "aeiouAEIOU".indexOf(c) >= 0;
+        return toSnakeCase(propertyName).toLowerCase(Locale.ROOT);
     }
 }

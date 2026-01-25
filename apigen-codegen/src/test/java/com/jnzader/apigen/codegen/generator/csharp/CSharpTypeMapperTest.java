@@ -20,85 +20,85 @@ class CSharpTypeMapperTest {
     }
 
     @Nested
-    @DisplayName("mapJavaTypeToCSharp()")
-    class MapJavaTypeToCSharpTests {
+    @DisplayName("mapJavaType()")
+    class MapJavaTypeTests {
 
         @Test
         @DisplayName("Should map Integer to int")
         void shouldMapIntegerToInt() {
-            assertThat(typeMapper.mapJavaTypeToCSharp("Integer")).isEqualTo("int");
+            assertThat(typeMapper.mapJavaType("Integer")).isEqualTo("int");
         }
 
         @Test
         @DisplayName("Should map int primitive to int")
         void shouldMapIntPrimitiveToInt() {
-            assertThat(typeMapper.mapJavaTypeToCSharp("int")).isEqualTo("int");
+            assertThat(typeMapper.mapJavaType("int")).isEqualTo("int");
         }
 
         @Test
         @DisplayName("Should map Long to long")
         void shouldMapLongToLong() {
-            assertThat(typeMapper.mapJavaTypeToCSharp("Long")).isEqualTo("long");
+            assertThat(typeMapper.mapJavaType("Long")).isEqualTo("long");
         }
 
         @Test
         @DisplayName("Should map Boolean to bool")
         void shouldMapBooleanToBool() {
-            assertThat(typeMapper.mapJavaTypeToCSharp("Boolean")).isEqualTo("bool");
+            assertThat(typeMapper.mapJavaType("Boolean")).isEqualTo("bool");
         }
 
         @Test
         @DisplayName("Should map Character to char")
         void shouldMapCharacterToChar() {
-            assertThat(typeMapper.mapJavaTypeToCSharp("Character")).isEqualTo("char");
+            assertThat(typeMapper.mapJavaType("Character")).isEqualTo("char");
         }
 
         @Test
         @DisplayName("Should map String to string")
         void shouldMapStringToLowerCase() {
-            assertThat(typeMapper.mapJavaTypeToCSharp("String")).isEqualTo("string");
+            assertThat(typeMapper.mapJavaType("String")).isEqualTo("string");
         }
 
         @Test
         @DisplayName("Should map BigDecimal to decimal")
         void shouldMapBigDecimalToDecimal() {
-            assertThat(typeMapper.mapJavaTypeToCSharp("BigDecimal")).isEqualTo("decimal");
+            assertThat(typeMapper.mapJavaType("BigDecimal")).isEqualTo("decimal");
         }
 
         @Test
         @DisplayName("Should map LocalDateTime to DateTime")
         void shouldMapLocalDateTimeToDateTime() {
-            assertThat(typeMapper.mapJavaTypeToCSharp("LocalDateTime")).isEqualTo("DateTime");
+            assertThat(typeMapper.mapJavaType("LocalDateTime")).isEqualTo("DateTime");
         }
 
         @Test
         @DisplayName("Should map LocalDate to DateOnly")
         void shouldMapLocalDateToDateOnly() {
-            assertThat(typeMapper.mapJavaTypeToCSharp("LocalDate")).isEqualTo("DateOnly");
+            assertThat(typeMapper.mapJavaType("LocalDate")).isEqualTo("DateOnly");
         }
 
         @Test
         @DisplayName("Should map LocalTime to TimeOnly")
         void shouldMapLocalTimeToTimeOnly() {
-            assertThat(typeMapper.mapJavaTypeToCSharp("LocalTime")).isEqualTo("TimeOnly");
+            assertThat(typeMapper.mapJavaType("LocalTime")).isEqualTo("TimeOnly");
         }
 
         @Test
         @DisplayName("Should map UUID to Guid")
         void shouldMapUuidToGuid() {
-            assertThat(typeMapper.mapJavaTypeToCSharp("UUID")).isEqualTo("Guid");
+            assertThat(typeMapper.mapJavaType("UUID")).isEqualTo("Guid");
         }
 
         @Test
         @DisplayName("Should map Instant to DateTimeOffset")
         void shouldMapInstantToDateTimeOffset() {
-            assertThat(typeMapper.mapJavaTypeToCSharp("Instant")).isEqualTo("DateTimeOffset");
+            assertThat(typeMapper.mapJavaType("Instant")).isEqualTo("DateTimeOffset");
         }
 
         @Test
         @DisplayName("Should map Duration to TimeSpan")
         void shouldMapDurationToTimeSpan() {
-            assertThat(typeMapper.mapJavaTypeToCSharp("Duration")).isEqualTo("TimeSpan");
+            assertThat(typeMapper.mapJavaType("Duration")).isEqualTo("TimeSpan");
         }
     }
 

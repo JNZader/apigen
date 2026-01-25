@@ -1,5 +1,7 @@
 package com.jnzader.apigen.codegen.model;
 
+import static com.jnzader.apigen.codegen.generator.util.NamingUtils.toCamelCase;
+
 import java.util.List;
 import lombok.Builder;
 import lombok.Data;
@@ -105,29 +107,5 @@ public class SqlFunction {
             case "void" -> "void";
             default -> "Object";
         };
-    }
-
-    private String toCamelCase(String str) {
-        if (str == null) return null;
-        StringBuilder result = new StringBuilder();
-        boolean capitalizeNext = false;
-        for (int i = 0; i < str.length(); i++) {
-            char c = str.charAt(i);
-            if (c == '_') {
-                capitalizeNext = true;
-            } else {
-                char charToAppend;
-                if (capitalizeNext) {
-                    charToAppend = Character.toUpperCase(c);
-                } else if (i == 0) {
-                    charToAppend = Character.toLowerCase(c);
-                } else {
-                    charToAppend = c;
-                }
-                result.append(charToAppend);
-                capitalizeNext = false;
-            }
-        }
-        return result.toString();
     }
 }

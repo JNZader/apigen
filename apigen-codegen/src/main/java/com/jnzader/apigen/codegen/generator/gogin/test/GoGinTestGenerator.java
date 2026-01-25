@@ -15,6 +15,8 @@
  */
 package com.jnzader.apigen.codegen.generator.gogin.test;
 
+import static com.jnzader.apigen.codegen.generator.util.NamingUtils.*;
+
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -529,25 +531,5 @@ public class GoGinTestGenerator {
                 entityName,
                 entityName,
                 pluralName);
-    }
-
-    /** Converts PascalCase or camelCase to snake_case. */
-    private String toSnakeCase(String input) {
-        if (input == null || input.isEmpty()) {
-            return input;
-        }
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < input.length(); i++) {
-            char c = input.charAt(i);
-            if (Character.isUpperCase(c)) {
-                if (i > 0) {
-                    result.append('_');
-                }
-                result.append(Character.toLowerCase(c));
-            } else {
-                result.append(c);
-            }
-        }
-        return result.toString();
     }
 }

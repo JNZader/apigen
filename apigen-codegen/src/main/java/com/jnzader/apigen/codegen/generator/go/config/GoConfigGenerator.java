@@ -1,12 +1,13 @@
 package com.jnzader.apigen.codegen.generator.go.config;
 
+import static com.jnzader.apigen.codegen.generator.util.NamingUtils.*;
+
 import com.jnzader.apigen.codegen.generator.api.Feature;
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
 import com.jnzader.apigen.codegen.generator.go.GoTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.LinkedHashMap;
-import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -870,11 +871,5 @@ public class GoConfigGenerator {
             return moduleName.substring(lastSlash + 1);
         }
         return moduleName;
-    }
-
-    private String toSnakeCase(String name) {
-        return name.replaceAll("([a-z])([A-Z])", "$1_$2")
-                .replace("-", "_")
-                .toLowerCase(Locale.ROOT);
     }
 }

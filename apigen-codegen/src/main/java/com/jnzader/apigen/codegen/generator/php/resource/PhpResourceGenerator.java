@@ -1,5 +1,7 @@
 package com.jnzader.apigen.codegen.generator.php.resource;
 
+import static com.jnzader.apigen.codegen.generator.util.NamingUtils.*;
+
 import com.jnzader.apigen.codegen.generator.php.PhpTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlSchema;
@@ -175,17 +177,6 @@ public class PhpResourceGenerator {
         }
         """
                 .formatted(className, className);
-    }
-
-    private boolean isAuditField(String columnName) {
-        String lower = columnName.toLowerCase();
-        return lower.equals("activo")
-                || lower.equals("created_at")
-                || lower.equals("updated_at")
-                || lower.equals("created_by")
-                || lower.equals("updated_by")
-                || lower.equals("deleted_at")
-                || lower.equals("deleted_by");
     }
 
     private boolean isDateType(String javaType) {

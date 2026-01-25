@@ -1,5 +1,7 @@
 package com.jnzader.apigen.codegen.generator.gochi.config;
 
+import static com.jnzader.apigen.codegen.generator.util.NamingUtils.*;
+
 import com.jnzader.apigen.codegen.generator.api.Feature;
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
 import com.jnzader.apigen.codegen.generator.gochi.GoChiOptions;
@@ -7,7 +9,6 @@ import com.jnzader.apigen.codegen.generator.gochi.GoChiTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.LinkedHashMap;
-import java.util.Locale;
 import java.util.Map;
 
 /** Generates configuration files for Go/Chi projects using Viper. */
@@ -980,11 +981,5 @@ public class GoChiConfigGenerator {
             return moduleName.substring(lastSlash + 1);
         }
         return moduleName;
-    }
-
-    private String toSnakeCase(String name) {
-        return name.replaceAll("([a-z])([A-Z])", "$1_$2")
-                .replace("-", "_")
-                .toLowerCase(Locale.ROOT);
     }
 }

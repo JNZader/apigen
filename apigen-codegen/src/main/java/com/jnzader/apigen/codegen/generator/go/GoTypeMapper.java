@@ -1,6 +1,6 @@
 package com.jnzader.apigen.codegen.generator.go;
 
-import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
+import com.jnzader.apigen.codegen.generator.api.AbstractLanguageTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import java.util.HashSet;
 import java.util.Set;
@@ -20,7 +20,7 @@ import java.util.Set;
     "java:S1192",
     "java:S3776"
 }) // S1192: Type mapping strings; S3776: complex type mapping logic
-public class GoTypeMapper implements LanguageTypeMapper {
+public class GoTypeMapper extends AbstractLanguageTypeMapper {
 
     private static final Set<String> GO_KEYWORDS =
             Set.of(
@@ -97,6 +97,24 @@ public class GoTypeMapper implements LanguageTypeMapper {
     }
 
     @Override
+    public String mapJavaType(String javaType) {
+        return mapJavaTypeToGo(javaType, false);
+    }
+
+    @Override
+    protected String getListTypeFormat() {
+        return "[]%s";
+    }
+
+    @Override
+    public String getNullableType(String type) {
+        if (type.startsWith("*")) {
+            return type;
+        }
+        return "*" + type;
+    }
+
+    @Override
     public Set<String> getRequiredImports(SqlColumn column) {
         Set<String> imports = new HashSet<>();
         String javaType = column.getJavaType();
@@ -138,24 +156,6 @@ public class GoTypeMapper implements LanguageTypeMapper {
     @Override
     public String getPrimaryKeyType() {
         return "int64";
-    }
-
-    @Override
-    public Set<String> getPrimaryKeyImports() {
-        return Set.of();
-    }
-
-    @Override
-    public String getListType(String elementType) {
-        return "[]" + elementType;
-    }
-
-    @Override
-    public String getNullableType(String type) {
-        if (type.startsWith("*")) {
-            return type;
-        }
-        return "*" + type;
     }
 
     /**

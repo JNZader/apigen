@@ -1,5 +1,7 @@
 package com.jnzader.apigen.codegen.generator.python;
 
+import static com.jnzader.apigen.codegen.generator.util.RelationshipUtils.*;
+
 import com.jnzader.apigen.codegen.generator.api.Feature;
 import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
@@ -20,8 +22,6 @@ import com.jnzader.apigen.codegen.generator.python.test.PythonTestGenerator;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -125,12 +125,8 @@ public class PythonFastApiProjectGenerator implements ProjectGenerator {
         PythonConfigGenerator configGenerator = new PythonConfigGenerator(projectName);
 
         // Collect all relationships for bidirectional mapping
-        Map<String, List<SqlSchema.TableRelationship>> relationshipsByTable = new HashMap<>();
-        for (SqlSchema.TableRelationship rel : schema.getAllRelationships()) {
-            relationshipsByTable
-                    .computeIfAbsent(rel.getSourceTable().getName(), k -> new ArrayList<>())
-                    .add(rel);
-        }
+        Map<String, List<SqlSchema.TableRelationship>> relationshipsByTable =
+                buildRelationshipsByTable(schema);
 
         // Generate base classes
         files.put("app/models/__init__.py", "");
@@ -146,14 +142,11 @@ public class PythonFastApiProjectGenerator implements ProjectGenerator {
         // Generate code for each entity table
         for (SqlTable table : schema.getEntityTables()) {
             List<SqlSchema.TableRelationship> tableRelations =
-                    relationshipsByTable.getOrDefault(table.getName(), Collections.emptyList());
+                    getRelationshipsForTable(table.getName(), relationshipsByTable);
 
             // Find inverse relationships (where this table is the target)
             List<SqlSchema.TableRelationship> inverseRelations =
-                    schema.getAllRelationships().stream()
-                            .filter(r -> r.getTargetTable().getName().equals(table.getName()))
-                            .filter(r -> !r.getSourceTable().isJunctionTable())
-                            .toList();
+                    findInverseRelationships(table, schema);
 
             String varName = typeMapper.toSnakeCase(table.getEntityName());
 

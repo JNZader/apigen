@@ -1,30 +1,20 @@
 package com.jnzader.apigen.codegen.generator.kotlin;
 
-import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
+import com.jnzader.apigen.codegen.generator.api.AbstractLanguageTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import java.util.Set;
 
 /**
- * Kotlin-specific implementation of {@link LanguageTypeMapper}.
+ * Kotlin-specific implementation of {@link AbstractLanguageTypeMapper}.
  *
  * <p>Maps SQL types to Kotlin types with appropriate imports for JPA entities, DTOs, and other
  * Kotlin constructs. Handles nullable types using Kotlin's built-in null-safety features.
  */
 @SuppressWarnings("java:S1192") // Type mapping strings intentional for readability
-public class KotlinTypeMapper implements LanguageTypeMapper {
+public class KotlinTypeMapper extends AbstractLanguageTypeMapper {
 
     @Override
-    public String mapColumnType(SqlColumn column) {
-        return mapJavaTypeToKotlin(column.getJavaType());
-    }
-
-    /**
-     * Maps a Java type to its Kotlin equivalent.
-     *
-     * @param javaType the Java type name
-     * @return the Kotlin type name
-     */
-    public String mapJavaTypeToKotlin(String javaType) {
+    public String mapJavaType(String javaType) {
         return switch (javaType) {
             case "int", "Integer" -> "Int";
             case "long", "Long" -> "Long";
@@ -36,6 +26,18 @@ public class KotlinTypeMapper implements LanguageTypeMapper {
             case "char", "Character" -> "Char";
             default -> javaType; // String, BigDecimal, LocalDate, etc. stay the same
         };
+    }
+
+    /**
+     * Maps a Java type to its Kotlin equivalent.
+     *
+     * <p>Alias for {@link #mapJavaType(String)} for backward compatibility.
+     *
+     * @param javaType the Java type name
+     * @return the Kotlin type name
+     */
+    public String mapJavaTypeToKotlin(String javaType) {
+        return mapJavaType(javaType);
     }
 
     @Override
@@ -68,18 +70,8 @@ public class KotlinTypeMapper implements LanguageTypeMapper {
     }
 
     @Override
-    public String getPrimaryKeyType() {
-        return "Long";
-    }
-
-    @Override
-    public Set<String> getPrimaryKeyImports() {
-        return Set.of();
-    }
-
-    @Override
-    public String getListType(String elementType) {
-        return "List<" + elementType + ">";
+    protected String getListTypeFormat() {
+        return "List<%s>";
     }
 
     @Override

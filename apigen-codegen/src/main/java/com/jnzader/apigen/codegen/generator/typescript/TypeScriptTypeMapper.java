@@ -1,6 +1,6 @@
 package com.jnzader.apigen.codegen.generator.typescript;
 
-import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
+import com.jnzader.apigen.codegen.generator.api.AbstractLanguageTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import java.util.HashSet;
 import java.util.Set;
@@ -17,7 +17,7 @@ import java.util.Set;
  * </ul>
  */
 @SuppressWarnings("java:S1192") // Type mapping strings intentional for readability
-public class TypeScriptTypeMapper implements LanguageTypeMapper {
+public class TypeScriptTypeMapper extends AbstractLanguageTypeMapper {
 
     private static final Set<String> TS_KEYWORDS =
             Set.of(
@@ -94,8 +94,34 @@ public class TypeScriptTypeMapper implements LanguageTypeMapper {
                     "yield");
 
     @Override
-    public String mapColumnType(SqlColumn column) {
-        return mapJavaTypeToTypeScript(column.getJavaType());
+    public String mapJavaType(String javaType) {
+        if (javaType == null) {
+            return "string";
+        }
+
+        return switch (javaType) {
+            case "String" -> "string";
+            case "Integer", "int", "Long", "long", "Double", "double", "Float", "float" -> "number";
+            case "BigDecimal" -> "number";
+            case "Boolean", "boolean" -> "boolean";
+            case "LocalDate", "LocalDateTime", "Instant", "ZonedDateTime", "LocalTime" -> "Date";
+            case "UUID" -> "string";
+            case "byte[]", "Byte[]" -> "Buffer";
+            default -> "string";
+        };
+    }
+
+    @Override
+    protected String getListTypeFormat() {
+        return "%s[]";
+    }
+
+    @Override
+    public String getNullableType(String type) {
+        if (type.endsWith(" | null")) {
+            return type;
+        }
+        return type + " | null";
     }
 
     @Override
@@ -131,47 +157,6 @@ public class TypeScriptTypeMapper implements LanguageTypeMapper {
     @Override
     public String getPrimaryKeyType() {
         return "number";
-    }
-
-    @Override
-    public Set<String> getPrimaryKeyImports() {
-        return Set.of();
-    }
-
-    @Override
-    public String getListType(String elementType) {
-        return elementType + "[]";
-    }
-
-    @Override
-    public String getNullableType(String type) {
-        if (type.endsWith(" | null")) {
-            return type;
-        }
-        return type + " | null";
-    }
-
-    /**
-     * Maps a Java type to its TypeScript equivalent.
-     *
-     * @param javaType the Java type name
-     * @return the TypeScript type name
-     */
-    public String mapJavaTypeToTypeScript(String javaType) {
-        if (javaType == null) {
-            return "string";
-        }
-
-        return switch (javaType) {
-            case "String" -> "string";
-            case "Integer", "int", "Long", "long", "Double", "double", "Float", "float" -> "number";
-            case "BigDecimal" -> "number";
-            case "Boolean", "boolean" -> "boolean";
-            case "LocalDate", "LocalDateTime", "Instant", "ZonedDateTime", "LocalTime" -> "Date";
-            case "UUID" -> "string";
-            case "byte[]", "Byte[]" -> "Buffer";
-            default -> "string";
-        };
     }
 
     /**

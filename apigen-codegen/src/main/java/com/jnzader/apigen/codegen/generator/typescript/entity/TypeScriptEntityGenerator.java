@@ -1,5 +1,7 @@
 package com.jnzader.apigen.codegen.generator.typescript.entity;
 
+import static com.jnzader.apigen.codegen.generator.util.NamingUtils.*;
+
 import com.jnzader.apigen.codegen.generator.typescript.TypeScriptTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlSchema;
@@ -107,7 +109,7 @@ public class TypeScriptEntityGenerator {
         // Import related entities
         for (SqlSchema.TableRelationship rel : relationships) {
             String targetEntity = rel.getTargetTable().getEntityName();
-            String targetKebab = typeMapper.toKebabCase(targetEntity);
+            String targetKebab = toKebabCase(targetEntity);
             sb.append("import { ")
                     .append(targetEntity)
                     .append(" } from './")
@@ -116,7 +118,7 @@ public class TypeScriptEntityGenerator {
         }
         for (SqlSchema.TableRelationship rel : inverseRelationships) {
             String sourceEntity = rel.getSourceTable().getEntityName();
-            String sourceKebab = typeMapper.toKebabCase(sourceEntity);
+            String sourceKebab = toKebabCase(sourceEntity);
             sb.append("import { ")
                     .append(sourceEntity)
                     .append(" } from './")
@@ -140,7 +142,7 @@ public class TypeScriptEntityGenerator {
 
             String tsType = typeMapper.mapColumnType(column);
             String fieldName = typeMapper.toCamelCase(column.getName());
-            String columnName = typeMapper.toSnakeCase(column.getName());
+            String columnName = toSnakeCase(column.getName());
 
             sb.append("\n");
             sb.append("  @Column({\n");
@@ -193,7 +195,7 @@ public class TypeScriptEntityGenerator {
         for (SqlSchema.TableRelationship rel : relationships) {
             String targetEntity = rel.getTargetTable().getEntityName();
             String fieldName = typeMapper.toCamelCase(targetEntity);
-            String fkColumn = typeMapper.toSnakeCase(rel.getForeignKey().getColumnName());
+            String fkColumn = toSnakeCase(rel.getForeignKey().getColumnName());
             String fkFieldName = typeMapper.toCamelCase(rel.getForeignKey().getColumnName());
 
             sb.append("\n");
@@ -229,23 +231,5 @@ public class TypeScriptEntityGenerator {
         sb.append("}\n");
 
         return sb.toString();
-    }
-
-    private boolean isAuditField(String columnName) {
-        String lower = columnName.toLowerCase();
-        return lower.equals("id")
-                || lower.equals("activo")
-                || lower.equals("created_at")
-                || lower.equals("updated_at")
-                || lower.equals("created_by")
-                || lower.equals("updated_by")
-                || lower.equals("deleted_at")
-                || lower.equals("deleted_by");
-    }
-
-    private boolean isForeignKeyColumn(
-            String columnName, List<SqlSchema.TableRelationship> relationships) {
-        return relationships.stream()
-                .anyMatch(r -> r.getForeignKey().getColumnName().equalsIgnoreCase(columnName));
     }
 }

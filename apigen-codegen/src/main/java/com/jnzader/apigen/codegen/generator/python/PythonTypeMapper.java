@@ -1,6 +1,6 @@
 package com.jnzader.apigen.codegen.generator.python;
 
-import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
+import com.jnzader.apigen.codegen.generator.api.AbstractLanguageTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import java.util.HashSet;
 import java.util.Set;
@@ -17,7 +17,7 @@ import java.util.Set;
  * </ul>
  */
 @SuppressWarnings("java:S1192") // Type mapping strings intentional for readability
-public class PythonTypeMapper implements LanguageTypeMapper {
+public class PythonTypeMapper extends AbstractLanguageTypeMapper {
 
     private static final Set<String> PYTHON_KEYWORDS =
             Set.of(
@@ -58,8 +58,38 @@ public class PythonTypeMapper implements LanguageTypeMapper {
                     "None");
 
     @Override
-    public String mapColumnType(SqlColumn column) {
-        return mapJavaTypeToPython(column.getJavaType());
+    public String mapJavaType(String javaType) {
+        if (javaType == null) {
+            return "str";
+        }
+
+        return switch (javaType) {
+            case "String" -> "str";
+            case "Integer", "int" -> "int";
+            case "Long", "long" -> "int";
+            case "Double", "double", "Float", "float" -> "float";
+            case "Boolean", "boolean" -> "bool";
+            case "BigDecimal" -> "Decimal";
+            case "LocalDate" -> "date";
+            case "LocalDateTime", "Instant", "ZonedDateTime" -> "datetime";
+            case "LocalTime" -> "time";
+            case "UUID" -> "UUID";
+            case "byte[]", "Byte[]" -> "bytes";
+            default -> "str";
+        };
+    }
+
+    @Override
+    protected String getListTypeFormat() {
+        return "list[%s]";
+    }
+
+    @Override
+    public String getNullableType(String type) {
+        if (type.contains("| None") || type.endsWith("?")) {
+            return type;
+        }
+        return type + " | None";
     }
 
     @Override
@@ -101,51 +131,6 @@ public class PythonTypeMapper implements LanguageTypeMapper {
     @Override
     public String getPrimaryKeyType() {
         return "int";
-    }
-
-    @Override
-    public Set<String> getPrimaryKeyImports() {
-        return Set.of();
-    }
-
-    @Override
-    public String getListType(String elementType) {
-        return "list[" + elementType + "]";
-    }
-
-    @Override
-    public String getNullableType(String type) {
-        if (type.contains("| None") || type.endsWith("?")) {
-            return type;
-        }
-        return type + " | None";
-    }
-
-    /**
-     * Maps a Java type to its Python equivalent.
-     *
-     * @param javaType the Java type name
-     * @return the Python type name
-     */
-    public String mapJavaTypeToPython(String javaType) {
-        if (javaType == null) {
-            return "str";
-        }
-
-        return switch (javaType) {
-            case "String" -> "str";
-            case "Integer", "int" -> "int";
-            case "Long", "long" -> "int";
-            case "Double", "double", "Float", "float" -> "float";
-            case "Boolean", "boolean" -> "bool";
-            case "BigDecimal" -> "Decimal";
-            case "LocalDate" -> "date";
-            case "LocalDateTime", "Instant", "ZonedDateTime" -> "datetime";
-            case "LocalTime" -> "time";
-            case "UUID" -> "UUID";
-            case "byte[]", "Byte[]" -> "bytes";
-            default -> "str";
-        };
     }
 
     /**

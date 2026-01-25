@@ -1,5 +1,7 @@
 package com.jnzader.apigen.codegen.generator.php.config;
 
+import static com.jnzader.apigen.codegen.generator.util.NamingUtils.*;
+
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
 import com.jnzader.apigen.codegen.generator.php.PhpTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlSchema;
@@ -589,30 +591,5 @@ public class PhpConfigGenerator {
         sb.append("}\n");
 
         return sb.toString();
-    }
-
-    private String toSnakeCase(String name) {
-        if (name == null) return "";
-        return name.replaceAll("([a-z])([A-Z])", "$1_$2")
-                .replaceAll("[.-]", "_")
-                .toLowerCase(Locale.ROOT);
-    }
-
-    @SuppressWarnings("LoopOverCharArray")
-    private String toPascalCase(String name) {
-        if (name == null || name.isEmpty()) return name;
-        StringBuilder result = new StringBuilder();
-        boolean capitalizeNext = true;
-        for (char c : name.toCharArray()) {
-            if (c == '_' || c == '-' || c == '.') {
-                capitalizeNext = true;
-            } else if (capitalizeNext) {
-                result.append(Character.toUpperCase(c));
-                capitalizeNext = false;
-            } else {
-                result.append(c);
-            }
-        }
-        return result.toString();
     }
 }

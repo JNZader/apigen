@@ -1,5 +1,7 @@
 package com.jnzader.apigen.codegen.generator.go;
 
+import static com.jnzader.apigen.codegen.generator.util.RelationshipUtils.*;
+
 import com.jnzader.apigen.codegen.generator.api.Feature;
 import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
@@ -21,8 +23,6 @@ import com.jnzader.apigen.codegen.generator.gogin.test.GoGinTestGenerator;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -129,12 +129,8 @@ public class GoGinProjectGenerator implements ProjectGenerator {
         GoConfigGenerator configGenerator = new GoConfigGenerator(moduleName);
 
         // Collect all relationships for bidirectional mapping
-        Map<String, List<SqlSchema.TableRelationship>> relationshipsByTable = new HashMap<>();
-        for (SqlSchema.TableRelationship rel : schema.getAllRelationships()) {
-            relationshipsByTable
-                    .computeIfAbsent(rel.getSourceTable().getName(), k -> new ArrayList<>())
-                    .add(rel);
-        }
+        Map<String, List<SqlSchema.TableRelationship>> relationshipsByTable =
+                buildRelationshipsByTable(schema);
 
         // Generate shared DTO files
         files.put("internal/dto/paginated_response.go", dtoGenerator.generatePaginatedResponse());
@@ -156,14 +152,11 @@ public class GoGinProjectGenerator implements ProjectGenerator {
             String snakeName = typeMapper.toSnakeCase(entityName);
 
             List<SqlSchema.TableRelationship> tableRelations =
-                    relationshipsByTable.getOrDefault(table.getName(), Collections.emptyList());
+                    getRelationshipsForTable(table.getName(), relationshipsByTable);
 
             // Find inverse relationships (where this table is the target)
             List<SqlSchema.TableRelationship> inverseRelations =
-                    schema.getAllRelationships().stream()
-                            .filter(r -> r.getTargetTable().getName().equals(table.getName()))
-                            .filter(r -> !r.getSourceTable().isJunctionTable())
-                            .toList();
+                    findInverseRelationships(table, schema);
 
             // 1. Generate Model
             String modelCode = modelGenerator.generate(table, tableRelations, inverseRelations);

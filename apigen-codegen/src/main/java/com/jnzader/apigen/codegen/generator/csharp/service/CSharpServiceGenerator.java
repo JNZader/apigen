@@ -1,5 +1,7 @@
 package com.jnzader.apigen.codegen.generator.csharp.service;
 
+import static com.jnzader.apigen.codegen.generator.util.NamingUtils.*;
+
 import com.jnzader.apigen.codegen.model.SqlTable;
 
 /** Generates Service interface and implementation for C#/ASP.NET Core. */
@@ -140,24 +142,5 @@ public class CSharpServiceGenerator {
         sb.append("}\n");
 
         return sb.toString();
-    }
-
-    private String toPascalCase(String name) {
-        if (name == null || name.isEmpty()) {
-            return name;
-        }
-        StringBuilder result = new StringBuilder();
-        boolean capitalizeNext = true;
-        for (char c : name.toCharArray()) {
-            if (c == '_' || c == '-') {
-                capitalizeNext = true;
-            } else if (capitalizeNext) {
-                result.append(Character.toUpperCase(c));
-                capitalizeNext = false;
-            } else {
-                result.append(Character.toLowerCase(c));
-            }
-        }
-        return result.toString();
     }
 }

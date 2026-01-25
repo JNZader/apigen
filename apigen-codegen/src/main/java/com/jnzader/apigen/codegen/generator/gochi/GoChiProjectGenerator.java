@@ -1,5 +1,7 @@
 package com.jnzader.apigen.codegen.generator.gochi;
 
+import static com.jnzader.apigen.codegen.generator.util.RelationshipUtils.*;
+
 import com.jnzader.apigen.codegen.generator.api.Feature;
 import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
@@ -20,8 +22,6 @@ import com.jnzader.apigen.codegen.generator.gochi.test.GoChiTestGenerator;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -138,12 +138,8 @@ public class GoChiProjectGenerator implements ProjectGenerator {
                 new GoChiMiddlewareGenerator(moduleName, options);
 
         // Collect relationships
-        Map<String, List<SqlSchema.TableRelationship>> relationshipsByTable = new HashMap<>();
-        for (SqlSchema.TableRelationship rel : schema.getAllRelationships()) {
-            relationshipsByTable
-                    .computeIfAbsent(rel.getSourceTable().getName(), k -> new ArrayList<>())
-                    .add(rel);
-        }
+        Map<String, List<SqlSchema.TableRelationship>> relationshipsByTable =
+                buildRelationshipsByTable(schema);
 
         // Generate configuration files
         files.putAll(configGenerator.generate(schema, config));
@@ -177,7 +173,7 @@ public class GoChiProjectGenerator implements ProjectGenerator {
             String snakeName = typeMapper.toSnakeCase(entityName);
 
             List<SqlSchema.TableRelationship> tableRelations =
-                    relationshipsByTable.getOrDefault(table.getName(), Collections.emptyList());
+                    getRelationshipsForTable(table.getName(), relationshipsByTable);
 
             // Model
             files.put(

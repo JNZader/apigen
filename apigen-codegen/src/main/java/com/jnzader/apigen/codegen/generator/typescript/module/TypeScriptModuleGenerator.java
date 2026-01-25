@@ -1,6 +1,7 @@
 package com.jnzader.apigen.codegen.generator.typescript.module;
 
-import com.jnzader.apigen.codegen.generator.typescript.TypeScriptTypeMapper;
+import static com.jnzader.apigen.codegen.generator.util.NamingUtils.*;
+
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.List;
@@ -19,12 +20,6 @@ import java.util.List;
 @SuppressWarnings("java:S1192") // Duplicate strings intentional for code generation templates
 public class TypeScriptModuleGenerator {
 
-    private final TypeScriptTypeMapper typeMapper;
-
-    public TypeScriptModuleGenerator() {
-        this.typeMapper = new TypeScriptTypeMapper();
-    }
-
     /**
      * Generates a feature module for an entity.
      *
@@ -34,7 +29,7 @@ public class TypeScriptModuleGenerator {
     public String generate(SqlTable table) {
         StringBuilder sb = new StringBuilder();
         String className = table.getEntityName();
-        String entityKebab = typeMapper.toKebabCase(className);
+        String entityKebab = toKebabCase(className);
 
         // Imports
         sb.append("import { Module } from '@nestjs/common';\n");
@@ -96,7 +91,7 @@ public class TypeScriptModuleGenerator {
         // Import feature modules
         for (SqlTable table : entityTables) {
             String className = table.getEntityName();
-            String moduleKebab = typeMapper.toKebabCase(className);
+            String moduleKebab = toKebabCase(className);
             sb.append("import { ")
                     .append(className)
                     .append("Module } from './modules/")
@@ -198,12 +193,5 @@ public class TypeScriptModuleGenerator {
         bootstrap();
         """
                 .formatted(projectName, projectName);
-    }
-
-    private String toSnakeCase(String name) {
-        if (name == null || name.isEmpty()) {
-            return name;
-        }
-        return name.replaceAll("([a-z])([A-Z])", "$1_$2").replace("-", "_").toLowerCase();
     }
 }
