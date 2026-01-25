@@ -16,6 +16,10 @@ import java.util.Map;
  *   <li>Flyway migration for the metadata table
  * </ul>
  */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3400"
+}) // S1192: template strings; S3400: template methods return constants
 public class FileStorageGenerator {
 
     private static final String PKG_STORAGE = "storage";
@@ -307,6 +311,10 @@ public class FileStorageGenerator {
                     }
 
                     String[] meta = Files.readString(metaPath).split("\\\\n");
+                    if (meta.length < 3) {
+                        log.error("Invalid metadata file format for fileId: {}", fileId);
+                        return Optional.empty();
+                    }
                     String filename = meta[0];
                     String contentType = meta[1];
                     long size = Long.parseLong(meta[2]);
@@ -319,6 +327,7 @@ public class FileStorageGenerator {
                         return Optional.empty();
                     }
 
+                    // Note: Caller is responsible for closing the InputStream
                     return Optional.of(new StoredFile(
                             fileId,
                             filename,
@@ -339,6 +348,10 @@ public class FileStorageGenerator {
                     }
 
                     String[] meta = Files.readString(metaPath).split("\\\\n");
+                    if (meta.length < 1) {
+                        log.error("Invalid metadata file format for fileId: {}", fileId);
+                        return false;
+                    }
                     String filename = meta[0];
                     String extension = getExtension(filename);
                     String storedFilename = fileId + (extension.isEmpty() ? "" : "." + extension);

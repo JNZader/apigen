@@ -1,5 +1,7 @@
 package com.jnzader.apigen.codegen.generator.typescript.entity;
 
+import static com.jnzader.apigen.codegen.generator.util.NamingUtils.*;
+
 import com.jnzader.apigen.codegen.generator.typescript.TypeScriptTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlSchema;
@@ -17,6 +19,11 @@ import java.util.List;
  *   <li>Base entity with audit fields
  * </ul>
  */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3776",
+    "java:S6541"
+}) // S1192: Template strings; S3776/S6541: complex entity generation logic
 public class TypeScriptEntityGenerator {
 
     private final TypeScriptTypeMapper typeMapper;
@@ -102,7 +109,7 @@ public class TypeScriptEntityGenerator {
         // Import related entities
         for (SqlSchema.TableRelationship rel : relationships) {
             String targetEntity = rel.getTargetTable().getEntityName();
-            String targetKebab = typeMapper.toKebabCase(targetEntity);
+            String targetKebab = toKebabCase(targetEntity);
             sb.append("import { ")
                     .append(targetEntity)
                     .append(" } from './")
@@ -111,7 +118,7 @@ public class TypeScriptEntityGenerator {
         }
         for (SqlSchema.TableRelationship rel : inverseRelationships) {
             String sourceEntity = rel.getSourceTable().getEntityName();
-            String sourceKebab = typeMapper.toKebabCase(sourceEntity);
+            String sourceKebab = toKebabCase(sourceEntity);
             sb.append("import { ")
                     .append(sourceEntity)
                     .append(" } from './")
@@ -125,27 +132,17 @@ public class TypeScriptEntityGenerator {
         sb.append("@Entity('").append(tableName).append("')\n");
         sb.append("export class ").append(className).append(" extends BaseEntity {\n");
 
-        // Entity-specific columns
+        // Entity-specific columns (skip PK, audit fields, FK columns handled by relationships)
         for (SqlColumn column : table.getColumns()) {
-            if (column.isPrimaryKey() || isAuditField(column.getName())) {
-                continue;
-            }
-
-            // Skip FK columns - they'll be handled by relationships
-            boolean isFkColumn =
-                    relationships.stream()
-                            .anyMatch(
-                                    r ->
-                                            r.getForeignKey()
-                                                    .getColumnName()
-                                                    .equalsIgnoreCase(column.getName()));
-            if (isFkColumn) {
+            if (column.isPrimaryKey()
+                    || isAuditField(column.getName())
+                    || isForeignKeyColumn(column.getName(), relationships)) {
                 continue;
             }
 
             String tsType = typeMapper.mapColumnType(column);
             String fieldName = typeMapper.toCamelCase(column.getName());
-            String columnName = typeMapper.toSnakeCase(column.getName());
+            String columnName = toSnakeCase(column.getName());
 
             sb.append("\n");
             sb.append("  @Column({\n");
@@ -198,7 +195,7 @@ public class TypeScriptEntityGenerator {
         for (SqlSchema.TableRelationship rel : relationships) {
             String targetEntity = rel.getTargetTable().getEntityName();
             String fieldName = typeMapper.toCamelCase(targetEntity);
-            String fkColumn = typeMapper.toSnakeCase(rel.getForeignKey().getColumnName());
+            String fkColumn = toSnakeCase(rel.getForeignKey().getColumnName());
             String fkFieldName = typeMapper.toCamelCase(rel.getForeignKey().getColumnName());
 
             sb.append("\n");
@@ -234,17 +231,5 @@ public class TypeScriptEntityGenerator {
         sb.append("}\n");
 
         return sb.toString();
-    }
-
-    private boolean isAuditField(String columnName) {
-        String lower = columnName.toLowerCase();
-        return lower.equals("id")
-                || lower.equals("activo")
-                || lower.equals("created_at")
-                || lower.equals("updated_at")
-                || lower.equals("created_by")
-                || lower.equals("updated_by")
-                || lower.equals("deleted_at")
-                || lower.equals("deleted_by");
     }
 }

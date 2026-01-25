@@ -8,6 +8,7 @@ import io.swagger.v3.oas.models.media.Schema;
  * <p>This mapper handles the conversion of OpenAPI data types to their SQL equivalents for schema
  * generation and Java types for code generation.
  */
+@SuppressWarnings("java:S1192") // Type mapping strings intentional for readability
 public class OpenApiTypeMapper {
 
     private OpenApiTypeMapper() {
@@ -183,22 +184,24 @@ public class OpenApiTypeMapper {
         if (start > 0 && end > start) {
             try {
                 return Integer.parseInt(sqlType.substring(start + 1, end).trim());
-            } catch (NumberFormatException e) {
+            } catch (NumberFormatException _) {
                 return null;
             }
         }
         return null;
     }
 
+    private static final int[] EMPTY_INT_ARRAY = new int[0];
+
     /**
      * Extracts precision and scale from a DECIMAL SQL type.
      *
      * @param sqlType the SQL type string
-     * @return int array [precision, scale] or null if not a DECIMAL
+     * @return int array [precision, scale] or empty array if not a DECIMAL
      */
     public static int[] extractPrecisionScale(String sqlType) {
         if (sqlType == null || !sqlType.toUpperCase().startsWith("DECIMAL")) {
-            return null;
+            return EMPTY_INT_ARRAY;
         }
 
         int start = sqlType.indexOf('(');
@@ -209,10 +212,10 @@ public class OpenApiTypeMapper {
                 int precision = Integer.parseInt(parts[0].trim());
                 int scale = parts.length > 1 ? Integer.parseInt(parts[1].trim()) : 0;
                 return new int[] {precision, scale};
-            } catch (NumberFormatException e) {
-                return null;
+            } catch (NumberFormatException _) {
+                return EMPTY_INT_ARRAY;
             }
         }
-        return null;
+        return EMPTY_INT_ARRAY;
     }
 }

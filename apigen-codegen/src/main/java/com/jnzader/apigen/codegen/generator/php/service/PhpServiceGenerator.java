@@ -1,6 +1,5 @@
 package com.jnzader.apigen.codegen.generator.php.service;
 
-import com.jnzader.apigen.codegen.generator.php.PhpTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlTable;
 
 /**
@@ -8,12 +7,11 @@ import com.jnzader.apigen.codegen.model.SqlTable;
  *
  * <p>Services contain business logic and coordinate between controllers and models.
  */
+@SuppressWarnings("java:S1192") // Duplicate strings intentional for code generation templates
 public class PhpServiceGenerator {
 
-    private final PhpTypeMapper typeMapper;
-
     public PhpServiceGenerator() {
-        this.typeMapper = new PhpTypeMapper();
+        // Empty constructor
     }
 
     /**
@@ -159,7 +157,6 @@ public class PhpServiceGenerator {
      */
     public String generate(SqlTable table) {
         String className = table.getEntityName();
-        String varName = typeMapper.toCamelCase(className);
 
         StringBuilder sb = new StringBuilder();
 

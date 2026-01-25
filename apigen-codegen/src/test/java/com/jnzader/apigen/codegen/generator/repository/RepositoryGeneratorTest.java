@@ -13,9 +13,11 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 @DisplayName("RepositoryGenerator Tests")
-@SuppressWarnings(
-        "java:S5976") // Tests validate different specific repository features, not the same feature
-// with different inputs
+@SuppressWarnings({
+    "java:S5976", // Tests validate different specific repository features
+    "java:S1874", // Tests deprecated generators for backward compatibility
+    "deprecation"
+})
 class RepositoryGeneratorTest {
 
     private RepositoryGenerator repositoryGenerator;

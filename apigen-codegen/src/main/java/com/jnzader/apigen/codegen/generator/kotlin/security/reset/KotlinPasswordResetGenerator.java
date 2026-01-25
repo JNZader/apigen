@@ -16,6 +16,10 @@ import java.util.Map;
  *   <li>Flyway migration for the token table
  * </ul>
  */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3400"
+}) // S1192: template strings; S3400: template methods return constants
 public class KotlinPasswordResetGenerator {
 
     private static final String PKG_SECURITY = "security";
@@ -179,11 +183,11 @@ public class KotlinPasswordResetGenerator {
              * @return the token entity if found
              */
             @Query(
-                \"\"\"
+                \"""
                 SELECT t FROM PasswordResetToken t WHERE t.email = :email
                 AND t.usedAt IS NULL AND t.expiresAt > CURRENT_TIMESTAMP
                 ORDER BY t.createdAt DESC
-                \"\"\"
+                \"""
             )
             fun findValidTokenByEmail(email: String): Optional<PasswordResetToken>
 
@@ -196,10 +200,10 @@ public class KotlinPasswordResetGenerator {
              */
             @Modifying
             @Query(
-                \"\"\"
+                \"""
                 UPDATE PasswordResetToken t SET t.usedAt = :usedAt
                 WHERE t.email = :email AND t.usedAt IS NULL
-                \"\"\"
+                \"""
             )
             fun invalidateAllTokensForEmail(email: String, usedAt: LocalDateTime): Int
 

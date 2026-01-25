@@ -15,6 +15,10 @@ import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.List;
 
 /** Generates JPA Entity classes from SQL table definitions for Kotlin/Spring Boot. */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3776"
+}) // S1192: Template strings; S3776: complex entity generation logic
 public class KotlinEntityGenerator {
 
     private static final String APIGEN_CORE_PKG = "com.jnzader.apigen.core";
@@ -40,7 +44,6 @@ public class KotlinEntityGenerator {
         imports.addEntityImports(APIGEN_CORE_PKG);
 
         StringBuilder constructorParams = new StringBuilder();
-        StringBuilder properties = new StringBuilder();
 
         // Generate constructor parameters and properties for business columns
         boolean isFirstParam = true;

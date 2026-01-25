@@ -24,6 +24,12 @@ import java.util.Map;
  * @author APiGen
  * @since 2.16.0
  */
+@SuppressWarnings({
+    "java:S2479",
+    "java:S1192",
+    "java:S3400"
+}) // S2479: Literal tabs for Go code; S1192: template strings; S3400: template methods return
+// constants
 public class GoChiPasswordResetGenerator {
 
     private final String moduleName;
@@ -56,36 +62,36 @@ public class GoChiPasswordResetGenerator {
                 package auth
 
                 import (
-                	"encoding/json"
-                	"log/slog"
-                	"net/http"
+                \t"encoding/json"
+                \t"log/slog"
+                \t"net/http"
 
-                	"%s/internal/dto"
+                \t"%s/internal/dto"
 
-                	"github.com/go-chi/chi/v5"
+                \t"github.com/go-chi/chi/v5"
                 )
 
                 // PasswordResetHandler handles password reset endpoints.
                 type PasswordResetHandler struct {
-                	service *PasswordResetService
-                	logger  *slog.Logger
+                \tservice *PasswordResetService
+                \tlogger  *slog.Logger
                 }
 
                 // NewPasswordResetHandler creates a new password reset handler.
                 func NewPasswordResetHandler(service *PasswordResetService, logger *slog.Logger) *PasswordResetHandler {
-                	return &PasswordResetHandler{
-                		service: service,
-                		logger:  logger.With("handler", "password_reset"),
-                	}
+                \treturn &PasswordResetHandler{
+                \t\tservice: service,
+                \t\tlogger:  logger.With("handler", "password_reset"),
+                \t}
                 }
 
                 // RegisterRoutes registers password reset routes.
                 func (h *PasswordResetHandler) RegisterRoutes(r chi.Router) {
-                	r.Route("/auth/password", func(r chi.Router) {
-                		r.Post("/forgot", h.ForgotPassword)
-                		r.Post("/validate", h.ValidateToken)
-                		r.Post("/reset", h.ResetPassword)
-                	})
+                \tr.Route("/auth/password", func(r chi.Router) {
+                \t\tr.Post("/forgot", h.ForgotPassword)
+                \t\tr.Post("/validate", h.ValidateToken)
+                \t\tr.Post("/reset", h.ResetPassword)
+                \t})
                 }
 
                 // ForgotPassword handles password reset request.
@@ -97,23 +103,23 @@ public class GoChiPasswordResetGenerator {
                 // @Success 200 {object} dto.ForgotPasswordResponse
                 // @Router /auth/password/forgot [post]
                 func (h *PasswordResetHandler) ForgotPassword(w http.ResponseWriter, r *http.Request) {
-                	var req dto.ForgotPasswordRequest
-                	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-                		h.writeError(w, http.StatusBadRequest, err.Error())
-                		return
-                	}
+                \tvar req dto.ForgotPasswordRequest
+                \tif err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+                \t\th.writeError(w, http.StatusBadRequest, err.Error())
+                \t\treturn
+                \t}
 
-                	baseURL := r.URL.Scheme + "://" + r.Host
-                	if baseURL == "://" {
-                		baseURL = "http://" + r.Host
-                	}
+                \tbaseURL := r.URL.Scheme + "://" + r.Host
+                \tif baseURL == "://" {
+                \t\tbaseURL = "http://" + r.Host
+                \t}
 
-                	_ = h.service.RequestPasswordReset(req.Email, baseURL)
+                \t_ = h.service.RequestPasswordReset(req.Email, baseURL)
 
-                	// Always return success to prevent email enumeration
-                	h.writeJSON(w, http.StatusOK, dto.ForgotPasswordResponse{
-                		Message: "If the email exists, a password reset link has been sent.",
-                	})
+                \t// Always return success to prevent email enumeration
+                \th.writeJSON(w, http.StatusOK, dto.ForgotPasswordResponse{
+                \t\tMessage: "If the email exists, a password reset link has been sent.",
+                \t})
                 }
 
                 // ValidateToken validates a reset token.
@@ -125,14 +131,14 @@ public class GoChiPasswordResetGenerator {
                 // @Success 200 {object} dto.ValidateTokenResponse
                 // @Router /auth/password/validate [post]
                 func (h *PasswordResetHandler) ValidateToken(w http.ResponseWriter, r *http.Request) {
-                	var req dto.ValidateTokenRequest
-                	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-                		h.writeError(w, http.StatusBadRequest, err.Error())
-                		return
-                	}
+                \tvar req dto.ValidateTokenRequest
+                \tif err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+                \t\th.writeError(w, http.StatusBadRequest, err.Error())
+                \t\treturn
+                \t}
 
-                	result := h.service.ValidateToken(req.Token)
-                	h.writeJSON(w, http.StatusOK, result)
+                \tresult := h.service.ValidateToken(req.Token)
+                \th.writeJSON(w, http.StatusOK, result)
                 }
 
                 // ResetPassword resets password with token.
@@ -145,36 +151,36 @@ public class GoChiPasswordResetGenerator {
                 // @Failure 400 {object} dto.ErrorResponse
                 // @Router /auth/password/reset [post]
                 func (h *PasswordResetHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
-                	var req dto.ResetPasswordRequest
-                	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-                		h.writeError(w, http.StatusBadRequest, err.Error())
-                		return
-                	}
+                \tvar req dto.ResetPasswordRequest
+                \tif err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+                \t\th.writeError(w, http.StatusBadRequest, err.Error())
+                \t\treturn
+                \t}
 
-                	if req.NewPassword != req.ConfirmPassword {
-                		h.writeError(w, http.StatusBadRequest, "Passwords do not match")
-                		return
-                	}
+                \tif req.NewPassword != req.ConfirmPassword {
+                \t\th.writeError(w, http.StatusBadRequest, "Passwords do not match")
+                \t\treturn
+                \t}
 
-                	result, err := h.service.ResetPassword(req.Token, req.NewPassword)
-                	if err != nil {
-                		h.writeError(w, http.StatusBadRequest, err.Error())
-                		return
-                	}
+                \tresult, err := h.service.ResetPassword(req.Token, req.NewPassword)
+                \tif err != nil {
+                \t\th.writeError(w, http.StatusBadRequest, err.Error())
+                \t\treturn
+                \t}
 
-                	h.writeJSON(w, http.StatusOK, result)
+                \th.writeJSON(w, http.StatusOK, result)
                 }
 
                 func (h *PasswordResetHandler) writeJSON(w http.ResponseWriter, status int, data interface{}) {
-                	w.Header().Set("Content-Type", "application/json")
-                	w.WriteHeader(status)
-                	if err := json.NewEncoder(w).Encode(data); err != nil {
-                		h.logger.Error("failed to encode response", "error", err)
-                	}
+                \tw.Header().Set("Content-Type", "application/json")
+                \tw.WriteHeader(status)
+                \tif err := json.NewEncoder(w).Encode(data); err != nil {
+                \t\th.logger.Error("failed to encode response", "error", err)
+                \t}
                 }
 
                 func (h *PasswordResetHandler) writeError(w http.ResponseWriter, status int, message string) {
-                	h.writeJSON(w, status, dto.ErrorResponse{Error: message})
+                \th.writeJSON(w, status, dto.ErrorResponse{Error: message})
                 }
                 """,
                 moduleName);
@@ -186,184 +192,184 @@ public class GoChiPasswordResetGenerator {
                 package auth
 
                 import (
-                	"context"
-                	"crypto/rand"
-                	"encoding/hex"
-                	"errors"
-                	"log/slog"
-                	"time"
+                \t"context"
+                \t"crypto/rand"
+                \t"encoding/hex"
+                \t"errors"
+                \t"log/slog"
+                \t"time"
 
-                	"%s/internal/mail"
-                	"%s/internal/models"
+                \t"%s/internal/mail"
+                \t"%s/internal/models"
 
-                	"github.com/jackc/pgx/v5/pgxpool"
-                	"golang.org/x/crypto/bcrypt"
+                \t"github.com/jackc/pgx/v5/pgxpool"
+                \t"golang.org/x/crypto/bcrypt"
                 )
 
                 const tokenExpirationMinutes = %d
 
                 // PasswordResetService handles password reset operations.
                 type PasswordResetService struct {
-                	db          *pgxpool.Pool
-                	mailService *mail.MailService
-                	logger      *slog.Logger
+                \tdb          *pgxpool.Pool
+                \tmailService *mail.MailService
+                \tlogger      *slog.Logger
                 }
 
                 // NewPasswordResetService creates a new password reset service.
                 func NewPasswordResetService(db *pgxpool.Pool, mailService *mail.MailService, logger *slog.Logger) *PasswordResetService {
-                	return &PasswordResetService{
-                		db:          db,
-                		mailService: mailService,
-                		logger:      logger.With("service", "password_reset"),
-                	}
+                \treturn &PasswordResetService{
+                \t\tdb:          db,
+                \t\tmailService: mailService,
+                \t\tlogger:      logger.With("service", "password_reset"),
+                \t}
                 }
 
                 // ValidateTokenResult represents the result of token validation.
                 type ValidateTokenResult struct {
-                	Valid   bool    `json:"valid"`
-                	Message *string `json:"message,omitempty"`
+                \tValid   bool    `json:"valid"`
+                \tMessage *string `json:"message,omitempty"`
                 }
 
                 // ResetPasswordResult represents the result of password reset.
                 type ResetPasswordResult struct {
-                	Success bool   `json:"success"`
-                	Message string `json:"message"`
+                \tSuccess bool   `json:"success"`
+                \tMessage string `json:"message"`
                 }
 
                 // RequestPasswordReset initiates a password reset for the given email.
                 func (s *PasswordResetService) RequestPasswordReset(email, baseURL string) error {
-                	ctx := context.Background()
+                \tctx := context.Background()
 
-                	// Find user by email
-                	var userID string
-                	var userName string
-                	err := s.db.QueryRow(ctx,
-                		"SELECT id, COALESCE(name, email) FROM users WHERE email = $1",
-                		email,
-                	).Scan(&userID, &userName)
+                \t// Find user by email
+                \tvar userID string
+                \tvar userName string
+                \terr := s.db.QueryRow(ctx,
+                \t\t"SELECT id, COALESCE(name, email) FROM users WHERE email = $1",
+                \t\temail,
+                \t).Scan(&userID, &userName)
 
-                	if err != nil {
-                		// Don't reveal if email exists
-                		s.logger.Debug("user not found for password reset", "email", email)
-                		return nil
-                	}
+                \tif err != nil {
+                \t\t// Don't reveal if email exists
+                \t\ts.logger.Debug("user not found for password reset", "email", email)
+                \t\treturn nil
+                \t}
 
-                	// Invalidate existing tokens
-                	_, _ = s.db.Exec(ctx, "DELETE FROM password_reset_tokens WHERE user_id = $1", userID)
+                \t// Invalidate existing tokens
+                \t_, _ = s.db.Exec(ctx, "DELETE FROM password_reset_tokens WHERE user_id = $1", userID)
 
-                	// Generate new token
-                	tokenBytes := make([]byte, 32)
-                	if _, err := rand.Read(tokenBytes); err != nil {
-                		return err
-                	}
-                	token := hex.EncodeToString(tokenBytes)
+                \t// Generate new token
+                \ttokenBytes := make([]byte, 32)
+                \tif _, err := rand.Read(tokenBytes); err != nil {
+                \t\treturn err
+                \t}
+                \ttoken := hex.EncodeToString(tokenBytes)
 
-                	expiresAt := time.Now().Add(time.Duration(tokenExpirationMinutes) * time.Minute)
+                \texpiresAt := time.Now().Add(time.Duration(tokenExpirationMinutes) * time.Minute)
 
-                	// Save token
-                	_, err = s.db.Exec(ctx,
-                		`INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)`,
-                		userID, token, expiresAt,
-                	)
-                	if err != nil {
-                		s.logger.Error("failed to create password reset token", "error", err)
-                		return err
-                	}
+                \t// Save token
+                \t_, err = s.db.Exec(ctx,
+                \t\t`INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)`,
+                \t\tuserID, token, expiresAt,
+                \t)
+                \tif err != nil {
+                \t\ts.logger.Error("failed to create password reset token", "error", err)
+                \t\treturn err
+                \t}
 
-                	// Send email
-                	resetLink := baseURL + "/reset-password?token=" + token
-                	if err := s.mailService.SendPasswordResetEmail(email, userName, resetLink, tokenExpirationMinutes); err != nil {
-                		s.logger.Error("failed to send password reset email", "error", err)
-                	}
+                \t// Send email
+                \tresetLink := baseURL + "/reset-password?token=" + token
+                \tif err := s.mailService.SendPasswordResetEmail(email, userName, resetLink, tokenExpirationMinutes); err != nil {
+                \t\ts.logger.Error("failed to send password reset email", "error", err)
+                \t}
 
-                	s.logger.Info("password reset email sent", "email", email)
-                	return nil
+                \ts.logger.Info("password reset email sent", "email", email)
+                \treturn nil
                 }
 
                 // ValidateToken validates a password reset token.
                 func (s *PasswordResetService) ValidateToken(token string) ValidateTokenResult {
-                	ctx := context.Background()
+                \tctx := context.Background()
 
-                	var expiresAt time.Time
-                	var used bool
-                	err := s.db.QueryRow(ctx,
-                		"SELECT expires_at, used FROM password_reset_tokens WHERE token = $1",
-                		token,
-                	).Scan(&expiresAt, &used)
+                \tvar expiresAt time.Time
+                \tvar used bool
+                \terr := s.db.QueryRow(ctx,
+                \t\t"SELECT expires_at, used FROM password_reset_tokens WHERE token = $1",
+                \t\ttoken,
+                \t).Scan(&expiresAt, &used)
 
-                	if err != nil {
-                		msg := "Invalid or expired token"
-                		return ValidateTokenResult{Valid: false, Message: &msg}
-                	}
+                \tif err != nil {
+                \t\tmsg := "Invalid or expired token"
+                \t\treturn ValidateTokenResult{Valid: false, Message: &msg}
+                \t}
 
-                	if used {
-                		msg := "Token has already been used"
-                		return ValidateTokenResult{Valid: false, Message: &msg}
-                	}
+                \tif used {
+                \t\tmsg := "Token has already been used"
+                \t\treturn ValidateTokenResult{Valid: false, Message: &msg}
+                \t}
 
-                	if expiresAt.Before(time.Now()) {
-                		msg := "Token has expired"
-                		return ValidateTokenResult{Valid: false, Message: &msg}
-                	}
+                \tif expiresAt.Before(time.Now()) {
+                \t\tmsg := "Token has expired"
+                \t\treturn ValidateTokenResult{Valid: false, Message: &msg}
+                \t}
 
-                	return ValidateTokenResult{Valid: true}
+                \treturn ValidateTokenResult{Valid: true}
                 }
 
                 // ResetPassword resets the user's password using the token.
                 func (s *PasswordResetService) ResetPassword(token, newPassword string) (*ResetPasswordResult, error) {
-                	validation := s.ValidateToken(token)
-                	if !validation.Valid {
-                		return nil, errors.New(*validation.Message)
-                	}
+                \tvalidation := s.ValidateToken(token)
+                \tif !validation.Valid {
+                \t\treturn nil, errors.New(*validation.Message)
+                \t}
 
-                	ctx := context.Background()
+                \tctx := context.Background()
 
-                	// Get user ID from token
-                	var userID string
-                	err := s.db.QueryRow(ctx,
-                		"SELECT user_id FROM password_reset_tokens WHERE token = $1",
-                		token,
-                	).Scan(&userID)
-                	if err != nil {
-                		return nil, errors.New("invalid token")
-                	}
+                \t// Get user ID from token
+                \tvar userID string
+                \terr := s.db.QueryRow(ctx,
+                \t\t"SELECT user_id FROM password_reset_tokens WHERE token = $1",
+                \t\ttoken,
+                \t).Scan(&userID)
+                \tif err != nil {
+                \t\treturn nil, errors.New("invalid token")
+                \t}
 
-                	// Hash new password
-                	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
-                	if err != nil {
-                		return nil, err
-                	}
+                \t// Hash new password
+                \thashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+                \tif err != nil {
+                \t\treturn nil, err
+                \t}
 
-                	// Update password
-                	_, err = s.db.Exec(ctx,
-                		"UPDATE users SET password = $1, updated_at = $2 WHERE id = $3",
-                		string(hashedPassword), time.Now(), userID,
-                	)
-                	if err != nil {
-                		return nil, err
-                	}
+                \t// Update password
+                \t_, err = s.db.Exec(ctx,
+                \t\t"UPDATE users SET password = $1, updated_at = $2 WHERE id = $3",
+                \t\tstring(hashedPassword), time.Now(), userID,
+                \t)
+                \tif err != nil {
+                \t\treturn nil, err
+                \t}
 
-                	// Mark token as used
-                	_, _ = s.db.Exec(ctx, "UPDATE password_reset_tokens SET used = true WHERE token = $1", token)
+                \t// Mark token as used
+                \t_, _ = s.db.Exec(ctx, "UPDATE password_reset_tokens SET used = true WHERE token = $1", token)
 
-                	s.logger.Info("password reset completed", "user_id", userID)
-                	return &ResetPasswordResult{
-                		Success: true,
-                		Message: "Password has been reset successfully",
-                	}, nil
+                \ts.logger.Info("password reset completed", "user_id", userID)
+                \treturn &ResetPasswordResult{
+                \t\tSuccess: true,
+                \t\tMessage: "Password has been reset successfully",
+                \t}, nil
                 }
 
                 // CleanupExpiredTokens removes expired tokens from the database.
                 func (s *PasswordResetService) CleanupExpiredTokens() int64 {
-                	ctx := context.Background()
-                	result, err := s.db.Exec(ctx, "DELETE FROM password_reset_tokens WHERE expires_at < $1", time.Now())
-                	if err != nil {
-                		s.logger.Error("failed to cleanup expired tokens", "error", err)
-                		return 0
-                	}
-                	count := result.RowsAffected()
-                	s.logger.Info("cleaned up expired password reset tokens", "count", count)
-                	return count
+                \tctx := context.Background()
+                \tresult, err := s.db.Exec(ctx, "DELETE FROM password_reset_tokens WHERE expires_at < $1", time.Now())
+                \tif err != nil {
+                \t\ts.logger.Error("failed to cleanup expired tokens", "error", err)
+                \t\treturn 0
+                \t}
+                \tcount := result.RowsAffected()
+                \ts.logger.Info("cleaned up expired password reset tokens", "count", count)
+                \treturn count
                 }
                 """,
                 moduleName, moduleName, tokenExpirationMinutes);
@@ -374,34 +380,34 @@ public class GoChiPasswordResetGenerator {
         package models
 
         import (
-        	"time"
+        \t"time"
 
-        	"github.com/google/uuid"
+        \t"github.com/google/uuid"
         )
 
         // PasswordResetToken represents a password reset token.
         type PasswordResetToken struct {
-        	ID        uuid.UUID `json:"id" db:"id"`
-        	UserID    uuid.UUID `json:"user_id" db:"user_id"`
-        	Token     string    `json:"token" db:"token"`
-        	ExpiresAt time.Time `json:"expires_at" db:"expires_at"`
-        	Used      bool      `json:"used" db:"used"`
-        	CreatedAt time.Time `json:"created_at" db:"created_at"`
+        \tID        uuid.UUID `json:"id" db:"id"`
+        \tUserID    uuid.UUID `json:"user_id" db:"user_id"`
+        \tToken     string    `json:"token" db:"token"`
+        \tExpiresAt time.Time `json:"expires_at" db:"expires_at"`
+        \tUsed      bool      `json:"used" db:"used"`
+        \tCreatedAt time.Time `json:"created_at" db:"created_at"`
         }
 
         // TableName returns the table name.
         func (PasswordResetToken) TableName() string {
-        	return "password_reset_tokens"
+        \treturn "password_reset_tokens"
         }
 
         // IsExpired checks if the token has expired.
         func (t *PasswordResetToken) IsExpired() bool {
-        	return t.ExpiresAt.Before(time.Now())
+        \treturn t.ExpiresAt.Before(time.Now())
         }
 
         // IsValid checks if the token is valid (not used and not expired).
         func (t *PasswordResetToken) IsValid() bool {
-        	return !t.Used && !t.IsExpired()
+        \treturn !t.Used && !t.IsExpired()
         }
         """;
     }
@@ -412,36 +418,36 @@ public class GoChiPasswordResetGenerator {
 
         // ForgotPasswordRequest represents a forgot password request.
         type ForgotPasswordRequest struct {
-        	Email string `json:"email" validate:"required,email"`
+        \tEmail string `json:"email" validate:"required,email"`
         }
 
         // ForgotPasswordResponse represents a forgot password response.
         type ForgotPasswordResponse struct {
-        	Message string `json:"message"`
+        \tMessage string `json:"message"`
         }
 
         // ValidateTokenRequest represents a token validation request.
         type ValidateTokenRequest struct {
-        	Token string `json:"token" validate:"required"`
+        \tToken string `json:"token" validate:"required"`
         }
 
         // ValidateTokenResponse represents a token validation response.
         type ValidateTokenResponse struct {
-        	Valid   bool    `json:"valid"`
-        	Message *string `json:"message,omitempty"`
+        \tValid   bool    `json:"valid"`
+        \tMessage *string `json:"message,omitempty"`
         }
 
         // ResetPasswordRequest represents a password reset request.
         type ResetPasswordRequest struct {
-        	Token           string `json:"token" validate:"required"`
-        	NewPassword     string `json:"new_password" validate:"required,min=8,max=128"`
-        	ConfirmPassword string `json:"confirm_password" validate:"required"`
+        \tToken           string `json:"token" validate:"required"`
+        \tNewPassword     string `json:"new_password" validate:"required,min=8,max=128"`
+        \tConfirmPassword string `json:"confirm_password" validate:"required"`
         }
 
         // ResetPasswordResponse represents a password reset response.
         type ResetPasswordResponse struct {
-        	Success bool   `json:"success"`
-        	Message string `json:"message"`
+        \tSuccess bool   `json:"success"`
+        \tMessage string `json:"message"`
         }
         """;
     }

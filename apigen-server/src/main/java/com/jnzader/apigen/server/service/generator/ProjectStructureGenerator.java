@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 /** Generates project structure files (Main class, README). */
 @Component
+@SuppressWarnings("java:S1192") // Gitignore strings intentional for clarity
 public class ProjectStructureGenerator {
 
     private static final String GITIGNORE_CONTENT =

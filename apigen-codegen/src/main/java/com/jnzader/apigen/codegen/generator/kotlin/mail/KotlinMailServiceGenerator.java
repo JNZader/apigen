@@ -15,6 +15,10 @@ import java.util.Map;
  *   <li>Mail configuration properties
  * </ul>
  */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3400"
+}) // S1192: template strings; S3400: template methods return constants
 public class KotlinMailServiceGenerator {
 
     private static final String PKG_COMMON_MAIL = "common/mail";

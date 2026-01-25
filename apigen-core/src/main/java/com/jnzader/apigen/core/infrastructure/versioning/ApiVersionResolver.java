@@ -174,9 +174,12 @@ public class ApiVersionResolver {
             return true;
         }
         // Major version match (e.g., "1" matches "1.0")
-        String requestMajor = requestVersion.split("\\.")[0];
-        String expectedMajor = expectedVersion.split("\\.")[0];
-        return requestMajor.equals(expectedMajor);
+        String[] requestParts = requestVersion.split("\\.");
+        String[] expectedParts = expectedVersion.split("\\.");
+        if (requestParts.length == 0 || expectedParts.length == 0) {
+            return false;
+        }
+        return requestParts[0].equals(expectedParts[0]);
     }
 
     /** Creates a new builder for ApiVersionResolver. */

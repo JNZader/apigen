@@ -11,6 +11,7 @@ import io.swagger.v3.parser.core.models.ParseOptions;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,9 @@ import org.slf4j.LoggerFactory;
  * SqlSchema schema = parser.parse(openApiSpec);
  * }</pre>
  */
+@SuppressWarnings({
+    "java:S3776" // Complex parsing logic inherent to OpenAPI conversion
+})
 public class OpenApiParser {
 
     private static final Logger log = LoggerFactory.getLogger(OpenApiParser.class);
@@ -126,21 +130,19 @@ public class OpenApiParser {
 
         // Get schemas from components
         if (openAPI.getComponents() != null && openAPI.getComponents().getSchemas() != null) {
-            Map<String, Schema> schemas = openAPI.getComponents().getSchemas();
+            @SuppressWarnings("unchecked")
+            Map<String, Schema<?>> schemas =
+                    (Map<String, Schema<?>>) (Map<?, ?>) openAPI.getComponents().getSchemas();
 
-            for (Map.Entry<String, Schema> entry : schemas.entrySet()) {
+            for (Map.Entry<String, Schema<?>> entry : schemas.entrySet()) {
                 String schemaName = entry.getKey();
                 Schema<?> schema = entry.getValue();
 
-                // Skip excluded schemas (common utility schemas)
-                if (shouldExcludeSchema(schemaName)) {
-                    log.debug("Skipping excluded schema: {}", schemaName);
-                    continue;
-                }
-
-                // Skip schemas without properties (likely enums or simple types)
-                if (schema.getProperties() == null || schema.getProperties().isEmpty()) {
-                    log.debug("Skipping schema without properties: {}", schemaName);
+                // Skip excluded schemas and schemas without properties (enums/simple types)
+                if (shouldExcludeSchema(schemaName)
+                        || schema.getProperties() == null
+                        || schema.getProperties().isEmpty()) {
+                    log.debug("Skipping schema: {}", schemaName);
                     continue;
                 }
 
@@ -161,7 +163,7 @@ public class OpenApiParser {
         }
 
         // Detect and create junction tables for many-to-many relationships
-        List<SqlTable> junctionTables = detectManyToManyRelationships(openAPI, tables);
+        List<SqlTable> junctionTables = detectManyToManyRelationships(openAPI);
         tables.addAll(junctionTables);
 
         String title =
@@ -185,7 +187,7 @@ public class OpenApiParser {
         }
 
         // Check patterns
-        String lower = schemaName.toLowerCase();
+        String lower = schemaName.toLowerCase(Locale.ROOT);
         return lower.endsWith("request")
                 || lower.endsWith("response")
                 || lower.endsWith("dto")
@@ -198,19 +200,20 @@ public class OpenApiParser {
      * Detects many-to-many relationships in the OpenAPI spec and creates junction tables.
      *
      * @param openAPI the OpenAPI object
-     * @param tables the list of existing tables
      * @return list of junction tables
      */
-    private List<SqlTable> detectManyToManyRelationships(OpenAPI openAPI, List<SqlTable> tables) {
+    private List<SqlTable> detectManyToManyRelationships(OpenAPI openAPI) {
         List<SqlTable> junctionTables = new ArrayList<>();
 
         if (openAPI.getComponents() == null || openAPI.getComponents().getSchemas() == null) {
             return junctionTables;
         }
 
-        Map<String, Schema> schemas = openAPI.getComponents().getSchemas();
+        @SuppressWarnings("unchecked")
+        Map<String, Schema<?>> schemas =
+                (Map<String, Schema<?>>) (Map<?, ?>) openAPI.getComponents().getSchemas();
 
-        for (Map.Entry<String, Schema> entry : schemas.entrySet()) {
+        for (Map.Entry<String, Schema<?>> entry : schemas.entrySet()) {
             String schemaName = entry.getKey();
             Schema<?> schema = entry.getValue();
 
@@ -218,8 +221,10 @@ public class OpenApiParser {
                 continue;
             }
 
-            for (Map.Entry<String, Schema> propEntry : schema.getProperties().entrySet()) {
-                String propertyName = propEntry.getKey();
+            @SuppressWarnings("unchecked")
+            Map<String, Schema<?>> properties =
+                    (Map<String, Schema<?>>) (Map<?, ?>) schema.getProperties();
+            for (Map.Entry<String, Schema<?>> propEntry : properties.entrySet()) {
                 Schema<?> propSchema = propEntry.getValue();
 
                 // Check for array of references
@@ -230,7 +235,7 @@ public class OpenApiParser {
                         if (refSchemaName != null && schemas.containsKey(refSchemaName)) {
                             // Check if the referenced schema also has an array pointing back
                             Schema<?> refSchema = schemas.get(refSchemaName);
-                            if (hasReverseArrayRef(refSchema, schemaName, schemas)) {
+                            if (hasReverseArrayRef(refSchema, schemaName)) {
                                 // Create junction table
                                 SqlTable junctionTable =
                                         createJunctionTable(schemaName, refSchemaName);
@@ -259,11 +264,9 @@ public class OpenApiParser {
      *
      * @param schema the schema to check
      * @param sourceSchemaName the source schema name
-     * @param allSchemas all schemas
      * @return true if has reverse reference
      */
-    private boolean hasReverseArrayRef(
-            Schema<?> schema, String sourceSchemaName, Map<String, Schema> allSchemas) {
+    private boolean hasReverseArrayRef(Schema<?> schema, String sourceSchemaName) {
         if (schema.getProperties() == null) {
             return false;
         }
@@ -291,7 +294,8 @@ public class OpenApiParser {
      */
     private SqlTable createJunctionTable(String schema1Name, String schema2Name) {
         // Ensure consistent ordering for junction table name
-        String first, second;
+        String first;
+        String second;
         if (schema1Name.compareTo(schema2Name) < 0) {
             first = schema1Name;
             second = schema2Name;

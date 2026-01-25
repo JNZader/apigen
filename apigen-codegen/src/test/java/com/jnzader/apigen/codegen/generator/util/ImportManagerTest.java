@@ -11,6 +11,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 @DisplayName("ImportManager Tests")
+@SuppressWarnings({
+    "java:S1874",
+    "deprecation"
+}) // Tests deprecated classes for backward compatibility
 class ImportManagerTest {
 
     private ImportManager importManager;

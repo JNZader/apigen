@@ -1,8 +1,11 @@
 package com.jnzader.apigen.codegen.generator.csharp.controller;
 
+import static com.jnzader.apigen.codegen.generator.util.NamingUtils.*;
+
 import com.jnzader.apigen.codegen.model.SqlTable;
 
 /** Generates REST API controllers for C#/ASP.NET Core. */
+@SuppressWarnings("java:S1192") // Duplicate strings intentional for code generation templates
 public class CSharpControllerGenerator {
 
     private final String baseNamespace;
@@ -164,45 +167,5 @@ public class CSharpControllerGenerator {
         sb.append("}\n");
 
         return sb.toString();
-    }
-
-    private String toPascalCase(String name) {
-        if (name == null || name.isEmpty()) {
-            return name;
-        }
-        StringBuilder result = new StringBuilder();
-        boolean capitalizeNext = true;
-        for (char c : name.toCharArray()) {
-            if (c == '_' || c == '-') {
-                capitalizeNext = true;
-            } else if (capitalizeNext) {
-                result.append(Character.toUpperCase(c));
-                capitalizeNext = false;
-            } else {
-                result.append(Character.toLowerCase(c));
-            }
-        }
-        return result.toString();
-    }
-
-    private String toKebabCase(String name) {
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < name.length(); i++) {
-            char c = name.charAt(i);
-            if (Character.isUpperCase(c) && i > 0) {
-                result.append('-');
-            }
-            result.append(Character.toLowerCase(c));
-        }
-        return result.toString();
-    }
-
-    private String toPlural(String name) {
-        if (name.endsWith("y")) {
-            return name.substring(0, name.length() - 1) + "ies";
-        } else if (name.endsWith("s") || name.endsWith("x") || name.endsWith("ch")) {
-            return name + "es";
-        }
-        return name + "s";
     }
 }

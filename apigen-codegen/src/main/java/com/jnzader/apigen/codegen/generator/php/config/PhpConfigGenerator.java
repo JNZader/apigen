@@ -1,5 +1,7 @@
 package com.jnzader.apigen.codegen.generator.php.config;
 
+import static com.jnzader.apigen.codegen.generator.util.NamingUtils.*;
+
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
 import com.jnzader.apigen.codegen.generator.php.PhpTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlSchema;
@@ -21,6 +23,11 @@ import java.util.Map;
  *   <li>Dockerfile and docker-compose.yml
  * </ul>
  */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S2068",
+    "java:S3400"
+}) // S1192: template strings; S2068: template passwords for dev config; S3400: template methods
 public class PhpConfigGenerator {
 
     private static final String PHP_VERSION = "8.4";
@@ -71,7 +78,6 @@ public class PhpConfigGenerator {
         return files;
     }
 
-    @SuppressWarnings("UnusedVariable") // hasRateLimit reserved for future Redis dependencies
     private String generateComposerJson(boolean hasJwtAuth, boolean hasRateLimit) {
         StringBuilder require = new StringBuilder();
         require.append("        \"php\": \"^").append(PHP_VERSION).append("\",\n");
@@ -81,6 +87,10 @@ public class PhpConfigGenerator {
 
         if (hasJwtAuth) {
             require.append(",\n        \"laravel/sanctum\": \"^4.0\"");
+        }
+
+        if (hasRateLimit) {
+            require.append(",\n        \"predis/predis\": \"^2.3\"");
         }
 
         return """
@@ -581,30 +591,5 @@ public class PhpConfigGenerator {
         sb.append("}\n");
 
         return sb.toString();
-    }
-
-    private String toSnakeCase(String name) {
-        if (name == null) return "";
-        return name.replaceAll("([a-z])([A-Z])", "$1_$2")
-                .replaceAll("[.-]", "_")
-                .toLowerCase(Locale.ROOT);
-    }
-
-    @SuppressWarnings("LoopOverCharArray")
-    private String toPascalCase(String name) {
-        if (name == null || name.isEmpty()) return name;
-        StringBuilder result = new StringBuilder();
-        boolean capitalizeNext = true;
-        for (char c : name.toCharArray()) {
-            if (c == '_' || c == '-' || c == '.') {
-                capitalizeNext = true;
-            } else if (capitalizeNext) {
-                result.append(Character.toUpperCase(c));
-                capitalizeNext = false;
-            } else {
-                result.append(c);
-            }
-        }
-        return result.toString();
     }
 }

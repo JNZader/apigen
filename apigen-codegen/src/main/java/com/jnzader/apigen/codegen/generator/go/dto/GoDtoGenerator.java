@@ -9,6 +9,10 @@ import java.util.List;
 import java.util.Set;
 
 /** Generates DTO structs (request/response) from SQL table definitions for Go/Gin. */
+@SuppressWarnings({
+    "java:S2479",
+    "java:S1192"
+}) // Literal tabs intentional for Go code; duplicate strings for templates
 public class GoDtoGenerator {
 
     private final GoTypeMapper typeMapper;
@@ -30,7 +34,7 @@ public class GoDtoGenerator {
         String structName = "Create" + typeMapper.toExportedName(table.getEntityName()) + "Request";
 
         // Collect imports
-        Set<String> imports = collectImports(table, false);
+        Set<String> imports = collectImports(table);
 
         // Package declaration
         sb.append("package dto\n\n");
@@ -86,7 +90,7 @@ public class GoDtoGenerator {
         String structName = "Update" + typeMapper.toExportedName(table.getEntityName()) + "Request";
 
         // Collect imports
-        Set<String> imports = collectImports(table, true);
+        Set<String> imports = collectImports(table);
 
         // Package declaration
         sb.append("package dto\n\n");
@@ -143,7 +147,7 @@ public class GoDtoGenerator {
         String structName = entityName + "Response";
 
         // Collect imports
-        Set<String> imports = collectImports(table, false);
+        Set<String> imports = collectImports(table);
         imports.add("time"); // For timestamps
 
         // Package declaration
@@ -217,27 +221,27 @@ public class GoDtoGenerator {
 
         // PaginatedResponse represents a paginated list response.
         type PaginatedResponse[T any] struct {
-        	Content       []T   `json:"content"`
-        	Page          int   `json:"page"`
-        	Size          int   `json:"size"`
-        	TotalElements int64 `json:"total_elements"`
-        	TotalPages    int   `json:"total_pages"`
+        \tContent       []T   `json:"content"`
+        \tPage          int   `json:"page"`
+        \tSize          int   `json:"size"`
+        \tTotalElements int64 `json:"total_elements"`
+        \tTotalPages    int   `json:"total_pages"`
         }
 
         // NewPaginatedResponse creates a new paginated response.
         func NewPaginatedResponse[T any](content []T, page, size int, total int64) *PaginatedResponse[T] {
-        	totalPages := int(total) / size
-        	if int(total)%size != 0 {
-        		totalPages++
-        	}
+        \ttotalPages := int(total) / size
+        \tif int(total)%size != 0 {
+        \t\ttotalPages++
+        \t}
 
-        	return &PaginatedResponse[T]{
-        		Content:       content,
-        		Page:          page,
-        		Size:          size,
-        		TotalElements: total,
-        		TotalPages:    totalPages,
-        	}
+        \treturn &PaginatedResponse[T]{
+        \t\tContent:       content,
+        \t\tPage:          page,
+        \t\tSize:          size,
+        \t\tTotalElements: total,
+        \t\tTotalPages:    totalPages,
+        \t}
         }
         """;
     }
@@ -255,44 +259,44 @@ public class GoDtoGenerator {
 
         // ErrorResponse represents an error response.
         type ErrorResponse struct {
-        	Status    int       `json:"status"`
-        	Message   string    `json:"message"`
-        	Path      string    `json:"path,omitempty"`
-        	Timestamp time.Time `json:"timestamp"`
+        \tStatus    int       `json:"status"`
+        \tMessage   string    `json:"message"`
+        \tPath      string    `json:"path,omitempty"`
+        \tTimestamp time.Time `json:"timestamp"`
         }
 
         // NewErrorResponse creates a new error response.
         func NewErrorResponse(status int, message, path string) *ErrorResponse {
-        	return &ErrorResponse{
-        		Status:    status,
-        		Message:   message,
-        		Path:      path,
-        		Timestamp: time.Now(),
-        	}
+        \treturn &ErrorResponse{
+        \t\tStatus:    status,
+        \t\tMessage:   message,
+        \t\tPath:      path,
+        \t\tTimestamp: time.Now(),
+        \t}
         }
 
         // ValidationError represents a validation error for a specific field.
         type ValidationError struct {
-        	Field   string `json:"field"`
-        	Message string `json:"message"`
+        \tField   string `json:"field"`
+        \tMessage string `json:"message"`
         }
 
         // ValidationErrorResponse represents a validation error response.
         type ValidationErrorResponse struct {
-        	Status    int               `json:"status"`
-        	Message   string            `json:"message"`
-        	Errors    []ValidationError `json:"errors"`
-        	Timestamp time.Time         `json:"timestamp"`
+        \tStatus    int               `json:"status"`
+        \tMessage   string            `json:"message"`
+        \tErrors    []ValidationError `json:"errors"`
+        \tTimestamp time.Time         `json:"timestamp"`
         }
 
         // NewValidationErrorResponse creates a new validation error response.
         func NewValidationErrorResponse(errors []ValidationError) *ValidationErrorResponse {
-        	return &ValidationErrorResponse{
-        		Status:    400,
-        		Message:   "Validation failed",
-        		Errors:    errors,
-        		Timestamp: time.Now(),
-        	}
+        \treturn &ValidationErrorResponse{
+        \t\tStatus:    400,
+        \t\tMessage:   "Validation failed",
+        \t\tErrors:    errors,
+        \t\tTimestamp: time.Now(),
+        \t}
         }
         """;
     }
@@ -343,7 +347,7 @@ public class GoDtoGenerator {
         sb.append(")\n\n");
     }
 
-    private Set<String> collectImports(SqlTable table, boolean allNullable) {
+    private Set<String> collectImports(SqlTable table) {
         Set<String> imports = new HashSet<>();
 
         for (SqlColumn column : table.getColumns()) {
@@ -355,6 +359,9 @@ public class GoDtoGenerator {
                         imports.add("time");
                 case "UUID" -> imports.add("uuid");
                 case "BigDecimal" -> imports.add("decimal");
+                default -> {
+                    // Other types don't require additional imports
+                }
             }
         }
 

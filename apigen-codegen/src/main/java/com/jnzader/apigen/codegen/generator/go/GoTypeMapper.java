@@ -1,6 +1,6 @@
 package com.jnzader.apigen.codegen.generator.go;
 
-import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
+import com.jnzader.apigen.codegen.generator.api.AbstractLanguageTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import java.util.HashSet;
 import java.util.Set;
@@ -16,7 +16,11 @@ import java.util.Set;
  *   <li>Go native types
  * </ul>
  */
-public class GoTypeMapper implements LanguageTypeMapper {
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3776"
+}) // S1192: Type mapping strings; S3776: complex type mapping logic
+public class GoTypeMapper extends AbstractLanguageTypeMapper {
 
     private static final Set<String> GO_KEYWORDS =
             Set.of(
@@ -93,6 +97,24 @@ public class GoTypeMapper implements LanguageTypeMapper {
     }
 
     @Override
+    public String mapJavaType(String javaType) {
+        return mapJavaTypeToGo(javaType, false);
+    }
+
+    @Override
+    protected String getListTypeFormat() {
+        return "[]%s";
+    }
+
+    @Override
+    public String getNullableType(String type) {
+        if (type.startsWith("*")) {
+            return type;
+        }
+        return "*" + type;
+    }
+
+    @Override
     public Set<String> getRequiredImports(SqlColumn column) {
         Set<String> imports = new HashSet<>();
         String javaType = column.getJavaType();
@@ -134,24 +156,6 @@ public class GoTypeMapper implements LanguageTypeMapper {
     @Override
     public String getPrimaryKeyType() {
         return "int64";
-    }
-
-    @Override
-    public Set<String> getPrimaryKeyImports() {
-        return Set.of();
-    }
-
-    @Override
-    public String getListType(String elementType) {
-        return "[]" + elementType;
-    }
-
-    @Override
-    public String getNullableType(String type) {
-        if (type.startsWith("*")) {
-            return type;
-        }
-        return "*" + type;
     }
 
     /**
@@ -259,19 +263,19 @@ public class GoTypeMapper implements LanguageTypeMapper {
                         column.getLength() != null && column.getLength() > 0
                                 ? column.getLength()
                                 : 255;
-                if (tag.length() > 0) tag.append(",");
+                if (!tag.isEmpty()) tag.append(",");
                 tag.append("max=").append(maxLength);
 
                 // Email validation
                 if (column.getName().toLowerCase().contains("email")) {
-                    if (tag.length() > 0) tag.append(",");
+                    if (!tag.isEmpty()) tag.append(",");
                     tag.append("email");
                 }
 
                 // URL validation
                 if (column.getName().toLowerCase().contains("url")
                         || column.getName().toLowerCase().contains("website")) {
-                    if (tag.length() > 0) tag.append(",");
+                    if (!tag.isEmpty()) tag.append(",");
                     tag.append("url");
                 }
             }
@@ -279,14 +283,17 @@ public class GoTypeMapper implements LanguageTypeMapper {
                 // Numeric validation (optional)
             }
             case "UUID" -> {
-                if (tag.length() > 0) tag.append(",");
+                if (!tag.isEmpty()) tag.append(",");
                 tag.append("uuid");
+            }
+            default -> {
+                // Other types don't need specific validation tags
             }
         }
 
         // Omitempty for optional fields
         if (isUpdate || column.isNullable()) {
-            if (tag.length() > 0) {
+            if (!tag.isEmpty()) {
                 return "omitempty," + tag;
             }
             return "omitempty";

@@ -137,8 +137,8 @@ class KotlinSpringBootProjectGeneratorTest {
 
             Map<String, String> files = generator.generate(schema, config);
 
-            assertThat(files.keySet())
-                    .contains(
+            assertThat(files)
+                    .containsKeys(
                             "src/main/kotlin/com/example/products/domain/entity/Product.kt",
                             "src/main/kotlin/com/example/products/application/dto/ProductDTO.kt",
                             "src/main/kotlin/com/example/products/application/mapper/ProductMapper.kt",
@@ -197,8 +197,8 @@ class KotlinSpringBootProjectGeneratorTest {
 
             Map<String, String> files = generator.generate(schema, config);
 
-            assertThat(files.keySet())
-                    .contains(
+            assertThat(files)
+                    .containsKeys(
                             "src/test/kotlin/com/example/products/application/service/ProductServiceImplTest.kt",
                             "src/test/kotlin/com/example/products/application/dto/ProductDTOTest.kt",
                             "src/test/kotlin/com/example/products/infrastructure/controller/ProductControllerImplTest.kt");
@@ -216,8 +216,8 @@ class KotlinSpringBootProjectGeneratorTest {
 
             Map<String, String> files = generator.generate(schema, config);
 
-            assertThat(files.keySet())
-                    .contains("src/test/kotlin/com/example/products/ProductIntegrationTest.kt");
+            assertThat(files)
+                    .containsKeys("src/test/kotlin/com/example/products/ProductIntegrationTest.kt");
         }
 
         @Test

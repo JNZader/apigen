@@ -18,6 +18,10 @@ import java.util.Map;
  *   <li>Tailwind CSS and Alpine.js integration
  * </ul>
  */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3400"
+}) // S1192: template strings; S3400: template methods return constants
 public class JteGenerator {
 
     private static final String PKG_WEB = "web";
@@ -56,7 +60,7 @@ public class JteGenerator {
                 generateLayoutTemplate(includeTailwind, includeAlpine));
 
         // Generate components
-        files.put("src/main/jte/components/nav.jte", generateNavComponent(tables, adminPath));
+        files.put("src/main/jte/components/nav.jte", generateNavComponent(adminPath));
         files.put(
                 "src/main/jte/components/sidebar.jte", generateSidebarComponent(tables, adminPath));
         files.put("src/main/jte/components/alert.jte", generateAlertComponent());
@@ -81,7 +85,6 @@ public class JteGenerator {
         if (generateCrudViews) {
             for (SqlTable table : tables) {
                 String entityName = table.getEntityName();
-                String moduleName = table.getModuleName();
                 String entityLower = entityName.toLowerCase();
 
                 // Generate CRUD templates
@@ -154,7 +157,7 @@ public class JteGenerator {
                 .formatted(tailwindCdn, alpineCdn);
     }
 
-    private String generateNavComponent(List<SqlTable> tables, String adminPath) {
+    private String generateNavComponent(String adminPath) {
         return """
         <nav class="bg-white shadow-sm border-b border-gray-200">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -426,13 +429,19 @@ public class JteGenerator {
 
         // ID column
         columns.append("<th class=\"px-4 py-3 text-left\">ID</th>\n");
-        rows.append("<td class=\"px-4 py-3\">${" + entityVar + ".id()}</td>\n");
+        rows.append("<td class=\"px-4 py-3\">${").append(entityVar).append(".id()}</td>\n");
 
         // Business columns
         for (var col : table.getBusinessColumns()) {
             String fieldName = col.getJavaFieldName();
-            columns.append("<th class=\"px-4 py-3 text-left\">" + fieldName + "</th>\n");
-            rows.append("<td class=\"px-4 py-3\">${" + entityVar + "." + fieldName + "()}</td>\n");
+            columns.append("<th class=\"px-4 py-3 text-left\">")
+                    .append(fieldName)
+                    .append("</th>\n");
+            rows.append("<td class=\"px-4 py-3\">${")
+                    .append(entityVar)
+                    .append(".")
+                    .append(fieldName)
+                    .append("()}</td>\n");
         }
 
         return """

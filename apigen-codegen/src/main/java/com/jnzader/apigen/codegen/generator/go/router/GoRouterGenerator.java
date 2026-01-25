@@ -5,6 +5,10 @@ import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 
 /** Generates Gin router configuration for Go/Gin. */
+@SuppressWarnings({
+    "java:S2479",
+    "java:S1192"
+}) // Literal tabs intentional for Go code; duplicate strings for templates
 public class GoRouterGenerator {
 
     private final GoTypeMapper typeMapper;
@@ -137,67 +141,67 @@ public class GoRouterGenerator {
         package router
 
         import (
-        	"log"
-        	"time"
+        \t"log"
+        \t"time"
 
-        	"github.com/gin-gonic/gin"
+        \t"github.com/gin-gonic/gin"
         )
 
         // Logger returns a middleware that logs request information.
         func Logger() gin.HandlerFunc {
-        	return func(c *gin.Context) {
-        		start := time.Now()
-        		path := c.Request.URL.Path
-        		method := c.Request.Method
+        \treturn func(c *gin.Context) {
+        \t\tstart := time.Now()
+        \t\tpath := c.Request.URL.Path
+        \t\tmethod := c.Request.Method
 
-        		c.Next()
+        \t\tc.Next()
 
-        		latency := time.Since(start)
-        		status := c.Writer.Status()
+        \t\tlatency := time.Since(start)
+        \t\tstatus := c.Writer.Status()
 
-        		log.Printf("[%s] %s %s %d %v",
-        			method, path, c.ClientIP(), status, latency)
-        	}
+        \t\tlog.Printf("[%s] %s %s %d %v",
+        \t\t\tmethod, path, c.ClientIP(), status, latency)
+        \t}
         }
 
         // Recovery returns a middleware that recovers from panics.
         func Recovery() gin.HandlerFunc {
-        	return func(c *gin.Context) {
-        		defer func() {
-        			if err := recover(); err != nil {
-        				log.Printf("panic recovered: %v", err)
-        				c.AbortWithStatusJSON(500, gin.H{
-        					"status":  500,
-        					"message": "Internal Server Error",
-        				})
-        			}
-        		}()
-        		c.Next()
-        	}
+        \treturn func(c *gin.Context) {
+        \t\tdefer func() {
+        \t\t\tif err := recover(); err != nil {
+        \t\t\t\tlog.Printf("panic recovered: %v", err)
+        \t\t\t\tc.AbortWithStatusJSON(500, gin.H{
+        \t\t\t\t\t"status":  500,
+        \t\t\t\t\t"message": "Internal Server Error",
+        \t\t\t\t})
+        \t\t\t}
+        \t\t}()
+        \t\tc.Next()
+        \t}
         }
 
         // CORS returns a middleware that handles CORS.
         func CORS() gin.HandlerFunc {
-        	return func(c *gin.Context) {
-        		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-        		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-        		c.Writer.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Authorization")
+        \treturn func(c *gin.Context) {
+        \t\tc.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+        \t\tc.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+        \t\tc.Writer.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Authorization")
 
-        		if c.Request.Method == "OPTIONS" {
-        			c.AbortWithStatus(204)
-        			return
-        		}
+        \t\tif c.Request.Method == "OPTIONS" {
+        \t\t\tc.AbortWithStatus(204)
+        \t\t\treturn
+        \t\t}
 
-        		c.Next()
-        	}
+        \t\tc.Next()
+        \t}
         }
 
         // RateLimit returns a simple rate limiting middleware.
         func RateLimit(requestsPerSecond int) gin.HandlerFunc {
-        	// Simple implementation - for production use a proper rate limiter
-        	return func(c *gin.Context) {
-        		c.Next()
-        	}
+        \t// Simple implementation - for production use a proper rate limiter
+        \treturn func(c *gin.Context) {
+        \t\tc.Next()
+        \t}
         }
         """;
     }

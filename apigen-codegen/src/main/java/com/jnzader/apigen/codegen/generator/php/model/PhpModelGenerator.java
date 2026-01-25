@@ -19,6 +19,7 @@ import java.util.List;
  *   <li>Soft deletes support
  * </ul>
  */
+@SuppressWarnings("java:S1192") // Duplicate strings intentional for code generation templates
 public class PhpModelGenerator {
 
     private final PhpTypeMapper typeMapper;

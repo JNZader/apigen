@@ -12,6 +12,10 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @DisplayName("DTOTestGenerator Tests")
+@SuppressWarnings({
+    "java:S1874",
+    "deprecation"
+}) // Tests deprecated generators for backward compatibility
 class DTOTestGeneratorTest {
 
     private DTOTestGenerator generator;

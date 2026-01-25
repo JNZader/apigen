@@ -15,6 +15,8 @@
  */
 package com.jnzader.apigen.codegen.generator.typescript.test;
 
+import static com.jnzader.apigen.codegen.generator.util.NamingUtils.*;
+
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -25,6 +27,7 @@ import java.util.Map;
  * @author APiGen
  * @since 2.16.0
  */
+@SuppressWarnings("java:S1192") // Duplicate strings intentional for code generation templates
 public class TypeScriptTestGenerator {
 
     /**
@@ -340,20 +343,6 @@ public class TypeScriptTestGenerator {
                 entityName,
                 entityName,
                 entityName,
-                kebabName,
-                entityName,
-                entityName,
-                entityName,
-                entityName,
-                kebabName,
-                kebabName,
-                entityName,
-                entityName,
-                entityName,
-                entityName,
-                entityName,
-                entityName,
-                kebabName,
                 entityName,
                 entityName,
                 entityName,
@@ -361,7 +350,20 @@ public class TypeScriptTestGenerator {
                 entityName,
                 entityName,
                 entityName,
-                kebabName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
                 entityName,
                 entityName,
                 entityName);
@@ -488,35 +490,5 @@ public class TypeScriptTestGenerator {
                 entityName,
                 entityName,
                 entityName);
-    }
-
-    /** Converts PascalCase to kebab-case. */
-    private String toKebabCase(String input) {
-        if (input == null || input.isEmpty()) {
-            return input;
-        }
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < input.length(); i++) {
-            char c = input.charAt(i);
-            if (Character.isUpperCase(c)) {
-                if (i > 0) {
-                    result.append('-');
-                }
-                result.append(Character.toLowerCase(c));
-            } else if (c == '_') {
-                result.append('-');
-            } else {
-                result.append(c);
-            }
-        }
-        return result.toString();
-    }
-
-    /** Converts PascalCase to camelCase. */
-    private String toCamelCase(String input) {
-        if (input == null || input.isEmpty()) {
-            return input;
-        }
-        return Character.toLowerCase(input.charAt(0)) + input.substring(1);
     }
 }

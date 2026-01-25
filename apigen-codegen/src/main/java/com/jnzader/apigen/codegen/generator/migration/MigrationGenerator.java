@@ -8,6 +8,7 @@ import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 
 /** Generates Flyway SQL migration scripts from SQL table definitions. */
+@SuppressWarnings("java:S1192") // Duplicate strings intentional for code generation templates
 public class MigrationGenerator {
 
     private static final String CREATE_INDEX_PREFIX = "CREATE INDEX idx_";

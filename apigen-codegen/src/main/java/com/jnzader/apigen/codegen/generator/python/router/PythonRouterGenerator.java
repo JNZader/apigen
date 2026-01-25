@@ -8,6 +8,7 @@ import com.jnzader.apigen.codegen.model.SqlTable;
  *
  * <p>Routers define API endpoints and handle HTTP requests.
  */
+@SuppressWarnings("java:S1192") // Route strings intentional for code generation
 public class PythonRouterGenerator {
 
     private final PythonTypeMapper typeMapper;

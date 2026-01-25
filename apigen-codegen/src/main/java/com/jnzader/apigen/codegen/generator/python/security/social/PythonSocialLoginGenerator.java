@@ -25,6 +25,7 @@ import java.util.Map;
  * @author APiGen
  * @since 2.13.0
  */
+@SuppressWarnings("java:S3400") // Template methods return constants for code generation
 public class PythonSocialLoginGenerator {
 
     /**
@@ -37,7 +38,7 @@ public class PythonSocialLoginGenerator {
         Map<String, String> files = new LinkedHashMap<>();
 
         files.put("app/core/oauth_config.py", generateOAuthConfig(providers));
-        files.put("app/services/social_auth_service.py", generateService(providers));
+        files.put("app/services/social_auth_service.py", generateService());
         files.put("app/routers/social_auth.py", generateRouter(providers));
         files.put("app/schemas/social_auth.py", generateSchemas());
 
@@ -48,7 +49,7 @@ public class PythonSocialLoginGenerator {
         StringBuilder sb = new StringBuilder();
         sb.append(
                 """
-                \"\"\"OAuth2 configuration for social login providers.\"\"\"
+                \"""OAuth2 configuration for social login providers.\"""
 
                 import os
                 from dataclasses import dataclass
@@ -56,7 +57,7 @@ public class PythonSocialLoginGenerator {
 
                 @dataclass
                 class OAuthProvider:
-                    \"\"\"OAuth2 provider configuration.\"\"\"
+                    \"""OAuth2 provider configuration.\"""
 
                     client_id: str
                     client_secret: str
@@ -72,7 +73,7 @@ public class PythonSocialLoginGenerator {
             sb.append(
                     """
                     def get_google_config() -> OAuthProvider:
-                        \"\"\"Get Google OAuth2 configuration.\"\"\"
+                        \"""Get Google OAuth2 configuration.\"""
                         return OAuthProvider(
                             client_id=os.getenv("GOOGLE_CLIENT_ID", ""),
                             client_secret=os.getenv("GOOGLE_CLIENT_SECRET", ""),
@@ -90,7 +91,7 @@ public class PythonSocialLoginGenerator {
             sb.append(
                     """
                     def get_github_config() -> OAuthProvider:
-                        \"\"\"Get GitHub OAuth2 configuration.\"\"\"
+                        \"""Get GitHub OAuth2 configuration.\"""
                         return OAuthProvider(
                             client_id=os.getenv("GITHUB_CLIENT_ID", ""),
                             client_secret=os.getenv("GITHUB_CLIENT_SECRET", ""),
@@ -108,7 +109,7 @@ public class PythonSocialLoginGenerator {
             sb.append(
                     """
                     def get_linkedin_config() -> OAuthProvider:
-                        \"\"\"Get LinkedIn OAuth2 configuration.\"\"\"
+                        \"""Get LinkedIn OAuth2 configuration.\"""
                         return OAuthProvider(
                             client_id=os.getenv("LINKEDIN_CLIENT_ID", ""),
                             client_secret=os.getenv("LINKEDIN_CLIENT_SECRET", ""),
@@ -137,7 +138,7 @@ public class PythonSocialLoginGenerator {
 
 
                 def get_oauth_config(provider: str) -> OAuthProvider | None:
-                    \"\"\"Get OAuth configuration for the specified provider.\"\"\"
+                    \"""Get OAuth configuration for the specified provider.\"""
                     config_fn = OAUTH_PROVIDERS.get(provider)
                     if config_fn:
                         return config_fn()
@@ -147,9 +148,9 @@ public class PythonSocialLoginGenerator {
         return sb.toString();
     }
 
-    private String generateService(List<String> providers) {
+    private String generateService() {
         return """
-        \"\"\"Social authentication service.\"\"\"
+        \"""Social authentication service.\"""
 
         import secrets
         from urllib.parse import urlencode
@@ -166,7 +167,7 @@ public class PythonSocialLoginGenerator {
 
 
         class SocialAuthService:
-            \"\"\"Service for handling social authentication.\"\"\"
+            \"""Service for handling social authentication.\"""
 
             def __init__(self, db: AsyncSession):
                 self.db = db
@@ -174,7 +175,7 @@ public class PythonSocialLoginGenerator {
             def get_authorization_url(
                 self, provider: str, redirect_uri: str, state: str | None = None
             ) -> str | None:
-                \"\"\"Get the authorization URL for the OAuth provider.\"\"\"
+                \"""Get the authorization URL for the OAuth provider.\"""
                 config = get_oauth_config(provider)
                 if not config:
                     return None
@@ -194,7 +195,7 @@ public class PythonSocialLoginGenerator {
             async def handle_callback(
                 self, provider: str, code: str, redirect_uri: str
             ) -> OAuthCallbackResult | None:
-                \"\"\"Handle OAuth callback and return tokens.\"\"\"
+                \"""Handle OAuth callback and return tokens.\"""
                 config = get_oauth_config(provider)
                 if not config:
                     return None
@@ -256,7 +257,7 @@ public class PythonSocialLoginGenerator {
             def _parse_userinfo(
                 self, provider: str, userinfo: dict
             ) -> SocialUserInfo | None:
-                \"\"\"Parse user info from OAuth provider response.\"\"\"
+                \"""Parse user info from OAuth provider response.\"""
                 if provider == "google":
                     return SocialUserInfo(
                         provider=provider,
@@ -286,7 +287,7 @@ public class PythonSocialLoginGenerator {
             async def _find_or_create_user(
                 self, social_user: SocialUserInfo, provider: str
             ) -> User:
-                \"\"\"Find existing user or create a new one.\"\"\"
+                \"""Find existing user or create a new one.\"""
                 # Try to find by email
                 result = await self.db.execute(
                     select(User).where(User.email == social_user.email)
@@ -320,7 +321,7 @@ public class PythonSocialLoginGenerator {
         StringBuilder sb = new StringBuilder();
         sb.append(
                 """
-                \"\"\"Social authentication router.\"\"\"
+                \"""Social authentication router.\"""
 
                 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
                 from fastapi.responses import RedirectResponse
@@ -351,7 +352,7 @@ public class PythonSocialLoginGenerator {
                     request: Request,
                     db: AsyncSession = Depends(get_db),
                 ) -> AuthUrlResponse:
-                    \"\"\"Get the authorization URL for the specified provider.\"\"\"
+                    \"""Get the authorization URL for the specified provider.\"""
                     if provider not in SUPPORTED_PROVIDERS:
                         raise HTTPException(
                             status_code=status.HTTP_400_BAD_REQUEST,
@@ -379,7 +380,7 @@ public class PythonSocialLoginGenerator {
                     state: str = Query(None),
                     db: AsyncSession = Depends(get_db),
                 ) -> OAuthCallbackResult:
-                    \"\"\"Handle OAuth callback from provider.\"\"\"
+                    \"""Handle OAuth callback from provider.\"""
                     if provider not in SUPPORTED_PROVIDERS:
                         raise HTTPException(
                             status_code=status.HTTP_400_BAD_REQUEST,
@@ -402,7 +403,7 @@ public class PythonSocialLoginGenerator {
 
                 @router.get("/providers")
                 async def list_providers() -> dict:
-                    \"\"\"List supported OAuth providers.\"\"\"
+                    \"""List supported OAuth providers.\"""
                     return {"providers": SUPPORTED_PROVIDERS}
                 """);
 
@@ -411,7 +412,7 @@ public class PythonSocialLoginGenerator {
 
     private String generateSchemas() {
         return """
-        \"\"\"Social authentication schemas.\"\"\"
+        \"""Social authentication schemas.\"""
 
         from uuid import UUID
 
@@ -419,7 +420,7 @@ public class PythonSocialLoginGenerator {
 
 
         class SocialUserInfo(BaseModel):
-            \"\"\"User info from OAuth provider.\"\"\"
+            \"""User info from OAuth provider.\"""
 
             provider: str
             provider_id: str
@@ -429,14 +430,14 @@ public class PythonSocialLoginGenerator {
 
 
         class AuthUrlResponse(BaseModel):
-            \"\"\"Response containing authorization URL.\"\"\"
+            \"""Response containing authorization URL.\"""
 
             authorization_url: str
             provider: str
 
 
         class OAuthCallbackResult(BaseModel):
-            \"\"\"Result of OAuth callback.\"\"\"
+            \"""Result of OAuth callback.\"""
 
             access_token: str
             refresh_token: str

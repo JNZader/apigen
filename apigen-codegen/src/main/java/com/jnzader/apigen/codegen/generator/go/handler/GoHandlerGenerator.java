@@ -4,6 +4,10 @@ import com.jnzader.apigen.codegen.generator.go.GoTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlTable;
 
 /** Generates HTTP handler functions for Gin routes for Go/Gin. */
+@SuppressWarnings({
+    "java:S2479",
+    "java:S1192"
+}) // Literal tabs intentional for Go code; duplicate strings for templates
 public class GoHandlerGenerator {
 
     private final GoTypeMapper typeMapper;

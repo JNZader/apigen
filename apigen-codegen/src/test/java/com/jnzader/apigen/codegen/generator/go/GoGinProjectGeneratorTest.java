@@ -146,8 +146,8 @@ class GoGinProjectGeneratorTest {
 
             Map<String, String> files = generator.generate(schema, config);
 
-            assertThat(files.keySet())
-                    .contains(
+            assertThat(files)
+                    .containsKeys(
                             "internal/models/product.go",
                             "internal/dto/product_create_request.go",
                             "internal/dto/product_update_request.go",
@@ -165,8 +165,8 @@ class GoGinProjectGeneratorTest {
 
             Map<String, String> files = generator.generate(schema, config);
 
-            assertThat(files.keySet())
-                    .contains(
+            assertThat(files)
+                    .containsKeys(
                             "internal/models/base.go",
                             "internal/repository/base.go",
                             "internal/dto/paginated_response.go",
@@ -181,8 +181,8 @@ class GoGinProjectGeneratorTest {
 
             Map<String, String> files = generator.generate(schema, config);
 
-            assertThat(files.keySet())
-                    .contains("internal/router/router.go", "internal/router/middleware.go");
+            assertThat(files)
+                    .containsKeys("internal/router/router.go", "internal/router/middleware.go");
         }
 
         @Test
@@ -193,8 +193,8 @@ class GoGinProjectGeneratorTest {
 
             Map<String, String> files = generator.generate(schema, config);
 
-            assertThat(files.keySet())
-                    .contains(
+            assertThat(files)
+                    .containsKeys(
                             "go.mod",
                             "main.go",
                             "internal/config/config.go",
@@ -215,7 +215,7 @@ class GoGinProjectGeneratorTest {
 
             Map<String, String> files = generator.generate(schema, config);
 
-            assertThat(files.keySet()).contains("Dockerfile", "docker-compose.yml");
+            assertThat(files).containsKeys("Dockerfile", "docker-compose.yml");
         }
 
         @Test

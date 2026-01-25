@@ -14,6 +14,7 @@ import com.jnzader.apigen.codegen.model.SqlTable;
  *   <li>Proper HTTP responses
  * </ul>
  */
+@SuppressWarnings("java:S1192") // Duplicate strings intentional for code generation templates
 public class PhpControllerGenerator {
 
     private final PhpTypeMapper typeMapper;

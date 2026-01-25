@@ -1,5 +1,7 @@
 package com.jnzader.apigen.codegen.generator.typescript.dto;
 
+import static com.jnzader.apigen.codegen.generator.util.NamingUtils.*;
+
 import com.jnzader.apigen.codegen.generator.typescript.TypeScriptTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlSchema;
@@ -20,6 +22,11 @@ import java.util.Set;
  *   <li>PaginatedResponseDto for paginated results
  * </ul>
  */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3776",
+    "java:S6541"
+}) // S1192: Template strings; S3776/S6541: complex DTO generation logic
 public class TypeScriptDTOGenerator {
 
     private final TypeScriptTypeMapper typeMapper;
@@ -245,6 +252,9 @@ public class TypeScriptDTOGenerator {
                 case "LocalDate", "LocalDateTime", "Instant", "ZonedDateTime" ->
                         validators.add("IsDate");
                 case "UUID" -> validators.add("IsUUID");
+                default -> {
+                    // Other types use default validation
+                }
             }
         }
 
@@ -326,6 +336,9 @@ public class TypeScriptDTOGenerator {
                 case "LocalDate", "LocalDateTime", "Instant", "ZonedDateTime" ->
                         sb.append("  @IsDate()\n");
                 case "UUID" -> sb.append("  @IsUUID()\n");
+                default -> {
+                    // Other types use default validation
+                }
             }
 
             if (isUpdate || column.isNullable()) {
@@ -351,17 +364,5 @@ public class TypeScriptDTOGenerator {
         sb.append("}\n");
 
         return sb.toString();
-    }
-
-    private boolean isAuditField(String columnName) {
-        String lower = columnName.toLowerCase();
-        return lower.equals("id")
-                || lower.equals("activo")
-                || lower.equals("created_at")
-                || lower.equals("updated_at")
-                || lower.equals("created_by")
-                || lower.equals("updated_by")
-                || lower.equals("deleted_at")
-                || lower.equals("deleted_by");
     }
 }

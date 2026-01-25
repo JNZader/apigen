@@ -3,6 +3,7 @@ package com.jnzader.apigen.codegen.generator.kotlin.service;
 import com.jnzader.apigen.codegen.model.SqlTable;
 
 /** Generates Service interface and implementation classes for Kotlin/Spring Boot. */
+@SuppressWarnings("java:S1192") // Duplicate strings intentional for code generation templates
 public class KotlinServiceGenerator {
 
     private static final String APIGEN_CORE_PKG = "com.jnzader.apigen.core";
@@ -44,7 +45,6 @@ interface %sService : BaseService<%s, Long> {
     /** Generates the Service implementation class code in Kotlin. */
     public String generateImpl(SqlTable table) {
         String entityName = table.getEntityName();
-        String entityVarName = table.getEntityVariableName();
         String moduleName = table.getModuleName();
 
         return

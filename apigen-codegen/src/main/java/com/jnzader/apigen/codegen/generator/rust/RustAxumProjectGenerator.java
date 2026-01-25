@@ -15,6 +15,8 @@
  */
 package com.jnzader.apigen.codegen.generator.rust;
 
+import static com.jnzader.apigen.codegen.generator.util.RelationshipUtils.*;
+
 import com.jnzader.apigen.codegen.generator.api.Feature;
 import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
@@ -39,7 +41,6 @@ import com.jnzader.apigen.codegen.generator.rust.test.RustTestGenerator;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +61,10 @@ import java.util.Set;
  * @author APiGen
  * @since 2.12.0
  */
+@SuppressWarnings({
+    "java:S3776",
+    "java:S6541"
+}) // S3776/S6541: Complex generate() method inherent to code generation orchestration
 public class RustAxumProjectGenerator implements ProjectGenerator {
 
     private static final String LANGUAGE = "rust";
@@ -169,16 +174,10 @@ public class RustAxumProjectGenerator implements ProjectGenerator {
 
         // Get entity tables
         List<SqlTable> tables = schema.getEntityTables();
-        List<String> entityNames =
-                tables.stream().map(t -> typeMapper.toStructName(t.getName())).toList();
 
         // Build relationship map
-        Map<String, List<SqlSchema.TableRelationship>> relationshipsByTable = new HashMap<>();
-        for (SqlSchema.TableRelationship rel : schema.getAllRelationships()) {
-            relationshipsByTable
-                    .computeIfAbsent(rel.getSourceTable().getName(), k -> new ArrayList<>())
-                    .add(rel);
-        }
+        Map<String, List<SqlSchema.TableRelationship>> relationshipsByTable =
+                buildRelationshipsByTable(schema);
 
         // === Root config files ===
         files.put("Cargo.toml", configGenerator.generateCargoToml());
@@ -195,8 +194,8 @@ public class RustAxumProjectGenerator implements ProjectGenerator {
         }
 
         // === src/ files ===
-        files.put("src/main.rs", configGenerator.generateMainRs(entityNames));
-        files.put("src/lib.rs", configGenerator.generateLibRs(entityNames));
+        files.put("src/main.rs", configGenerator.generateMainRs());
+        files.put("src/lib.rs", configGenerator.generateLibRs());
         files.put("src/config.rs", configGenerator.generateConfigRs());
         files.put("src/error.rs", configGenerator.generateErrorRs());
 
@@ -205,7 +204,7 @@ public class RustAxumProjectGenerator implements ProjectGenerator {
         for (SqlTable table : tables) {
             String moduleName = typeMapper.toModuleName(table.getName());
             List<SqlSchema.TableRelationship> tableRelations =
-                    relationshipsByTable.getOrDefault(table.getName(), Collections.emptyList());
+                    getRelationshipsForTable(table.getName(), relationshipsByTable);
             files.put(
                     "src/models/" + moduleName + ".rs",
                     modelGenerator.generate(table, tableRelations));

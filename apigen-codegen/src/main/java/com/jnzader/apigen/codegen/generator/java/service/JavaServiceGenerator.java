@@ -3,6 +3,7 @@ package com.jnzader.apigen.codegen.generator.java.service;
 import com.jnzader.apigen.codegen.model.SqlTable;
 
 /** Generates Service interface and implementation classes for Java/Spring Boot. */
+@SuppressWarnings("java:S1192") // Duplicate strings intentional for code generation templates
 public class JavaServiceGenerator {
 
     private static final String APIGEN_CORE_PKG = "com.jnzader.apigen.core";

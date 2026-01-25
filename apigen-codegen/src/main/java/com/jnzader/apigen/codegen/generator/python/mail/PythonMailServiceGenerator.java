@@ -26,6 +26,7 @@ import java.util.Map;
  * @author APiGen
  * @since 2.13.0
  */
+@SuppressWarnings("java:S3400") // Template methods return constants for code generation
 public class PythonMailServiceGenerator {
 
     /**
@@ -73,7 +74,7 @@ public class PythonMailServiceGenerator {
 
     private String generateMailService() {
         return """
-        \"\"\"Email service for sending emails using fastapi-mail.\"\"\"
+        \"""Email service for sending emails using fastapi-mail.\"""
 
         import asyncio
         from pathlib import Path
@@ -88,7 +89,7 @@ public class PythonMailServiceGenerator {
 
 
         class MailService:
-            \"\"\"Service for sending emails with template support.\"\"\"
+            \"""Service for sending emails with template support.\"""
 
             def __init__(self):
                 self.config = get_mail_config()
@@ -100,14 +101,14 @@ public class PythonMailServiceGenerator {
                 )
 
             def _render_template(self, template_name: str, context: dict[str, Any]) -> str:
-                \"\"\"Render a Jinja2 template with the given context.\"\"\"
+                \"""Render a Jinja2 template with the given context.\"""
                 template = self.jinja_env.get_template(f"{template_name}.html")
                 return template.render(**context)
 
             async def send_simple_email(
                 self, to: EmailStr, subject: str, body: str
             ) -> None:
-                \"\"\"Send a simple text email.\"\"\"
+                \"""Send a simple text email.\"""
                 message = MessageSchema(
                     subject=subject,
                     recipients=[to],
@@ -123,7 +124,7 @@ public class PythonMailServiceGenerator {
                 template_name: str,
                 context: dict[str, Any] | None = None,
             ) -> None:
-                \"\"\"Send an HTML email using a template.\"\"\"
+                \"""Send an HTML email using a template.\"""
                 context = context or {}
                 html_content = self._render_template(template_name, context)
 
@@ -136,7 +137,7 @@ public class PythonMailServiceGenerator {
                 await self.fm.send_message(message)
 
             async def send(self, email_message: EmailMessage) -> None:
-                \"\"\"Send an email using EmailMessage object.\"\"\"
+                \"""Send an email using EmailMessage object.\"""
                 if email_message.template_name:
                     await self.send_html_email(
                         to=email_message.to,
@@ -152,7 +153,7 @@ public class PythonMailServiceGenerator {
                     )
 
             async def send_welcome_email(self, to: EmailStr, user_name: str) -> None:
-                \"\"\"Send a welcome email to a new user.\"\"\"
+                \"""Send a welcome email to a new user.\"""
                 await self.send_html_email(
                     to=to,
                     subject="Welcome!",
@@ -167,7 +168,7 @@ public class PythonMailServiceGenerator {
                 reset_link: str,
                 expiration_minutes: int = 30,
             ) -> None:
-                \"\"\"Send a password reset email.\"\"\"
+                \"""Send a password reset email.\"""
                 await self.send_html_email(
                     to=to,
                     subject="Password Reset Request",
@@ -182,7 +183,7 @@ public class PythonMailServiceGenerator {
             async def send_notification_email(
                 self, to: EmailStr, title: str, message: str
             ) -> None:
-                \"\"\"Send a notification email.\"\"\"
+                \"""Send a notification email.\"""
                 await self.send_html_email(
                     to=to,
                     subject=title,
@@ -191,7 +192,7 @@ public class PythonMailServiceGenerator {
                 )
 
             def send_sync(self, email_message: EmailMessage) -> None:
-                \"\"\"Synchronous wrapper for sending emails.\"\"\"
+                \"""Synchronous wrapper for sending emails.\"""
                 asyncio.run(self.send(email_message))
 
 
@@ -200,7 +201,7 @@ public class PythonMailServiceGenerator {
 
 
         def get_mail_service() -> MailService:
-            \"\"\"Get or create mail service singleton.\"\"\"
+            \"""Get or create mail service singleton.\"""
             global _mail_service
             if _mail_service is None:
                 _mail_service = MailService()
@@ -210,7 +211,7 @@ public class PythonMailServiceGenerator {
 
     private String generateMailSchemas() {
         return """
-        \"\"\"Email message schemas.\"\"\"
+        \"""Email message schemas.\"""
 
         from typing import Any
 
@@ -218,7 +219,7 @@ public class PythonMailServiceGenerator {
 
 
         class EmailMessage(BaseModel):
-            \"\"\"Email message DTO.\"\"\"
+            \"""Email message DTO.\"""
 
             to: EmailStr
             subject: str
@@ -228,7 +229,7 @@ public class PythonMailServiceGenerator {
 
             @classmethod
             def simple(cls, to: EmailStr, subject: str, body: str) -> "EmailMessage":
-                \"\"\"Create a simple text email.\"\"\"
+                \"""Create a simple text email.\"""
                 return cls(to=to, subject=subject, body=body)
 
             @classmethod
@@ -239,7 +240,7 @@ public class PythonMailServiceGenerator {
                 template_name: str,
                 context: dict[str, Any] | None = None,
             ) -> "EmailMessage":
-                \"\"\"Create an HTML email from template.\"\"\"
+                \"""Create an HTML email from template.\"""
                 return cls(
                     to=to,
                     subject=subject,
@@ -249,7 +250,7 @@ public class PythonMailServiceGenerator {
 
 
         class SendEmailRequest(BaseModel):
-            \"\"\"Request schema for sending emails via API.\"\"\"
+            \"""Request schema for sending emails via API.\"""
 
             to: EmailStr
             subject: str
@@ -259,7 +260,7 @@ public class PythonMailServiceGenerator {
 
 
         class SendEmailResponse(BaseModel):
-            \"\"\"Response schema for email sending.\"\"\"
+            \"""Response schema for email sending.\"""
 
             success: bool
             message: str
@@ -268,7 +269,7 @@ public class PythonMailServiceGenerator {
 
     private String generateMailConfig() {
         return """
-        \"\"\"Mail configuration using fastapi-mail.\"\"\"
+        \"""Mail configuration using fastapi-mail.\"""
 
         import os
 
@@ -276,7 +277,7 @@ public class PythonMailServiceGenerator {
 
 
         def get_mail_config() -> ConnectionConfig:
-            \"\"\"Get mail connection configuration from environment.\"\"\"
+            \"""Get mail connection configuration from environment.\"""
             return ConnectionConfig(
                 MAIL_USERNAME=os.getenv("MAIL_USERNAME", ""),
                 MAIL_PASSWORD=os.getenv("MAIL_PASSWORD", ""),

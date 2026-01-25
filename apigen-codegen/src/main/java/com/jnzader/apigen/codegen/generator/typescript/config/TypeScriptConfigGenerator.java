@@ -25,6 +25,11 @@ import java.util.Map;
  *   <li>.gitignore
  * </ul>
  */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S2068",
+    "java:S3400"
+}) // S1192: template strings; S2068: template passwords for dev config; S3400: template methods
 public class TypeScriptConfigGenerator {
 
     private final String projectName;
@@ -242,7 +247,7 @@ public class TypeScriptConfigGenerator {
         String snakeName =
                 projectName
                         .replaceAll("([a-z])([A-Z])", "$1_$2")
-                        .replaceAll("-", "_")
+                        .replace("-", "_")
                         .toLowerCase(Locale.ROOT);
 
         StringBuilder sb = new StringBuilder();
@@ -520,7 +525,7 @@ public class TypeScriptConfigGenerator {
         String snakeName =
                 projectName
                         .replaceAll("([a-z])([A-Z])", "$1_$2")
-                        .replaceAll("-", "_")
+                        .replace("-", "_")
                         .toLowerCase(Locale.ROOT);
 
         StringBuilder sb = new StringBuilder();

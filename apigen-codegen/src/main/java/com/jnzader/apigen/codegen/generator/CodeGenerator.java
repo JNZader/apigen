@@ -33,7 +33,7 @@ import java.util.stream.Stream;
  *     class is maintained for backward compatibility with existing code.
  */
 @Deprecated(since = "2.6.0", forRemoval = false)
-@SuppressWarnings("deprecation")
+@SuppressWarnings({"deprecation", "java:S1133"}) // Kept for backward compatibility
 public class CodeGenerator {
 
     private final Path sourceRoot;

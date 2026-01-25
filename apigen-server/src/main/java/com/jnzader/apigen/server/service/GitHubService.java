@@ -8,8 +8,10 @@ import com.jnzader.apigen.server.dto.github.CreateRepoRequest;
 import com.jnzader.apigen.server.dto.github.CreateRepoResponse;
 import com.jnzader.apigen.server.dto.github.GitHubAuthResponse;
 import com.jnzader.apigen.server.dto.github.PushProjectResponse;
+import com.jnzader.apigen.server.exception.GitHubException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
@@ -41,6 +43,10 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@SuppressWarnings({
+    "java:S1192", // API path strings intentional for readability
+    "java:S135" // Multiple continues in pushProjectToRepo for directory/empty path skipping
+})
 public class GitHubService {
 
     private final GitHubConfig gitHubConfig;
@@ -90,6 +96,14 @@ public class GitHubService {
                             .retrieve()
                             .bodyToMono(String.class)
                             .block();
+
+            if (tokenResponse == null) {
+                log.error("GitHub OAuth: empty response when exchanging code for token");
+                return GitHubAuthResponse.builder()
+                        .authenticated(false)
+                        .error("Failed to authenticate: empty response from GitHub")
+                        .build();
+            }
 
             JsonNode tokenJson = objectMapper.readTree(tokenResponse);
 
@@ -143,6 +157,10 @@ public class GitHubService {
                         .bodyToMono(JsonNode.class)
                         .block();
 
+        if (userJson == null) {
+            throw new GitHubException("Failed to fetch user info: empty response from GitHub API");
+        }
+
         return GitHubAuthResponse.builder()
                 .login(userJson.has("login") ? userJson.get("login").asText() : null)
                 .name(userJson.has("name") ? userJson.get("name").asText() : null)
@@ -190,6 +208,11 @@ public class GitHubService {
                             .retrieve()
                             .bodyToMono(JsonNode.class)
                             .block();
+
+            if (response == null) {
+                throw new GitHubException(
+                        "Failed to create repository: empty response from GitHub API");
+            }
 
             CreateRepoResponse repoResponse =
                     CreateRepoResponse.builder()
@@ -269,12 +292,10 @@ public class GitHubService {
                 String path = entry.getKey();
                 byte[] content = entry.getValue();
 
-                // Skip directory entries
+                // Skip directory entries and empty paths after removing root folder
                 if (path.endsWith("/")) {
                     continue;
                 }
-
-                // Remove the root folder from path (e.g., "my-project/" prefix)
                 String cleanPath = removeRootFolder(path);
                 if (cleanPath.isEmpty()) {
                     continue;
@@ -322,7 +343,7 @@ public class GitHubService {
     }
 
     /** Extracts files from a ZIP archive. */
-    private Map<String, byte[]> extractZipContents(byte[] zipBytes) throws Exception {
+    private Map<String, byte[]> extractZipContents(byte[] zipBytes) throws IOException {
         Map<String, byte[]> files = new HashMap<>();
 
         try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zipBytes))) {
@@ -368,8 +389,17 @@ public class GitHubService {
                             .bodyToMono(JsonNode.class)
                             .block();
 
-            return response.get("object").get("sha").asText();
-        } catch (Exception e) {
+            if (response == null || !response.has("object")) {
+                log.debug("Branch {} does not exist or empty response", branch);
+                return null;
+            }
+            JsonNode objectNode = response.get("object");
+            if (objectNode == null || !objectNode.has("sha")) {
+                log.debug("No SHA found for branch {}", branch);
+                return null;
+            }
+            return objectNode.get("sha").asText();
+        } catch (Exception _) {
             log.debug("Branch {} does not exist yet", branch);
             return null;
         }
@@ -386,7 +416,14 @@ public class GitHubService {
                         .bodyToMono(JsonNode.class)
                         .block();
 
-        return response.get("tree").get("sha").asText();
+        if (response == null || !response.has("tree")) {
+            throw new GitHubException("Failed to get commit info from GitHub: missing tree data");
+        }
+        JsonNode treeNode = response.get("tree");
+        if (treeNode == null || !treeNode.has("sha")) {
+            throw new GitHubException("Failed to get tree SHA from GitHub commit");
+        }
+        return treeNode.get("sha").asText();
     }
 
     /** Creates a blob for file content. */
@@ -406,6 +443,9 @@ public class GitHubService {
                         .bodyToMono(JsonNode.class)
                         .block();
 
+        if (response == null || !response.has("sha")) {
+            throw new GitHubException("Failed to create blob on GitHub: missing SHA in response");
+        }
         return response.get("sha").asText();
     }
 
@@ -433,6 +473,9 @@ public class GitHubService {
                         .bodyToMono(JsonNode.class)
                         .block();
 
+        if (response == null || !response.has("sha")) {
+            throw new GitHubException("Failed to create tree on GitHub: missing SHA in response");
+        }
         return response.get("sha").asText();
     }
 
@@ -464,6 +507,9 @@ public class GitHubService {
                         .bodyToMono(JsonNode.class)
                         .block();
 
+        if (response == null || !response.has("sha")) {
+            throw new GitHubException("Failed to create commit on GitHub: missing SHA in response");
+        }
         return response.get("sha").asText();
     }
 

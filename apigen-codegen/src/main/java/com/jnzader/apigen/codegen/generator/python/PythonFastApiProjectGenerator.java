@@ -1,5 +1,7 @@
 package com.jnzader.apigen.codegen.generator.python;
 
+import static com.jnzader.apigen.codegen.generator.util.RelationshipUtils.*;
+
 import com.jnzader.apigen.codegen.generator.api.Feature;
 import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
@@ -20,8 +22,6 @@ import com.jnzader.apigen.codegen.generator.python.test.PythonTestGenerator;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +41,7 @@ import java.util.Set;
  *   <li>Project configuration files (pyproject.toml, Dockerfile, etc.)
  * </ul>
  */
+@SuppressWarnings("java:S3400") // Template methods return constants for code generation
 public class PythonFastApiProjectGenerator implements ProjectGenerator {
 
     private static final String LANGUAGE = "python";
@@ -124,12 +125,8 @@ public class PythonFastApiProjectGenerator implements ProjectGenerator {
         PythonConfigGenerator configGenerator = new PythonConfigGenerator(projectName);
 
         // Collect all relationships for bidirectional mapping
-        Map<String, List<SqlSchema.TableRelationship>> relationshipsByTable = new HashMap<>();
-        for (SqlSchema.TableRelationship rel : schema.getAllRelationships()) {
-            relationshipsByTable
-                    .computeIfAbsent(rel.getSourceTable().getName(), k -> new ArrayList<>())
-                    .add(rel);
-        }
+        Map<String, List<SqlSchema.TableRelationship>> relationshipsByTable =
+                buildRelationshipsByTable(schema);
 
         // Generate base classes
         files.put("app/models/__init__.py", "");
@@ -145,14 +142,11 @@ public class PythonFastApiProjectGenerator implements ProjectGenerator {
         // Generate code for each entity table
         for (SqlTable table : schema.getEntityTables()) {
             List<SqlSchema.TableRelationship> tableRelations =
-                    relationshipsByTable.getOrDefault(table.getName(), Collections.emptyList());
+                    getRelationshipsForTable(table.getName(), relationshipsByTable);
 
             // Find inverse relationships (where this table is the target)
             List<SqlSchema.TableRelationship> inverseRelations =
-                    schema.getAllRelationships().stream()
-                            .filter(r -> r.getTargetTable().getName().equals(table.getName()))
-                            .filter(r -> !r.getSourceTable().isJunctionTable())
-                            .toList();
+                    findInverseRelationships(table, schema);
 
             String varName = typeMapper.toSnakeCase(table.getEntityName());
 
@@ -290,7 +284,7 @@ public class PythonFastApiProjectGenerator implements ProjectGenerator {
 
         @pytest.fixture(scope="session")
         def event_loop() -> Generator:
-            \"\"\"Create an event loop for the test session.\"\"\"
+            \"""Create an event loop for the test session.\"""
             loop = asyncio.get_event_loop_policy().new_event_loop()
             yield loop
             loop.close()
@@ -298,7 +292,7 @@ public class PythonFastApiProjectGenerator implements ProjectGenerator {
 
         @pytest_asyncio.fixture(scope="function")
         async def db_session() -> AsyncGenerator[AsyncSession, None]:
-            \"\"\"Create a database session for testing.\"\"\"
+            \"""Create a database session for testing.\"""
             engine = create_async_engine(TEST_DATABASE_URL, echo=False)
 
             async with engine.begin() as conn:
@@ -319,7 +313,7 @@ public class PythonFastApiProjectGenerator implements ProjectGenerator {
 
         @pytest_asyncio.fixture(scope="function")
         async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
-            \"\"\"Create a test client with database override.\"\"\"
+            \"""Create a test client with database override.\"""
 
             async def override_get_db() -> AsyncGenerator[AsyncSession, None]:
                 yield db_session

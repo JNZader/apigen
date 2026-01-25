@@ -19,6 +19,7 @@ import java.util.List;
  *   <li>Indexes
  * </ul>
  */
+@SuppressWarnings("java:S1192") // Duplicate strings intentional for code generation templates
 public class PhpMigrationGenerator {
 
     private final PhpTypeMapper typeMapper;
@@ -38,7 +39,6 @@ public class PhpMigrationGenerator {
     public String generate(SqlTable table, List<SqlSchema.TableRelationship> relationships) {
         StringBuilder sb = new StringBuilder();
         String tableName = table.getName();
-        String className = "Create" + typeMapper.toPascalCase(tableName) + "Table";
 
         sb.append("<?php\n\n");
         sb.append("use Illuminate\\Database\\Migrations\\Migration;\n");

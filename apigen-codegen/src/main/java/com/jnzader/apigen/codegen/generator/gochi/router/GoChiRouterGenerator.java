@@ -8,6 +8,10 @@ import java.util.List;
 import java.util.Locale;
 
 /** Generates Chi router configuration. */
+@SuppressWarnings({
+    "java:S2479",
+    "java:S1192"
+}) // Literal tabs intentional for Go code; duplicate strings for templates
 public class GoChiRouterGenerator {
 
     private final GoChiTypeMapper typeMapper;

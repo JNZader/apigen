@@ -7,7 +7,11 @@ import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.Locale;
 
 /** Generates service layer for Go/Chi. */
-@SuppressWarnings("UnusedVariable") // Options field reserved for future feature flags
+@SuppressWarnings({
+    "java:S1068",
+    "java:S1192",
+    "java:S2479"
+}) // S1068: options reserved; S1192: template strings; S2479: tabs for Go formatting
 public class GoChiServiceGenerator {
 
     private final GoChiTypeMapper typeMapper;

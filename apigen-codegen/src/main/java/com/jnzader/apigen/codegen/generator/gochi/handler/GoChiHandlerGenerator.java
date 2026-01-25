@@ -6,7 +6,11 @@ import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.Locale;
 
 /** Generates HTTP handlers for Go/Chi router. */
-@SuppressWarnings("UnusedVariable") // Options field reserved for future feature flags
+@SuppressWarnings({
+    "java:S1068",
+    "java:S1192",
+    "java:S2479"
+}) // S1068: options; S1192: strings; S2479: tabs
 public class GoChiHandlerGenerator {
 
     private final GoChiTypeMapper typeMapper;

@@ -4,6 +4,10 @@ import com.jnzader.apigen.codegen.generator.go.GoTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlTable;
 
 /** Generates repository structs and methods for data access with GORM for Go/Gin. */
+@SuppressWarnings({
+    "java:S2479",
+    "java:S1192"
+}) // Literal tabs intentional for Go code; duplicate strings for templates
 public class GoRepositoryGenerator {
 
     private final GoTypeMapper typeMapper;
@@ -207,34 +211,34 @@ public class GoRepositoryGenerator {
         package repository
 
         import (
-        	"context"
+        \t"context"
 
-        	"gorm.io/gorm"
+        \t"gorm.io/gorm"
         )
 
         // BaseRepository provides common database operations.
         type BaseRepository[T any] interface {
-        	FindByID(ctx context.Context, id int64) (*T, error)
-        	FindAll(ctx context.Context, page, size int) ([]T, int64, error)
-        	Create(ctx context.Context, entity *T) error
-        	Update(ctx context.Context, entity *T) error
-        	Delete(ctx context.Context, id int64) error
-        	ExistsByID(ctx context.Context, id int64) (bool, error)
+        \tFindByID(ctx context.Context, id int64) (*T, error)
+        \tFindAll(ctx context.Context, page, size int) ([]T, int64, error)
+        \tCreate(ctx context.Context, entity *T) error
+        \tUpdate(ctx context.Context, entity *T) error
+        \tDelete(ctx context.Context, id int64) error
+        \tExistsByID(ctx context.Context, id int64) (bool, error)
         }
 
         // GormRepository provides a generic GORM repository implementation.
         type GormRepository[T any] struct {
-        	DB *gorm.DB
+        \tDB *gorm.DB
         }
 
         // NewGormRepository creates a new generic GORM repository.
         func NewGormRepository[T any](db *gorm.DB) *GormRepository[T] {
-        	return &GormRepository[T]{DB: db}
+        \treturn &GormRepository[T]{DB: db}
         }
 
         // WithTx returns a new repository with a transaction.
         func (r *GormRepository[T]) WithTx(tx *gorm.DB) *GormRepository[T] {
-        	return &GormRepository[T]{DB: tx}
+        \treturn &GormRepository[T]{DB: tx}
         }
         """;
     }

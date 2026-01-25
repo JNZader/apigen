@@ -14,6 +14,10 @@ import java.util.Set;
  *
  * <p>Models are plain Go structs with JSON tags, designed for use with pgx and manual SQL queries.
  */
+@SuppressWarnings({
+    "java:S2479",
+    "java:S1192"
+}) // Literal tabs intentional for Go code; duplicate strings for templates
 public class GoChiModelGenerator {
 
     private final GoChiTypeMapper typeMapper;
@@ -22,10 +26,7 @@ public class GoChiModelGenerator {
         this.typeMapper = typeMapper;
     }
 
-    public String generate(
-            SqlTable table,
-            List<SqlSchema.TableRelationship> relationships,
-            List<SqlSchema.TableRelationship> inverseRelationships) {
+    public String generate(SqlTable table, List<SqlSchema.TableRelationship> relationships) {
 
         StringBuilder sb = new StringBuilder();
         String structName = typeMapper.toExportedName(table.getEntityName());

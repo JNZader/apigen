@@ -9,6 +9,7 @@ import com.jnzader.apigen.codegen.model.SqlTable;
  *     This class is maintained for backward compatibility.
  */
 @Deprecated(since = "2.6.0", forRemoval = false)
+@SuppressWarnings("java:S1133") // Kept for backward compatibility
 public class TestGenerator {
 
     private final ServiceTestGenerator serviceTestGenerator;

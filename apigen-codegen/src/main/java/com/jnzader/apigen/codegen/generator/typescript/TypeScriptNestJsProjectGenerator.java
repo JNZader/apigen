@@ -1,5 +1,7 @@
 package com.jnzader.apigen.codegen.generator.typescript;
 
+import static com.jnzader.apigen.codegen.generator.util.RelationshipUtils.*;
+
 import com.jnzader.apigen.codegen.generator.api.Feature;
 import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
@@ -21,8 +23,6 @@ import com.jnzader.apigen.codegen.generator.typescript.test.TypeScriptTestGenera
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +43,7 @@ import java.util.Set;
  *   <li>Project configuration files (package.json, tsconfig.json, etc.)
  * </ul>
  */
+@SuppressWarnings("java:S3400") // Template methods return constants for code generation
 public class TypeScriptNestJsProjectGenerator implements ProjectGenerator {
 
     private static final String LANGUAGE = "typescript";
@@ -127,12 +128,8 @@ public class TypeScriptNestJsProjectGenerator implements ProjectGenerator {
         TypeScriptConfigGenerator configGenerator = new TypeScriptConfigGenerator(projectName);
 
         // Collect all relationships for bidirectional mapping
-        Map<String, List<SqlSchema.TableRelationship>> relationshipsByTable = new HashMap<>();
-        for (SqlSchema.TableRelationship rel : schema.getAllRelationships()) {
-            relationshipsByTable
-                    .computeIfAbsent(rel.getSourceTable().getName(), k -> new ArrayList<>())
-                    .add(rel);
-        }
+        Map<String, List<SqlSchema.TableRelationship>> relationshipsByTable =
+                buildRelationshipsByTable(schema);
 
         // Generate shared files
         files.put("src/entities/base.entity.ts", entityGenerator.generateBaseEntity());
@@ -152,14 +149,11 @@ public class TypeScriptNestJsProjectGenerator implements ProjectGenerator {
             String modulePath = "src/modules/" + kebabName;
 
             List<SqlSchema.TableRelationship> tableRelations =
-                    relationshipsByTable.getOrDefault(table.getName(), Collections.emptyList());
+                    getRelationshipsForTable(table.getName(), relationshipsByTable);
 
             // Find inverse relationships (where this table is the target)
             List<SqlSchema.TableRelationship> inverseRelations =
-                    schema.getAllRelationships().stream()
-                            .filter(r -> r.getTargetTable().getName().equals(table.getName()))
-                            .filter(r -> !r.getSourceTable().isJunctionTable())
-                            .toList();
+                    findInverseRelationships(table, schema);
 
             // 1. Generate Entity
             String entityCode = entityGenerator.generate(table, tableRelations, inverseRelations);

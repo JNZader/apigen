@@ -1,29 +1,19 @@
 package com.jnzader.apigen.codegen.generator.csharp;
 
-import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
+import com.jnzader.apigen.codegen.generator.api.AbstractLanguageTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlColumn;
-import java.util.Set;
 
 /**
- * C#-specific implementation of {@link LanguageTypeMapper}.
+ * C#-specific implementation of {@link AbstractLanguageTypeMapper}.
  *
  * <p>Maps SQL types to C# types with appropriate imports for Entity Framework entities, DTOs, and
  * other C# constructs. Handles nullable types using C# nullable reference types.
  */
-public class CSharpTypeMapper implements LanguageTypeMapper {
+@SuppressWarnings("java:S1192") // Type mapping strings intentional for readability
+public class CSharpTypeMapper extends AbstractLanguageTypeMapper {
 
     @Override
-    public String mapColumnType(SqlColumn column) {
-        return mapJavaTypeToCSharp(column.getJavaType());
-    }
-
-    /**
-     * Maps a Java type to its C# equivalent.
-     *
-     * @param javaType the Java type name
-     * @return the C# type name
-     */
-    public String mapJavaTypeToCSharp(String javaType) {
+    public String mapJavaType(String javaType) {
         return switch (javaType) {
             case "int", "Integer" -> "int";
             case "long", "Long" -> "long";
@@ -47,10 +37,17 @@ public class CSharpTypeMapper implements LanguageTypeMapper {
     }
 
     @Override
-    public Set<String> getRequiredImports(SqlColumn column) {
-        // In C#, most types are built-in and don't need imports
-        // System namespace is implicitly imported
-        return Set.of();
+    protected String getListTypeFormat() {
+        return "IEnumerable<%s>";
+    }
+
+    @Override
+    public String getNullableType(String type) {
+        // In C#, nullable types use the ? suffix
+        if (type.endsWith("?")) {
+            return type;
+        }
+        return type + "?";
     }
 
     @Override
@@ -76,25 +73,6 @@ public class CSharpTypeMapper implements LanguageTypeMapper {
     @Override
     public String getPrimaryKeyType() {
         return "long";
-    }
-
-    @Override
-    public Set<String> getPrimaryKeyImports() {
-        return Set.of();
-    }
-
-    @Override
-    public String getListType(String elementType) {
-        return "IEnumerable<" + elementType + ">";
-    }
-
-    @Override
-    public String getNullableType(String type) {
-        // In C#, nullable types use the ? suffix
-        if (type.endsWith("?")) {
-            return type;
-        }
-        return type + "?";
     }
 
     /**

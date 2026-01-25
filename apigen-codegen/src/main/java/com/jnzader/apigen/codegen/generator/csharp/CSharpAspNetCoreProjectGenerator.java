@@ -1,5 +1,8 @@
 package com.jnzader.apigen.codegen.generator.csharp;
 
+import static com.jnzader.apigen.codegen.generator.util.NamingUtils.*;
+import static com.jnzader.apigen.codegen.generator.util.RelationshipUtils.*;
+
 import com.jnzader.apigen.codegen.generator.api.Feature;
 import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
@@ -16,12 +19,9 @@ import com.jnzader.apigen.codegen.generator.csharp.security.reset.CSharpPassword
 import com.jnzader.apigen.codegen.generator.csharp.security.social.CSharpSocialLoginGenerator;
 import com.jnzader.apigen.codegen.generator.csharp.service.CSharpServiceGenerator;
 import com.jnzader.apigen.codegen.generator.csharp.storage.CSharpFileStorageGenerator;
-import com.jnzader.apigen.codegen.model.SqlForeignKey;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -134,24 +134,17 @@ public class CSharpAspNetCoreProjectGenerator implements ProjectGenerator {
         CSharpConfigGenerator configGenerator = new CSharpConfigGenerator(baseNamespace);
 
         // Collect all relationships for bidirectional mapping
-        Map<String, List<SqlSchema.TableRelationship>> relationshipsByTable = new HashMap<>();
-        for (SqlSchema.TableRelationship rel : schema.getAllRelationships()) {
-            relationshipsByTable
-                    .computeIfAbsent(rel.getSourceTable().getName(), k -> new ArrayList<>())
-                    .add(rel);
-        }
+        Map<String, List<SqlSchema.TableRelationship>> relationshipsByTable =
+                buildRelationshipsByTable(schema);
 
         // Generate code for each entity table
         for (SqlTable table : schema.getEntityTables()) {
             List<SqlSchema.TableRelationship> tableRelations =
-                    relationshipsByTable.getOrDefault(table.getName(), Collections.emptyList());
+                    getRelationshipsForTable(table.getName(), relationshipsByTable);
 
             // Find inverse relationships (where this table is the target)
             List<SqlSchema.TableRelationship> inverseRelations =
-                    schema.getAllRelationships().stream()
-                            .filter(r -> r.getTargetTable().getName().equals(table.getName()))
-                            .filter(r -> !r.getSourceTable().isJunctionTable())
-                            .toList();
+                    findInverseRelationships(table, schema);
 
             // Find many-to-many relationships through junction tables
             List<ManyToManyRelation> manyToManyRelations = findManyToManyRelations(table, schema);
@@ -579,71 +572,5 @@ public class NotFoundException : Exception
 }
 """
                 .formatted(baseNamespace);
-    }
-
-    /** Finds many-to-many relationships for a table through junction tables. */
-    private List<ManyToManyRelation> findManyToManyRelations(SqlTable table, SqlSchema schema) {
-        List<ManyToManyRelation> relations = new ArrayList<>();
-
-        for (SqlTable junctionTable : schema.getJunctionTables()) {
-            List<SqlForeignKey> fks = junctionTable.getForeignKeys();
-            if (fks.size() != 2) continue;
-
-            SqlForeignKey fk1 = fks.get(0);
-            SqlForeignKey fk2 = fks.get(1);
-
-            SqlForeignKey thisFk = null;
-            SqlForeignKey otherFk = null;
-
-            if (fk1.getReferencedTable().equalsIgnoreCase(table.getName())) {
-                thisFk = fk1;
-                otherFk = fk2;
-            } else if (fk2.getReferencedTable().equalsIgnoreCase(table.getName())) {
-                thisFk = fk2;
-                otherFk = fk1;
-            }
-
-            if (thisFk != null && otherFk != null) {
-                SqlTable otherTable = schema.getTableByName(otherFk.getReferencedTable());
-                if (otherTable != null) {
-                    relations.add(
-                            new ManyToManyRelation(
-                                    junctionTable.getName(),
-                                    thisFk.getColumnName(),
-                                    otherFk.getColumnName(),
-                                    otherTable));
-                }
-            }
-        }
-
-        return relations;
-    }
-
-    private String toPascalCase(String name) {
-        if (name == null || name.isEmpty()) {
-            return name;
-        }
-        StringBuilder result = new StringBuilder();
-        boolean capitalizeNext = true;
-        for (char c : name.toCharArray()) {
-            if (c == '_' || c == '-') {
-                capitalizeNext = true;
-            } else if (capitalizeNext) {
-                result.append(Character.toUpperCase(c));
-                capitalizeNext = false;
-            } else {
-                result.append(Character.toLowerCase(c));
-            }
-        }
-        return result.toString();
-    }
-
-    private String toPlural(String name) {
-        if (name.endsWith("y")) {
-            return name.substring(0, name.length() - 1) + "ies";
-        } else if (name.endsWith("s") || name.endsWith("x") || name.endsWith("ch")) {
-            return name + "es";
-        }
-        return name + "s";
     }
 }

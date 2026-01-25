@@ -1,5 +1,7 @@
 package com.jnzader.apigen.codegen.generator.csharp.config;
 
+import static com.jnzader.apigen.codegen.generator.util.NamingUtils.*;
+
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
@@ -7,6 +9,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /** Generates configuration files for C#/ASP.NET Core projects. */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3400"
+}) // S1192: template strings; S3400: template methods return constants
 public class CSharpConfigGenerator {
 
     private static final String DEFAULT_DOTNET_VERSION = "8.0";
@@ -191,7 +197,7 @@ public class CSharpConfigGenerator {
   "AllowedHosts": "*"
 }
 """
-                .formatted(toSnakeCase(baseNamespace));
+                .formatted(toSnakeCaseForDb(baseNamespace));
     }
 
     private String generateAppSettingsDevelopment() {
@@ -209,26 +215,11 @@ public class CSharpConfigGenerator {
 """;
     }
 
-    private String toPascalCase(String name) {
-        if (name == null || name.isEmpty()) {
-            return name;
-        }
-        StringBuilder result = new StringBuilder();
-        boolean capitalizeNext = true;
-        for (char c : name.toCharArray()) {
-            if (c == '_' || c == '-') {
-                capitalizeNext = true;
-            } else if (capitalizeNext) {
-                result.append(Character.toUpperCase(c));
-                capitalizeNext = false;
-            } else {
-                result.append(Character.toLowerCase(c));
-            }
-        }
-        return result.toString();
-    }
-
-    private String toSnakeCase(String name) {
+    /**
+     * Converts a namespace to a database-friendly snake_case name. This replaces dots with
+     * underscores and lowercases the result.
+     */
+    private String toSnakeCaseForDb(String name) {
         return name.replace('.', '_').toLowerCase();
     }
 }

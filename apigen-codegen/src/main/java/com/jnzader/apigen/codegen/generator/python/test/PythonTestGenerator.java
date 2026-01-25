@@ -15,6 +15,8 @@
  */
 package com.jnzader.apigen.codegen.generator.python.test;
 
+import static com.jnzader.apigen.codegen.generator.util.NamingUtils.*;
+
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -40,10 +42,10 @@ public class PythonTestGenerator {
 
         files.put(
                 "tests/test_" + snakeName + "_service.py",
-                generateServiceTest(table, entityName, snakeName));
+                generateServiceTest(entityName, snakeName));
         files.put(
                 "tests/test_" + snakeName + "_router.py",
-                generateRouterTest(table, entityName, snakeName));
+                generateRouterTest(entityName, snakeName));
 
         return files;
     }
@@ -75,7 +77,7 @@ public class PythonTestGenerator {
 
         @pytest.fixture(scope="session")
         def event_loop() -> Generator:
-            \"\"\"Create an instance of the default event loop for the test session.\"\"\"
+            \"""Create an instance of the default event loop for the test session.\"""
             loop = asyncio.get_event_loop_policy().new_event_loop()
             yield loop
             loop.close()
@@ -83,7 +85,7 @@ public class PythonTestGenerator {
 
         @pytest_asyncio.fixture
         async def db_session() -> AsyncGenerator[AsyncSession, None]:
-            \"\"\"Create a new database session for a test.\"\"\"
+            \"""Create a new database session for a test.\"""
             async with engine.begin() as conn:
                 await conn.run_sync(Base.metadata.create_all)
 
@@ -97,7 +99,7 @@ public class PythonTestGenerator {
 
         @pytest_asyncio.fixture
         async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
-            \"\"\"Create a test client with database session override.\"\"\"
+            \"""Create a test client with database session override.\"""
             async def override_get_db():
                 yield db_session
 
@@ -133,10 +135,10 @@ public class PythonTestGenerator {
 
 
                 class Test%sEndpoints:
-                    \"\"\"Integration tests for %s API endpoints.\"\"\"
+                    \"""Integration tests for %s API endpoints.\"""
 
                     async def test_create_%s(self, client: AsyncClient):
-                        \"\"\"Test creating a new %s.\"\"\"
+                        \"""Test creating a new %s.\"""
                         payload = {
                             # Add required fields here
                         }
@@ -146,7 +148,7 @@ public class PythonTestGenerator {
                         assert "id" in data
 
                     async def test_get_%s_list(self, client: AsyncClient):
-                        \"\"\"Test getting list of %s.\"\"\"
+                        \"""Test getting list of %s.\"""
                         response = await client.get("/api/v1/%s")
                         assert response.status_code == 200
                         data = response.json()
@@ -154,7 +156,7 @@ public class PythonTestGenerator {
                         assert "total" in data
 
                     async def test_get_%s_by_id(self, client: AsyncClient):
-                        \"\"\"Test getting a %s by ID.\"\"\"
+                        \"""Test getting a %s by ID.\"""
                         # First create a %s
                         create_response = await client.post("/api/v1/%s", json={})
                         created_id = create_response.json()["id"]
@@ -166,12 +168,12 @@ public class PythonTestGenerator {
                         assert data["id"] == created_id
 
                     async def test_get_%s_not_found(self, client: AsyncClient):
-                        \"\"\"Test 404 when %s not found.\"\"\"
+                        \"""Test 404 when %s not found.\"""
                         response = await client.get("/api/v1/%s/99999")
                         assert response.status_code == 404
 
                     async def test_update_%s(self, client: AsyncClient):
-                        \"\"\"Test updating a %s.\"\"\"
+                        \"""Test updating a %s.\"""
                         # First create a %s
                         create_response = await client.post("/api/v1/%s", json={})
                         created_id = create_response.json()["id"]
@@ -184,7 +186,7 @@ public class PythonTestGenerator {
                         assert response.status_code == 200
 
                     async def test_delete_%s(self, client: AsyncClient):
-                        \"\"\"Test deleting a %s.\"\"\"
+                        \"""Test deleting a %s.\"""
                         # First create a %s
                         create_response = await client.post("/api/v1/%s", json={})
                         created_id = create_response.json()["id"]
@@ -226,7 +228,7 @@ public class PythonTestGenerator {
                 pluralName);
     }
 
-    private String generateServiceTest(SqlTable table, String entityName, String snakeName) {
+    private String generateServiceTest(String entityName, String snakeName) {
         return String.format(
                 """
                 import pytest
@@ -240,29 +242,29 @@ public class PythonTestGenerator {
 
 
                 class Test%sService:
-                    \"\"\"Unit tests for %sService.\"\"\"
+                    \"""Unit tests for %sService.\"""
 
                     @pytest.fixture
                     def mock_repository(self):
-                        \"\"\"Create a mock repository.\"\"\"
+                        \"""Create a mock repository.\"""
                         return AsyncMock()
 
                     @pytest.fixture
                     def service(self, mock_repository):
-                        \"\"\"Create service with mocked repository.\"\"\"
+                        \"""Create service with mocked repository.\"""
                         service = %sService()
                         service.repository = mock_repository
                         return service
 
                     async def test_get_all(self, service, mock_repository):
-                        \"\"\"Test get_all returns list of entities.\"\"\"
+                        \"""Test get_all returns list of entities.\"""
                         mock_repository.get_all.return_value = []
                         result = await service.get_all()
                         assert result == []
                         mock_repository.get_all.assert_called_once()
 
                     async def test_get_by_id(self, service, mock_repository):
-                        \"\"\"Test get_by_id returns entity.\"\"\"
+                        \"""Test get_by_id returns entity.\"""
                         expected = MagicMock(spec=%s)
                         mock_repository.get_by_id.return_value = expected
                         result = await service.get_by_id(1)
@@ -270,13 +272,13 @@ public class PythonTestGenerator {
                         mock_repository.get_by_id.assert_called_once_with(1)
 
                     async def test_get_by_id_not_found(self, service, mock_repository):
-                        \"\"\"Test get_by_id returns None when not found.\"\"\"
+                        \"""Test get_by_id returns None when not found.\"""
                         mock_repository.get_by_id.return_value = None
                         result = await service.get_by_id(99999)
                         assert result is None
 
                     async def test_create(self, service, mock_repository):
-                        \"\"\"Test create returns created entity.\"\"\"
+                        \"""Test create returns created entity.\"""
                         create_data = %sCreate()
                         expected = MagicMock(spec=%s)
                         mock_repository.create.return_value = expected
@@ -285,7 +287,7 @@ public class PythonTestGenerator {
                         mock_repository.create.assert_called_once()
 
                     async def test_update(self, service, mock_repository):
-                        \"\"\"Test update returns updated entity.\"\"\"
+                        \"""Test update returns updated entity.\"""
                         update_data = %sUpdate()
                         expected = MagicMock(spec=%s)
                         mock_repository.update.return_value = expected
@@ -293,7 +295,7 @@ public class PythonTestGenerator {
                         assert result == expected
 
                     async def test_delete(self, service, mock_repository):
-                        \"\"\"Test delete calls repository delete.\"\"\"
+                        \"""Test delete calls repository delete.\"""
                         mock_repository.delete.return_value = True
                         result = await service.delete(1)
                         assert result is True
@@ -316,7 +318,7 @@ public class PythonTestGenerator {
                 entityName);
     }
 
-    private String generateRouterTest(SqlTable table, String entityName, String snakeName) {
+    private String generateRouterTest(String entityName, String snakeName) {
         String pluralName = snakeName + "s";
 
         return String.format(
@@ -329,15 +331,15 @@ public class PythonTestGenerator {
 
 
                 class Test%sRouter:
-                    \"\"\"Unit tests for %s router endpoints.\"\"\"
+                    \"""Unit tests for %s router endpoints.\"""
 
                     @pytest.fixture
                     def mock_service(self):
-                        \"\"\"Create a mock service.\"\"\"
+                        \"""Create a mock service.\"""
                         return AsyncMock()
 
                     async def test_list_%s(self, client: AsyncClient, mock_service):
-                        \"\"\"Test list endpoint returns paginated results.\"\"\"
+                        \"""Test list endpoint returns paginated results.\"""
                         with patch("app.routers.%s.%sService", return_value=mock_service):
                             mock_service.get_all.return_value = []
                             mock_service.count.return_value = 0
@@ -345,28 +347,28 @@ public class PythonTestGenerator {
                             assert response.status_code == 200
 
                     async def test_get_%s(self, client: AsyncClient, mock_service):
-                        \"\"\"Test get by ID endpoint.\"\"\"
+                        \"""Test get by ID endpoint.\"""
                         with patch("app.routers.%s.%sService", return_value=mock_service):
                             mock_service.get_by_id.return_value = {"id": 1}
                             response = await client.get("/api/v1/%s/1")
                             assert response.status_code == 200
 
                     async def test_create_%s(self, client: AsyncClient, mock_service):
-                        \"\"\"Test create endpoint.\"\"\"
+                        \"""Test create endpoint.\"""
                         with patch("app.routers.%s.%sService", return_value=mock_service):
                             mock_service.create.return_value = {"id": 1}
                             response = await client.post("/api/v1/%s", json={})
                             assert response.status_code == 201
 
                     async def test_update_%s(self, client: AsyncClient, mock_service):
-                        \"\"\"Test update endpoint.\"\"\"
+                        \"""Test update endpoint.\"""
                         with patch("app.routers.%s.%sService", return_value=mock_service):
                             mock_service.update.return_value = {"id": 1}
                             response = await client.put("/api/v1/%s/1", json={})
                             assert response.status_code == 200
 
                     async def test_delete_%s(self, client: AsyncClient, mock_service):
-                        \"\"\"Test delete endpoint.\"\"\"
+                        \"""Test delete endpoint.\"""
                         with patch("app.routers.%s.%sService", return_value=mock_service):
                             mock_service.delete.return_value = True
                             response = await client.delete("/api/v1/%s/1")
@@ -394,25 +396,5 @@ public class PythonTestGenerator {
                 snakeName,
                 entityName,
                 pluralName);
-    }
-
-    /** Converts PascalCase or camelCase to snake_case. */
-    private String toSnakeCase(String input) {
-        if (input == null || input.isEmpty()) {
-            return input;
-        }
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < input.length(); i++) {
-            char c = input.charAt(i);
-            if (Character.isUpperCase(c)) {
-                if (i > 0) {
-                    result.append('_');
-                }
-                result.append(Character.toLowerCase(c));
-            } else {
-                result.append(c);
-            }
-        }
-        return result.toString();
     }
 }

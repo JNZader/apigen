@@ -6,6 +6,7 @@ import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.List;
 
 /** Generates Spring Data JPA Repository interfaces for Java/Spring Boot. */
+@SuppressWarnings("java:S1192") // Duplicate strings intentional for code generation templates
 public class JavaRepositoryGenerator {
 
     private static final String APIGEN_CORE_PKG = "com.jnzader.apigen.core";

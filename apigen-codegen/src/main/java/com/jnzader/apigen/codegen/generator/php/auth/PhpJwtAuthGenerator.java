@@ -16,6 +16,10 @@ import java.util.Map;
  *   <li>Token configuration
  * </ul>
  */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3400"
+}) // S1192: template strings; S3400: template methods return constants
 public class PhpJwtAuthGenerator {
 
     private static final int DEFAULT_ACCESS_TOKEN_EXPIRATION = 60; // minutes

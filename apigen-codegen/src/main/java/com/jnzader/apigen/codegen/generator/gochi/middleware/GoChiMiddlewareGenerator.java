@@ -3,6 +3,10 @@ package com.jnzader.apigen.codegen.generator.gochi.middleware;
 import com.jnzader.apigen.codegen.generator.gochi.GoChiOptions;
 
 /** Generates middleware for Go/Chi router. */
+@SuppressWarnings({
+    "java:S2479",
+    "java:S1192"
+}) // Literal tabs intentional for Go code; duplicate strings for templates
 public class GoChiMiddlewareGenerator {
 
     private final String moduleName;

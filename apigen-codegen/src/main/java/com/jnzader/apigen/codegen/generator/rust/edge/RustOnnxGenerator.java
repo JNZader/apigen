@@ -24,7 +24,12 @@ import com.jnzader.apigen.codegen.generator.rust.RustTypeMapper;
  * @author APiGen
  * @since 2.12.0
  */
-@SuppressWarnings("UnusedVariable") // Reserved for future feature flags
+@SuppressWarnings({
+    "java:S1068",
+    "java:S1192",
+    "java:S3400",
+    "java:S6126"
+}) // S1068: reserved fields; S1192: template strings; S3400: template methods; S6126: concatenated
 public class RustOnnxGenerator {
 
     private final RustTypeMapper typeMapper;

@@ -1,20 +1,21 @@
 package com.jnzader.apigen.codegen.generator.java;
 
-import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
+import com.jnzader.apigen.codegen.generator.api.AbstractLanguageTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import java.util.Set;
 
 /**
- * Java-specific implementation of {@link LanguageTypeMapper}.
+ * Java-specific implementation of {@link AbstractLanguageTypeMapper}.
  *
  * <p>Maps SQL types to Java types with appropriate imports for JPA entities, DTOs, and other Java
  * constructs.
  */
-public class JavaTypeMapper implements LanguageTypeMapper {
+public class JavaTypeMapper extends AbstractLanguageTypeMapper {
 
     @Override
-    public String mapColumnType(SqlColumn column) {
-        return column.getJavaType();
+    public String mapJavaType(String javaType) {
+        // Java types map directly to themselves
+        return javaType;
     }
 
     @Override
@@ -46,18 +47,8 @@ public class JavaTypeMapper implements LanguageTypeMapper {
     }
 
     @Override
-    public String getPrimaryKeyType() {
-        return "Long";
-    }
-
-    @Override
-    public Set<String> getPrimaryKeyImports() {
-        return Set.of();
-    }
-
-    @Override
-    public String getListType(String elementType) {
-        return "List<" + elementType + ">";
+    protected String getListTypeFormat() {
+        return "List<%s>";
     }
 
     @Override

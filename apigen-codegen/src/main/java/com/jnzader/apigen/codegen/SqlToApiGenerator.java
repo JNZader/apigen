@@ -27,9 +27,11 @@ import org.slf4j.LoggerFactory;
  *   java SqlToApiGenerator schema.sql /path/to/project com.mycompany.api
  * </pre>
  */
-@SuppressWarnings("java:S2629")
-// S2629: Los argumentos de logging son metodos getter simples (getSize, getMessage, etc.)
-//        que tienen O(1) complejidad y no justifican evaluacion condicional
+@SuppressWarnings({
+    "java:S2629", // Logging arguments are simple O(1) getter methods
+    "java:S1874", // Uses deprecated CodeGenerator for backward compatibility
+    "deprecation"
+})
 public class SqlToApiGenerator {
 
     private static final Logger log = LoggerFactory.getLogger(SqlToApiGenerator.class);

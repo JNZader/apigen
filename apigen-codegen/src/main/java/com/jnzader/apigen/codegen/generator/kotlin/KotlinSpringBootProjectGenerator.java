@@ -5,6 +5,7 @@ import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
 import com.jnzader.apigen.codegen.generator.api.ProjectGenerator;
 import com.jnzader.apigen.codegen.generator.common.ManyToManyRelation;
+import com.jnzader.apigen.codegen.generator.java.jte.JteGenerator;
 import com.jnzader.apigen.codegen.generator.kotlin.controller.KotlinControllerGenerator;
 import com.jnzader.apigen.codegen.generator.kotlin.dto.KotlinDTOGenerator;
 import com.jnzader.apigen.codegen.generator.kotlin.entity.KotlinEntityGenerator;
@@ -17,13 +18,13 @@ import com.jnzader.apigen.codegen.generator.kotlin.service.KotlinServiceGenerato
 import com.jnzader.apigen.codegen.generator.kotlin.storage.KotlinFileStorageGenerator;
 import com.jnzader.apigen.codegen.generator.kotlin.test.KotlinTestGenerator;
 import com.jnzader.apigen.codegen.generator.migration.MigrationGenerator;
-import com.jnzader.apigen.codegen.model.SqlForeignKey;
+import com.jnzader.apigen.codegen.generator.util.RelationshipUtils;
 import com.jnzader.apigen.codegen.model.SqlFunction;
 import com.jnzader.apigen.codegen.model.SqlSchema;
+import com.jnzader.apigen.codegen.model.SqlSchema.TableRelationship;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -81,7 +82,8 @@ public class KotlinSpringBootProjectGenerator implements ProjectGenerator {
                     Feature.MAIL_SERVICE,
                     Feature.FILE_UPLOAD,
                     Feature.S3_STORAGE,
-                    Feature.AZURE_STORAGE);
+                    Feature.AZURE_STORAGE,
+                    Feature.JTE_TEMPLATES);
 
     // Package path constants
     private static final String PKG_DOMAIN_ENTITY = "domain/entity";
@@ -143,13 +145,9 @@ public class KotlinSpringBootProjectGenerator implements ProjectGenerator {
         MigrationGenerator migrationGenerator = new MigrationGenerator();
         KotlinTestGenerator testGenerator = new KotlinTestGenerator(basePackage);
 
-        // Collect all relationships for bidirectional mapping
-        Map<String, List<SqlSchema.TableRelationship>> relationshipsByTable = new HashMap<>();
-        for (SqlSchema.TableRelationship rel : schema.getAllRelationships()) {
-            relationshipsByTable
-                    .computeIfAbsent(rel.getSourceTable().getName(), k -> new ArrayList<>())
-                    .add(rel);
-        }
+        // Build relationships map using utility
+        Map<String, List<TableRelationship>> relationshipsByTable =
+                RelationshipUtils.buildRelationshipsByTable(schema);
 
         int migrationVersion = 2;
 
@@ -164,18 +162,17 @@ public class KotlinSpringBootProjectGenerator implements ProjectGenerator {
 
         // Generate code for each entity table
         for (SqlTable table : schema.getEntityTables()) {
-            List<SqlSchema.TableRelationship> tableRelations =
-                    relationshipsByTable.getOrDefault(table.getName(), Collections.emptyList());
+            List<TableRelationship> tableRelations =
+                    RelationshipUtils.getRelationshipsForTable(
+                            table.getName(), relationshipsByTable);
 
-            // Find inverse relationships (where this table is the target)
-            List<SqlSchema.TableRelationship> inverseRelations =
-                    schema.getAllRelationships().stream()
-                            .filter(r -> r.getTargetTable().getName().equals(table.getName()))
-                            .filter(r -> !r.getSourceTable().isJunctionTable())
-                            .toList();
+            // Find inverse relationships using utility
+            List<TableRelationship> inverseRelations =
+                    RelationshipUtils.findInverseRelationships(table, schema);
 
-            // Find many-to-many relationships through junction tables
-            List<ManyToManyRelation> manyToManyRelations = findManyToManyRelations(table, schema);
+            // Find many-to-many relationships using utility
+            List<ManyToManyRelation> manyToManyRelations =
+                    RelationshipUtils.findManyToManyRelations(table, schema);
 
             String entityName = table.getEntityName();
             String moduleName = table.getModuleName();
@@ -383,8 +380,7 @@ public class KotlinSpringBootProjectGenerator implements ProjectGenerator {
         return errors;
     }
 
-    /** Generates Feature Pack files (mail, storage, social login, password reset). */
-    @SuppressWarnings("unused")
+    /** Generates Feature Pack files (mail, storage, social login, password reset, jte). */
     private void generateFeaturePackFiles(
             Map<String, String> files,
             SqlSchema schema,
@@ -431,43 +427,14 @@ public class KotlinSpringBootProjectGenerator implements ProjectGenerator {
             // email
             files.putAll(socialLoginGenerator.generate(true, true, false, true, true));
         }
-    }
 
-    /** Finds many-to-many relationships for a table through junction tables. */
-    private List<ManyToManyRelation> findManyToManyRelations(SqlTable table, SqlSchema schema) {
-        List<ManyToManyRelation> relations = new ArrayList<>();
-
-        for (SqlTable junctionTable : schema.getJunctionTables()) {
-            List<SqlForeignKey> fks = junctionTable.getForeignKeys();
-            if (fks.size() != 2) continue;
-
-            SqlForeignKey fk1 = fks.get(0);
-            SqlForeignKey fk2 = fks.get(1);
-
-            SqlForeignKey thisFk = null;
-            SqlForeignKey otherFk = null;
-
-            if (fk1.getReferencedTable().equalsIgnoreCase(table.getName())) {
-                thisFk = fk1;
-                otherFk = fk2;
-            } else if (fk2.getReferencedTable().equalsIgnoreCase(table.getName())) {
-                thisFk = fk2;
-                otherFk = fk1;
-            }
-
-            if (thisFk != null && otherFk != null) {
-                SqlTable otherTable = schema.getTableByName(otherFk.getReferencedTable());
-                if (otherTable != null) {
-                    relations.add(
-                            new ManyToManyRelation(
-                                    junctionTable.getName(),
-                                    thisFk.getColumnName(),
-                                    otherFk.getColumnName(),
-                                    otherTable));
-                }
-            }
+        // jte Templates (language-agnostic, uses Java's JteGenerator)
+        if (config.isFeatureEnabled(Feature.JTE_TEMPLATES)) {
+            JteGenerator jteGenerator = new JteGenerator(config.getBasePackage());
+            // Generate admin and CRUD views with Tailwind + Alpine, path /admin
+            files.putAll(
+                    jteGenerator.generate(
+                            schema.getEntityTables(), true, true, true, true, "/admin"));
         }
-
-        return relations;
     }
 }

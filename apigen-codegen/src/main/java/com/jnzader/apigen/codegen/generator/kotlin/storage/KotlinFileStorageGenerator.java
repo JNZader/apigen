@@ -17,6 +17,10 @@ import java.util.Map;
  *   <li>Flyway migration for the metadata table
  * </ul>
  */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3400"
+}) // S1192: template strings; S3400: template methods return constants
 public class KotlinFileStorageGenerator {
 
     private static final String PKG_STORAGE = "storage";
@@ -295,6 +299,10 @@ public class KotlinFileStorageGenerator {
                     }
 
                     val meta = Files.readString(metaPath).split("\\n")
+                    if (meta.size < 3) {
+                        log.error("Invalid metadata file format for fileId: {}", fileId)
+                        return Optional.empty()
+                    }
                     val filename = meta[0]
                     val contentType = meta[1]
                     val size = meta[2].toLong()
@@ -307,6 +315,7 @@ public class KotlinFileStorageGenerator {
                         return Optional.empty()
                     }
 
+                    // Note: Caller is responsible for closing the InputStream
                     return Optional.of(
                         StoredFile(
                             fileId = fileId,
@@ -329,6 +338,10 @@ public class KotlinFileStorageGenerator {
                     }
 
                     val meta = Files.readString(metaPath).split("\\n")
+                    if (meta.isEmpty()) {
+                        log.error("Invalid metadata file format for fileId: {}", fileId)
+                        return false
+                    }
                     val filename = meta[0]
                     val extension = getExtension(filename)
                     val storedFilename = fileId + if (extension.isEmpty()) "" else ".$extension"

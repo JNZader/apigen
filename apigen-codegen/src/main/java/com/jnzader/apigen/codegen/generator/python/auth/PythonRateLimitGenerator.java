@@ -15,6 +15,7 @@ import java.util.Map;
  *   <li>Redis backend support (optional)
  * </ul>
  */
+@SuppressWarnings("java:S3400") // Template methods return constants for code generation
 public class PythonRateLimitGenerator {
 
     private static final String DEFAULT_LIMIT = "100/minute";
@@ -83,7 +84,7 @@ public class PythonRateLimitGenerator {
 
 
         def get_user_identifier(request: Request) -> str:
-            \"\"\"
+            \"""
             Get rate limit key based on user identity.
 
             Uses user ID if authenticated, otherwise falls back to IP address.
@@ -94,7 +95,7 @@ public class PythonRateLimitGenerator {
 
             Returns:
                 User identifier string for rate limiting
-            \"\"\"
+            \"""
             # Check for authenticated user in request state
             if hasattr(request.state, "user") and request.state.user:
                 return f"user:{request.state.user.id}"
@@ -104,7 +105,7 @@ public class PythonRateLimitGenerator {
 
 
         def get_api_key_identifier(request: Request) -> str:
-            \"\"\"
+            \"""
             Get rate limit key based on API key.
 
             Uses API key if present in header, otherwise falls back to IP.
@@ -114,7 +115,7 @@ public class PythonRateLimitGenerator {
 
             Returns:
                 API key or IP identifier for rate limiting
-            \"\"\"
+            \"""
             api_key = request.headers.get("X-API-Key")
             if api_key:
                 return f"api_key:{api_key}"
@@ -125,7 +126,7 @@ public class PythonRateLimitGenerator {
             requests_per_minute: int = 100,
             key_func: Optional[Callable] = None,
         ) -> str:
-            \"\"\"
+            \"""
             Create a dynamic rate limit string.
 
             Args:
@@ -134,13 +135,13 @@ public class PythonRateLimitGenerator {
 
             Returns:
                 Rate limit string for slowapi decorator
-            \"\"\"
+            \"""
             return f"{requests_per_minute}/minute"
 
 
         # Predefined rate limits for different endpoint types
         class RateLimits:
-            \"\"\"Predefined rate limit configurations.\"\"\"
+            \"""Predefined rate limit configurations.\"""
 
             # Standard API endpoints
             STANDARD = "%s"
@@ -162,7 +163,7 @@ public class PythonRateLimitGenerator {
 
 
         def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) -> Response:
-            \"\"\"
+            \"""
             Custom handler for rate limit exceeded errors.
 
             Args:
@@ -171,7 +172,7 @@ public class PythonRateLimitGenerator {
 
             Returns:
                 JSON response with rate limit error details
-            \"\"\"
+            \"""
             from fastapi.responses import JSONResponse
 
             response = JSONResponse(
@@ -203,7 +204,7 @@ public class PythonRateLimitGenerator {
 
 
         def setup_rate_limiting(app: FastAPI) -> None:
-            \"\"\"
+            \"""
             Setup rate limiting for the FastAPI application.
 
             This function:
@@ -213,7 +214,7 @@ public class PythonRateLimitGenerator {
 
             Args:
                 app: FastAPI application instance
-            \"\"\"
+            \"""
             # Attach limiter to app state
             app.state.limiter = limiter
 
@@ -222,14 +223,14 @@ public class PythonRateLimitGenerator {
 
 
         class RateLimitHeaderMiddleware(BaseHTTPMiddleware):
-            \"\"\"
+            \"""
             Middleware to add rate limit headers to responses.
 
             Adds the following headers:
             - X-RateLimit-Limit: The rate limit ceiling
             - X-RateLimit-Remaining: Number of requests remaining
             - X-RateLimit-Reset: Time when the rate limit resets
-            \"\"\"
+            \"""
 
             async def dispatch(self, request: Request, call_next):
                 response = await call_next(request)

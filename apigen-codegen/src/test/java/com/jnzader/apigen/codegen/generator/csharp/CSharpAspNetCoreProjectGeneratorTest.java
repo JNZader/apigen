@@ -142,8 +142,8 @@ class CSharpAspNetCoreProjectGeneratorTest {
             Map<String, String> files = generator.generate(schema, config);
 
             // Note: All DTOs (ProductDto, CreateProductDto, UpdateProductDto) are in a single file
-            assertThat(files.keySet())
-                    .contains(
+            assertThat(files)
+                    .containsKeys(
                             "Products/Domain/Entities/Product.cs",
                             "Products/Application/DTOs/ProductDto.cs",
                             "Products/Domain/Interfaces/IProductRepository.cs",
@@ -161,8 +161,8 @@ class CSharpAspNetCoreProjectGeneratorTest {
 
             Map<String, String> files = generator.generate(schema, config);
 
-            assertThat(files.keySet())
-                    .contains(
+            assertThat(files)
+                    .containsKeys(
                             "Domain/Common/BaseEntity.cs",
                             "Domain/Interfaces/IRepository.cs",
                             "Infrastructure/Repositories/Repository.cs",
@@ -180,8 +180,7 @@ class CSharpAspNetCoreProjectGeneratorTest {
 
             Map<String, String> files = generator.generate(schema, config);
 
-            assertThat(files.keySet())
-                    .contains("Infrastructure/Persistence/ApplicationDbContext.cs");
+            assertThat(files).containsKeys("Infrastructure/Persistence/ApplicationDbContext.cs");
         }
 
         @Test
@@ -192,8 +191,8 @@ class CSharpAspNetCoreProjectGeneratorTest {
 
             Map<String, String> files = generator.generate(schema, config);
 
-            assertThat(files.keySet())
-                    .contains(
+            assertThat(files)
+                    .containsKeys(
                             "MyApi.csproj",
                             "Program.cs",
                             "appsettings.json",

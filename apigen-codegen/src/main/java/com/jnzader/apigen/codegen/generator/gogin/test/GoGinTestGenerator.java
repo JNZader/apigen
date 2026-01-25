@@ -15,6 +15,8 @@
  */
 package com.jnzader.apigen.codegen.generator.gogin.test;
 
+import static com.jnzader.apigen.codegen.generator.util.NamingUtils.*;
+
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -25,6 +27,10 @@ import java.util.Map;
  * @author APiGen
  * @since 2.16.0
  */
+@SuppressWarnings({
+    "java:S2479",
+    "java:S1192"
+}) // Literal tabs intentional for Go code; duplicate strings for templates
 public class GoGinTestGenerator {
 
     /**
@@ -40,7 +46,7 @@ public class GoGinTestGenerator {
 
         files.put(
                 "internal/service/" + snakeName + "_service_test.go",
-                generateServiceTest(entityName, snakeName));
+                generateServiceTest(entityName));
         files.put(
                 "internal/handler/" + snakeName + "_handler_test.go",
                 generateHandlerTest(entityName, snakeName));
@@ -65,109 +71,109 @@ public class GoGinTestGenerator {
                 package integration_test
 
                 import (
-                	"bytes"
-                	"encoding/json"
-                	"net/http"
-                	"net/http/httptest"
-                	"testing"
+                \t"bytes"
+                \t"encoding/json"
+                \t"net/http"
+                \t"net/http/httptest"
+                \t"testing"
 
-                	"github.com/gin-gonic/gin"
-                	"github.com/stretchr/testify/assert"
-                	"github.com/stretchr/testify/suite"
-                	"%s/internal/handler"
-                	"%s/internal/model"
+                \t"github.com/gin-gonic/gin"
+                \t"github.com/stretchr/testify/assert"
+                \t"github.com/stretchr/testify/suite"
+                \t"%s/internal/handler"
+                \t"%s/internal/model"
                 )
 
                 type %sIntegrationSuite struct {
-                	suite.Suite
-                	router    *gin.Engine
-                	createdID uint
+                \tsuite.Suite
+                \trouter    *gin.Engine
+                \tcreatedID uint
                 }
 
                 func (s *%sIntegrationSuite) SetupSuite() {
-                	gin.SetMode(gin.TestMode)
-                	s.router = gin.New()
-                	// Setup routes here
+                \tgin.SetMode(gin.TestMode)
+                \ts.router = gin.New()
+                \t// Setup routes here
                 }
 
                 func (s *%sIntegrationSuite) TearDownSuite() {
-                	// Cleanup
+                \t// Cleanup
                 }
 
                 func (s *%sIntegrationSuite) TestCreate%s() {
-                	create := model.Create%sDTO{
-                		// Add required fields
-                	}
-                	body, _ := json.Marshal(create)
+                \tcreate := model.Create%sDTO{
+                \t\t// Add required fields
+                \t}
+                \tbody, _ := json.Marshal(create)
 
-                	w := httptest.NewRecorder()
-                	req, _ := http.NewRequest(http.MethodPost, "/api/v1/%s", bytes.NewBuffer(body))
-                	req.Header.Set("Content-Type", "application/json")
-                	s.router.ServeHTTP(w, req)
+                \tw := httptest.NewRecorder()
+                \treq, _ := http.NewRequest(http.MethodPost, "/api/v1/%s", bytes.NewBuffer(body))
+                \treq.Header.Set("Content-Type", "application/json")
+                \ts.router.ServeHTTP(w, req)
 
-                	assert.Equal(s.T(), http.StatusCreated, w.Code)
+                \tassert.Equal(s.T(), http.StatusCreated, w.Code)
 
-                	var response model.%s
-                	json.Unmarshal(w.Body.Bytes(), &response)
-                	s.createdID = response.ID
-                	assert.NotZero(s.T(), response.ID)
+                \tvar response model.%s
+                \tjson.Unmarshal(w.Body.Bytes(), &response)
+                \ts.createdID = response.ID
+                \tassert.NotZero(s.T(), response.ID)
                 }
 
                 func (s *%sIntegrationSuite) TestGetAll%s() {
-                	w := httptest.NewRecorder()
-                	req, _ := http.NewRequest(http.MethodGet, "/api/v1/%s", nil)
-                	s.router.ServeHTTP(w, req)
+                \tw := httptest.NewRecorder()
+                \treq, _ := http.NewRequest(http.MethodGet, "/api/v1/%s", nil)
+                \ts.router.ServeHTTP(w, req)
 
-                	assert.Equal(s.T(), http.StatusOK, w.Code)
+                \tassert.Equal(s.T(), http.StatusOK, w.Code)
 
-                	var response struct {
-                		Items []model.%s `json:"items"`
-                		Total int64     `json:"total"`
-                	}
-                	json.Unmarshal(w.Body.Bytes(), &response)
-                	assert.NotNil(s.T(), response.Items)
+                \tvar response struct {
+                \t\tItems []model.%s `json:"items"`
+                \t\tTotal int64     `json:"total"`
+                \t}
+                \tjson.Unmarshal(w.Body.Bytes(), &response)
+                \tassert.NotNil(s.T(), response.Items)
                 }
 
                 func (s *%sIntegrationSuite) TestGetByID() {
-                	w := httptest.NewRecorder()
-                	req, _ := http.NewRequest(http.MethodGet, "/api/v1/%s/1", nil)
-                	s.router.ServeHTTP(w, req)
+                \tw := httptest.NewRecorder()
+                \treq, _ := http.NewRequest(http.MethodGet, "/api/v1/%s/1", nil)
+                \ts.router.ServeHTTP(w, req)
 
-                	assert.Equal(s.T(), http.StatusOK, w.Code)
+                \tassert.Equal(s.T(), http.StatusOK, w.Code)
                 }
 
                 func (s *%sIntegrationSuite) TestGetByIDNotFound() {
-                	w := httptest.NewRecorder()
-                	req, _ := http.NewRequest(http.MethodGet, "/api/v1/%s/99999", nil)
-                	s.router.ServeHTTP(w, req)
+                \tw := httptest.NewRecorder()
+                \treq, _ := http.NewRequest(http.MethodGet, "/api/v1/%s/99999", nil)
+                \ts.router.ServeHTTP(w, req)
 
-                	assert.Equal(s.T(), http.StatusNotFound, w.Code)
+                \tassert.Equal(s.T(), http.StatusNotFound, w.Code)
                 }
 
                 func (s *%sIntegrationSuite) TestUpdate%s() {
-                	update := model.Update%sDTO{
-                		// Add fields to update
-                	}
-                	body, _ := json.Marshal(update)
+                \tupdate := model.Update%sDTO{
+                \t\t// Add fields to update
+                \t}
+                \tbody, _ := json.Marshal(update)
 
-                	w := httptest.NewRecorder()
-                	req, _ := http.NewRequest(http.MethodPut, "/api/v1/%s/1", bytes.NewBuffer(body))
-                	req.Header.Set("Content-Type", "application/json")
-                	s.router.ServeHTTP(w, req)
+                \tw := httptest.NewRecorder()
+                \treq, _ := http.NewRequest(http.MethodPut, "/api/v1/%s/1", bytes.NewBuffer(body))
+                \treq.Header.Set("Content-Type", "application/json")
+                \ts.router.ServeHTTP(w, req)
 
-                	assert.Equal(s.T(), http.StatusOK, w.Code)
+                \tassert.Equal(s.T(), http.StatusOK, w.Code)
                 }
 
                 func (s *%sIntegrationSuite) TestDelete%s() {
-                	w := httptest.NewRecorder()
-                	req, _ := http.NewRequest(http.MethodDelete, "/api/v1/%s/1", nil)
-                	s.router.ServeHTTP(w, req)
+                \tw := httptest.NewRecorder()
+                \treq, _ := http.NewRequest(http.MethodDelete, "/api/v1/%s/1", nil)
+                \ts.router.ServeHTTP(w, req)
 
-                	assert.Equal(s.T(), http.StatusNoContent, w.Code)
+                \tassert.Equal(s.T(), http.StatusNoContent, w.Code)
                 }
 
                 func Test%sIntegrationSuite(t *testing.T) {
-                	suite.Run(t, new(%sIntegrationSuite))
+                \tsuite.Run(t, new(%sIntegrationSuite))
                 }
                 """,
                 moduleName,
@@ -199,136 +205,136 @@ public class GoGinTestGenerator {
                 entityName);
     }
 
-    private String generateServiceTest(String entityName, String snakeName) {
+    private String generateServiceTest(String entityName) {
         return String.format(
                 """
                 package service
 
                 import (
-                	"context"
-                	"testing"
+                \t"context"
+                \t"testing"
 
-                	"github.com/stretchr/testify/assert"
-                	"github.com/stretchr/testify/mock"
+                \t"github.com/stretchr/testify/assert"
+                \t"github.com/stretchr/testify/mock"
                 )
 
                 type Mock%sRepository struct {
-                	mock.Mock
+                \tmock.Mock
                 }
 
                 func (m *Mock%sRepository) FindAll(ctx context.Context, page, limit int) ([]%s, int64, error) {
-                	args := m.Called(ctx, page, limit)
-                	return args.Get(0).([]%s), args.Get(1).(int64), args.Error(2)
+                \targs := m.Called(ctx, page, limit)
+                \treturn args.Get(0).([]%s), args.Get(1).(int64), args.Error(2)
                 }
 
                 func (m *Mock%sRepository) FindByID(ctx context.Context, id uint) (*%s, error) {
-                	args := m.Called(ctx, id)
-                	if args.Get(0) == nil {
-                		return nil, args.Error(1)
-                	}
-                	return args.Get(0).(*%s), args.Error(1)
+                \targs := m.Called(ctx, id)
+                \tif args.Get(0) == nil {
+                \t\treturn nil, args.Error(1)
+                \t}
+                \treturn args.Get(0).(*%s), args.Error(1)
                 }
 
                 func (m *Mock%sRepository) Create(ctx context.Context, entity *%s) error {
-                	args := m.Called(ctx, entity)
-                	return args.Error(0)
+                \targs := m.Called(ctx, entity)
+                \treturn args.Error(0)
                 }
 
                 func (m *Mock%sRepository) Update(ctx context.Context, entity *%s) error {
-                	args := m.Called(ctx, entity)
-                	return args.Error(0)
+                \targs := m.Called(ctx, entity)
+                \treturn args.Error(0)
                 }
 
                 func (m *Mock%sRepository) Delete(ctx context.Context, id uint) error {
-                	args := m.Called(ctx, id)
-                	return args.Error(0)
+                \targs := m.Called(ctx, id)
+                \treturn args.Error(0)
                 }
 
                 func Test%sService_FindAll(t *testing.T) {
-                	mockRepo := new(Mock%sRepository)
-                	service := New%sService(mockRepo)
-                	ctx := context.Background()
+                \tmockRepo := new(Mock%sRepository)
+                \tservice := New%sService(mockRepo)
+                \tctx := context.Background()
 
-                	expected := []%s{{ID: 1}}
-                	mockRepo.On("FindAll", ctx, 1, 10).Return(expected, int64(1), nil)
+                \texpected := []%s{{ID: 1}}
+                \tmockRepo.On("FindAll", ctx, 1, 10).Return(expected, int64(1), nil)
 
-                	result, total, err := service.FindAll(ctx, 1, 10)
+                \tresult, total, err := service.FindAll(ctx, 1, 10)
 
-                	assert.NoError(t, err)
-                	assert.Equal(t, expected, result)
-                	assert.Equal(t, int64(1), total)
-                	mockRepo.AssertExpectations(t)
+                \tassert.NoError(t, err)
+                \tassert.Equal(t, expected, result)
+                \tassert.Equal(t, int64(1), total)
+                \tmockRepo.AssertExpectations(t)
                 }
 
                 func Test%sService_FindByID(t *testing.T) {
-                	mockRepo := new(Mock%sRepository)
-                	service := New%sService(mockRepo)
-                	ctx := context.Background()
+                \tmockRepo := new(Mock%sRepository)
+                \tservice := New%sService(mockRepo)
+                \tctx := context.Background()
 
-                	expected := &%s{ID: 1}
-                	mockRepo.On("FindByID", ctx, uint(1)).Return(expected, nil)
+                \texpected := &%s{ID: 1}
+                \tmockRepo.On("FindByID", ctx, uint(1)).Return(expected, nil)
 
-                	result, err := service.FindByID(ctx, 1)
+                \tresult, err := service.FindByID(ctx, 1)
 
-                	assert.NoError(t, err)
-                	assert.Equal(t, expected, result)
-                	mockRepo.AssertExpectations(t)
+                \tassert.NoError(t, err)
+                \tassert.Equal(t, expected, result)
+                \tmockRepo.AssertExpectations(t)
                 }
 
                 func Test%sService_FindByID_NotFound(t *testing.T) {
-                	mockRepo := new(Mock%sRepository)
-                	service := New%sService(mockRepo)
-                	ctx := context.Background()
+                \tmockRepo := new(Mock%sRepository)
+                \tservice := New%sService(mockRepo)
+                \tctx := context.Background()
 
-                	mockRepo.On("FindByID", ctx, uint(99999)).Return(nil, ErrNotFound)
+                \tmockRepo.On("FindByID", ctx, uint(99999)).Return(nil, ErrNotFound)
 
-                	result, err := service.FindByID(ctx, 99999)
+                \tresult, err := service.FindByID(ctx, 99999)
 
-                	assert.Error(t, err)
-                	assert.Nil(t, result)
-                	mockRepo.AssertExpectations(t)
+                \tassert.Error(t, err)
+                \tassert.Nil(t, result)
+                \tmockRepo.AssertExpectations(t)
                 }
 
                 func Test%sService_Create(t *testing.T) {
-                	mockRepo := new(Mock%sRepository)
-                	service := New%sService(mockRepo)
-                	ctx := context.Background()
+                \tmockRepo := new(Mock%sRepository)
+                \tservice := New%sService(mockRepo)
+                \tctx := context.Background()
 
-                	entity := &%s{}
-                	mockRepo.On("Create", ctx, entity).Return(nil)
+                \tentity := &%s{}
+                \tmockRepo.On("Create", ctx, entity).Return(nil)
 
-                	err := service.Create(ctx, entity)
+                \terr := service.Create(ctx, entity)
 
-                	assert.NoError(t, err)
-                	mockRepo.AssertExpectations(t)
+                \tassert.NoError(t, err)
+                \tmockRepo.AssertExpectations(t)
                 }
 
                 func Test%sService_Update(t *testing.T) {
-                	mockRepo := new(Mock%sRepository)
-                	service := New%sService(mockRepo)
-                	ctx := context.Background()
+                \tmockRepo := new(Mock%sRepository)
+                \tservice := New%sService(mockRepo)
+                \tctx := context.Background()
 
-                	existing := &%s{ID: 1}
-                	mockRepo.On("FindByID", ctx, uint(1)).Return(existing, nil)
-                	mockRepo.On("Update", ctx, existing).Return(nil)
+                \texisting := &%s{ID: 1}
+                \tmockRepo.On("FindByID", ctx, uint(1)).Return(existing, nil)
+                \tmockRepo.On("Update", ctx, existing).Return(nil)
 
-                	err := service.Update(ctx, 1, existing)
+                \terr := service.Update(ctx, 1, existing)
 
-                	assert.NoError(t, err)
-                	mockRepo.AssertExpectations(t)
+                \tassert.NoError(t, err)
+                \tmockRepo.AssertExpectations(t)
                 }
 
                 func Test%sService_Delete(t *testing.T) {
-                	mockRepo := new(Mock%sRepository)
-                	service := New%sService(mockRepo)
-                	ctx := context.Background()
+                \tmockRepo := new(Mock%sRepository)
+                \tservice := New%sService(mockRepo)
+                \tctx := context.Background()
 
-                	mockRepo.On("Delete", ctx, uint(1)).Return(nil)
+                \tmockRepo.On("Delete", ctx, uint(1)).Return(nil)
 
-                	err := service.Delete(ctx, 1)
+                \terr := service.Delete(ctx, 1)
 
-                	assert.NoError(t, err)
-                	mockRepo.AssertExpectations(t)
+                \tassert.NoError(t, err)
+                \tmockRepo.AssertExpectations(t)
                 }
                 """,
                 entityName,
@@ -375,120 +381,120 @@ public class GoGinTestGenerator {
                 package handler
 
                 import (
-                	"bytes"
-                	"encoding/json"
-                	"net/http"
-                	"net/http/httptest"
-                	"testing"
+                \t"bytes"
+                \t"encoding/json"
+                \t"net/http"
+                \t"net/http/httptest"
+                \t"testing"
 
-                	"github.com/gin-gonic/gin"
-                	"github.com/stretchr/testify/assert"
-                	"github.com/stretchr/testify/mock"
+                \t"github.com/gin-gonic/gin"
+                \t"github.com/stretchr/testify/assert"
+                \t"github.com/stretchr/testify/mock"
                 )
 
                 type Mock%sService struct {
-                	mock.Mock
+                \tmock.Mock
                 }
 
                 func setup%sHandler() (*gin.Engine, *Mock%sService) {
-                	gin.SetMode(gin.TestMode)
-                	mockService := new(Mock%sService)
-                	handler := New%sHandler(mockService)
+                \tgin.SetMode(gin.TestMode)
+                \tmockService := new(Mock%sService)
+                \thandler := New%sHandler(mockService)
 
-                	router := gin.New()
-                	router.GET("/api/v1/%s", handler.GetAll)
-                	router.GET("/api/v1/%s/:id", handler.GetByID)
-                	router.POST("/api/v1/%s", handler.Create)
-                	router.PUT("/api/v1/%s/:id", handler.Update)
-                	router.DELETE("/api/v1/%s/:id", handler.Delete)
+                \trouter := gin.New()
+                \trouter.GET("/api/v1/%s", handler.GetAll)
+                \trouter.GET("/api/v1/%s/:id", handler.GetByID)
+                \trouter.POST("/api/v1/%s", handler.Create)
+                \trouter.PUT("/api/v1/%s/:id", handler.Update)
+                \trouter.DELETE("/api/v1/%s/:id", handler.Delete)
 
-                	return router, mockService
+                \treturn router, mockService
                 }
 
                 func Test%sHandler_GetAll(t *testing.T) {
-                	router, mockService := setup%sHandler()
+                \trouter, mockService := setup%sHandler()
 
-                	expected := []%s{{ID: 1}}
-                	mockService.On("FindAll", mock.Anything, 1, 10).Return(expected, int64(1), nil)
+                \texpected := []%s{{ID: 1}}
+                \tmockService.On("FindAll", mock.Anything, 1, 10).Return(expected, int64(1), nil)
 
-                	w := httptest.NewRecorder()
-                	req, _ := http.NewRequest(http.MethodGet, "/api/v1/%s?page=1&limit=10", nil)
-                	router.ServeHTTP(w, req)
+                \tw := httptest.NewRecorder()
+                \treq, _ := http.NewRequest(http.MethodGet, "/api/v1/%s?page=1&limit=10", nil)
+                \trouter.ServeHTTP(w, req)
 
-                	assert.Equal(t, http.StatusOK, w.Code)
-                	mockService.AssertExpectations(t)
+                \tassert.Equal(t, http.StatusOK, w.Code)
+                \tmockService.AssertExpectations(t)
                 }
 
                 func Test%sHandler_GetByID(t *testing.T) {
-                	router, mockService := setup%sHandler()
+                \trouter, mockService := setup%sHandler()
 
-                	expected := &%s{ID: 1}
-                	mockService.On("FindByID", mock.Anything, uint(1)).Return(expected, nil)
+                \texpected := &%s{ID: 1}
+                \tmockService.On("FindByID", mock.Anything, uint(1)).Return(expected, nil)
 
-                	w := httptest.NewRecorder()
-                	req, _ := http.NewRequest(http.MethodGet, "/api/v1/%s/1", nil)
-                	router.ServeHTTP(w, req)
+                \tw := httptest.NewRecorder()
+                \treq, _ := http.NewRequest(http.MethodGet, "/api/v1/%s/1", nil)
+                \trouter.ServeHTTP(w, req)
 
-                	assert.Equal(t, http.StatusOK, w.Code)
-                	mockService.AssertExpectations(t)
+                \tassert.Equal(t, http.StatusOK, w.Code)
+                \tmockService.AssertExpectations(t)
                 }
 
                 func Test%sHandler_GetByID_NotFound(t *testing.T) {
-                	router, mockService := setup%sHandler()
+                \trouter, mockService := setup%sHandler()
 
-                	mockService.On("FindByID", mock.Anything, uint(99999)).Return(nil, ErrNotFound)
+                \tmockService.On("FindByID", mock.Anything, uint(99999)).Return(nil, ErrNotFound)
 
-                	w := httptest.NewRecorder()
-                	req, _ := http.NewRequest(http.MethodGet, "/api/v1/%s/99999", nil)
-                	router.ServeHTTP(w, req)
+                \tw := httptest.NewRecorder()
+                \treq, _ := http.NewRequest(http.MethodGet, "/api/v1/%s/99999", nil)
+                \trouter.ServeHTTP(w, req)
 
-                	assert.Equal(t, http.StatusNotFound, w.Code)
-                	mockService.AssertExpectations(t)
+                \tassert.Equal(t, http.StatusNotFound, w.Code)
+                \tmockService.AssertExpectations(t)
                 }
 
                 func Test%sHandler_Create(t *testing.T) {
-                	router, mockService := setup%sHandler()
+                \trouter, mockService := setup%sHandler()
 
-                	createDTO := Create%sDTO{}
-                	mockService.On("Create", mock.Anything, mock.AnythingOfType("*%s")).Return(nil)
+                \tcreateDTO := Create%sDTO{}
+                \tmockService.On("Create", mock.Anything, mock.AnythingOfType("*%s")).Return(nil)
 
-                	body, _ := json.Marshal(createDTO)
-                	w := httptest.NewRecorder()
-                	req, _ := http.NewRequest(http.MethodPost, "/api/v1/%s", bytes.NewBuffer(body))
-                	req.Header.Set("Content-Type", "application/json")
-                	router.ServeHTTP(w, req)
+                \tbody, _ := json.Marshal(createDTO)
+                \tw := httptest.NewRecorder()
+                \treq, _ := http.NewRequest(http.MethodPost, "/api/v1/%s", bytes.NewBuffer(body))
+                \treq.Header.Set("Content-Type", "application/json")
+                \trouter.ServeHTTP(w, req)
 
-                	assert.Equal(t, http.StatusCreated, w.Code)
-                	mockService.AssertExpectations(t)
+                \tassert.Equal(t, http.StatusCreated, w.Code)
+                \tmockService.AssertExpectations(t)
                 }
 
                 func Test%sHandler_Update(t *testing.T) {
-                	router, mockService := setup%sHandler()
+                \trouter, mockService := setup%sHandler()
 
-                	updateDTO := Update%sDTO{}
-                	mockService.On("Update", mock.Anything, uint(1), mock.AnythingOfType("*%s")).Return(nil)
+                \tupdateDTO := Update%sDTO{}
+                \tmockService.On("Update", mock.Anything, uint(1), mock.AnythingOfType("*%s")).Return(nil)
 
-                	body, _ := json.Marshal(updateDTO)
-                	w := httptest.NewRecorder()
-                	req, _ := http.NewRequest(http.MethodPut, "/api/v1/%s/1", bytes.NewBuffer(body))
-                	req.Header.Set("Content-Type", "application/json")
-                	router.ServeHTTP(w, req)
+                \tbody, _ := json.Marshal(updateDTO)
+                \tw := httptest.NewRecorder()
+                \treq, _ := http.NewRequest(http.MethodPut, "/api/v1/%s/1", bytes.NewBuffer(body))
+                \treq.Header.Set("Content-Type", "application/json")
+                \trouter.ServeHTTP(w, req)
 
-                	assert.Equal(t, http.StatusOK, w.Code)
-                	mockService.AssertExpectations(t)
+                \tassert.Equal(t, http.StatusOK, w.Code)
+                \tmockService.AssertExpectations(t)
                 }
 
                 func Test%sHandler_Delete(t *testing.T) {
-                	router, mockService := setup%sHandler()
+                \trouter, mockService := setup%sHandler()
 
-                	mockService.On("Delete", mock.Anything, uint(1)).Return(nil)
+                \tmockService.On("Delete", mock.Anything, uint(1)).Return(nil)
 
-                	w := httptest.NewRecorder()
-                	req, _ := http.NewRequest(http.MethodDelete, "/api/v1/%s/1", nil)
-                	router.ServeHTTP(w, req)
+                \tw := httptest.NewRecorder()
+                \treq, _ := http.NewRequest(http.MethodDelete, "/api/v1/%s/1", nil)
+                \trouter.ServeHTTP(w, req)
 
-                	assert.Equal(t, http.StatusNoContent, w.Code)
-                	mockService.AssertExpectations(t)
+                \tassert.Equal(t, http.StatusNoContent, w.Code)
+                \tmockService.AssertExpectations(t)
                 }
                 """,
                 entityName,
@@ -525,25 +531,5 @@ public class GoGinTestGenerator {
                 entityName,
                 entityName,
                 pluralName);
-    }
-
-    /** Converts PascalCase or camelCase to snake_case. */
-    private String toSnakeCase(String input) {
-        if (input == null || input.isEmpty()) {
-            return input;
-        }
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < input.length(); i++) {
-            char c = input.charAt(i);
-            if (Character.isUpperCase(c)) {
-                if (i > 0) {
-                    result.append('_');
-                }
-                result.append(Character.toLowerCase(c));
-            } else {
-                result.append(c);
-            }
-        }
-        return result.toString();
     }
 }

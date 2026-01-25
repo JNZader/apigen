@@ -6,6 +6,7 @@ import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlTable;
 
 /** Generates integration test classes for Java/Spring Boot. */
+@SuppressWarnings("java:S1192") // Duplicate strings intentional for code generation templates
 public class JavaIntegrationTestGenerator {
 
     private final String basePackage;
@@ -46,9 +47,8 @@ public class JavaIntegrationTestGenerator {
                         .append(fieldName)
                         .append("(")
                         .append(sampleValue)
-                        .append(
-                                " + \"-\" + java.util.UUID.randomUUID().toString().substring(0, 8)"
-                                        + " + \"-\" + i)");
+                        .append(" + \"-\" + java.util.UUID.randomUUID().toString().substring(0, 8)")
+                        .append(" + \"-\" + i)");
             } else {
                 uniqueFieldAssignments
                         .append("\n                        .")
@@ -219,7 +219,7 @@ class %sIntegrationTest {
         assertThat(createdId).isNotNull();
 
         // Only update activo field
-        String patchJson = "{\\\"activo\\\": true}";
+        String patchJson = "{\\"activo\\": true}";
 
         mockMvc.perform(patch(BASE_URL + "/" + createdId)
                         .contentType(MediaType.APPLICATION_JSON)

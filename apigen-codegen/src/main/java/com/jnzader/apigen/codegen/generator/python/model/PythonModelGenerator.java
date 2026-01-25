@@ -42,7 +42,7 @@ public class PythonModelGenerator {
 
 
         class BaseModel(Base):
-            \"\"\"Base model with common fields for all entities.\"\"\"
+            \"""Base model with common fields for all entities.\"""
 
             __abstract__ = True
 
@@ -57,7 +57,7 @@ public class PythonModelGenerator {
 
             @declared_attr
             def __tablename__(cls) -> str:
-                \"\"\"Generate table name from class name.\"\"\"
+                \"""Generate table name from class name.\"""
                 # Convert CamelCase to snake_case
                 name = cls.__name__
                 return ''.join(['_' + c.lower() if c.isupper() else c for c in name]).lstrip('_') + 's'

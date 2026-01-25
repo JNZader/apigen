@@ -1,5 +1,7 @@
 package com.jnzader.apigen.codegen.generator.csharp.entity;
 
+import static com.jnzader.apigen.codegen.generator.util.NamingUtils.*;
+
 import com.jnzader.apigen.codegen.generator.common.ManyToManyRelation;
 import com.jnzader.apigen.codegen.generator.csharp.CSharpTypeMapper;
 import com.jnzader.apigen.codegen.model.RelationType;
@@ -12,6 +14,11 @@ import java.util.List;
 import java.util.Set;
 
 /** Generates Entity Framework Core entity classes for C#/ASP.NET Core. */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3776",
+    "java:S6541"
+}) // S1192: Template strings; S3776/S6541: complex entity generation logic
 public class CSharpEntityGenerator {
 
     private final String baseNamespace;
@@ -94,15 +101,13 @@ public class CSharpEntityGenerator {
         sb.append("{\n");
 
         // Generate fields for columns (excluding id which is in BaseEntity)
+        // Skip: PK (in BaseEntity), audit fields (in BaseEntity), FK columns (generated with
+        // relationships)
         for (SqlColumn col : table.getColumns()) {
-            if (col.isPrimaryKey()) {
-                continue; // Skip PK, it's in BaseEntity
-            }
-            if (isAuditField(col.getName())) {
-                continue; // Skip audit fields, they're in BaseEntity
-            }
-            if (isForeignKeyColumn(col.getName(), relations)) {
-                continue; // Skip FK columns, they'll be generated with relationships
+            if (col.isPrimaryKey()
+                    || isAuditField(col.getName())
+                    || isForeignKeyColumn(col.getName(), relations)) {
+                continue;
             }
 
             generateColumnField(sb, col);
@@ -161,10 +166,7 @@ public class CSharpEntityGenerator {
         sb.append(colAttr);
 
         // Property declaration
-        if (col.isNullable() && !typeMapper.isValueType(csharpType)) {
-            sb.append("    public ").append(csharpType).append("? ").append(fieldName);
-            sb.append(" { get; set; }\n");
-        } else if (col.isNullable() && typeMapper.isValueType(csharpType)) {
+        if (col.isNullable()) {
             sb.append("    public ").append(csharpType).append("? ").append(fieldName);
             sb.append(" { get; set; }\n");
         } else {
@@ -180,22 +182,14 @@ public class CSharpEntityGenerator {
     }
 
     private void generateManyToOneRelation(StringBuilder sb, SqlSchema.TableRelationship rel) {
-        String targetEntityName = rel.getTargetTable().getEntityName();
-        String fkColumnName = rel.getForeignKey().getColumnName();
-        String propertyName = toPascalCase(toPropertyName(fkColumnName));
-
-        sb.append("\n");
-        sb.append("    [ForeignKey(nameof(").append(propertyName).append("))]\n");
-        sb.append("    public long? ").append(propertyName).append("Id { get; set; }\n");
-        sb.append("\n");
-        sb.append("    public virtual ")
-                .append(targetEntityName)
-                .append("? ")
-                .append(propertyName)
-                .append(" { get; set; }\n");
+        generateForeignKeyRelation(sb, rel);
     }
 
     private void generateOneToOneRelation(StringBuilder sb, SqlSchema.TableRelationship rel) {
+        generateForeignKeyRelation(sb, rel);
+    }
+
+    private void generateForeignKeyRelation(StringBuilder sb, SqlSchema.TableRelationship rel) {
         String targetEntityName = rel.getTargetTable().getEntityName();
         String fkColumnName = rel.getForeignKey().getColumnName();
         String propertyName = toPascalCase(toPropertyName(fkColumnName));
@@ -233,62 +227,5 @@ public class CSharpEntityGenerator {
                 .append("> ")
                 .append(collectionName);
         sb.append(" { get; set; } = new List<").append(targetEntityName).append(">();\n");
-    }
-
-    private boolean isAuditField(String name) {
-        String lower = name.toLowerCase();
-        return lower.equals("estado")
-                || lower.equals("created_at")
-                || lower.equals("updated_at")
-                || lower.equals("created_by")
-                || lower.equals("updated_by")
-                || lower.equals("deleted_at")
-                || lower.equals("deleted_by");
-    }
-
-    private boolean isForeignKeyColumn(
-            String columnName, List<SqlSchema.TableRelationship> relations) {
-        for (SqlSchema.TableRelationship rel : relations) {
-            if (rel.getForeignKey().getColumnName().equalsIgnoreCase(columnName)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private String toPropertyName(String fkColumnName) {
-        // Remove _id suffix
-        if (fkColumnName.toLowerCase().endsWith("_id")) {
-            return fkColumnName.substring(0, fkColumnName.length() - 3);
-        }
-        return fkColumnName;
-    }
-
-    private String toPlural(String name) {
-        if (name.endsWith("y")) {
-            return name.substring(0, name.length() - 1) + "ies";
-        } else if (name.endsWith("s") || name.endsWith("x") || name.endsWith("ch")) {
-            return name + "es";
-        }
-        return name + "s";
-    }
-
-    private String toPascalCase(String name) {
-        if (name == null || name.isEmpty()) {
-            return name;
-        }
-        StringBuilder result = new StringBuilder();
-        boolean capitalizeNext = true;
-        for (char c : name.toCharArray()) {
-            if (c == '_' || c == '-') {
-                capitalizeNext = true;
-            } else if (capitalizeNext) {
-                result.append(Character.toUpperCase(c));
-                capitalizeNext = false;
-            } else {
-                result.append(Character.toLowerCase(c));
-            }
-        }
-        return result.toString();
     }
 }

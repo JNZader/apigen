@@ -17,6 +17,10 @@ import java.util.Map;
  *   <li>User entity, DTOs, and repository
  * </ul>
  */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3400"
+}) // S1192: template strings; S3400: template methods return constants
 public class TypeScriptJwtAuthGenerator {
 
     private static final int DEFAULT_ACCESS_TOKEN_EXPIRE_SECONDS = 1800; // 30 minutes

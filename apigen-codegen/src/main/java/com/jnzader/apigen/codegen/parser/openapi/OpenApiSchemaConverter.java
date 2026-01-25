@@ -1,5 +1,7 @@
 package com.jnzader.apigen.codegen.parser.openapi;
 
+import static com.jnzader.apigen.codegen.generator.util.NamingUtils.*;
+
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlForeignKey;
 import com.jnzader.apigen.codegen.model.SqlTable;
@@ -15,22 +17,13 @@ import java.util.Map;
  * <p>This converter transforms OpenAPI component schemas into the internal SQL model format that
  * can be processed by the code generators.
  */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S135",
+    "java:S3776",
+    "unchecked"
+}) // S1192: Type strings; S135: continues; S3776: complex schema conversion; unchecked: raw types
 public class OpenApiSchemaConverter {
-
-    private static final List<String> AUDIT_FIELDS =
-            List.of(
-                    "created_at",
-                    "createdAt",
-                    "updated_at",
-                    "updatedAt",
-                    "deleted_at",
-                    "deletedAt",
-                    "created_by",
-                    "createdBy",
-                    "updated_by",
-                    "updatedBy",
-                    "deleted_by",
-                    "deletedBy");
 
     private OpenApiSchemaConverter() {
         // Utility class
@@ -55,11 +48,14 @@ public class OpenApiSchemaConverter {
         // Add ID column if not present in schema
         boolean hasId = false;
 
-        Map<String, Schema> properties = schema.getProperties();
-        if (properties != null) {
-            for (Map.Entry<String, Schema> entry : properties.entrySet()) {
-                String propertyName = entry.getKey();
-                Schema<?> propertySchema = entry.getValue();
+        @SuppressWarnings("rawtypes")
+        Map rawProperties = schema.getProperties();
+        if (rawProperties != null) {
+            for (Object obj : rawProperties.entrySet()) {
+                @SuppressWarnings("rawtypes")
+                Map.Entry entry = (Map.Entry) obj;
+                String propertyName = (String) entry.getKey();
+                Schema<?> propertySchema = (Schema<?>) entry.getValue();
 
                 // Check if this is the ID field
                 if ("id".equalsIgnoreCase(propertyName)) {
@@ -189,10 +185,8 @@ public class OpenApiSchemaConverter {
         if ("uuid".equals(format)) {
             javaType = "UUID";
             sqlType = "UUID";
-        } else if ("int64".equals(format)) {
-            javaType = "Long";
-            sqlType = "BIGSERIAL";
         } else {
+            // Default to Long/BIGSERIAL for int64 and other formats
             javaType = "Long";
             sqlType = "BIGSERIAL";
         }
@@ -289,7 +283,10 @@ public class OpenApiSchemaConverter {
      * @return the table name
      */
     public static String toTableName(String schemaName) {
-        String snakeCase = camelToSnakeCase(schemaName);
+        if (schemaName == null || schemaName.isEmpty()) {
+            return schemaName;
+        }
+        String snakeCase = toSnakeCase(schemaName);
         return toPlural(snakeCase.toLowerCase(Locale.ROOT));
     }
 
@@ -300,61 +297,9 @@ public class OpenApiSchemaConverter {
      * @return the column name
      */
     public static String toColumnName(String propertyName) {
-        return camelToSnakeCase(propertyName).toLowerCase(Locale.ROOT);
-    }
-
-    /**
-     * Converts camelCase to snake_case.
-     *
-     * @param input the camelCase string
-     * @return the snake_case string
-     */
-    private static String camelToSnakeCase(String input) {
-        if (input == null || input.isEmpty()) {
-            return input;
+        if (propertyName == null || propertyName.isEmpty()) {
+            return propertyName;
         }
-
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < input.length(); i++) {
-            char c = input.charAt(i);
-            if (Character.isUpperCase(c)) {
-                if (i > 0) {
-                    result.append('_');
-                }
-                result.append(Character.toLowerCase(c));
-            } else {
-                result.append(c);
-            }
-        }
-        return result.toString();
-    }
-
-    /**
-     * Converts singular to plural form.
-     *
-     * @param singular the singular form
-     * @return the plural form
-     */
-    private static String toPlural(String singular) {
-        if (singular == null || singular.isEmpty()) {
-            return singular;
-        }
-
-        if (singular.endsWith("y")
-                && singular.length() > 1
-                && !isVowel(singular.charAt(singular.length() - 2))) {
-            return singular.substring(0, singular.length() - 1) + "ies";
-        }
-        if (singular.endsWith("s")
-                || singular.endsWith("x")
-                || singular.endsWith("ch")
-                || singular.endsWith("sh")) {
-            return singular + "es";
-        }
-        return singular + "s";
-    }
-
-    private static boolean isVowel(char c) {
-        return "aeiouAEIOU".indexOf(c) >= 0;
+        return toSnakeCase(propertyName).toLowerCase(Locale.ROOT);
     }
 }

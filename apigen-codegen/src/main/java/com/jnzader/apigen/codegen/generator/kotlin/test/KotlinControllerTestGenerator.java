@@ -3,6 +3,7 @@ package com.jnzader.apigen.codegen.generator.kotlin.test;
 import com.jnzader.apigen.codegen.model.SqlTable;
 
 /** Generates controller test classes for Kotlin/Spring Boot. */
+@SuppressWarnings("java:S1192") // Duplicate strings intentional for code generation templates
 public class KotlinControllerTestGenerator {
 
     private static final String APIGEN_CORE_PKG = "com.jnzader.apigen.core";

@@ -29,6 +29,10 @@ import java.util.Set;
  * @author APiGen
  * @since 2.12.0
  */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3776"
+}) // S1192: Template strings; S3776: complex service generation logic
 public class RustServiceGenerator {
 
     private final RustTypeMapper typeMapper;

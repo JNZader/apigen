@@ -1,12 +1,13 @@
 package com.jnzader.apigen.codegen.generator.go.config;
 
+import static com.jnzader.apigen.codegen.generator.util.NamingUtils.*;
+
 import com.jnzader.apigen.codegen.generator.api.Feature;
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
 import com.jnzader.apigen.codegen.generator.go.GoTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.LinkedHashMap;
-import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -25,6 +26,7 @@ import java.util.Map;
  *   <li>.gitignore
  * </ul>
  */
+@SuppressWarnings({"java:S1192", "java:S2068", "java:S2479", "java:S3400", "java:S6126"})
 public class GoConfigGenerator {
 
     private final String moduleName;
@@ -369,64 +371,64 @@ public class GoConfigGenerator {
         package config
 
         import (
-        	"fmt"
-        	"log"
-        	"time"
+        \t"fmt"
+        \t"log"
+        \t"time"
 
-        	"%s/internal/models"
-        	"gorm.io/driver/postgres"
-        	"gorm.io/gorm"
-        	"gorm.io/gorm/logger"
+        \t"%s/internal/models"
+        \t"gorm.io/driver/postgres"
+        \t"gorm.io/gorm"
+        \t"gorm.io/gorm/logger"
         )
 
         // NewDatabase creates a new database connection.
         func NewDatabase(cfg *Config) (*gorm.DB, error) {
-        	dsn := fmt.Sprintf(
-        		"host=%%s port=%%d user=%%s password=%%s dbname=%%s sslmode=%%s",
-        		cfg.Database.Host,
-        		cfg.Database.Port,
-        		cfg.Database.User,
-        		cfg.Database.Password,
-        		cfg.Database.DBName,
-        		cfg.Database.SSLMode,
-        	)
+        \tdsn := fmt.Sprintf(
+        \t\t"host=%%s port=%%d user=%%s password=%%s dbname=%%s sslmode=%%s",
+        \t\tcfg.Database.Host,
+        \t\tcfg.Database.Port,
+        \t\tcfg.Database.User,
+        \t\tcfg.Database.Password,
+        \t\tcfg.Database.DBName,
+        \t\tcfg.Database.SSLMode,
+        \t)
 
-        	logLevel := logger.Info
-        	if cfg.Environment == "production" {
-        		logLevel = logger.Warn
-        	}
+        \tlogLevel := logger.Info
+        \tif cfg.Environment == "production" {
+        \t\tlogLevel = logger.Warn
+        \t}
 
-        	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-        		Logger: logger.Default.LogMode(logLevel),
-        	})
-        	if err != nil {
-        		return nil, fmt.Errorf("failed to connect to database: %%w", err)
-        	}
+        \tdb, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+        \t\tLogger: logger.Default.LogMode(logLevel),
+        \t})
+        \tif err != nil {
+        \t\treturn nil, fmt.Errorf("failed to connect to database: %%w", err)
+        \t}
 
-        	// Configure connection pool
-        	sqlDB, err := db.DB()
-        	if err != nil {
-        		return nil, fmt.Errorf("failed to get sql.DB: %%w", err)
-        	}
+        \t// Configure connection pool
+        \tsqlDB, err := db.DB()
+        \tif err != nil {
+        \t\treturn nil, fmt.Errorf("failed to get sql.DB: %%w", err)
+        \t}
 
-        	sqlDB.SetMaxIdleConns(10)
-        	sqlDB.SetMaxOpenConns(100)
-        	sqlDB.SetConnMaxLifetime(time.Hour)
+        \tsqlDB.SetMaxIdleConns(10)
+        \tsqlDB.SetMaxOpenConns(100)
+        \tsqlDB.SetConnMaxLifetime(time.Hour)
 
-        	// Auto-migrate models
-        	if err := autoMigrate(db); err != nil {
-        		return nil, fmt.Errorf("failed to auto-migrate: %%w", err)
-        	}
+        \t// Auto-migrate models
+        \tif err := autoMigrate(db); err != nil {
+        \t\treturn nil, fmt.Errorf("failed to auto-migrate: %%w", err)
+        \t}
 
-        	log.Println("Database connection established")
-        	return db, nil
+        \tlog.Println("Database connection established")
+        \treturn db, nil
         }
 
         func autoMigrate(db *gorm.DB) error {
-        	return db.AutoMigrate(
-        		// Add your models here
-        		&models.BaseModel{},
-        	)
+        \treturn db.AutoMigrate(
+        \t\t// Add your models here
+        \t\t&models.BaseModel{},
+        \t)
         }
         """
                 .formatted(moduleName);
@@ -672,55 +674,55 @@ public class GoConfigGenerator {
 
         ## help: Show this help message
         help:
-        	@echo "Usage: make [target]"
-        	@echo ""
-        	@echo "Targets:"
-        	@sed -n 's/^##//p' ${MAKEFILE_LIST} | column -t -s ':' | sed -e 's/^/ /'
+        \t@echo "Usage: make [target]"
+        \t@echo ""
+        \t@echo "Targets:"
+        \t@sed -n 's/^##//p' ${MAKEFILE_LIST} | column -t -s ':' | sed -e 's/^/ /'
 
         ## run: Run the application
         run:
-        	go run $(MAIN_PATH)/main.go
+        \tgo run $(MAIN_PATH)/main.go
 
         ## build: Build the binary
         build:
-        	go build -o bin/$(BINARY_NAME) $(MAIN_PATH)/main.go
+        \tgo build -o bin/$(BINARY_NAME) $(MAIN_PATH)/main.go
 
         ## test: Run tests
         test:
-        	go test -v -race -coverprofile=coverage.out ./...
+        \tgo test -v -race -coverprofile=coverage.out ./...
 
         ## test-coverage: Run tests and show coverage
         test-coverage: test
-        	go tool cover -html=coverage.out -o coverage.html
+        \tgo tool cover -html=coverage.out -o coverage.html
 
         ## lint: Run linter
         lint:
-        	golangci-lint run ./...
+        \tgolangci-lint run ./...
 
         ## swagger: Generate Swagger documentation
         swagger:
-        	swag init
+        \tswag init
 
         ## clean: Clean build artifacts
         clean:
-        	rm -rf bin/
-        	rm -f coverage.out coverage.html
+        \trm -rf bin/
+        \trm -f coverage.out coverage.html
 
         ## tidy: Tidy go modules
         tidy:
-        	go mod tidy
+        \tgo mod tidy
 
         ## docker-build: Build Docker image
         docker-build:
-        	docker build -t $(BINARY_NAME) .
+        \tdocker build -t $(BINARY_NAME) .
 
         ## docker-run: Run with Docker Compose
         docker-run:
-        	docker-compose up -d
+        \tdocker-compose up -d
 
         ## docker-stop: Stop Docker Compose
         docker-stop:
-        	docker-compose down
+        \tdocker-compose down
         """
                 .formatted(binaryName);
     }
@@ -869,11 +871,5 @@ public class GoConfigGenerator {
             return moduleName.substring(lastSlash + 1);
         }
         return moduleName;
-    }
-
-    private String toSnakeCase(String name) {
-        return name.replaceAll("([a-z])([A-Z])", "$1_$2")
-                .replaceAll("-", "_")
-                .toLowerCase(Locale.ROOT);
     }
 }

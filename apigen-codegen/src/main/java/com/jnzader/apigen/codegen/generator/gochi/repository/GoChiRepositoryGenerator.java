@@ -10,7 +10,11 @@ import java.util.List;
 import java.util.Locale;
 
 /** Generates repository layer using pgx (raw SQL, no ORM). */
-@SuppressWarnings("UnusedVariable") // Options field reserved for future feature flags
+@SuppressWarnings({
+    "java:S1068",
+    "java:S1192",
+    "java:S2479"
+}) // S1068: Options reserved; S1192: template strings; S2479: tabs for Go formatting
 public class GoChiRepositoryGenerator {
 
     private final GoChiTypeMapper typeMapper;
@@ -309,48 +313,48 @@ public class GoChiRepositoryGenerator {
         package database
 
         import (
-        	"context"
-        	"fmt"
-        	"time"
+        \t"context"
+        \t"fmt"
+        \t"time"
 
-        	"%s/internal/config"
-        	"github.com/jackc/pgx/v5/pgxpool"
+        \t"%s/internal/config"
+        \t"github.com/jackc/pgx/v5/pgxpool"
         )
 
         // NewPostgres creates a new PostgreSQL connection pool.
         func NewPostgres(cfg *config.Config) (*pgxpool.Pool, error) {
-        	dsn := fmt.Sprintf(
-        		"host=%%s port=%%d user=%%s password=%%s dbname=%%s sslmode=%%s",
-        		cfg.Database.Host,
-        		cfg.Database.Port,
-        		cfg.Database.User,
-        		cfg.Database.Password,
-        		cfg.Database.Name,
-        		cfg.Database.SSLMode,
-        	)
+        \tdsn := fmt.Sprintf(
+        \t\t"host=%%s port=%%d user=%%s password=%%s dbname=%%s sslmode=%%s",
+        \t\tcfg.Database.Host,
+        \t\tcfg.Database.Port,
+        \t\tcfg.Database.User,
+        \t\tcfg.Database.Password,
+        \t\tcfg.Database.Name,
+        \t\tcfg.Database.SSLMode,
+        \t)
 
-        	poolConfig, err := pgxpool.ParseConfig(dsn)
-        	if err != nil {
-        		return nil, fmt.Errorf("failed to parse config: %%w", err)
-        	}
+        \tpoolConfig, err := pgxpool.ParseConfig(dsn)
+        \tif err != nil {
+        \t\treturn nil, fmt.Errorf("failed to parse config: %%w", err)
+        \t}
 
-        	poolConfig.MaxConns = int32(cfg.Database.MaxOpenConns)
-        	poolConfig.MinConns = int32(cfg.Database.MaxIdleConns)
-        	poolConfig.MaxConnLifetime = time.Hour
+        \tpoolConfig.MaxConns = int32(cfg.Database.MaxOpenConns)
+        \tpoolConfig.MinConns = int32(cfg.Database.MaxIdleConns)
+        \tpoolConfig.MaxConnLifetime = time.Hour
 
-        	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-        	defer cancel()
+        \tctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        \tdefer cancel()
 
-        	pool, err := pgxpool.NewWithConfig(ctx, poolConfig)
-        	if err != nil {
-        		return nil, fmt.Errorf("failed to create pool: %%w", err)
-        	}
+        \tpool, err := pgxpool.NewWithConfig(ctx, poolConfig)
+        \tif err != nil {
+        \t\treturn nil, fmt.Errorf("failed to create pool: %%w", err)
+        \t}
 
-        	if err := pool.Ping(ctx); err != nil {
-        		return nil, fmt.Errorf("failed to ping: %%w", err)
-        	}
+        \tif err := pool.Ping(ctx); err != nil {
+        \t\treturn nil, fmt.Errorf("failed to ping: %%w", err)
+        \t}
 
-        	return pool, nil
+        \treturn pool, nil
         }
         """
                 .formatted(moduleName);
@@ -361,29 +365,29 @@ public class GoChiRepositoryGenerator {
         package database
 
         import (
-        	"database/sql"
-        	"fmt"
+        \t"database/sql"
+        \t"fmt"
 
-        	_ "github.com/mattn/go-sqlite3"
+        \t_ "github.com/mattn/go-sqlite3"
         )
 
         // NewSQLite creates a new SQLite connection.
         func NewSQLite(path string) (*sql.DB, error) {
-        	db, err := sql.Open("sqlite3", path)
-        	if err != nil {
-        		return nil, fmt.Errorf("failed to open sqlite: %%w", err)
-        	}
+        \tdb, err := sql.Open("sqlite3", path)
+        \tif err != nil {
+        \t\treturn nil, fmt.Errorf("failed to open sqlite: %%w", err)
+        \t}
 
-        	if err := db.Ping(); err != nil {
-        		return nil, fmt.Errorf("failed to ping sqlite: %%w", err)
-        	}
+        \tif err := db.Ping(); err != nil {
+        \t\treturn nil, fmt.Errorf("failed to ping sqlite: %%w", err)
+        \t}
 
-        	// Enable WAL mode for better concurrency
-        	if _, err := db.Exec("PRAGMA journal_mode=WAL"); err != nil {
-        		return nil, fmt.Errorf("failed to enable WAL: %%w", err)
-        	}
+        \t// Enable WAL mode for better concurrency
+        \tif _, err := db.Exec("PRAGMA journal_mode=WAL"); err != nil {
+        \t\treturn nil, fmt.Errorf("failed to enable WAL: %%w", err)
+        \t}
 
-        	return db, nil
+        \treturn db, nil
         }
         """;
     }

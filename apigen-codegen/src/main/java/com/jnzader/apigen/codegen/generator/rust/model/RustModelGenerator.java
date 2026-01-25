@@ -30,6 +30,7 @@ import java.util.Set;
  * @author APiGen
  * @since 2.12.0
  */
+@SuppressWarnings("java:S1192") // Duplicate strings intentional for code generation templates
 public class RustModelGenerator {
 
     private final RustTypeMapper typeMapper;

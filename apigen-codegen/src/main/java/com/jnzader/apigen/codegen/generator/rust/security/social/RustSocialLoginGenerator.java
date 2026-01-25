@@ -25,6 +25,11 @@ import java.util.Map;
  * @author APiGen
  * @since 2.13.0
  */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3400",
+    "java:S3457"
+}) // S1192: Provider names; S3400: template methods return constants; S3457: Unix line endings
 public class RustSocialLoginGenerator {
 
     /**
@@ -36,16 +41,16 @@ public class RustSocialLoginGenerator {
     public Map<String, String> generate(List<String> providers) {
         Map<String, String> files = new LinkedHashMap<>();
 
-        files.put("src/auth/oauth/mod.rs", generateModRs(providers));
+        files.put("src/auth/oauth/mod.rs", generateModRs());
         files.put("src/auth/oauth/config.rs", generateConfig(providers));
         files.put("src/auth/oauth/handler.rs", generateHandler(providers));
-        files.put("src/auth/oauth/service.rs", generateService(providers));
+        files.put("src/auth/oauth/service.rs", generateService());
         files.put("src/auth/oauth/dto.rs", generateDto());
 
         return files;
     }
 
-    private String generateModRs(List<String> providers) {
+    private String generateModRs() {
         StringBuilder sb = new StringBuilder();
         sb.append(
                 """
@@ -222,7 +227,7 @@ public class RustSocialLoginGenerator {
                 capitalized, provider, provider, capitalized, provider, provider);
     }
 
-    private String generateService(List<String> providers) {
+    private String generateService() {
         return """
         //! OAuth2 service implementation.
 
