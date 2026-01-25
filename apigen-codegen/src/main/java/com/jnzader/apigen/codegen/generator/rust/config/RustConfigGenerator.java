@@ -28,11 +28,7 @@ import java.util.List;
  * @author APiGen
  * @since 2.12.0
  */
-@SuppressWarnings({
-    "java:S1068",
-    "java:S1192",
-    "java:S3776"
-}) // S1068: typeMapper reserved; S1192: template strings; S3776: complex config generation
+@SuppressWarnings({"java:S1068", "java:S1192", "java:S2068", "java:S3776"})
 public class RustConfigGenerator {
 
     private final RustTypeMapper typeMapper;

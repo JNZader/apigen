@@ -27,8 +27,9 @@ import java.util.Map;
  */
 @SuppressWarnings({
     "java:S1192",
+    "java:S2068",
     "java:S3400"
-}) // S1192: template strings; S3400: template methods return constants
+}) // S1192: template strings; S2068: template passwords for dev config; S3400: template methods
 public class TypeScriptConfigGenerator {
 
     private final String projectName;

@@ -11,12 +11,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /** Generates configuration files for Go/Chi projects using Viper. */
-@SuppressWarnings({
-    "java:S1192",
-    "java:S2479",
-    "java:S3400"
-}) // S1192: template strings; S2479: tabs for Go formatting; S3400: template methods return
-// constants
+@SuppressWarnings({"java:S1192", "java:S2068", "java:S2479", "java:S3400"})
 public class GoChiConfigGenerator {
 
     private final String moduleName;

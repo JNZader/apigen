@@ -25,13 +25,7 @@ import java.util.Map;
  *   <li>.gitignore
  * </ul>
  */
-@SuppressWarnings({
-    "java:S1192",
-    "java:S2479",
-    "java:S3400",
-    "java:S6126"
-}) // S1192: template strings; S2479: tabs for Go; S3400: template methods; S6126: concatenated
-// lines
+@SuppressWarnings({"java:S1192", "java:S2068", "java:S2479", "java:S3400", "java:S6126"})
 public class GoConfigGenerator {
 
     private final String moduleName;
