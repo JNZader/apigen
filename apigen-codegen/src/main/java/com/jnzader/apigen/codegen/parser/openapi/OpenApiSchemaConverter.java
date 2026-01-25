@@ -15,22 +15,13 @@ import java.util.Map;
  * <p>This converter transforms OpenAPI component schemas into the internal SQL model format that
  * can be processed by the code generators.
  */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S135",
+    "java:S3776",
+    "unchecked"
+}) // S1192: Type strings; S135: continues; S3776: complex schema conversion; unchecked: raw types
 public class OpenApiSchemaConverter {
-
-    private static final List<String> AUDIT_FIELDS =
-            List.of(
-                    "created_at",
-                    "createdAt",
-                    "updated_at",
-                    "updatedAt",
-                    "deleted_at",
-                    "deletedAt",
-                    "created_by",
-                    "createdBy",
-                    "updated_by",
-                    "updatedBy",
-                    "deleted_by",
-                    "deletedBy");
 
     private OpenApiSchemaConverter() {
         // Utility class
@@ -55,11 +46,14 @@ public class OpenApiSchemaConverter {
         // Add ID column if not present in schema
         boolean hasId = false;
 
-        Map<String, Schema> properties = schema.getProperties();
-        if (properties != null) {
-            for (Map.Entry<String, Schema> entry : properties.entrySet()) {
-                String propertyName = entry.getKey();
-                Schema<?> propertySchema = entry.getValue();
+        @SuppressWarnings("rawtypes")
+        Map rawProperties = schema.getProperties();
+        if (rawProperties != null) {
+            for (Object obj : rawProperties.entrySet()) {
+                @SuppressWarnings("rawtypes")
+                Map.Entry entry = (Map.Entry) obj;
+                String propertyName = (String) entry.getKey();
+                Schema<?> propertySchema = (Schema<?>) entry.getValue();
 
                 // Check if this is the ID field
                 if ("id".equalsIgnoreCase(propertyName)) {
@@ -189,10 +183,8 @@ public class OpenApiSchemaConverter {
         if ("uuid".equals(format)) {
             javaType = "UUID";
             sqlType = "UUID";
-        } else if ("int64".equals(format)) {
-            javaType = "Long";
-            sqlType = "BIGSERIAL";
         } else {
+            // Default to Long/BIGSERIAL for int64 and other formats
             javaType = "Long";
             sqlType = "BIGSERIAL";
         }

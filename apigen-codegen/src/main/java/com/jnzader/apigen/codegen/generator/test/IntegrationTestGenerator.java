@@ -13,6 +13,10 @@ import com.jnzader.apigen.codegen.model.SqlTable;
  *     class is maintained for backward compatibility.
  */
 @Deprecated(since = "2.6.0", forRemoval = false)
+@SuppressWarnings({
+    "java:S1192",
+    "java:S1133"
+}) // Duplicate strings intentional; Kept for backward compatibility
 public class IntegrationTestGenerator {
 
     private final String basePackage;
@@ -53,9 +57,8 @@ public class IntegrationTestGenerator {
                         .append(fieldName)
                         .append("(")
                         .append(sampleValue)
-                        .append(
-                                " + \"-\" + java.util.UUID.randomUUID().toString().substring(0, 8)"
-                                        + " + \"-\" + i)");
+                        .append(" + \"-\" + java.util.UUID.randomUUID().toString().substring(0, 8)")
+                        .append(" + \"-\" + i)");
             } else {
                 uniqueFieldAssignments
                         .append("\n                        .")
@@ -226,7 +229,7 @@ class %sIntegrationTest {
         assertThat(createdId).isNotNull();
 
         // Only update activo field
-        String patchJson = "{\\\"activo\\\": true}";
+        String patchJson = "{\\"activo\\": true}";
 
         mockMvc.perform(patch(BASE_URL + "/" + createdId)
                         .contentType(MediaType.APPLICATION_JSON)

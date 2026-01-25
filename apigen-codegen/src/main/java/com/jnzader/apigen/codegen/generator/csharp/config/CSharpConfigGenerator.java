@@ -7,6 +7,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /** Generates configuration files for C#/ASP.NET Core projects. */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3400"
+}) // S1192: template strings; S3400: template methods return constants
 public class CSharpConfigGenerator {
 
     private static final String DEFAULT_DOTNET_VERSION = "8.0";

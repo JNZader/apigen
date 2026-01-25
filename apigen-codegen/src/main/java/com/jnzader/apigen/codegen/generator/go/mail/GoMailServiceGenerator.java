@@ -24,6 +24,12 @@ import java.util.Map;
  * @author APiGen
  * @since 2.13.0
  */
+@SuppressWarnings({
+    "java:S2479",
+    "java:S1192",
+    "java:S3400"
+}) // S2479: Literal tabs for Go code; S1192: template strings; S3400: template methods return
+// constants
 public class GoMailServiceGenerator {
 
     private final String moduleName;
@@ -69,200 +75,200 @@ public class GoMailServiceGenerator {
                 package mail
 
                 import (
-                	"bytes"
-                	"crypto/tls"
-                	"fmt"
-                	"html/template"
-                	"log"
-                	"net/smtp"
-                	"path/filepath"
+                \t"bytes"
+                \t"crypto/tls"
+                \t"fmt"
+                \t"html/template"
+                \t"log"
+                \t"net/smtp"
+                \t"path/filepath"
 
-                	"github.com/spf13/viper"
+                \t"github.com/spf13/viper"
                 )
 
                 // MailService handles email sending operations.
                 type MailService struct {
-                	config    *Config
-                	templates *template.Template
+                \tconfig    *Config
+                \ttemplates *template.Template
                 }
 
                 // EmailData represents common email template data.
                 type EmailData struct {
-                	AppName   string
-                	UserName  string
-                	Year      int
-                	ExtraData map[string]interface{}
+                \tAppName   string
+                \tUserName  string
+                \tYear      int
+                \tExtraData map[string]interface{}
                 }
 
                 // NewMailService creates a new mail service instance.
                 func NewMailService() (*MailService, error) {
-                	config := &Config{
-                		Host:     viper.GetString("mail.host"),
-                		Port:     viper.GetInt("mail.port"),
-                		Username: viper.GetString("mail.username"),
-                		Password: viper.GetString("mail.password"),
-                		FromAddr: viper.GetString("mail.from_address"),
-                		FromName: viper.GetString("mail.from_name"),
-                		UseTLS:   viper.GetBool("mail.use_tls"),
-                	}
+                \tconfig := &Config{
+                \t\tHost:     viper.GetString("mail.host"),
+                \t\tPort:     viper.GetInt("mail.port"),
+                \t\tUsername: viper.GetString("mail.username"),
+                \t\tPassword: viper.GetString("mail.password"),
+                \t\tFromAddr: viper.GetString("mail.from_address"),
+                \t\tFromName: viper.GetString("mail.from_name"),
+                \t\tUseTLS:   viper.GetBool("mail.use_tls"),
+                \t}
 
-                	if config.Host == "" {
-                		config.Host = "localhost"
-                	}
-                	if config.Port == 0 {
-                		config.Port = 25
-                	}
-                	if config.FromName == "" {
-                		config.FromName = viper.GetString("app.name")
-                	}
+                \tif config.Host == "" {
+                \t\tconfig.Host = "localhost"
+                \t}
+                \tif config.Port == 0 {
+                \t\tconfig.Port = 25
+                \t}
+                \tif config.FromName == "" {
+                \t\tconfig.FromName = viper.GetString("app.name")
+                \t}
 
-                	// Load templates
-                	templates, err := template.ParseGlob("templates/email/*.html")
-                	if err != nil {
-                		log.Printf("Warning: could not load email templates: %%v", err)
-                		templates = template.New("")
-                	}
+                \t// Load templates
+                \ttemplates, err := template.ParseGlob("templates/email/*.html")
+                \tif err != nil {
+                \t\tlog.Printf("Warning: could not load email templates: %%v", err)
+                \t\ttemplates = template.New("")
+                \t}
 
-                	return &MailService{
-                		config:    config,
-                		templates: templates,
-                	}, nil
+                \treturn &MailService{
+                \t\tconfig:    config,
+                \t\ttemplates: templates,
+                \t}, nil
                 }
 
                 // SendSimpleEmail sends a plain text email.
                 func (s *MailService) SendSimpleEmail(to, subject, body string) error {
-                	return s.sendEmail(to, subject, body, "text/plain")
+                \treturn s.sendEmail(to, subject, body, "text/plain")
                 }
 
                 // SendHTMLEmail sends an HTML email using a template.
                 func (s *MailService) SendHTMLEmail(to, subject, templateName string, data interface{}) error {
-                	var buf bytes.Buffer
-                	if err := s.templates.ExecuteTemplate(&buf, filepath.Base(templateName), data); err != nil {
-                		return fmt.Errorf("failed to render template: %%w", err)
-                	}
-                	return s.sendEmail(to, subject, buf.String(), "text/html")
+                \tvar buf bytes.Buffer
+                \tif err := s.templates.ExecuteTemplate(&buf, filepath.Base(templateName), data); err != nil {
+                \t\treturn fmt.Errorf("failed to render template: %%w", err)
+                \t}
+                \treturn s.sendEmail(to, subject, buf.String(), "text/html")
                 }
 
                 // SendWelcomeEmail sends a welcome email to a new user.
                 func (s *MailService) SendWelcomeEmail(to, userName string) error {
-                	data := EmailData{
-                		AppName:  viper.GetString("app.name"),
-                		UserName: userName,
-                	}
-                	return s.SendHTMLEmail(to, "Welcome to "+data.AppName+"!", "welcome.html", data)
+                \tdata := EmailData{
+                \t\tAppName:  viper.GetString("app.name"),
+                \t\tUserName: userName,
+                \t}
+                \treturn s.SendHTMLEmail(to, "Welcome to "+data.AppName+"!", "welcome.html", data)
                 }
 
                 // SendPasswordResetEmail sends a password reset email.
                 func (s *MailService) SendPasswordResetEmail(to, userName, resetLink string, expirationMinutes int) error {
-                	data := struct {
-                		EmailData
-                		ResetLink         string
-                		ExpirationMinutes int
-                	}{
-                		EmailData: EmailData{
-                			AppName:  viper.GetString("app.name"),
-                			UserName: userName,
-                		},
-                		ResetLink:         resetLink,
-                		ExpirationMinutes: expirationMinutes,
-                	}
-                	return s.SendHTMLEmail(to, "Password Reset Request", "password_reset.html", data)
+                \tdata := struct {
+                \t\tEmailData
+                \t\tResetLink         string
+                \t\tExpirationMinutes int
+                \t}{
+                \t\tEmailData: EmailData{
+                \t\t\tAppName:  viper.GetString("app.name"),
+                \t\t\tUserName: userName,
+                \t\t},
+                \t\tResetLink:         resetLink,
+                \t\tExpirationMinutes: expirationMinutes,
+                \t}
+                \treturn s.SendHTMLEmail(to, "Password Reset Request", "password_reset.html", data)
                 }
 
                 // SendNotificationEmail sends a notification email.
                 func (s *MailService) SendNotificationEmail(to, title, message string) error {
-                	data := struct {
-                		EmailData
-                		Title   string
-                		Message string
-                	}{
-                		EmailData: EmailData{
-                			AppName: viper.GetString("app.name"),
-                		},
-                		Title:   title,
-                		Message: message,
-                	}
-                	return s.SendHTMLEmail(to, title, "notification.html", data)
+                \tdata := struct {
+                \t\tEmailData
+                \t\tTitle   string
+                \t\tMessage string
+                \t}{
+                \t\tEmailData: EmailData{
+                \t\t\tAppName: viper.GetString("app.name"),
+                \t\t},
+                \t\tTitle:   title,
+                \t\tMessage: message,
+                \t}
+                \treturn s.SendHTMLEmail(to, title, "notification.html", data)
                 }
 
                 func (s *MailService) sendEmail(to, subject, body, contentType string) error {
-                	from := fmt.Sprintf("%%s <%%s>", s.config.FromName, s.config.FromAddr)
+                \tfrom := fmt.Sprintf("%%s <%%s>", s.config.FromName, s.config.FromAddr)
 
-                	headers := make(map[string]string)
-                	headers["From"] = from
-                	headers["To"] = to
-                	headers["Subject"] = subject
-                	headers["MIME-Version"] = "1.0"
-                	headers["Content-Type"] = contentType + "; charset=UTF-8"
+                \theaders := make(map[string]string)
+                \theaders["From"] = from
+                \theaders["To"] = to
+                \theaders["Subject"] = subject
+                \theaders["MIME-Version"] = "1.0"
+                \theaders["Content-Type"] = contentType + "; charset=UTF-8"
 
-                	var msg bytes.Buffer
-                	for k, v := range headers {
-                		msg.WriteString(fmt.Sprintf("%%s: %%s\\r\\n", k, v))
-                	}
-                	msg.WriteString("\\r\\n")
-                	msg.WriteString(body)
+                \tvar msg bytes.Buffer
+                \tfor k, v := range headers {
+                \t\tmsg.WriteString(fmt.Sprintf("%%s: %%s\\r\\n", k, v))
+                \t}
+                \tmsg.WriteString("\\r\\n")
+                \tmsg.WriteString(body)
 
-                	addr := fmt.Sprintf("%%s:%%d", s.config.Host, s.config.Port)
+                \taddr := fmt.Sprintf("%%s:%%d", s.config.Host, s.config.Port)
 
-                	var auth smtp.Auth
-                	if s.config.Username != "" {
-                		auth = smtp.PlainAuth("", s.config.Username, s.config.Password, s.config.Host)
-                	}
+                \tvar auth smtp.Auth
+                \tif s.config.Username != "" {
+                \t\tauth = smtp.PlainAuth("", s.config.Username, s.config.Password, s.config.Host)
+                \t}
 
-                	if s.config.UseTLS {
-                		return s.sendWithTLS(addr, auth, s.config.FromAddr, []string{to}, msg.Bytes())
-                	}
+                \tif s.config.UseTLS {
+                \t\treturn s.sendWithTLS(addr, auth, s.config.FromAddr, []string{to}, msg.Bytes())
+                \t}
 
-                	return smtp.SendMail(addr, auth, s.config.FromAddr, []string{to}, msg.Bytes())
+                \treturn smtp.SendMail(addr, auth, s.config.FromAddr, []string{to}, msg.Bytes())
                 }
 
                 func (s *MailService) sendWithTLS(addr string, auth smtp.Auth, from string, to []string, msg []byte) error {
-                	conn, err := tls.Dial("tcp", addr, &tls.Config{
-                		ServerName: s.config.Host,
-                	})
-                	if err != nil {
-                		return fmt.Errorf("TLS dial failed: %%w", err)
-                	}
-                	defer conn.Close()
+                \tconn, err := tls.Dial("tcp", addr, &tls.Config{
+                \t\tServerName: s.config.Host,
+                \t})
+                \tif err != nil {
+                \t\treturn fmt.Errorf("TLS dial failed: %%w", err)
+                \t}
+                \tdefer conn.Close()
 
-                	client, err := smtp.NewClient(conn, s.config.Host)
-                	if err != nil {
-                		return fmt.Errorf("SMTP client creation failed: %%w", err)
-                	}
-                	defer client.Close()
+                \tclient, err := smtp.NewClient(conn, s.config.Host)
+                \tif err != nil {
+                \t\treturn fmt.Errorf("SMTP client creation failed: %%w", err)
+                \t}
+                \tdefer client.Close()
 
-                	if auth != nil {
-                		if err = client.Auth(auth); err != nil {
-                			return fmt.Errorf("SMTP auth failed: %%w", err)
-                		}
-                	}
+                \tif auth != nil {
+                \t\tif err = client.Auth(auth); err != nil {
+                \t\t\treturn fmt.Errorf("SMTP auth failed: %%w", err)
+                \t\t}
+                \t}
 
-                	if err = client.Mail(from); err != nil {
-                		return fmt.Errorf("SMTP MAIL command failed: %%w", err)
-                	}
+                \tif err = client.Mail(from); err != nil {
+                \t\treturn fmt.Errorf("SMTP MAIL command failed: %%w", err)
+                \t}
 
-                	for _, recipient := range to {
-                		if err = client.Rcpt(recipient); err != nil {
-                			return fmt.Errorf("SMTP RCPT command failed: %%w", err)
-                		}
-                	}
+                \tfor _, recipient := range to {
+                \t\tif err = client.Rcpt(recipient); err != nil {
+                \t\t\treturn fmt.Errorf("SMTP RCPT command failed: %%w", err)
+                \t\t}
+                \t}
 
-                	w, err := client.Data()
-                	if err != nil {
-                		return fmt.Errorf("SMTP DATA command failed: %%w", err)
-                	}
+                \tw, err := client.Data()
+                \tif err != nil {
+                \t\treturn fmt.Errorf("SMTP DATA command failed: %%w", err)
+                \t}
 
-                	_, err = w.Write(msg)
-                	if err != nil {
-                		return fmt.Errorf("writing message failed: %%w", err)
-                	}
+                \t_, err = w.Write(msg)
+                \tif err != nil {
+                \t\treturn fmt.Errorf("writing message failed: %%w", err)
+                \t}
 
-                	err = w.Close()
-                	if err != nil {
-                		return fmt.Errorf("closing message failed: %%w", err)
-                	}
+                \terr = w.Close()
+                \tif err != nil {
+                \t\treturn fmt.Errorf("closing message failed: %%w", err)
+                \t}
 
-                	return client.Quit()
+                \treturn client.Quit()
                 }
                 """,
                 moduleName);
@@ -274,13 +280,13 @@ public class GoMailServiceGenerator {
 
         // Config holds mail server configuration.
         type Config struct {
-        	Host     string
-        	Port     int
-        	Username string
-        	Password string
-        	FromAddr string
-        	FromName string
-        	UseTLS   bool
+        \tHost     string
+        \tPort     int
+        \tUsername string
+        \tPassword string
+        \tFromAddr string
+        \tFromName string
+        \tUseTLS   bool
         }
         """;
     }

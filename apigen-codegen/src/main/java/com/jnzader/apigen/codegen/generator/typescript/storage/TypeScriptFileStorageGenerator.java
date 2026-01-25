@@ -16,6 +16,7 @@
 package com.jnzader.apigen.codegen.generator.typescript.storage;
 
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -24,6 +25,10 @@ import java.util.Map;
  * @author APiGen
  * @since 2.13.0
  */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3400"
+}) // S1192: Storage type strings intentional for clarity; S3400: template methods return constants
 public class TypeScriptFileStorageGenerator {
 
     /**
@@ -37,10 +42,17 @@ public class TypeScriptFileStorageGenerator {
         Map<String, String> files = new LinkedHashMap<>();
 
         // Determine primary storage type for module configuration
-        String primaryStorage = useS3 ? "s3" : (useAzure ? "azure" : "local");
+        String primaryStorage;
+        if (useS3) {
+            primaryStorage = "s3";
+        } else if (useAzure) {
+            primaryStorage = "azure";
+        } else {
+            primaryStorage = "local";
+        }
 
         files.put("src/files/files.module.ts", generateModule(primaryStorage));
-        files.put("src/files/files.service.ts", generateService(primaryStorage));
+        files.put("src/files/files.service.ts", generateService());
         files.put("src/files/files.controller.ts", generateController());
         files.put("src/files/dto/file.dto.ts", generateDto());
         files.put("src/files/entities/file-metadata.entity.ts", generateEntity());
@@ -62,14 +74,14 @@ public class TypeScriptFileStorageGenerator {
 
     private String generateModule(String storageType) {
         String storageProvider =
-                switch (storageType.toLowerCase()) {
+                switch (storageType.toLowerCase(Locale.ROOT)) {
                     case "s3" -> "S3Storage";
                     case "azure" -> "AzureStorage";
                     default -> "LocalStorage";
                 };
 
         String storageImport =
-                switch (storageType.toLowerCase()) {
+                switch (storageType.toLowerCase(Locale.ROOT)) {
                     case "s3" -> "import { S3Storage } from './storage/s3.storage';";
                     case "azure" -> "import { AzureStorage } from './storage/azure.storage';";
                     default -> "import { LocalStorage } from './storage/local.storage';";
@@ -106,7 +118,7 @@ public class TypeScriptFileStorageGenerator {
                 storageImport, storageProvider);
     }
 
-    private String generateService(String storageType) {
+    private String generateService() {
         return """
         import { Injectable, Inject, NotFoundException, BadRequestException } from '@nestjs/common';
         import { InjectRepository } from '@nestjs/typeorm';

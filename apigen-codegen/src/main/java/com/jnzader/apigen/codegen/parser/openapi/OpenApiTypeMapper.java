@@ -8,6 +8,7 @@ import io.swagger.v3.oas.models.media.Schema;
  * <p>This mapper handles the conversion of OpenAPI data types to their SQL equivalents for schema
  * generation and Java types for code generation.
  */
+@SuppressWarnings("java:S1192") // Type mapping strings intentional for readability
 public class OpenApiTypeMapper {
 
     private OpenApiTypeMapper() {
@@ -183,7 +184,7 @@ public class OpenApiTypeMapper {
         if (start > 0 && end > start) {
             try {
                 return Integer.parseInt(sqlType.substring(start + 1, end).trim());
-            } catch (NumberFormatException e) {
+            } catch (NumberFormatException _) {
                 return null;
             }
         }
@@ -211,7 +212,7 @@ public class OpenApiTypeMapper {
                 int precision = Integer.parseInt(parts[0].trim());
                 int scale = parts.length > 1 ? Integer.parseInt(parts[1].trim()) : 0;
                 return new int[] {precision, scale};
-            } catch (NumberFormatException e) {
+            } catch (NumberFormatException _) {
                 return EMPTY_INT_ARRAY;
             }
         }

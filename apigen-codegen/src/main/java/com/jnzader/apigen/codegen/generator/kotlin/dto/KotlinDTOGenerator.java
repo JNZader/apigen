@@ -12,6 +12,7 @@ import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.List;
 
 /** Generates DTO classes from SQL table definitions for Kotlin/Spring Boot. */
+@SuppressWarnings("java:S1192") // Duplicate strings intentional for code generation templates
 public class KotlinDTOGenerator {
 
     private static final String APIGEN_CORE_PKG = "com.jnzader.apigen.core";

@@ -25,6 +25,10 @@ import java.util.Map;
  * @author APiGen
  * @since 2.13.0
  */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3400"
+}) // S1192: Provider names intentional for clarity; S3400: template methods return constants
 public class TypeScriptSocialLoginGenerator {
 
     /**
@@ -52,7 +56,6 @@ public class TypeScriptSocialLoginGenerator {
     }
 
     private String generateModule(List<String> providers) {
-        StringBuilder imports = new StringBuilder();
         StringBuilder strategyImports = new StringBuilder();
         StringBuilder strategyProviders = new StringBuilder();
 

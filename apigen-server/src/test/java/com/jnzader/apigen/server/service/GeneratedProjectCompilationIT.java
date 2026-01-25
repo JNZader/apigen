@@ -78,22 +78,13 @@ class GeneratedProjectCompilationIT {
         String applicationJava = extractFileFromZip(zipBytes, "MyApiApplication.java");
 
         assertThat(applicationJava)
-                .as("Application.java should contain @EnableJpaRepositories import")
+                .as("Application.java should have JPA annotations with security packages")
                 .contains(
                         "import"
-                            + " org.springframework.data.jpa.repository.config.EnableJpaRepositories;");
-
-        assertThat(applicationJava)
-                .as("Application.java should contain @EntityScan import (Spring Boot 4.0 location)")
-                .contains("import org.springframework.boot.persistence.autoconfigure.EntityScan;");
-
-        assertThat(applicationJava)
-                .as("Application.java should have @EnableJpaRepositories with security package")
+                            + " org.springframework.data.jpa.repository.config.EnableJpaRepositories;")
+                .contains("import org.springframework.boot.persistence.autoconfigure.EntityScan;")
                 .contains("@EnableJpaRepositories(basePackages = {\"com.example.myapi\"")
-                .contains("com.jnzader.apigen.security.domain.repository");
-
-        assertThat(applicationJava)
-                .as("Application.java should have @EntityScan with security package")
+                .contains("com.jnzader.apigen.security.domain.repository")
                 .contains("@EntityScan(basePackages = {\"com.example.myapi\"")
                 .contains("com.jnzader.apigen.security.domain.entity");
     }
@@ -112,12 +103,8 @@ class GeneratedProjectCompilationIT {
         String applicationJava = extractFileFromZip(zipBytes, "MyApiApplication.java");
 
         assertThat(applicationJava)
-                .as("Application.java should have @EnableJpaRepositories with only app package")
+                .as("Application.java should have JPA annotations with only app package")
                 .contains("@EnableJpaRepositories(basePackages = \"com.example.myapi\")")
-                .doesNotContain("com.jnzader.apigen.security");
-
-        assertThat(applicationJava)
-                .as("Application.java should have @EntityScan with only app package")
                 .contains("@EntityScan(basePackages = \"com.example.myapi\")")
                 .doesNotContain("com.jnzader.apigen.security");
     }
@@ -220,9 +207,12 @@ class GeneratedProjectCompilationIT {
 
         // All versions failed
         fail(
-                "Generated project context test failed with all fallback versions.\n\n"
-                        + "Last output:\n"
-                        + "%s",
+                """
+                Generated project context test failed with all fallback versions.
+
+                Last output:
+                %s\
+                """,
                 lastOutput);
     }
 
@@ -300,9 +290,12 @@ class GeneratedProjectCompilationIT {
 
         // All versions failed
         fail(
-                "Generated Kotlin project compilation failed with all fallback versions.\n\n"
-                        + "Last output:\n"
-                        + "%s",
+                """
+                Generated Kotlin project compilation failed with all fallback versions.
+
+                Last output:
+                %s\
+                """,
                 lastOutput);
     }
 
@@ -431,12 +424,6 @@ class GeneratedProjectCompilationIT {
         extractZipToDirectory(zipBytes, tempDir);
 
         Path projectDir = tempDir.resolve(artifactId);
-
-        // Run Python syntax check on all .py files
-        ProcessBuilder pb =
-                new ProcessBuilder("python", "-m", "py_compile")
-                        .directory(projectDir.toFile())
-                        .redirectErrorStream(true);
 
         // Find all Python files and check syntax
         StringBuilder allOutput = new StringBuilder();

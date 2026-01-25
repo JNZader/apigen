@@ -17,6 +17,11 @@ import java.util.List;
  *   <li>Base entity with audit fields
  * </ul>
  */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3776",
+    "java:S6541"
+}) // S1192: Template strings; S3776/S6541: complex entity generation logic
 public class TypeScriptEntityGenerator {
 
     private final TypeScriptTypeMapper typeMapper;
@@ -125,21 +130,11 @@ public class TypeScriptEntityGenerator {
         sb.append("@Entity('").append(tableName).append("')\n");
         sb.append("export class ").append(className).append(" extends BaseEntity {\n");
 
-        // Entity-specific columns
+        // Entity-specific columns (skip PK, audit fields, FK columns handled by relationships)
         for (SqlColumn column : table.getColumns()) {
-            if (column.isPrimaryKey() || isAuditField(column.getName())) {
-                continue;
-            }
-
-            // Skip FK columns - they'll be handled by relationships
-            boolean isFkColumn =
-                    relationships.stream()
-                            .anyMatch(
-                                    r ->
-                                            r.getForeignKey()
-                                                    .getColumnName()
-                                                    .equalsIgnoreCase(column.getName()));
-            if (isFkColumn) {
+            if (column.isPrimaryKey()
+                    || isAuditField(column.getName())
+                    || isForeignKeyColumn(column.getName(), relationships)) {
                 continue;
             }
 
@@ -246,5 +241,11 @@ public class TypeScriptEntityGenerator {
                 || lower.equals("updated_by")
                 || lower.equals("deleted_at")
                 || lower.equals("deleted_by");
+    }
+
+    private boolean isForeignKeyColumn(
+            String columnName, List<SqlSchema.TableRelationship> relationships) {
+        return relationships.stream()
+                .anyMatch(r -> r.getForeignKey().getColumnName().equalsIgnoreCase(columnName));
     }
 }

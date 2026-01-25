@@ -7,6 +7,10 @@ import org.springframework.stereotype.Component;
 
 /** Generates application configuration files (application.yml, application-docker.yml). */
 @Component
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3776"
+}) // S1192: Config strings; S3776: complex config generation logic
 public class ApplicationConfigGenerator {
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
@@ -165,7 +169,7 @@ public class ApplicationConfigGenerator {
         }
 
         yml.append("    allow-credentials: ")
-                .append(cors != null ? cors.isAllowCredentials() : true)
+                .append(cors == null || cors.isAllowCredentials())
                 .append("\n");
         yml.append("    max-age: ")
                 .append(cors != null ? cors.getMaxAgeSeconds() : 3600)

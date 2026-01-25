@@ -25,6 +25,7 @@ import java.util.Map;
  * @author APiGen
  * @since 2.16.0
  */
+@SuppressWarnings("java:S1192") // Duplicate strings intentional for code generation templates
 public class PhpTestGenerator {
 
     /**
@@ -37,9 +38,7 @@ public class PhpTestGenerator {
         Map<String, String> files = new LinkedHashMap<>();
         String entityName = table.getEntityName();
 
-        files.put(
-                "tests/Unit/" + entityName + "ServiceTest.php",
-                generateUnitTest(table, entityName));
+        files.put("tests/Unit/" + entityName + "ServiceTest.php", generateUnitTest(entityName));
         files.put(
                 "tests/Feature/" + entityName + "ControllerTest.php",
                 generateFeatureTest(table, entityName));
@@ -47,9 +46,7 @@ public class PhpTestGenerator {
         return files;
     }
 
-    private String generateUnitTest(SqlTable table, String entityName) {
-        String snakeName = toSnakeCase(table.getName());
-
+    private String generateUnitTest(String entityName) {
         return String.format(
                 """
                 <?php

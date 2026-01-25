@@ -14,6 +14,7 @@ import com.jnzader.apigen.codegen.model.SqlTable;
  *   <li>Pagination support
  * </ul>
  */
+@SuppressWarnings("java:S1192") // Duplicate strings intentional for code generation templates
 public class TypeScriptRepositoryGenerator {
 
     private final TypeScriptTypeMapper typeMapper;
@@ -32,7 +33,6 @@ public class TypeScriptRepositoryGenerator {
         StringBuilder sb = new StringBuilder();
         String className = table.getEntityName();
         String entityKebab = typeMapper.toKebabCase(className);
-        String varName = typeMapper.toCamelCase(className);
 
         // Imports
         sb.append("import { Injectable } from '@nestjs/common';\n");

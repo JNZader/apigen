@@ -16,6 +16,7 @@ import java.util.List;
  *   <li>ResourceCollection classes for paginated results
  * </ul>
  */
+@SuppressWarnings("java:S1192") // Duplicate strings intentional for code generation templates
 public class PhpResourceGenerator {
 
     private final PhpTypeMapper typeMapper;

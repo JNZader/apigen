@@ -16,6 +16,7 @@ import java.util.Map;
  *   <li>Configuration settings for JWT
  * </ul>
  */
+@SuppressWarnings("java:S3400") // Template methods return constants for code generation
 public class PythonJwtAuthGenerator {
 
     private static final int DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES = 30;
@@ -33,10 +34,8 @@ public class PythonJwtAuthGenerator {
 
         // Auth package
         files.put("app/auth/__init__.py", generateAuthInit());
-        files.put("app/auth/jwt_handler.py", generateJwtHandler(accessTokenExpireMinutes));
-        files.put(
-                "app/auth/jwt_bearer.py",
-                generateJwtBearer(accessTokenExpireMinutes, refreshTokenExpireDays));
+        files.put("app/auth/jwt_handler.py", generateJwtHandler());
+        files.put("app/auth/jwt_bearer.py", generateJwtBearer());
         files.put("app/auth/models.py", generateAuthModels());
         files.put("app/auth/router.py", generateAuthRouter());
         files.put("app/auth/service.py", generateAuthService());
@@ -78,7 +77,7 @@ public class PythonJwtAuthGenerator {
         """;
     }
 
-    private String generateJwtHandler(int accessTokenExpireMinutes) {
+    private String generateJwtHandler() {
         return """
         from datetime import datetime, timedelta, timezone
         from typing import Optional
@@ -98,7 +97,7 @@ public class PythonJwtAuthGenerator {
             expires_delta: Optional[timedelta] = None,
             additional_claims: Optional[dict] = None,
         ) -> str:
-            \"\"\"
+            \"""
             Create a JWT access token.
 
             Args:
@@ -108,7 +107,7 @@ public class PythonJwtAuthGenerator {
 
             Returns:
                 Encoded JWT token
-            \"\"\"
+            \"""
             if expires_delta:
                 expire = datetime.now(timezone.utc) + expires_delta
             else:
@@ -133,7 +132,7 @@ public class PythonJwtAuthGenerator {
             subject: str | int,
             expires_delta: Optional[timedelta] = None,
         ) -> str:
-            \"\"\"
+            \"""
             Create a JWT refresh token.
 
             Args:
@@ -142,7 +141,7 @@ public class PythonJwtAuthGenerator {
 
             Returns:
                 Encoded JWT refresh token
-            \"\"\"
+            \"""
             if expires_delta:
                 expire = datetime.now(timezone.utc) + expires_delta
             else:
@@ -161,7 +160,7 @@ public class PythonJwtAuthGenerator {
 
 
         def decode_token(token: str) -> Optional[TokenPayload]:
-            \"\"\"
+            \"""
             Decode and validate a JWT token.
 
             Args:
@@ -169,7 +168,7 @@ public class PythonJwtAuthGenerator {
 
             Returns:
                 TokenPayload if valid, None otherwise
-            \"\"\"
+            \"""
             try:
                 payload = jwt.decode(
                     token,
@@ -182,7 +181,7 @@ public class PythonJwtAuthGenerator {
 
 
         def verify_token(token: str, token_type: str = "access") -> Optional[TokenPayload]:
-            \"\"\"
+            \"""
             Verify a token and check its type.
 
             Args:
@@ -191,7 +190,7 @@ public class PythonJwtAuthGenerator {
 
             Returns:
                 TokenPayload if valid and correct type, None otherwise
-            \"\"\"
+            \"""
             payload = decode_token(token)
             if payload is None:
                 return None
@@ -201,7 +200,7 @@ public class PythonJwtAuthGenerator {
         """;
     }
 
-    private String generateJwtBearer(int accessTokenExpireMinutes, int refreshTokenExpireDays) {
+    private String generateJwtBearer() {
         return """
         from typing import Annotated, Optional
 
@@ -220,7 +219,7 @@ public class PythonJwtAuthGenerator {
 
 
         class JWTBearer:
-            \"\"\"
+            \"""
             JWT Bearer authentication dependency.
 
             Usage:
@@ -229,7 +228,7 @@ public class PythonJwtAuthGenerator {
                     current_user: Annotated[User, Depends(get_current_user)]
                 ):
                     return {"user": current_user.email}
-            \"\"\"
+            \"""
 
             def __init__(self, auto_error: bool = True):
                 self.auto_error = auto_error
@@ -271,7 +270,7 @@ public class PythonJwtAuthGenerator {
             token_payload: Annotated[TokenPayload, Depends(jwt_bearer)],
             db: Annotated[AsyncSession, Depends(get_db)],
         ) -> User:
-            \"\"\"
+            \"""
             Get the current authenticated user.
 
             Args:
@@ -283,7 +282,7 @@ public class PythonJwtAuthGenerator {
 
             Raises:
                 HTTPException: If user not found or inactive
-            \"\"\"
+            \"""
             user_repo = UserRepository(db)
             user = await user_repo.get_by_id(int(token_payload.sub))
 
@@ -307,7 +306,7 @@ public class PythonJwtAuthGenerator {
         async def get_current_active_superuser(
             current_user: Annotated[User, Depends(get_current_user)],
         ) -> User:
-            \"\"\"
+            \"""
             Get the current authenticated superuser.
 
             Args:
@@ -318,7 +317,7 @@ public class PythonJwtAuthGenerator {
 
             Raises:
                 HTTPException: If user is not a superuser
-            \"\"\"
+            \"""
             if not current_user.is_superuser:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
@@ -337,7 +336,7 @@ public class PythonJwtAuthGenerator {
 
 
         class TokenPayload(BaseModel):
-            \"\"\"JWT token payload.\"\"\"
+            \"""JWT token payload.\"""
 
             sub: str = Field(..., description="Subject (user ID)")
             exp: datetime = Field(..., description="Expiration time")
@@ -346,7 +345,7 @@ public class PythonJwtAuthGenerator {
 
 
         class TokenResponse(BaseModel):
-            \"\"\"Response containing access and refresh tokens.\"\"\"
+            \"""Response containing access and refresh tokens.\"""
 
             access_token: str = Field(..., description="JWT access token")
             refresh_token: str = Field(..., description="JWT refresh token")
@@ -354,20 +353,20 @@ public class PythonJwtAuthGenerator {
 
 
         class LoginRequest(BaseModel):
-            \"\"\"Login request with email and password.\"\"\"
+            \"""Login request with email and password.\"""
 
             email: EmailStr = Field(..., description="User email")
             password: str = Field(..., min_length=8, description="User password")
 
 
         class RefreshTokenRequest(BaseModel):
-            \"\"\"Request to refresh access token.\"\"\"
+            \"""Request to refresh access token.\"""
 
             refresh_token: str = Field(..., description="Valid refresh token")
 
 
         class RegisterRequest(BaseModel):
-            \"\"\"User registration request.\"\"\"
+            \"""User registration request.\"""
 
             email: EmailStr = Field(..., description="User email")
             password: str = Field(..., min_length=8, max_length=100, description="User password")
@@ -375,7 +374,7 @@ public class PythonJwtAuthGenerator {
 
 
         class ChangePasswordRequest(BaseModel):
-            \"\"\"Request to change password.\"\"\"
+            \"""Request to change password.\"""
 
             current_password: str = Field(..., description="Current password")
             new_password: str = Field(..., min_length=8, max_length=100, description="New password")
@@ -411,7 +410,7 @@ public class PythonJwtAuthGenerator {
             request: LoginRequest,
             db: Annotated[AsyncSession, Depends(get_db)],
         ) -> TokenResponse:
-            \"\"\"
+            \"""
             Authenticate user and return tokens.
 
             Args:
@@ -420,7 +419,7 @@ public class PythonJwtAuthGenerator {
 
             Returns:
                 Access and refresh tokens
-            \"\"\"
+            \"""
             auth_service = AuthService(db)
             result = await auth_service.authenticate(request.email, request.password)
 
@@ -439,7 +438,7 @@ public class PythonJwtAuthGenerator {
             request: RegisterRequest,
             db: Annotated[AsyncSession, Depends(get_db)],
         ) -> User:
-            \"\"\"
+            \"""
             Register a new user.
 
             Args:
@@ -448,7 +447,7 @@ public class PythonJwtAuthGenerator {
 
             Returns:
                 Created user
-            \"\"\"
+            \"""
             auth_service = AuthService(db)
 
             try:
@@ -470,7 +469,7 @@ public class PythonJwtAuthGenerator {
             request: RefreshTokenRequest,
             db: Annotated[AsyncSession, Depends(get_db)],
         ) -> TokenResponse:
-            \"\"\"
+            \"""
             Refresh access token using refresh token.
 
             Args:
@@ -479,7 +478,7 @@ public class PythonJwtAuthGenerator {
 
             Returns:
                 New access and refresh tokens
-            \"\"\"
+            \"""
             auth_service = AuthService(db)
             result = await auth_service.refresh_tokens(request.refresh_token)
 
@@ -497,7 +496,7 @@ public class PythonJwtAuthGenerator {
         async def get_current_user_info(
             current_user: Annotated[User, Depends(get_current_user)],
         ) -> User:
-            \"\"\"
+            \"""
             Get current authenticated user information.
 
             Args:
@@ -505,7 +504,7 @@ public class PythonJwtAuthGenerator {
 
             Returns:
                 User information
-            \"\"\"
+            \"""
             return current_user
 
 
@@ -515,14 +514,14 @@ public class PythonJwtAuthGenerator {
             current_user: Annotated[User, Depends(get_current_user)],
             db: Annotated[AsyncSession, Depends(get_db)],
         ) -> None:
-            \"\"\"
+            \"""
             Change current user's password.
 
             Args:
                 request: Password change data
                 current_user: The authenticated user
                 db: Database session
-            \"\"\"
+            \"""
             auth_service = AuthService(db)
 
             success = await auth_service.change_password(
@@ -557,7 +556,7 @@ public class PythonJwtAuthGenerator {
 
 
         class AuthService:
-            \"\"\"Authentication service for user login, registration, and token management.\"\"\"
+            \"""Authentication service for user login, registration, and token management.\"""
 
             def __init__(self, db: AsyncSession):
                 self.db = db
@@ -566,7 +565,7 @@ public class PythonJwtAuthGenerator {
             async def authenticate(
                 self, email: str, password: str
             ) -> Optional[TokenResponse]:
-                \"\"\"
+                \"""
                 Authenticate user with email and password.
 
                 Args:
@@ -575,7 +574,7 @@ public class PythonJwtAuthGenerator {
 
                 Returns:
                     TokenResponse if authentication successful, None otherwise
-                \"\"\"
+                \"""
                 user = await self.user_repo.get_by_email(email)
 
                 if user is None:
@@ -595,7 +594,7 @@ public class PythonJwtAuthGenerator {
                 password: str,
                 full_name: Optional[str] = None,
             ) -> User:
-                \"\"\"
+                \"""
                 Register a new user.
 
                 Args:
@@ -608,7 +607,7 @@ public class PythonJwtAuthGenerator {
 
                 Raises:
                     ValueError: If email already exists
-                \"\"\"
+                \"""
                 existing = await self.user_repo.get_by_email(email)
                 if existing:
                     raise ValueError("Email already registered")
@@ -626,7 +625,7 @@ public class PythonJwtAuthGenerator {
             async def refresh_tokens(
                 self, refresh_token: str
             ) -> Optional[TokenResponse]:
-                \"\"\"
+                \"""
                 Refresh access and refresh tokens.
 
                 Args:
@@ -634,7 +633,7 @@ public class PythonJwtAuthGenerator {
 
                 Returns:
                     New TokenResponse if valid, None otherwise
-                \"\"\"
+                \"""
                 payload = verify_token(refresh_token, token_type="refresh")
 
                 if payload is None:
@@ -653,7 +652,7 @@ public class PythonJwtAuthGenerator {
                 current_password: str,
                 new_password: str,
             ) -> bool:
-                \"\"\"
+                \"""
                 Change user password.
 
                 Args:
@@ -663,7 +662,7 @@ public class PythonJwtAuthGenerator {
 
                 Returns:
                     True if password changed successfully, False otherwise
-                \"\"\"
+                \"""
                 if not verify_password(current_password, user.hashed_password):
                     return False
 
@@ -673,7 +672,7 @@ public class PythonJwtAuthGenerator {
                 return True
 
             def _create_tokens(self, user: User) -> TokenResponse:
-                \"\"\"Create access and refresh tokens for user.\"\"\"
+                \"""Create access and refresh tokens for user.\"""
                 access_token = create_access_token(
                     subject=user.id,
                     additional_claims={
@@ -701,7 +700,7 @@ public class PythonJwtAuthGenerator {
 
 
         class User(Base):
-            \"\"\"User model for authentication.\"\"\"
+            \"""User model for authentication.\"""
 
             __tablename__ = "users"
 
@@ -734,20 +733,20 @@ public class PythonJwtAuthGenerator {
 
 
         class UserBase(BaseModel):
-            \"\"\"Base user schema.\"\"\"
+            \"""Base user schema.\"""
 
             email: EmailStr = Field(..., description="User email address")
             full_name: Optional[str] = Field(None, max_length=255, description="User's full name")
 
 
         class UserCreate(UserBase):
-            \"\"\"Schema for creating a user.\"\"\"
+            \"""Schema for creating a user.\"""
 
             password: str = Field(..., min_length=8, max_length=100, description="User password")
 
 
         class UserUpdate(BaseModel):
-            \"\"\"Schema for updating a user.\"\"\"
+            \"""Schema for updating a user.\"""
 
             email: Optional[EmailStr] = Field(None, description="User email address")
             full_name: Optional[str] = Field(None, max_length=255, description="User's full name")
@@ -755,7 +754,7 @@ public class PythonJwtAuthGenerator {
 
 
         class UserResponse(UserBase):
-            \"\"\"Schema for user response.\"\"\"
+            \"""Schema for user response.\"""
 
             model_config = ConfigDict(from_attributes=True)
 
@@ -779,13 +778,13 @@ public class PythonJwtAuthGenerator {
 
 
         class UserRepository(BaseRepository[User]):
-            \"\"\"Repository for User entity operations.\"\"\"
+            \"""Repository for User entity operations.\"""
 
             def __init__(self, db: AsyncSession):
                 super().__init__(User, db)
 
             async def get_by_email(self, email: str) -> Optional[User]:
-                \"\"\"
+                \"""
                 Get user by email address.
 
                 Args:
@@ -793,13 +792,13 @@ public class PythonJwtAuthGenerator {
 
                 Returns:
                     User if found, None otherwise
-                \"\"\"
+                \"""
                 stmt = select(User).where(User.email == email)
                 result = await self.db.execute(stmt)
                 return result.scalar_one_or_none()
 
             async def get_by_id(self, user_id: int) -> Optional[User]:
-                \"\"\"
+                \"""
                 Get user by ID.
 
                 Args:
@@ -807,11 +806,11 @@ public class PythonJwtAuthGenerator {
 
                 Returns:
                     User if found, None otherwise
-                \"\"\"
+                \"""
                 return await self.db.get(User, user_id)
 
             async def create(self, user: User) -> User:
-                \"\"\"
+                \"""
                 Create a new user.
 
                 Args:
@@ -819,14 +818,14 @@ public class PythonJwtAuthGenerator {
 
                 Returns:
                     Created user with ID
-                \"\"\"
+                \"""
                 self.db.add(user)
                 await self.db.commit()
                 await self.db.refresh(user)
                 return user
 
             async def update(self, user: User) -> User:
-                \"\"\"
+                \"""
                 Update an existing user.
 
                 Args:
@@ -834,7 +833,7 @@ public class PythonJwtAuthGenerator {
 
                 Returns:
                     Updated user
-                \"\"\"
+                \"""
                 await self.db.commit()
                 await self.db.refresh(user)
                 return user
@@ -851,7 +850,7 @@ public class PythonJwtAuthGenerator {
 
 
         def hash_password(password: str) -> str:
-            \"\"\"
+            \"""
             Hash a password using bcrypt.
 
             Args:
@@ -859,12 +858,12 @@ public class PythonJwtAuthGenerator {
 
             Returns:
                 Hashed password
-            \"\"\"
+            \"""
             return pwd_context.hash(password)
 
 
         def verify_password(plain_password: str, hashed_password: str) -> bool:
-            \"\"\"
+            \"""
             Verify a password against its hash.
 
             Args:
@@ -873,7 +872,7 @@ public class PythonJwtAuthGenerator {
 
             Returns:
                 True if password matches, False otherwise
-            \"\"\"
+            \"""
             return pwd_context.verify(plain_password, hashed_password)
         """;
     }

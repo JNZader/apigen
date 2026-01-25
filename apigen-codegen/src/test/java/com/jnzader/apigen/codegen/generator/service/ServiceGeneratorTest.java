@@ -14,9 +14,11 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 @DisplayName("ServiceGenerator Tests")
-@SuppressWarnings(
-        "java:S5976") // Tests validate different specific service features, not the same feature
-// with different inputs
+@SuppressWarnings({
+    "java:S5976", // Tests validate different specific service features
+    "java:S1874", // Tests deprecated generators for backward compatibility
+    "deprecation"
+})
 class ServiceGeneratorTest {
 
     private ServiceGenerator serviceGenerator;

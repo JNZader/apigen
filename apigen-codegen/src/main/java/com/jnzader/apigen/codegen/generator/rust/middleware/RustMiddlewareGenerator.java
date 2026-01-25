@@ -24,7 +24,7 @@ import com.jnzader.apigen.codegen.generator.rust.RustTypeMapper;
  * @author APiGen
  * @since 2.12.0
  */
-@SuppressWarnings("java:S1068") // typeMapper reserved for future middleware types
+@SuppressWarnings({"java:S1068", "java:S1192"}) // S1068: reserved; S1192: template strings
 public class RustMiddlewareGenerator {
 
     private final RustTypeMapper typeMapper;

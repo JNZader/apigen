@@ -9,7 +9,13 @@ import java.util.List;
 import java.util.Set;
 
 /** Generates GORM model structs from SQL table definitions for Go/Gin. */
-@SuppressWarnings("java:S1068") // moduleName reserved for future module-aware generation
+@SuppressWarnings({
+    "java:S1068",
+    "java:S1192",
+    "java:S2479",
+    "java:S3776"
+}) // S1068: moduleName reserved; S1192: template strings; S2479: tabs for Go; S3776: complex model
+// gen
 public class GoModelGenerator {
 
     private final GoTypeMapper typeMapper;
@@ -38,7 +44,7 @@ public class GoModelGenerator {
         String tableName = table.getName();
 
         // Collect imports
-        Set<String> imports = collectImports(table, relationships, inverseRelationships);
+        Set<String> imports = collectImports(table);
 
         // Package declaration
         sb.append("package models\n\n");
@@ -184,30 +190,27 @@ public class GoModelGenerator {
         package models
 
         import (
-        	"time"
+        \t"time"
 
-        	"gorm.io/gorm"
+        \t"gorm.io/gorm"
         )
 
         // BaseModel contains common fields for all models.
         type BaseModel struct {
-        	ID        int64          `gorm:"primaryKey;autoIncrement" json:"id"`
-        	CreatedAt time.Time      `gorm:"autoCreateTime" json:"created_at"`
-        	UpdatedAt time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
-        	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+        \tID        int64          `gorm:"primaryKey;autoIncrement" json:"id"`
+        \tCreatedAt time.Time      `gorm:"autoCreateTime" json:"created_at"`
+        \tUpdatedAt time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
+        \tDeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
         }
 
         // IsDeleted returns true if the record is soft-deleted.
         func (b *BaseModel) IsDeleted() bool {
-        	return b.DeletedAt.Valid
+        \treturn b.DeletedAt.Valid
         }
         """;
     }
 
-    private Set<String> collectImports(
-            SqlTable table,
-            List<SqlSchema.TableRelationship> relationships,
-            List<SqlSchema.TableRelationship> inverseRelationships) {
+    private Set<String> collectImports(SqlTable table) {
 
         Set<String> imports = new HashSet<>();
         imports.add("time"); // For CreatedAt, UpdatedAt
@@ -217,6 +220,9 @@ public class GoModelGenerator {
             switch (column.getJavaType()) {
                 case "UUID" -> imports.add("uuid");
                 case "BigDecimal" -> imports.add("decimal");
+                default -> {
+                    // Other types don't require additional imports
+                }
             }
         }
 

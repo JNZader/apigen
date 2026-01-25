@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** Generates DTO record classes for C#/ASP.NET Core. */
+@SuppressWarnings("java:S1192") // Duplicate strings intentional for code generation templates
 public class CSharpDTOGenerator {
 
     private final String baseNamespace;
@@ -71,10 +72,9 @@ public class CSharpDTOGenerator {
 
         // Regular columns
         for (SqlColumn col : table.getColumns()) {
-            if (col.isPrimaryKey() || isAuditField(col.getName())) {
-                continue;
-            }
-            if (isForeignKeyColumn(col.getName(), relations)) {
+            if (col.isPrimaryKey()
+                    || isAuditField(col.getName())
+                    || isForeignKeyColumn(col.getName(), relations)) {
                 continue;
             }
 
@@ -131,10 +131,9 @@ public class CSharpDTOGenerator {
 
         // Regular columns (excluding PK and audit fields)
         for (SqlColumn col : table.getColumns()) {
-            if (col.isPrimaryKey() || isAuditField(col.getName())) {
-                continue;
-            }
-            if (isForeignKeyColumn(col.getName(), relations)) {
+            if (col.isPrimaryKey()
+                    || isAuditField(col.getName())
+                    || isForeignKeyColumn(col.getName(), relations)) {
                 continue;
             }
 
@@ -183,10 +182,9 @@ public class CSharpDTOGenerator {
 
         // All fields are optional for partial updates
         for (SqlColumn col : table.getColumns()) {
-            if (col.isPrimaryKey() || isAuditField(col.getName())) {
-                continue;
-            }
-            if (isForeignKeyColumn(col.getName(), relations)) {
+            if (col.isPrimaryKey()
+                    || isAuditField(col.getName())
+                    || isForeignKeyColumn(col.getName(), relations)) {
                 continue;
             }
 

@@ -25,6 +25,7 @@ import java.util.Map;
  * @author APiGen
  * @since 2.16.0
  */
+@SuppressWarnings("java:S1192") // Duplicate strings intentional for code generation templates
 public class RustTestGenerator {
 
     /**

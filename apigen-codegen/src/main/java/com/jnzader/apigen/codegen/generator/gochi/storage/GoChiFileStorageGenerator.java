@@ -24,6 +24,12 @@ import java.util.Map;
  * @author APiGen
  * @since 2.16.0
  */
+@SuppressWarnings({
+    "java:S2479",
+    "java:S1192",
+    "java:S3400"
+}) // S2479: Literal tabs for Go code; S1192: template strings; S3400: template methods return
+// constants
 public class GoChiFileStorageGenerator {
 
     private final String moduleName;
@@ -65,40 +71,40 @@ public class GoChiFileStorageGenerator {
                 package storage
 
                 import (
-                	"encoding/json"
-                	"io"
-                	"log/slog"
-                	"net/http"
+                \t"encoding/json"
+                \t"io"
+                \t"log/slog"
+                \t"net/http"
 
-                	"%s/internal/dto"
+                \t"%s/internal/dto"
 
-                	"github.com/go-chi/chi/v5"
-                	"github.com/google/uuid"
+                \t"github.com/go-chi/chi/v5"
+                \t"github.com/google/uuid"
                 )
 
                 // FileHandler handles file upload endpoints.
                 type FileHandler struct {
-                	service *FileService
-                	logger  *slog.Logger
+                \tservice *FileService
+                \tlogger  *slog.Logger
                 }
 
                 // NewFileHandler creates a new file handler.
                 func NewFileHandler(service *FileService, logger *slog.Logger) *FileHandler {
-                	return &FileHandler{
-                		service: service,
-                		logger:  logger.With("handler", "file"),
-                	}
+                \treturn &FileHandler{
+                \t\tservice: service,
+                \t\tlogger:  logger.With("handler", "file"),
+                \t}
                 }
 
                 // RegisterRoutes registers file handling routes.
                 func (h *FileHandler) RegisterRoutes(r chi.Router) {
-                	r.Route("/files", func(r chi.Router) {
-                		r.Post("/upload", h.Upload)
-                		r.Get("/", h.List)
-                		r.Get("/{id}", h.GetMetadata)
-                		r.Get("/{id}/download", h.Download)
-                		r.Delete("/{id}", h.Delete)
-                	})
+                \tr.Route("/files", func(r chi.Router) {
+                \t\tr.Post("/upload", h.Upload)
+                \t\tr.Get("/", h.List)
+                \t\tr.Get("/{id}", h.GetMetadata)
+                \t\tr.Get("/{id}/download", h.Download)
+                \t\tr.Delete("/{id}", h.Delete)
+                \t})
                 }
 
                 // Upload handles file upload.
@@ -112,31 +118,31 @@ public class GoChiFileStorageGenerator {
                 // @Failure 400 {object} dto.ErrorResponse
                 // @Router /files/upload [post]
                 func (h *FileHandler) Upload(w http.ResponseWriter, r *http.Request) {
-                	// Parse multipart form (32MB max)
-                	if err := r.ParseMultipartForm(32 << 20); err != nil {
-                		h.writeError(w, http.StatusBadRequest, "Failed to parse form: "+err.Error())
-                		return
-                	}
+                \t// Parse multipart form (32MB max)
+                \tif err := r.ParseMultipartForm(32 << 20); err != nil {
+                \t\th.writeError(w, http.StatusBadRequest, "Failed to parse form: "+err.Error())
+                \t\treturn
+                \t}
 
-                	file, header, err := r.FormFile("file")
-                	if err != nil {
-                		h.writeError(w, http.StatusBadRequest, "No file provided")
-                		return
-                	}
-                	defer file.Close()
+                \tfile, header, err := r.FormFile("file")
+                \tif err != nil {
+                \t\th.writeError(w, http.StatusBadRequest, "No file provided")
+                \t\treturn
+                \t}
+                \tdefer file.Close()
 
-                	directory := r.FormValue("directory")
-                	if directory == "" {
-                		directory = "uploads"
-                	}
+                \tdirectory := r.FormValue("directory")
+                \tif directory == "" {
+                \t\tdirectory = "uploads"
+                \t}
 
-                	result, err := h.service.Store(file, header, directory)
-                	if err != nil {
-                		h.writeError(w, http.StatusInternalServerError, err.Error())
-                		return
-                	}
+                \tresult, err := h.service.Store(file, header, directory)
+                \tif err != nil {
+                \t\th.writeError(w, http.StatusInternalServerError, err.Error())
+                \t\treturn
+                \t}
 
-                	h.writeJSON(w, http.StatusCreated, result)
+                \th.writeJSON(w, http.StatusCreated, result)
                 }
 
                 // GetMetadata returns file metadata.
@@ -148,19 +154,19 @@ public class GoChiFileStorageGenerator {
                 // @Failure 404 {object} dto.ErrorResponse
                 // @Router /files/{id} [get]
                 func (h *FileHandler) GetMetadata(w http.ResponseWriter, r *http.Request) {
-                	id, err := uuid.Parse(chi.URLParam(r, "id"))
-                	if err != nil {
-                		h.writeError(w, http.StatusBadRequest, "Invalid file ID")
-                		return
-                	}
+                \tid, err := uuid.Parse(chi.URLParam(r, "id"))
+                \tif err != nil {
+                \t\th.writeError(w, http.StatusBadRequest, "Invalid file ID")
+                \t\treturn
+                \t}
 
-                	file, err := h.service.GetMetadata(id)
-                	if err != nil {
-                		h.writeError(w, http.StatusNotFound, "File not found")
-                		return
-                	}
+                \tfile, err := h.service.GetMetadata(id)
+                \tif err != nil {
+                \t\th.writeError(w, http.StatusNotFound, "File not found")
+                \t\treturn
+                \t}
 
-                	h.writeJSON(w, http.StatusOK, file)
+                \th.writeJSON(w, http.StatusOK, file)
                 }
 
                 // Download returns the file content.
@@ -172,23 +178,23 @@ public class GoChiFileStorageGenerator {
                 // @Failure 404 {object} dto.ErrorResponse
                 // @Router /files/{id}/download [get]
                 func (h *FileHandler) Download(w http.ResponseWriter, r *http.Request) {
-                	id, err := uuid.Parse(chi.URLParam(r, "id"))
-                	if err != nil {
-                		h.writeError(w, http.StatusBadRequest, "Invalid file ID")
-                		return
-                	}
+                \tid, err := uuid.Parse(chi.URLParam(r, "id"))
+                \tif err != nil {
+                \t\th.writeError(w, http.StatusBadRequest, "Invalid file ID")
+                \t\treturn
+                \t}
 
-                	reader, metadata, err := h.service.Download(id)
-                	if err != nil {
-                		h.writeError(w, http.StatusNotFound, "File not found")
-                		return
-                	}
-                	defer reader.Close()
+                \treader, metadata, err := h.service.Download(id)
+                \tif err != nil {
+                \t\th.writeError(w, http.StatusNotFound, "File not found")
+                \t\treturn
+                \t}
+                \tdefer reader.Close()
 
-                	w.Header().Set("Content-Disposition", "attachment; filename="+metadata.OriginalName)
-                	w.Header().Set("Content-Type", metadata.MimeType)
-                	w.WriteHeader(http.StatusOK)
-                	io.Copy(w, reader)
+                \tw.Header().Set("Content-Disposition", "attachment; filename="+metadata.OriginalName)
+                \tw.Header().Set("Content-Type", metadata.MimeType)
+                \tw.WriteHeader(http.StatusOK)
+                \tio.Copy(w, reader)
                 }
 
                 // Delete removes a file.
@@ -199,18 +205,18 @@ public class GoChiFileStorageGenerator {
                 // @Failure 404 {object} dto.ErrorResponse
                 // @Router /files/{id} [delete]
                 func (h *FileHandler) Delete(w http.ResponseWriter, r *http.Request) {
-                	id, err := uuid.Parse(chi.URLParam(r, "id"))
-                	if err != nil {
-                		h.writeError(w, http.StatusBadRequest, "Invalid file ID")
-                		return
-                	}
+                \tid, err := uuid.Parse(chi.URLParam(r, "id"))
+                \tif err != nil {
+                \t\th.writeError(w, http.StatusBadRequest, "Invalid file ID")
+                \t\treturn
+                \t}
 
-                	if err := h.service.Delete(id); err != nil {
-                		h.writeError(w, http.StatusNotFound, "File not found")
-                		return
-                	}
+                \tif err := h.service.Delete(id); err != nil {
+                \t\th.writeError(w, http.StatusNotFound, "File not found")
+                \t\treturn
+                \t}
 
-                	w.WriteHeader(http.StatusNoContent)
+                \tw.WriteHeader(http.StatusNoContent)
                 }
 
                 // List returns all files.
@@ -221,26 +227,26 @@ public class GoChiFileStorageGenerator {
                 // @Success 200 {array} dto.StoredFileResponse
                 // @Router /files [get]
                 func (h *FileHandler) List(w http.ResponseWriter, r *http.Request) {
-                	directory := r.URL.Query().Get("directory")
-                	files, err := h.service.List(directory)
-                	if err != nil {
-                		h.writeError(w, http.StatusInternalServerError, err.Error())
-                		return
-                	}
+                \tdirectory := r.URL.Query().Get("directory")
+                \tfiles, err := h.service.List(directory)
+                \tif err != nil {
+                \t\th.writeError(w, http.StatusInternalServerError, err.Error())
+                \t\treturn
+                \t}
 
-                	h.writeJSON(w, http.StatusOK, files)
+                \th.writeJSON(w, http.StatusOK, files)
                 }
 
                 func (h *FileHandler) writeJSON(w http.ResponseWriter, status int, data interface{}) {
-                	w.Header().Set("Content-Type", "application/json")
-                	w.WriteHeader(status)
-                	if err := json.NewEncoder(w).Encode(data); err != nil {
-                		h.logger.Error("failed to encode response", "error", err)
-                	}
+                \tw.Header().Set("Content-Type", "application/json")
+                \tw.WriteHeader(status)
+                \tif err := json.NewEncoder(w).Encode(data); err != nil {
+                \t\th.logger.Error("failed to encode response", "error", err)
+                \t}
                 }
 
                 func (h *FileHandler) writeError(w http.ResponseWriter, status int, message string) {
-                	h.writeJSON(w, status, dto.ErrorResponse{Error: message})
+                \th.writeJSON(w, status, dto.ErrorResponse{Error: message})
                 }
                 """,
                 moduleName);
@@ -252,210 +258,210 @@ public class GoChiFileStorageGenerator {
                 package storage
 
                 import (
-                	"context"
-                	"fmt"
-                	"io"
-                	"log/slog"
-                	"mime/multipart"
-                	"path/filepath"
-                	"time"
+                \t"context"
+                \t"fmt"
+                \t"io"
+                \t"log/slog"
+                \t"mime/multipart"
+                \t"path/filepath"
+                \t"time"
 
-                	"%s/internal/dto"
-                	"%s/internal/models"
+                \t"%s/internal/dto"
+                \t"%s/internal/models"
 
-                	"github.com/google/uuid"
-                	"github.com/jackc/pgx/v5/pgxpool"
+                \t"github.com/google/uuid"
+                \t"github.com/jackc/pgx/v5/pgxpool"
                 )
 
                 // FileService handles file storage operations.
                 type FileService struct {
-                	db      *pgxpool.Pool
-                	storage StorageBackend
-                	logger  *slog.Logger
+                \tdb      *pgxpool.Pool
+                \tstorage StorageBackend
+                \tlogger  *slog.Logger
                 }
 
                 // NewFileService creates a new file service.
                 func NewFileService(db *pgxpool.Pool, storage StorageBackend, logger *slog.Logger) *FileService {
-                	return &FileService{
-                		db:      db,
-                		storage: storage,
-                		logger:  logger.With("service", "file_storage"),
-                	}
+                \treturn &FileService{
+                \t\tdb:      db,
+                \t\tstorage: storage,
+                \t\tlogger:  logger.With("service", "file_storage"),
+                \t}
                 }
 
                 // Store uploads a file and saves metadata.
                 func (s *FileService) Store(file multipart.File, header *multipart.FileHeader, directory string) (*dto.StoredFileResponse, error) {
-                	// Generate unique filename
-                	ext := filepath.Ext(header.Filename)
-                	filename := uuid.New().String() + ext
-                	path := directory + "/" + filename
+                \t// Generate unique filename
+                \text := filepath.Ext(header.Filename)
+                \tfilename := uuid.New().String() + ext
+                \tpath := directory + "/" + filename
 
-                	// Upload to storage backend
-                	if err := s.storage.Upload(path, file); err != nil {
-                		return nil, fmt.Errorf("failed to upload file: %%w", err)
-                	}
+                \t// Upload to storage backend
+                \tif err := s.storage.Upload(path, file); err != nil {
+                \t\treturn nil, fmt.Errorf("failed to upload file: %%w", err)
+                \t}
 
-                	// Detect MIME type
-                	mimeType := header.Header.Get("Content-Type")
-                	if mimeType == "" {
-                		mimeType = "application/octet-stream"
-                	}
+                \t// Detect MIME type
+                \tmimeType := header.Header.Get("Content-Type")
+                \tif mimeType == "" {
+                \t\tmimeType = "application/octet-stream"
+                \t}
 
-                	// Save metadata to database
-                	id := uuid.New()
-                	now := time.Now()
-                	ctx := context.Background()
+                \t// Save metadata to database
+                \tid := uuid.New()
+                \tnow := time.Now()
+                \tctx := context.Background()
 
-                	_, err := s.db.Exec(ctx,
-                		`INSERT INTO stored_files (id, original_name, filename, path, mime_type, size, storage_type, created_at, updated_at)
-                		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $8)`,
-                		id, header.Filename, filename, path, mimeType, header.Size, s.storage.Type(), now,
-                	)
+                \t_, err := s.db.Exec(ctx,
+                \t\t`INSERT INTO stored_files (id, original_name, filename, path, mime_type, size, storage_type, created_at, updated_at)
+                \t\t VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $8)`,
+                \t\tid, header.Filename, filename, path, mimeType, header.Size, s.storage.Type(), now,
+                \t)
 
-                	if err != nil {
-                		// Try to clean up uploaded file
-                		_ = s.storage.Delete(path)
-                		return nil, fmt.Errorf("failed to save file metadata: %%w", err)
-                	}
+                \tif err != nil {
+                \t\t// Try to clean up uploaded file
+                \t\t_ = s.storage.Delete(path)
+                \t\treturn nil, fmt.Errorf("failed to save file metadata: %%w", err)
+                \t}
 
-                	s.logger.Info("file uploaded", "path", path, "size", header.Size)
-                	return &dto.StoredFileResponse{
-                		ID:           id.String(),
-                		OriginalName: header.Filename,
-                		MimeType:     mimeType,
-                		Size:         header.Size,
-                		SizeHuman:    dto.FormatFileSize(header.Size),
-                		URL:          s.storage.GetURL(path),
-                		CreatedAt:    now.Format(time.RFC3339),
-                	}, nil
+                \ts.logger.Info("file uploaded", "path", path, "size", header.Size)
+                \treturn &dto.StoredFileResponse{
+                \t\tID:           id.String(),
+                \t\tOriginalName: header.Filename,
+                \t\tMimeType:     mimeType,
+                \t\tSize:         header.Size,
+                \t\tSizeHuman:    dto.FormatFileSize(header.Size),
+                \t\tURL:          s.storage.GetURL(path),
+                \t\tCreatedAt:    now.Format(time.RFC3339),
+                \t}, nil
                 }
 
                 // GetMetadata returns file metadata.
                 func (s *FileService) GetMetadata(id uuid.UUID) (*dto.StoredFileResponse, error) {
-                	ctx := context.Background()
-                	var file models.StoredFile
+                \tctx := context.Background()
+                \tvar file models.StoredFile
 
-                	err := s.db.QueryRow(ctx,
-                		`SELECT id, original_name, filename, path, mime_type, size, storage_type, created_at
-                		 FROM stored_files WHERE id = $1`,
-                		id,
-                	).Scan(&file.ID, &file.OriginalName, &file.Filename, &file.Path, &file.MimeType, &file.Size, &file.StorageType, &file.CreatedAt)
+                \terr := s.db.QueryRow(ctx,
+                \t\t`SELECT id, original_name, filename, path, mime_type, size, storage_type, created_at
+                \t\t FROM stored_files WHERE id = $1`,
+                \t\tid,
+                \t).Scan(&file.ID, &file.OriginalName, &file.Filename, &file.Path, &file.MimeType, &file.Size, &file.StorageType, &file.CreatedAt)
 
-                	if err != nil {
-                		return nil, err
-                	}
+                \tif err != nil {
+                \t\treturn nil, err
+                \t}
 
-                	return &dto.StoredFileResponse{
-                		ID:           file.ID.String(),
-                		OriginalName: file.OriginalName,
-                		MimeType:     file.MimeType,
-                		Size:         file.Size,
-                		SizeHuman:    dto.FormatFileSize(file.Size),
-                		URL:          s.storage.GetURL(file.Path),
-                		CreatedAt:    file.CreatedAt.Format(time.RFC3339),
-                	}, nil
+                \treturn &dto.StoredFileResponse{
+                \t\tID:           file.ID.String(),
+                \t\tOriginalName: file.OriginalName,
+                \t\tMimeType:     file.MimeType,
+                \t\tSize:         file.Size,
+                \t\tSizeHuman:    dto.FormatFileSize(file.Size),
+                \t\tURL:          s.storage.GetURL(file.Path),
+                \t\tCreatedAt:    file.CreatedAt.Format(time.RFC3339),
+                \t}, nil
                 }
 
                 // Download returns a file reader.
                 func (s *FileService) Download(id uuid.UUID) (io.ReadCloser, *models.StoredFile, error) {
-                	ctx := context.Background()
-                	var file models.StoredFile
+                \tctx := context.Background()
+                \tvar file models.StoredFile
 
-                	err := s.db.QueryRow(ctx,
-                		`SELECT id, original_name, filename, path, mime_type, size, storage_type, created_at
-                		 FROM stored_files WHERE id = $1`,
-                		id,
-                	).Scan(&file.ID, &file.OriginalName, &file.Filename, &file.Path, &file.MimeType, &file.Size, &file.StorageType, &file.CreatedAt)
+                \terr := s.db.QueryRow(ctx,
+                \t\t`SELECT id, original_name, filename, path, mime_type, size, storage_type, created_at
+                \t\t FROM stored_files WHERE id = $1`,
+                \t\tid,
+                \t).Scan(&file.ID, &file.OriginalName, &file.Filename, &file.Path, &file.MimeType, &file.Size, &file.StorageType, &file.CreatedAt)
 
-                	if err != nil {
-                		return nil, nil, err
-                	}
+                \tif err != nil {
+                \t\treturn nil, nil, err
+                \t}
 
-                	reader, err := s.storage.Download(file.Path)
-                	if err != nil {
-                		return nil, nil, err
-                	}
+                \treader, err := s.storage.Download(file.Path)
+                \tif err != nil {
+                \t\treturn nil, nil, err
+                \t}
 
-                	return reader, &file, nil
+                \treturn reader, &file, nil
                 }
 
                 // Delete removes a file from storage and database.
                 func (s *FileService) Delete(id uuid.UUID) error {
-                	ctx := context.Background()
-                	var path string
+                \tctx := context.Background()
+                \tvar path string
 
-                	err := s.db.QueryRow(ctx, "SELECT path FROM stored_files WHERE id = $1", id).Scan(&path)
-                	if err != nil {
-                		return err
-                	}
+                \terr := s.db.QueryRow(ctx, "SELECT path FROM stored_files WHERE id = $1", id).Scan(&path)
+                \tif err != nil {
+                \t\treturn err
+                \t}
 
-                	// Delete from storage
-                	if err := s.storage.Delete(path); err != nil {
-                		s.logger.Warn("failed to delete file from storage", "error", err)
-                	}
+                \t// Delete from storage
+                \tif err := s.storage.Delete(path); err != nil {
+                \t\ts.logger.Warn("failed to delete file from storage", "error", err)
+                \t}
 
-                	// Delete from database
-                	_, err = s.db.Exec(ctx, "DELETE FROM stored_files WHERE id = $1", id)
-                	if err != nil {
-                		return err
-                	}
+                \t// Delete from database
+                \t_, err = s.db.Exec(ctx, "DELETE FROM stored_files WHERE id = $1", id)
+                \tif err != nil {
+                \t\treturn err
+                \t}
 
-                	s.logger.Info("file deleted", "path", path)
-                	return nil
+                \ts.logger.Info("file deleted", "path", path)
+                \treturn nil
                 }
 
                 // List returns all files, optionally filtered by directory.
                 func (s *FileService) List(directory string) ([]*dto.StoredFileResponse, error) {
-                	ctx := context.Background()
-                	var query string
-                	var args []interface{}
+                \tctx := context.Background()
+                \tvar query string
+                \tvar args []interface{}
 
-                	if directory != "" {
-                		query = `SELECT id, original_name, filename, path, mime_type, size, storage_type, created_at
-                		         FROM stored_files WHERE path LIKE $1 ORDER BY created_at DESC`
-                		args = append(args, directory+"/%%")
-                	} else {
-                		query = `SELECT id, original_name, filename, path, mime_type, size, storage_type, created_at
-                		         FROM stored_files ORDER BY created_at DESC`
-                	}
+                \tif directory != "" {
+                \t\tquery = `SELECT id, original_name, filename, path, mime_type, size, storage_type, created_at
+                \t\t         FROM stored_files WHERE path LIKE $1 ORDER BY created_at DESC`
+                \t\targs = append(args, directory+"/%%")
+                \t} else {
+                \t\tquery = `SELECT id, original_name, filename, path, mime_type, size, storage_type, created_at
+                \t\t         FROM stored_files ORDER BY created_at DESC`
+                \t}
 
-                	rows, err := s.db.Query(ctx, query, args...)
-                	if err != nil {
-                		return nil, err
-                	}
-                	defer rows.Close()
+                \trows, err := s.db.Query(ctx, query, args...)
+                \tif err != nil {
+                \t\treturn nil, err
+                \t}
+                \tdefer rows.Close()
 
-                	var responses []*dto.StoredFileResponse
-                	for rows.Next() {
-                		var file models.StoredFile
-                		if err := rows.Scan(&file.ID, &file.OriginalName, &file.Filename, &file.Path, &file.MimeType, &file.Size, &file.StorageType, &file.CreatedAt); err != nil {
-                			return nil, err
-                		}
-                		responses = append(responses, &dto.StoredFileResponse{
-                			ID:           file.ID.String(),
-                			OriginalName: file.OriginalName,
-                			MimeType:     file.MimeType,
-                			Size:         file.Size,
-                			SizeHuman:    dto.FormatFileSize(file.Size),
-                			URL:          s.storage.GetURL(file.Path),
-                			CreatedAt:    file.CreatedAt.Format(time.RFC3339),
-                		})
-                	}
+                \tvar responses []*dto.StoredFileResponse
+                \tfor rows.Next() {
+                \t\tvar file models.StoredFile
+                \t\tif err := rows.Scan(&file.ID, &file.OriginalName, &file.Filename, &file.Path, &file.MimeType, &file.Size, &file.StorageType, &file.CreatedAt); err != nil {
+                \t\t\treturn nil, err
+                \t\t}
+                \t\tresponses = append(responses, &dto.StoredFileResponse{
+                \t\t\tID:           file.ID.String(),
+                \t\t\tOriginalName: file.OriginalName,
+                \t\t\tMimeType:     file.MimeType,
+                \t\t\tSize:         file.Size,
+                \t\t\tSizeHuman:    dto.FormatFileSize(file.Size),
+                \t\t\tURL:          s.storage.GetURL(file.Path),
+                \t\t\tCreatedAt:    file.CreatedAt.Format(time.RFC3339),
+                \t\t})
+                \t}
 
-                	return responses, nil
+                \treturn responses, nil
                 }
 
                 // GetTemporaryURL returns a temporary signed URL for a file.
                 func (s *FileService) GetTemporaryURL(id uuid.UUID, expirationMinutes int) (string, error) {
-                	ctx := context.Background()
-                	var path string
+                \tctx := context.Background()
+                \tvar path string
 
-                	err := s.db.QueryRow(ctx, "SELECT path FROM stored_files WHERE id = $1", id).Scan(&path)
-                	if err != nil {
-                		return "", err
-                	}
+                \terr := s.db.QueryRow(ctx, "SELECT path FROM stored_files WHERE id = $1", id).Scan(&path)
+                \tif err != nil {
+                \t\treturn "", err
+                \t}
 
-                	return s.storage.GetTemporaryURL(path, expirationMinutes)
+                \treturn s.storage.GetTemporaryURL(path, expirationMinutes)
                 }
                 """,
                 moduleName, moduleName);
@@ -466,32 +472,32 @@ public class GoChiFileStorageGenerator {
         package storage
 
         import (
-        	"io"
-        	"mime/multipart"
+        \t"io"
+        \t"mime/multipart"
         )
 
         // StorageBackend defines the interface for file storage backends.
         type StorageBackend interface {
-        	// Upload uploads a file to the storage backend.
-        	Upload(path string, file multipart.File) error
+        \t// Upload uploads a file to the storage backend.
+        \tUpload(path string, file multipart.File) error
 
-        	// Download returns a reader for the file at the given path.
-        	Download(path string) (io.ReadCloser, error)
+        \t// Download returns a reader for the file at the given path.
+        \tDownload(path string) (io.ReadCloser, error)
 
-        	// Delete removes a file from the storage backend.
-        	Delete(path string) error
+        \t// Delete removes a file from the storage backend.
+        \tDelete(path string) error
 
-        	// Exists checks if a file exists at the given path.
-        	Exists(path string) bool
+        \t// Exists checks if a file exists at the given path.
+        \tExists(path string) bool
 
-        	// GetURL returns the public URL for a file.
-        	GetURL(path string) string
+        \t// GetURL returns the public URL for a file.
+        \tGetURL(path string) string
 
-        	// GetTemporaryURL returns a temporary signed URL for a file.
-        	GetTemporaryURL(path string, expirationMinutes int) (string, error)
+        \t// GetTemporaryURL returns a temporary signed URL for a file.
+        \tGetTemporaryURL(path string, expirationMinutes int) (string, error)
 
-        	// Type returns the storage backend type.
-        	Type() string
+        \t// Type returns the storage backend type.
+        \tType() string
         }
         """;
     }
@@ -501,96 +507,96 @@ public class GoChiFileStorageGenerator {
         package storage
 
         import (
-        	"errors"
-        	"io"
-        	"mime/multipart"
-        	"os"
-        	"path/filepath"
+        \t"errors"
+        \t"io"
+        \t"mime/multipart"
+        \t"os"
+        \t"path/filepath"
 
-        	"github.com/spf13/viper"
+        \t"github.com/spf13/viper"
         )
 
         // LocalStorage implements StorageBackend for local filesystem storage.
         type LocalStorage struct {
-        	basePath string
-        	baseURL  string
+        \tbasePath string
+        \tbaseURL  string
         }
 
         // NewLocalStorage creates a new local storage backend.
         func NewLocalStorage() *LocalStorage {
-        	basePath := viper.GetString("storage.local.base_path")
-        	if basePath == "" {
-        		basePath = "./uploads"
-        	}
+        \tbasePath := viper.GetString("storage.local.base_path")
+        \tif basePath == "" {
+        \t\tbasePath = "./uploads"
+        \t}
 
-        	baseURL := viper.GetString("storage.local.base_url")
-        	if baseURL == "" {
-        		baseURL = "/files"
-        	}
+        \tbaseURL := viper.GetString("storage.local.base_url")
+        \tif baseURL == "" {
+        \t\tbaseURL = "/files"
+        \t}
 
-        	// Ensure base directory exists
-        	_ = os.MkdirAll(basePath, 0755)
+        \t// Ensure base directory exists
+        \t_ = os.MkdirAll(basePath, 0755)
 
-        	return &LocalStorage{
-        		basePath: basePath,
-        		baseURL:  baseURL,
-        	}
+        \treturn &LocalStorage{
+        \t\tbasePath: basePath,
+        \t\tbaseURL:  baseURL,
+        \t}
         }
 
         // Upload uploads a file to local storage.
         func (s *LocalStorage) Upload(path string, file multipart.File) error {
-        	fullPath := filepath.Join(s.basePath, path)
+        \tfullPath := filepath.Join(s.basePath, path)
 
-        	// Ensure directory exists
-        	dir := filepath.Dir(fullPath)
-        	if err := os.MkdirAll(dir, 0755); err != nil {
-        		return err
-        	}
+        \t// Ensure directory exists
+        \tdir := filepath.Dir(fullPath)
+        \tif err := os.MkdirAll(dir, 0755); err != nil {
+        \t\treturn err
+        \t}
 
-        	// Create destination file
-        	dst, err := os.Create(fullPath)
-        	if err != nil {
-        		return err
-        	}
-        	defer dst.Close()
+        \t// Create destination file
+        \tdst, err := os.Create(fullPath)
+        \tif err != nil {
+        \t\treturn err
+        \t}
+        \tdefer dst.Close()
 
-        	// Copy content
-        	_, err = io.Copy(dst, file)
-        	return err
+        \t// Copy content
+        \t_, err = io.Copy(dst, file)
+        \treturn err
         }
 
         // Download returns a reader for a local file.
         func (s *LocalStorage) Download(path string) (io.ReadCloser, error) {
-        	fullPath := filepath.Join(s.basePath, path)
-        	return os.Open(fullPath)
+        \tfullPath := filepath.Join(s.basePath, path)
+        \treturn os.Open(fullPath)
         }
 
         // Delete removes a file from local storage.
         func (s *LocalStorage) Delete(path string) error {
-        	fullPath := filepath.Join(s.basePath, path)
-        	return os.Remove(fullPath)
+        \tfullPath := filepath.Join(s.basePath, path)
+        \treturn os.Remove(fullPath)
         }
 
         // Exists checks if a file exists in local storage.
         func (s *LocalStorage) Exists(path string) bool {
-        	fullPath := filepath.Join(s.basePath, path)
-        	_, err := os.Stat(fullPath)
-        	return err == nil
+        \tfullPath := filepath.Join(s.basePath, path)
+        \t_, err := os.Stat(fullPath)
+        \treturn err == nil
         }
 
         // GetURL returns the URL for a local file.
         func (s *LocalStorage) GetURL(path string) string {
-        	return s.baseURL + "/" + path
+        \treturn s.baseURL + "/" + path
         }
 
         // GetTemporaryURL returns the URL (local storage doesn't support signed URLs).
         func (s *LocalStorage) GetTemporaryURL(path string, expirationMinutes int) (string, error) {
-        	return "", errors.New("temporary URLs not supported for local storage")
+        \treturn "", errors.New("temporary URLs not supported for local storage")
         }
 
         // Type returns the storage type.
         func (s *LocalStorage) Type() string {
-        	return "local"
+        \treturn "local"
         }
         """;
     }
@@ -600,27 +606,27 @@ public class GoChiFileStorageGenerator {
         package models
 
         import (
-        	"time"
+        \t"time"
 
-        	"github.com/google/uuid"
+        \t"github.com/google/uuid"
         )
 
         // StoredFile represents a stored file in the database.
         type StoredFile struct {
-        	ID           uuid.UUID `json:"id" db:"id"`
-        	OriginalName string    `json:"original_name" db:"original_name"`
-        	Filename     string    `json:"filename" db:"filename"`
-        	Path         string    `json:"path" db:"path"`
-        	MimeType     string    `json:"mime_type" db:"mime_type"`
-        	Size         int64     `json:"size" db:"size"`
-        	StorageType  string    `json:"storage_type" db:"storage_type"`
-        	CreatedAt    time.Time `json:"created_at" db:"created_at"`
-        	UpdatedAt    time.Time `json:"updated_at" db:"updated_at"`
+        \tID           uuid.UUID `json:"id" db:"id"`
+        \tOriginalName string    `json:"original_name" db:"original_name"`
+        \tFilename     string    `json:"filename" db:"filename"`
+        \tPath         string    `json:"path" db:"path"`
+        \tMimeType     string    `json:"mime_type" db:"mime_type"`
+        \tSize         int64     `json:"size" db:"size"`
+        \tStorageType  string    `json:"storage_type" db:"storage_type"`
+        \tCreatedAt    time.Time `json:"created_at" db:"created_at"`
+        \tUpdatedAt    time.Time `json:"updated_at" db:"updated_at"`
         }
 
         // TableName returns the table name.
         func (StoredFile) TableName() string {
-        	return "stored_files"
+        \treturn "stored_files"
         }
         """;
     }
@@ -633,32 +639,32 @@ public class GoChiFileStorageGenerator {
 
         // StoredFileResponse represents a stored file response.
         type StoredFileResponse struct {
-        	ID           string `json:"id"`
-        	OriginalName string `json:"original_name"`
-        	MimeType     string `json:"mime_type"`
-        	Size         int64  `json:"size"`
-        	SizeHuman    string `json:"size_human"`
-        	URL          string `json:"url"`
-        	CreatedAt    string `json:"created_at"`
+        \tID           string `json:"id"`
+        \tOriginalName string `json:"original_name"`
+        \tMimeType     string `json:"mime_type"`
+        \tSize         int64  `json:"size"`
+        \tSizeHuman    string `json:"size_human"`
+        \tURL          string `json:"url"`
+        \tCreatedAt    string `json:"created_at"`
         }
 
         // FileUploadRequest represents a file upload request.
         type FileUploadRequest struct {
-        	Directory string `form:"directory"`
+        \tDirectory string `form:"directory"`
         }
 
         // FormatFileSize formats a file size in bytes to a human-readable string.
         func FormatFileSize(bytes int64) string {
-        	const unit = 1024
-        	if bytes < unit {
-        		return fmt.Sprintf("%d B", bytes)
-        	}
-        	div, exp := int64(unit), 0
-        	for n := bytes / unit; n >= unit; n /= unit {
-        		div *= unit
-        		exp++
-        	}
-        	return fmt.Sprintf("%.2f %cB", float64(bytes)/float64(div), "KMGTPE"[exp])
+        \tconst unit = 1024
+        \tif bytes < unit {
+        \t\treturn fmt.Sprintf("%d B", bytes)
+        \t}
+        \tdiv, exp := int64(unit), 0
+        \tfor n := bytes / unit; n >= unit; n /= unit {
+        \t\tdiv *= unit
+        \t\texp++
+        \t}
+        \treturn fmt.Sprintf("%.2f %cB", float64(bytes)/float64(div), "KMGTPE"[exp])
         }
         """;
     }
@@ -668,109 +674,109 @@ public class GoChiFileStorageGenerator {
         package storage
 
         import (
-        	"context"
-        	"io"
-        	"mime/multipart"
-        	"time"
+        \t"context"
+        \t"io"
+        \t"mime/multipart"
+        \t"time"
 
-        	"github.com/aws/aws-sdk-go-v2/aws"
-        	"github.com/aws/aws-sdk-go-v2/config"
-        	"github.com/aws/aws-sdk-go-v2/service/s3"
-        	"github.com/spf13/viper"
+        \t"github.com/aws/aws-sdk-go-v2/aws"
+        \t"github.com/aws/aws-sdk-go-v2/config"
+        \t"github.com/aws/aws-sdk-go-v2/service/s3"
+        \t"github.com/spf13/viper"
         )
 
         // S3Storage implements StorageBackend for AWS S3.
         type S3Storage struct {
-        	client *s3.Client
-        	bucket string
-        	region string
+        \tclient *s3.Client
+        \tbucket string
+        \tregion string
         }
 
         // NewS3Storage creates a new S3 storage backend.
         func NewS3Storage() (*S3Storage, error) {
-        	region := viper.GetString("storage.s3.region")
-        	if region == "" {
-        		region = "us-east-1"
-        	}
+        \tregion := viper.GetString("storage.s3.region")
+        \tif region == "" {
+        \t\tregion = "us-east-1"
+        \t}
 
-        	cfg, err := config.LoadDefaultConfig(context.Background(),
-        		config.WithRegion(region),
-        	)
-        	if err != nil {
-        		return nil, err
-        	}
+        \tcfg, err := config.LoadDefaultConfig(context.Background(),
+        \t\tconfig.WithRegion(region),
+        \t)
+        \tif err != nil {
+        \t\treturn nil, err
+        \t}
 
-        	client := s3.NewFromConfig(cfg)
-        	bucket := viper.GetString("storage.s3.bucket")
+        \tclient := s3.NewFromConfig(cfg)
+        \tbucket := viper.GetString("storage.s3.bucket")
 
-        	return &S3Storage{
-        		client: client,
-        		bucket: bucket,
-        		region: region,
-        	}, nil
+        \treturn &S3Storage{
+        \t\tclient: client,
+        \t\tbucket: bucket,
+        \t\tregion: region,
+        \t}, nil
         }
 
         // Upload uploads a file to S3.
         func (s *S3Storage) Upload(path string, file multipart.File) error {
-        	_, err := s.client.PutObject(context.Background(), &s3.PutObjectInput{
-        		Bucket: aws.String(s.bucket),
-        		Key:    aws.String(path),
-        		Body:   file,
-        	})
-        	return err
+        \t_, err := s.client.PutObject(context.Background(), &s3.PutObjectInput{
+        \t\tBucket: aws.String(s.bucket),
+        \t\tKey:    aws.String(path),
+        \t\tBody:   file,
+        \t})
+        \treturn err
         }
 
         // Download returns a reader for an S3 object.
         func (s *S3Storage) Download(path string) (io.ReadCloser, error) {
-        	result, err := s.client.GetObject(context.Background(), &s3.GetObjectInput{
-        		Bucket: aws.String(s.bucket),
-        		Key:    aws.String(path),
-        	})
-        	if err != nil {
-        		return nil, err
-        	}
-        	return result.Body, nil
+        \tresult, err := s.client.GetObject(context.Background(), &s3.GetObjectInput{
+        \t\tBucket: aws.String(s.bucket),
+        \t\tKey:    aws.String(path),
+        \t})
+        \tif err != nil {
+        \t\treturn nil, err
+        \t}
+        \treturn result.Body, nil
         }
 
         // Delete removes a file from S3.
         func (s *S3Storage) Delete(path string) error {
-        	_, err := s.client.DeleteObject(context.Background(), &s3.DeleteObjectInput{
-        		Bucket: aws.String(s.bucket),
-        		Key:    aws.String(path),
-        	})
-        	return err
+        \t_, err := s.client.DeleteObject(context.Background(), &s3.DeleteObjectInput{
+        \t\tBucket: aws.String(s.bucket),
+        \t\tKey:    aws.String(path),
+        \t})
+        \treturn err
         }
 
         // Exists checks if a file exists in S3.
         func (s *S3Storage) Exists(path string) bool {
-        	_, err := s.client.HeadObject(context.Background(), &s3.HeadObjectInput{
-        		Bucket: aws.String(s.bucket),
-        		Key:    aws.String(path),
-        	})
-        	return err == nil
+        \t_, err := s.client.HeadObject(context.Background(), &s3.HeadObjectInput{
+        \t\tBucket: aws.String(s.bucket),
+        \t\tKey:    aws.String(path),
+        \t})
+        \treturn err == nil
         }
 
         // GetURL returns the public URL for an S3 object.
         func (s *S3Storage) GetURL(path string) string {
-        	return "https://" + s.bucket + ".s3." + s.region + ".amazonaws.com/" + path
+        \treturn "https://" + s.bucket + ".s3." + s.region + ".amazonaws.com/" + path
         }
 
         // GetTemporaryURL returns a presigned URL for an S3 object.
         func (s *S3Storage) GetTemporaryURL(path string, expirationMinutes int) (string, error) {
-        	presignClient := s3.NewPresignClient(s.client)
-        	result, err := presignClient.PresignGetObject(context.Background(), &s3.GetObjectInput{
-        		Bucket: aws.String(s.bucket),
-        		Key:    aws.String(path),
-        	}, s3.WithPresignExpires(time.Duration(expirationMinutes)*time.Minute))
-        	if err != nil {
-        		return "", err
-        	}
-        	return result.URL, nil
+        \tpresignClient := s3.NewPresignClient(s.client)
+        \tresult, err := presignClient.PresignGetObject(context.Background(), &s3.GetObjectInput{
+        \t\tBucket: aws.String(s.bucket),
+        \t\tKey:    aws.String(path),
+        \t}, s3.WithPresignExpires(time.Duration(expirationMinutes)*time.Minute))
+        \tif err != nil {
+        \t\treturn "", err
+        \t}
+        \treturn result.URL, nil
         }
 
         // Type returns the storage type.
         func (s *S3Storage) Type() string {
-        	return "s3"
+        \treturn "s3"
         }
         """;
     }
@@ -780,97 +786,97 @@ public class GoChiFileStorageGenerator {
         package storage
 
         import (
-        	"context"
-        	"fmt"
-        	"io"
-        	"mime/multipart"
-        	"time"
+        \t"context"
+        \t"fmt"
+        \t"io"
+        \t"mime/multipart"
+        \t"time"
 
-        	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
-        	"github.com/spf13/viper"
+        \t"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
+        \t"github.com/spf13/viper"
         )
 
         // AzureStorage implements StorageBackend for Azure Blob Storage.
         type AzureStorage struct {
-        	client      *azblob.Client
-        	container   string
-        	accountName string
+        \tclient      *azblob.Client
+        \tcontainer   string
+        \taccountName string
         }
 
         // NewAzureStorage creates a new Azure Blob storage backend.
         func NewAzureStorage() (*AzureStorage, error) {
-        	accountName := viper.GetString("storage.azure.account_name")
-        	accountKey := viper.GetString("storage.azure.account_key")
-        	container := viper.GetString("storage.azure.container")
+        \taccountName := viper.GetString("storage.azure.account_name")
+        \taccountKey := viper.GetString("storage.azure.account_key")
+        \tcontainer := viper.GetString("storage.azure.container")
 
-        	if container == "" {
-        		container = "files"
-        	}
+        \tif container == "" {
+        \t\tcontainer = "files"
+        \t}
 
-        	serviceURL := fmt.Sprintf("https://%s.blob.core.windows.net/", accountName)
+        \tserviceURL := fmt.Sprintf("https://%s.blob.core.windows.net/", accountName)
 
-        	cred, err := azblob.NewSharedKeyCredential(accountName, accountKey)
-        	if err != nil {
-        		return nil, err
-        	}
+        \tcred, err := azblob.NewSharedKeyCredential(accountName, accountKey)
+        \tif err != nil {
+        \t\treturn nil, err
+        \t}
 
-        	client, err := azblob.NewClientWithSharedKeyCredential(serviceURL, cred, nil)
-        	if err != nil {
-        		return nil, err
-        	}
+        \tclient, err := azblob.NewClientWithSharedKeyCredential(serviceURL, cred, nil)
+        \tif err != nil {
+        \t\treturn nil, err
+        \t}
 
-        	return &AzureStorage{
-        		client:      client,
-        		container:   container,
-        		accountName: accountName,
-        	}, nil
+        \treturn &AzureStorage{
+        \t\tclient:      client,
+        \t\tcontainer:   container,
+        \t\taccountName: accountName,
+        \t}, nil
         }
 
         // Upload uploads a file to Azure Blob Storage.
         func (s *AzureStorage) Upload(path string, file multipart.File) error {
-        	_, err := s.client.UploadStream(context.Background(), s.container, path, file, nil)
-        	return err
+        \t_, err := s.client.UploadStream(context.Background(), s.container, path, file, nil)
+        \treturn err
         }
 
         // Download returns a reader for an Azure blob.
         func (s *AzureStorage) Download(path string) (io.ReadCloser, error) {
-        	resp, err := s.client.DownloadStream(context.Background(), s.container, path, nil)
-        	if err != nil {
-        		return nil, err
-        	}
-        	return resp.Body, nil
+        \tresp, err := s.client.DownloadStream(context.Background(), s.container, path, nil)
+        \tif err != nil {
+        \t\treturn nil, err
+        \t}
+        \treturn resp.Body, nil
         }
 
         // Delete removes a blob from Azure Storage.
         func (s *AzureStorage) Delete(path string) error {
-        	_, err := s.client.DeleteBlob(context.Background(), s.container, path, nil)
-        	return err
+        \t_, err := s.client.DeleteBlob(context.Background(), s.container, path, nil)
+        \treturn err
         }
 
         // Exists checks if a blob exists in Azure Storage.
         func (s *AzureStorage) Exists(path string) bool {
-        	_, err := s.client.DownloadStream(context.Background(), s.container, path, &azblob.DownloadStreamOptions{
-        		Range: azblob.HTTPRange{Offset: 0, Count: 1},
-        	})
-        	return err == nil
+        \t_, err := s.client.DownloadStream(context.Background(), s.container, path, &azblob.DownloadStreamOptions{
+        \t\tRange: azblob.HTTPRange{Offset: 0, Count: 1},
+        \t})
+        \treturn err == nil
         }
 
         // GetURL returns the public URL for an Azure blob.
         func (s *AzureStorage) GetURL(path string) string {
-        	return fmt.Sprintf("https://%s.blob.core.windows.net/%s/%s", s.accountName, s.container, path)
+        \treturn fmt.Sprintf("https://%s.blob.core.windows.net/%s/%s", s.accountName, s.container, path)
         }
 
         // GetTemporaryURL returns a SAS URL for an Azure blob.
         func (s *AzureStorage) GetTemporaryURL(path string, expirationMinutes int) (string, error) {
-        	// Note: Full SAS URL generation requires service client with proper credentials
-        	// This is a simplified version - in production, use proper SAS token generation
-        	expiry := time.Now().Add(time.Duration(expirationMinutes) * time.Minute)
-        	return fmt.Sprintf("%s?se=%s", s.GetURL(path), expiry.Format(time.RFC3339)), nil
+        \t// Note: Full SAS URL generation requires service client with proper credentials
+        \t// This is a simplified version - in production, use proper SAS token generation
+        \texpiry := time.Now().Add(time.Duration(expirationMinutes) * time.Minute)
+        \treturn fmt.Sprintf("%s?se=%s", s.GetURL(path), expiry.Format(time.RFC3339)), nil
         }
 
         // Type returns the storage type.
         func (s *AzureStorage) Type() string {
-        	return "azure"
+        \treturn "azure"
         }
         """;
     }

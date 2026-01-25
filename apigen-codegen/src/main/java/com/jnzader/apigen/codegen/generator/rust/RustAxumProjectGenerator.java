@@ -60,6 +60,10 @@ import java.util.Set;
  * @author APiGen
  * @since 2.12.0
  */
+@SuppressWarnings({
+    "java:S3776",
+    "java:S6541"
+}) // S3776/S6541: Complex generate() method inherent to code generation orchestration
 public class RustAxumProjectGenerator implements ProjectGenerator {
 
     private static final String LANGUAGE = "rust";
@@ -169,8 +173,6 @@ public class RustAxumProjectGenerator implements ProjectGenerator {
 
         // Get entity tables
         List<SqlTable> tables = schema.getEntityTables();
-        List<String> entityNames =
-                tables.stream().map(t -> typeMapper.toStructName(t.getName())).toList();
 
         // Build relationship map
         Map<String, List<SqlSchema.TableRelationship>> relationshipsByTable = new HashMap<>();
@@ -195,8 +197,8 @@ public class RustAxumProjectGenerator implements ProjectGenerator {
         }
 
         // === src/ files ===
-        files.put("src/main.rs", configGenerator.generateMainRs(entityNames));
-        files.put("src/lib.rs", configGenerator.generateLibRs(entityNames));
+        files.put("src/main.rs", configGenerator.generateMainRs());
+        files.put("src/lib.rs", configGenerator.generateLibRs());
         files.put("src/config.rs", configGenerator.generateConfigRs());
         files.put("src/error.rs", configGenerator.generateErrorRs());
 

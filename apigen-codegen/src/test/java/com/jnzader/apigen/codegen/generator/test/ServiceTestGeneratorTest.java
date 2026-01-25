@@ -12,6 +12,10 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @DisplayName("ServiceTestGenerator Tests")
+@SuppressWarnings({
+    "java:S1874",
+    "deprecation"
+}) // Tests deprecated generators for backward compatibility
 class ServiceTestGeneratorTest {
 
     private ServiceTestGenerator generator;

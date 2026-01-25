@@ -20,6 +20,10 @@ import java.util.Set;
  *   <li>Response schema for API responses
  * </ul>
  */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3776"
+}) // S1192: Schema strings; S3776: complex schema generation logic
 public class PythonSchemaGenerator {
 
     private final PythonTypeMapper typeMapper;
@@ -178,7 +182,7 @@ public class PythonSchemaGenerator {
 
 
         class PagedResponse(BaseModel, Generic[T]):
-            \"\"\"Generic paginated response schema.\"\"\"
+            \"""Generic paginated response schema.\"""
 
             items: list[T]
             total: int
@@ -196,14 +200,14 @@ public class PythonSchemaGenerator {
 
 
         class MessageResponse(BaseModel):
-            \"\"\"Simple message response.\"\"\"
+            \"""Simple message response.\"""
 
             message: str
             success: bool = True
 
 
         class ErrorResponse(BaseModel):
-            \"\"\"Error response schema.\"\"\"
+            \"""Error response schema.\"""
 
             detail: str
             code: str | None = None

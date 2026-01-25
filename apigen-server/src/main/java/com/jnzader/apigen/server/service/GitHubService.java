@@ -11,6 +11,7 @@ import com.jnzader.apigen.server.dto.github.PushProjectResponse;
 import com.jnzader.apigen.server.exception.GitHubException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
@@ -42,6 +43,10 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@SuppressWarnings({
+    "java:S1192", // API path strings intentional for readability
+    "java:S135" // Multiple continues in pushProjectToRepo for directory/empty path skipping
+})
 public class GitHubService {
 
     private final GitHubConfig gitHubConfig;
@@ -287,12 +292,10 @@ public class GitHubService {
                 String path = entry.getKey();
                 byte[] content = entry.getValue();
 
-                // Skip directory entries
+                // Skip directory entries and empty paths after removing root folder
                 if (path.endsWith("/")) {
                     continue;
                 }
-
-                // Remove the root folder from path (e.g., "my-project/" prefix)
                 String cleanPath = removeRootFolder(path);
                 if (cleanPath.isEmpty()) {
                     continue;
@@ -340,7 +343,7 @@ public class GitHubService {
     }
 
     /** Extracts files from a ZIP archive. */
-    private Map<String, byte[]> extractZipContents(byte[] zipBytes) throws Exception {
+    private Map<String, byte[]> extractZipContents(byte[] zipBytes) throws IOException {
         Map<String, byte[]> files = new HashMap<>();
 
         try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zipBytes))) {
@@ -396,7 +399,7 @@ public class GitHubService {
                 return null;
             }
             return objectNode.get("sha").asText();
-        } catch (Exception e) {
+        } catch (Exception _) {
             log.debug("Branch {} does not exist yet", branch);
             return null;
         }

@@ -16,6 +16,7 @@ import java.util.Set;
  *   <li>Python native types
  * </ul>
  */
+@SuppressWarnings("java:S1192") // Type mapping strings intentional for readability
 public class PythonTypeMapper implements LanguageTypeMapper {
 
     private static final Set<String> PYTHON_KEYWORDS =

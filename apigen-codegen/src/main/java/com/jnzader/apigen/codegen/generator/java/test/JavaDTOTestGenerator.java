@@ -3,6 +3,7 @@ package com.jnzader.apigen.codegen.generator.java.test;
 import com.jnzader.apigen.codegen.model.SqlTable;
 
 /** Generates unit test classes for DTOs in Java/Spring Boot. */
+@SuppressWarnings("java:S1192") // Duplicate strings intentional for code generation templates
 public class JavaDTOTestGenerator {
 
     private final String basePackage;

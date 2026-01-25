@@ -26,6 +26,10 @@ import java.util.List;
  * @author APiGen
  * @since 2.12.0
  */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3776"
+}) // S1192: Template strings; S3776: complex router generation logic
 public class RustRouterGenerator {
 
     private final RustTypeMapper typeMapper;

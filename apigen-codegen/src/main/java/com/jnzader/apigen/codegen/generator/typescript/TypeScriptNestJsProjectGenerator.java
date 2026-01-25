@@ -43,6 +43,7 @@ import java.util.Set;
  *   <li>Project configuration files (package.json, tsconfig.json, etc.)
  * </ul>
  */
+@SuppressWarnings("java:S3400") // Template methods return constants for code generation
 public class TypeScriptNestJsProjectGenerator implements ProjectGenerator {
 
     private static final String LANGUAGE = "typescript";

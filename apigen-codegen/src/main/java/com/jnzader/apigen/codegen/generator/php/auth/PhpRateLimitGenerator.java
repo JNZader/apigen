@@ -15,6 +15,10 @@ import java.util.Map;
  *   <li>Rate limit configuration file
  * </ul>
  */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3400"
+}) // S1192: template strings; S3400: template methods return constants
 public class PhpRateLimitGenerator {
 
     private static final int DEFAULT_LIMIT = 60; // per minute

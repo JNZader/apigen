@@ -49,6 +49,15 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@SuppressWarnings({
+    "java:S1192",
+    "java:S1874",
+    "java:S3400",
+    "java:S3776",
+    "java:S6541",
+    "deprecation"
+}) // S1192: Language strings; S1874/deprecation: CodeGenerator backward compatibility; S3400:
+// template methods; S3776/S6541: complex generation logic inherent to facade service
 public class GeneratorService {
 
     private final SqlSchemaParser schemaParser;

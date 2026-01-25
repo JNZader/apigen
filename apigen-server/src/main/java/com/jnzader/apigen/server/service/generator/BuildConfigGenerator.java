@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 /** Generates build configuration files (build.gradle, settings.gradle). */
 @Component
+@SuppressWarnings("java:S3457") // Uses \n for Unix line endings in generated build files
 public class BuildConfigGenerator {
 
     private static final String PRODUCTION_DB_COMMENT = " // Production database\n";
@@ -270,7 +271,7 @@ tasks.withType<Test> {
         try {
             int version = Integer.parseInt(javaVersion);
             return String.valueOf(Math.min(version, MAX_KOTLIN_JVM_TARGET));
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException _) {
             return String.valueOf(MAX_KOTLIN_JVM_TARGET);
         }
     }

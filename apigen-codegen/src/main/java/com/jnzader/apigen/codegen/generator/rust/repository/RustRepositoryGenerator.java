@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
  * @author APiGen
  * @since 2.12.0
  */
-@SuppressWarnings("java:S1068") // Fields reserved for future features
+@SuppressWarnings({"java:S1068", "java:S1192"}) // S1068: reserved fields; S1192: template strings
 public class RustRepositoryGenerator {
 
     private final RustTypeMapper typeMapper;

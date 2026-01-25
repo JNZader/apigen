@@ -10,6 +10,7 @@ import java.util.Set;
  * <p>Maps SQL types to Kotlin types with appropriate imports for JPA entities, DTOs, and other
  * Kotlin constructs. Handles nullable types using Kotlin's built-in null-safety features.
  */
+@SuppressWarnings("java:S1192") // Type mapping strings intentional for readability
 public class KotlinTypeMapper implements LanguageTypeMapper {
 
     @Override

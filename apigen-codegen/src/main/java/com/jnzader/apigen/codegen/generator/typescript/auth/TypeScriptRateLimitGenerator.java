@@ -15,6 +15,10 @@ import java.util.Map;
  *   <li>Redis storage support for distributed rate limiting
  * </ul>
  */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3400"
+}) // S1192: template strings; S3400: template methods return constants
 public class TypeScriptRateLimitGenerator {
 
     private static final int DEFAULT_TTL = 60;

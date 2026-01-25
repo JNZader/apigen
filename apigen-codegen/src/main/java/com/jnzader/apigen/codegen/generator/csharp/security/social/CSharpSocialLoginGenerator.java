@@ -25,6 +25,7 @@ import java.util.Map;
  * @author APiGen
  * @since 2.13.0
  */
+@SuppressWarnings("java:S1192") // Duplicate strings intentional for code generation templates
 public class CSharpSocialLoginGenerator {
 
     private final String namespace;
@@ -45,7 +46,7 @@ public class CSharpSocialLoginGenerator {
         files.put("Models/SocialAccount.cs", generateModel());
         files.put("DTOs/SocialAuthDtos.cs", generateDtos());
         files.put("Services/ISocialAuthService.cs", generateInterface());
-        files.put("Services/SocialAuthService.cs", generateService(providers));
+        files.put("Services/SocialAuthService.cs", generateService());
         files.put("Controllers/SocialAuthController.cs", generateController(providers));
         files.put("Configuration/SocialAuthConfig.cs", generateConfig(providers));
 
@@ -144,19 +145,7 @@ public class CSharpSocialLoginGenerator {
                 namespace, namespace);
     }
 
-    private String generateService(List<String> providers) {
-        StringBuilder providerCases = new StringBuilder();
-
-        for (String provider : providers) {
-            String capitalized = capitalize(provider);
-            providerCases.append(
-                    String.format(
-                            """
-                                        "%s" => _httpClientFactory.CreateClient("%sOAuth"),
-                            """,
-                            provider, capitalized));
-        }
-
+    private String generateService() {
         return String.format(
                 """
                 using System.Net.Http.Headers;

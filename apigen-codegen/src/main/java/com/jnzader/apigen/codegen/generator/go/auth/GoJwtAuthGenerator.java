@@ -16,6 +16,12 @@ import java.util.Map;
  *   <li>Auth DTOs for requests/responses
  * </ul>
  */
+@SuppressWarnings({
+    "java:S2479",
+    "java:S1192",
+    "java:S3400"
+}) // S2479: Literal tabs for Go code; S1192: template strings; S3400: template methods return
+// constants
 public class GoJwtAuthGenerator {
 
     private static final int DEFAULT_ACCESS_TOKEN_HOURS = 1;
@@ -132,113 +138,113 @@ public class GoJwtAuthGenerator {
         package auth
 
         import (
-        	"errors"
-        	"os"
-        	"time"
+        \t"errors"
+        \t"os"
+        \t"time"
 
-        	"github.com/golang-jwt/jwt/v5"
-        	"github.com/google/uuid"
+        \t"github.com/golang-jwt/jwt/v5"
+        \t"github.com/google/uuid"
         )
 
         // JWTClaims represents the JWT claims.
         type JWTClaims struct {
-        	jwt.RegisteredClaims
-        	UserID   uuid.UUID `json:"user_id"`
-        	Email    string    `json:"email"`
-        	TokenType string   `json:"token_type"`
+        \tjwt.RegisteredClaims
+        \tUserID   uuid.UUID `json:"user_id"`
+        \tEmail    string    `json:"email"`
+        \tTokenType string   `json:"token_type"`
         }
 
         // JWTService handles JWT token operations.
         type JWTService struct {
-        	secretKey            []byte
-        	accessTokenDuration  time.Duration
-        	refreshTokenDuration time.Duration
+        \tsecretKey            []byte
+        \taccessTokenDuration  time.Duration
+        \trefreshTokenDuration time.Duration
         }
 
         // NewJWTService creates a new JWT service.
         func NewJWTService() *JWTService {
-        	secret := os.Getenv("JWT_SECRET")
-        	if secret == "" {
-        		secret = "your-secret-key-change-in-production"
-        	}
+        \tsecret := os.Getenv("JWT_SECRET")
+        \tif secret == "" {
+        \t\tsecret = "your-secret-key-change-in-production"
+        \t}
 
-        	return &JWTService{
-        		secretKey:            []byte(secret),
-        		accessTokenDuration:  time.Duration(%d) * time.Hour,
-        		refreshTokenDuration: time.Duration(168) * time.Hour, // 7 days
-        	}
+        \treturn &JWTService{
+        \t\tsecretKey:            []byte(secret),
+        \t\taccessTokenDuration:  time.Duration(%d) * time.Hour,
+        \t\trefreshTokenDuration: time.Duration(168) * time.Hour, // 7 days
+        \t}
         }
 
         // GenerateTokenPair creates both access and refresh tokens.
         func (s *JWTService) GenerateTokenPair(user *User) (*TokenPair, error) {
-        	accessToken, err := s.generateToken(user, "access", s.accessTokenDuration)
-        	if err != nil {
-        		return nil, err
-        	}
+        \taccessToken, err := s.generateToken(user, "access", s.accessTokenDuration)
+        \tif err != nil {
+        \t\treturn nil, err
+        \t}
 
-        	refreshToken, err := s.generateToken(user, "refresh", s.refreshTokenDuration)
-        	if err != nil {
-        		return nil, err
-        	}
+        \trefreshToken, err := s.generateToken(user, "refresh", s.refreshTokenDuration)
+        \tif err != nil {
+        \t\treturn nil, err
+        \t}
 
-        	return &TokenPair{
-        		AccessToken:  accessToken,
-        		RefreshToken: refreshToken,
-        		TokenType:    "Bearer",
-        		ExpiresIn:    int64(s.accessTokenDuration.Seconds()),
-        	}, nil
+        \treturn &TokenPair{
+        \t\tAccessToken:  accessToken,
+        \t\tRefreshToken: refreshToken,
+        \t\tTokenType:    "Bearer",
+        \t\tExpiresIn:    int64(s.accessTokenDuration.Seconds()),
+        \t}, nil
         }
 
         func (s *JWTService) generateToken(user *User, tokenType string, duration time.Duration) (string, error) {
-        	claims := &JWTClaims{
-        		RegisteredClaims: jwt.RegisteredClaims{
-        			ExpiresAt: jwt.NewNumericDate(time.Now().Add(duration)),
-        			IssuedAt:  jwt.NewNumericDate(time.Now()),
-        			NotBefore: jwt.NewNumericDate(time.Now()),
-        			Issuer:    "apigen",
-        			Subject:   user.ID.String(),
-        		},
-        		UserID:    user.ID,
-        		Email:     user.Email,
-        		TokenType: tokenType,
-        	}
+        \tclaims := &JWTClaims{
+        \t\tRegisteredClaims: jwt.RegisteredClaims{
+        \t\t\tExpiresAt: jwt.NewNumericDate(time.Now().Add(duration)),
+        \t\t\tIssuedAt:  jwt.NewNumericDate(time.Now()),
+        \t\t\tNotBefore: jwt.NewNumericDate(time.Now()),
+        \t\t\tIssuer:    "apigen",
+        \t\t\tSubject:   user.ID.String(),
+        \t\t},
+        \t\tUserID:    user.ID,
+        \t\tEmail:     user.Email,
+        \t\tTokenType: tokenType,
+        \t}
 
-        	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-        	return token.SignedString(s.secretKey)
+        \ttoken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+        \treturn token.SignedString(s.secretKey)
         }
 
         // ValidateToken validates a JWT token and returns the claims.
         func (s *JWTService) ValidateToken(tokenString string) (*JWTClaims, error) {
-        	token, err := jwt.ParseWithClaims(tokenString, &JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
-        		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-        			return nil, errors.New("invalid signing method")
-        		}
-        		return s.secretKey, nil
-        	})
+        \ttoken, err := jwt.ParseWithClaims(tokenString, &JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
+        \t\tif _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+        \t\t\treturn nil, errors.New("invalid signing method")
+        \t\t}
+        \t\treturn s.secretKey, nil
+        \t})
 
-        	if err != nil {
-        		return nil, err
-        	}
+        \tif err != nil {
+        \t\treturn nil, err
+        \t}
 
-        	if claims, ok := token.Claims.(*JWTClaims); ok && token.Valid {
-        		return claims, nil
-        	}
+        \tif claims, ok := token.Claims.(*JWTClaims); ok && token.Valid {
+        \t\treturn claims, nil
+        \t}
 
-        	return nil, errors.New("invalid token")
+        \treturn nil, errors.New("invalid token")
         }
 
         // ValidateRefreshToken validates a refresh token.
         func (s *JWTService) ValidateRefreshToken(tokenString string) (*JWTClaims, error) {
-        	claims, err := s.ValidateToken(tokenString)
-        	if err != nil {
-        		return nil, err
-        	}
+        \tclaims, err := s.ValidateToken(tokenString)
+        \tif err != nil {
+        \t\treturn nil, err
+        \t}
 
-        	if claims.TokenType != "refresh" {
-        		return nil, errors.New("not a refresh token")
-        	}
+        \tif claims.TokenType != "refresh" {
+        \t\treturn nil, errors.New("not a refresh token")
+        \t}
 
-        	return claims, nil
+        \treturn claims, nil
         }
         """
                 .formatted(accessTokenHours);
@@ -249,95 +255,95 @@ public class GoJwtAuthGenerator {
         package auth
 
         import (
-        	"net/http"
-        	"strings"
+        \t"net/http"
+        \t"strings"
 
-        	"github.com/gin-gonic/gin"
+        \t"github.com/gin-gonic/gin"
         )
 
         // AuthMiddleware creates a middleware that validates JWT tokens.
         func AuthMiddleware(jwtService *JWTService) gin.HandlerFunc {
-        	return func(c *gin.Context) {
-        		authHeader := c.GetHeader("Authorization")
-        		if authHeader == "" {
-        			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-        				"error":   "unauthorized",
-        				"message": "Missing authorization header",
-        			})
-        			return
-        		}
+        \treturn func(c *gin.Context) {
+        \t\tauthHeader := c.GetHeader("Authorization")
+        \t\tif authHeader == "" {
+        \t\t\tc.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+        \t\t\t\t"error":   "unauthorized",
+        \t\t\t\t"message": "Missing authorization header",
+        \t\t\t})
+        \t\t\treturn
+        \t\t}
 
-        		// Check Bearer prefix
-        		parts := strings.SplitN(authHeader, " ", 2)
-        		if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
-        			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-        				"error":   "unauthorized",
-        				"message": "Invalid authorization header format",
-        			})
-        			return
-        		}
+        \t\t// Check Bearer prefix
+        \t\tparts := strings.SplitN(authHeader, " ", 2)
+        \t\tif len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
+        \t\t\tc.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+        \t\t\t\t"error":   "unauthorized",
+        \t\t\t\t"message": "Invalid authorization header format",
+        \t\t\t})
+        \t\t\treturn
+        \t\t}
 
-        		tokenString := parts[1]
+        \t\ttokenString := parts[1]
 
-        		// Validate token
-        		claims, err := jwtService.ValidateToken(tokenString)
-        		if err != nil {
-        			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-        				"error":   "unauthorized",
-        				"message": "Invalid or expired token",
-        			})
-        			return
-        		}
+        \t\t// Validate token
+        \t\tclaims, err := jwtService.ValidateToken(tokenString)
+        \t\tif err != nil {
+        \t\t\tc.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+        \t\t\t\t"error":   "unauthorized",
+        \t\t\t\t"message": "Invalid or expired token",
+        \t\t\t})
+        \t\t\treturn
+        \t\t}
 
-        		// Check token type
-        		if claims.TokenType != "access" {
-        			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-        				"error":   "unauthorized",
-        				"message": "Invalid token type",
-        			})
-        			return
-        		}
+        \t\t// Check token type
+        \t\tif claims.TokenType != "access" {
+        \t\t\tc.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+        \t\t\t\t"error":   "unauthorized",
+        \t\t\t\t"message": "Invalid token type",
+        \t\t\t})
+        \t\t\treturn
+        \t\t}
 
-        		// Set user info in context
-        		c.Set("user_id", claims.UserID)
-        		c.Set("user_email", claims.Email)
-        		c.Set("claims", claims)
+        \t\t// Set user info in context
+        \t\tc.Set("user_id", claims.UserID)
+        \t\tc.Set("user_email", claims.Email)
+        \t\tc.Set("claims", claims)
 
-        		c.Next()
-        	}
+        \t\tc.Next()
+        \t}
         }
 
         // OptionalAuthMiddleware creates a middleware that optionally validates JWT tokens.
         // If a token is present, it validates it. If not, it continues without authentication.
         func OptionalAuthMiddleware(jwtService *JWTService) gin.HandlerFunc {
-        	return func(c *gin.Context) {
-        		authHeader := c.GetHeader("Authorization")
-        		if authHeader == "" {
-        			c.Next()
-        			return
-        		}
+        \treturn func(c *gin.Context) {
+        \t\tauthHeader := c.GetHeader("Authorization")
+        \t\tif authHeader == "" {
+        \t\t\tc.Next()
+        \t\t\treturn
+        \t\t}
 
-        		parts := strings.SplitN(authHeader, " ", 2)
-        		if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
-        			c.Next()
-        			return
-        		}
+        \t\tparts := strings.SplitN(authHeader, " ", 2)
+        \t\tif len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
+        \t\t\tc.Next()
+        \t\t\treturn
+        \t\t}
 
-        		tokenString := parts[1]
-        		claims, err := jwtService.ValidateToken(tokenString)
-        		if err != nil {
-        			c.Next()
-        			return
-        		}
+        \t\ttokenString := parts[1]
+        \t\tclaims, err := jwtService.ValidateToken(tokenString)
+        \t\tif err != nil {
+        \t\t\tc.Next()
+        \t\t\treturn
+        \t\t}
 
-        		if claims.TokenType == "access" {
-        			c.Set("user_id", claims.UserID)
-        			c.Set("user_email", claims.Email)
-        			c.Set("claims", claims)
-        		}
+        \t\tif claims.TokenType == "access" {
+        \t\t\tc.Set("user_id", claims.UserID)
+        \t\t\tc.Set("user_email", claims.Email)
+        \t\t\tc.Set("claims", claims)
+        \t\t}
 
-        		c.Next()
-        	}
+        \t\tc.Next()
+        \t}
         }
         """;
     }
@@ -347,25 +353,25 @@ public class GoJwtAuthGenerator {
         package auth
 
         import (
-        	"net/http"
+        \t"net/http"
 
-        	"github.com/gin-gonic/gin"
+        \t"github.com/gin-gonic/gin"
         )
 
         // AuthHandler handles authentication endpoints.
         type AuthHandler struct {
-        	userRepo        *UserRepository
-        	jwtService      *JWTService
-        	passwordService *PasswordService
+        \tuserRepo        *UserRepository
+        \tjwtService      *JWTService
+        \tpasswordService *PasswordService
         }
 
         // NewAuthHandler creates a new auth handler.
         func NewAuthHandler(userRepo *UserRepository, jwtService *JWTService) *AuthHandler {
-        	return &AuthHandler{
-        		userRepo:        userRepo,
-        		jwtService:      jwtService,
-        		passwordService: NewPasswordService(),
-        	}
+        \treturn &AuthHandler{
+        \t\tuserRepo:        userRepo,
+        \t\tjwtService:      jwtService,
+        \t\tpasswordService: NewPasswordService(),
+        \t}
         }
 
         // Register handles user registration.
@@ -380,69 +386,69 @@ public class GoJwtAuthGenerator {
         // @Failure 409 {object} map[string]interface{}
         // @Router /auth/register [post]
         func (h *AuthHandler) Register(c *gin.Context) {
-        	var req RegisterRequest
-        	if err := c.ShouldBindJSON(&req); err != nil {
-        		c.JSON(http.StatusBadRequest, gin.H{
-        			"error":   "validation_error",
-        			"message": err.Error(),
-        		})
-        		return
-        	}
+        \tvar req RegisterRequest
+        \tif err := c.ShouldBindJSON(&req); err != nil {
+        \t\tc.JSON(http.StatusBadRequest, gin.H{
+        \t\t\t"error":   "validation_error",
+        \t\t\t"message": err.Error(),
+        \t\t})
+        \t\treturn
+        \t}
 
-        	// Check if user already exists
-        	existingUser, _ := h.userRepo.FindByEmail(req.Email)
-        	if existingUser != nil {
-        		c.JSON(http.StatusConflict, gin.H{
-        			"error":   "conflict",
-        			"message": "Email already registered",
-        		})
-        		return
-        	}
+        \t// Check if user already exists
+        \texistingUser, _ := h.userRepo.FindByEmail(req.Email)
+        \tif existingUser != nil {
+        \t\tc.JSON(http.StatusConflict, gin.H{
+        \t\t\t"error":   "conflict",
+        \t\t\t"message": "Email already registered",
+        \t\t})
+        \t\treturn
+        \t}
 
-        	// Hash password
-        	hashedPassword, err := h.passwordService.Hash(req.Password)
-        	if err != nil {
-        		c.JSON(http.StatusInternalServerError, gin.H{
-        			"error":   "internal_error",
-        			"message": "Failed to process password",
-        		})
-        		return
-        	}
+        \t// Hash password
+        \thashedPassword, err := h.passwordService.Hash(req.Password)
+        \tif err != nil {
+        \t\tc.JSON(http.StatusInternalServerError, gin.H{
+        \t\t\t"error":   "internal_error",
+        \t\t\t"message": "Failed to process password",
+        \t\t})
+        \t\treturn
+        \t}
 
-        	// Create user
-        	user := &User{
-        		Name:     req.Name,
-        		Email:    req.Email,
-        		Password: hashedPassword,
-        	}
+        \t// Create user
+        \tuser := &User{
+        \t\tName:     req.Name,
+        \t\tEmail:    req.Email,
+        \t\tPassword: hashedPassword,
+        \t}
 
-        	if err := h.userRepo.Create(user); err != nil {
-        		c.JSON(http.StatusInternalServerError, gin.H{
-        			"error":   "internal_error",
-        			"message": "Failed to create user",
-        		})
-        		return
-        	}
+        \tif err := h.userRepo.Create(user); err != nil {
+        \t\tc.JSON(http.StatusInternalServerError, gin.H{
+        \t\t\t"error":   "internal_error",
+        \t\t\t"message": "Failed to create user",
+        \t\t})
+        \t\treturn
+        \t}
 
-        	// Generate tokens
-        	tokens, err := h.jwtService.GenerateTokenPair(user)
-        	if err != nil {
-        		c.JSON(http.StatusInternalServerError, gin.H{
-        			"error":   "internal_error",
-        			"message": "Failed to generate tokens",
-        		})
-        		return
-        	}
+        \t// Generate tokens
+        \ttokens, err := h.jwtService.GenerateTokenPair(user)
+        \tif err != nil {
+        \t\tc.JSON(http.StatusInternalServerError, gin.H{
+        \t\t\t"error":   "internal_error",
+        \t\t\t"message": "Failed to generate tokens",
+        \t\t})
+        \t\treturn
+        \t}
 
-        	c.JSON(http.StatusCreated, AuthResponse{
-        		Message: "User registered successfully",
-        		User: UserResponse{
-        			ID:    user.ID,
-        			Name:  user.Name,
-        			Email: user.Email,
-        		},
-        		Tokens: *tokens,
-        	})
+        \tc.JSON(http.StatusCreated, AuthResponse{
+        \t\tMessage: "User registered successfully",
+        \t\tUser: UserResponse{
+        \t\t\tID:    user.ID,
+        \t\t\tName:  user.Name,
+        \t\t\tEmail: user.Email,
+        \t\t},
+        \t\tTokens: *tokens,
+        \t})
         }
 
         // Login handles user login.
@@ -457,53 +463,53 @@ public class GoJwtAuthGenerator {
         // @Failure 401 {object} map[string]interface{}
         // @Router /auth/login [post]
         func (h *AuthHandler) Login(c *gin.Context) {
-        	var req LoginRequest
-        	if err := c.ShouldBindJSON(&req); err != nil {
-        		c.JSON(http.StatusBadRequest, gin.H{
-        			"error":   "validation_error",
-        			"message": err.Error(),
-        		})
-        		return
-        	}
+        \tvar req LoginRequest
+        \tif err := c.ShouldBindJSON(&req); err != nil {
+        \t\tc.JSON(http.StatusBadRequest, gin.H{
+        \t\t\t"error":   "validation_error",
+        \t\t\t"message": err.Error(),
+        \t\t})
+        \t\treturn
+        \t}
 
-        	// Find user
-        	user, err := h.userRepo.FindByEmail(req.Email)
-        	if err != nil {
-        		c.JSON(http.StatusUnauthorized, gin.H{
-        			"error":   "unauthorized",
-        			"message": "Invalid credentials",
-        		})
-        		return
-        	}
+        \t// Find user
+        \tuser, err := h.userRepo.FindByEmail(req.Email)
+        \tif err != nil {
+        \t\tc.JSON(http.StatusUnauthorized, gin.H{
+        \t\t\t"error":   "unauthorized",
+        \t\t\t"message": "Invalid credentials",
+        \t\t})
+        \t\treturn
+        \t}
 
-        	// Verify password
-        	if !h.passwordService.Verify(req.Password, user.Password) {
-        		c.JSON(http.StatusUnauthorized, gin.H{
-        			"error":   "unauthorized",
-        			"message": "Invalid credentials",
-        		})
-        		return
-        	}
+        \t// Verify password
+        \tif !h.passwordService.Verify(req.Password, user.Password) {
+        \t\tc.JSON(http.StatusUnauthorized, gin.H{
+        \t\t\t"error":   "unauthorized",
+        \t\t\t"message": "Invalid credentials",
+        \t\t})
+        \t\treturn
+        \t}
 
-        	// Generate tokens
-        	tokens, err := h.jwtService.GenerateTokenPair(user)
-        	if err != nil {
-        		c.JSON(http.StatusInternalServerError, gin.H{
-        			"error":   "internal_error",
-        			"message": "Failed to generate tokens",
-        		})
-        		return
-        	}
+        \t// Generate tokens
+        \ttokens, err := h.jwtService.GenerateTokenPair(user)
+        \tif err != nil {
+        \t\tc.JSON(http.StatusInternalServerError, gin.H{
+        \t\t\t"error":   "internal_error",
+        \t\t\t"message": "Failed to generate tokens",
+        \t\t})
+        \t\treturn
+        \t}
 
-        	c.JSON(http.StatusOK, AuthResponse{
-        		Message: "Login successful",
-        		User: UserResponse{
-        			ID:    user.ID,
-        			Name:  user.Name,
-        			Email: user.Email,
-        		},
-        		Tokens: *tokens,
-        	})
+        \tc.JSON(http.StatusOK, AuthResponse{
+        \t\tMessage: "Login successful",
+        \t\tUser: UserResponse{
+        \t\t\tID:    user.ID,
+        \t\t\tName:  user.Name,
+        \t\t\tEmail: user.Email,
+        \t\t},
+        \t\tTokens: *tokens,
+        \t})
         }
 
         // Refresh handles token refresh.
@@ -518,46 +524,46 @@ public class GoJwtAuthGenerator {
         // @Failure 401 {object} map[string]interface{}
         // @Router /auth/refresh [post]
         func (h *AuthHandler) Refresh(c *gin.Context) {
-        	var req RefreshRequest
-        	if err := c.ShouldBindJSON(&req); err != nil {
-        		c.JSON(http.StatusBadRequest, gin.H{
-        			"error":   "validation_error",
-        			"message": err.Error(),
-        		})
-        		return
-        	}
+        \tvar req RefreshRequest
+        \tif err := c.ShouldBindJSON(&req); err != nil {
+        \t\tc.JSON(http.StatusBadRequest, gin.H{
+        \t\t\t"error":   "validation_error",
+        \t\t\t"message": err.Error(),
+        \t\t})
+        \t\treturn
+        \t}
 
-        	// Validate refresh token
-        	claims, err := h.jwtService.ValidateRefreshToken(req.RefreshToken)
-        	if err != nil {
-        		c.JSON(http.StatusUnauthorized, gin.H{
-        			"error":   "unauthorized",
-        			"message": "Invalid or expired refresh token",
-        		})
-        		return
-        	}
+        \t// Validate refresh token
+        \tclaims, err := h.jwtService.ValidateRefreshToken(req.RefreshToken)
+        \tif err != nil {
+        \t\tc.JSON(http.StatusUnauthorized, gin.H{
+        \t\t\t"error":   "unauthorized",
+        \t\t\t"message": "Invalid or expired refresh token",
+        \t\t})
+        \t\treturn
+        \t}
 
-        	// Find user
-        	user, err := h.userRepo.FindByID(claims.UserID)
-        	if err != nil {
-        		c.JSON(http.StatusUnauthorized, gin.H{
-        			"error":   "unauthorized",
-        			"message": "User not found",
-        		})
-        		return
-        	}
+        \t// Find user
+        \tuser, err := h.userRepo.FindByID(claims.UserID)
+        \tif err != nil {
+        \t\tc.JSON(http.StatusUnauthorized, gin.H{
+        \t\t\t"error":   "unauthorized",
+        \t\t\t"message": "User not found",
+        \t\t})
+        \t\treturn
+        \t}
 
-        	// Generate new tokens
-        	tokens, err := h.jwtService.GenerateTokenPair(user)
-        	if err != nil {
-        		c.JSON(http.StatusInternalServerError, gin.H{
-        			"error":   "internal_error",
-        			"message": "Failed to generate tokens",
-        		})
-        		return
-        	}
+        \t// Generate new tokens
+        \ttokens, err := h.jwtService.GenerateTokenPair(user)
+        \tif err != nil {
+        \t\tc.JSON(http.StatusInternalServerError, gin.H{
+        \t\t\t"error":   "internal_error",
+        \t\t\t"message": "Failed to generate tokens",
+        \t\t})
+        \t\treturn
+        \t}
 
-        	c.JSON(http.StatusOK, tokens)
+        \tc.JSON(http.StatusOK, tokens)
         }
 
         // Profile returns the current user's profile.
@@ -570,30 +576,30 @@ public class GoJwtAuthGenerator {
         // @Failure 401 {object} map[string]interface{}
         // @Router /auth/profile [get]
         func (h *AuthHandler) Profile(c *gin.Context) {
-        	claims, exists := c.Get("claims")
-        	if !exists {
-        		c.JSON(http.StatusUnauthorized, gin.H{
-        			"error":   "unauthorized",
-        			"message": "Not authenticated",
-        		})
-        		return
-        	}
+        \tclaims, exists := c.Get("claims")
+        \tif !exists {
+        \t\tc.JSON(http.StatusUnauthorized, gin.H{
+        \t\t\t"error":   "unauthorized",
+        \t\t\t"message": "Not authenticated",
+        \t\t})
+        \t\treturn
+        \t}
 
-        	jwtClaims := claims.(*JWTClaims)
-        	user, err := h.userRepo.FindByID(jwtClaims.UserID)
-        	if err != nil {
-        		c.JSON(http.StatusNotFound, gin.H{
-        			"error":   "not_found",
-        			"message": "User not found",
-        		})
-        		return
-        	}
+        \tjwtClaims := claims.(*JWTClaims)
+        \tuser, err := h.userRepo.FindByID(jwtClaims.UserID)
+        \tif err != nil {
+        \t\tc.JSON(http.StatusNotFound, gin.H{
+        \t\t\t"error":   "not_found",
+        \t\t\t"message": "User not found",
+        \t\t})
+        \t\treturn
+        \t}
 
-        	c.JSON(http.StatusOK, UserResponse{
-        		ID:    user.ID,
-        		Name:  user.Name,
-        		Email: user.Email,
-        	})
+        \tc.JSON(http.StatusOK, UserResponse{
+        \t\tID:    user.ID,
+        \t\tName:  user.Name,
+        \t\tEmail: user.Email,
+        \t})
         }
 
         // ChangePassword handles password change.
@@ -609,65 +615,65 @@ public class GoJwtAuthGenerator {
         // @Failure 401 {object} map[string]interface{}
         // @Router /auth/password [put]
         func (h *AuthHandler) ChangePassword(c *gin.Context) {
-        	claims, exists := c.Get("claims")
-        	if !exists {
-        		c.JSON(http.StatusUnauthorized, gin.H{
-        			"error":   "unauthorized",
-        			"message": "Not authenticated",
-        		})
-        		return
-        	}
+        \tclaims, exists := c.Get("claims")
+        \tif !exists {
+        \t\tc.JSON(http.StatusUnauthorized, gin.H{
+        \t\t\t"error":   "unauthorized",
+        \t\t\t"message": "Not authenticated",
+        \t\t})
+        \t\treturn
+        \t}
 
-        	var req ChangePasswordRequest
-        	if err := c.ShouldBindJSON(&req); err != nil {
-        		c.JSON(http.StatusBadRequest, gin.H{
-        			"error":   "validation_error",
-        			"message": err.Error(),
-        		})
-        		return
-        	}
+        \tvar req ChangePasswordRequest
+        \tif err := c.ShouldBindJSON(&req); err != nil {
+        \t\tc.JSON(http.StatusBadRequest, gin.H{
+        \t\t\t"error":   "validation_error",
+        \t\t\t"message": err.Error(),
+        \t\t})
+        \t\treturn
+        \t}
 
-        	jwtClaims := claims.(*JWTClaims)
-        	user, err := h.userRepo.FindByID(jwtClaims.UserID)
-        	if err != nil {
-        		c.JSON(http.StatusNotFound, gin.H{
-        			"error":   "not_found",
-        			"message": "User not found",
-        		})
-        		return
-        	}
+        \tjwtClaims := claims.(*JWTClaims)
+        \tuser, err := h.userRepo.FindByID(jwtClaims.UserID)
+        \tif err != nil {
+        \t\tc.JSON(http.StatusNotFound, gin.H{
+        \t\t\t"error":   "not_found",
+        \t\t\t"message": "User not found",
+        \t\t})
+        \t\treturn
+        \t}
 
-        	// Verify current password
-        	if !h.passwordService.Verify(req.CurrentPassword, user.Password) {
-        		c.JSON(http.StatusBadRequest, gin.H{
-        			"error":   "validation_error",
-        			"message": "Current password is incorrect",
-        		})
-        		return
-        	}
+        \t// Verify current password
+        \tif !h.passwordService.Verify(req.CurrentPassword, user.Password) {
+        \t\tc.JSON(http.StatusBadRequest, gin.H{
+        \t\t\t"error":   "validation_error",
+        \t\t\t"message": "Current password is incorrect",
+        \t\t})
+        \t\treturn
+        \t}
 
-        	// Hash new password
-        	hashedPassword, err := h.passwordService.Hash(req.NewPassword)
-        	if err != nil {
-        		c.JSON(http.StatusInternalServerError, gin.H{
-        			"error":   "internal_error",
-        			"message": "Failed to process password",
-        		})
-        		return
-        	}
+        \t// Hash new password
+        \thashedPassword, err := h.passwordService.Hash(req.NewPassword)
+        \tif err != nil {
+        \t\tc.JSON(http.StatusInternalServerError, gin.H{
+        \t\t\t"error":   "internal_error",
+        \t\t\t"message": "Failed to process password",
+        \t\t})
+        \t\treturn
+        \t}
 
-        	// Update password
-        	if err := h.userRepo.UpdatePassword(user.ID, hashedPassword); err != nil {
-        		c.JSON(http.StatusInternalServerError, gin.H{
-        			"error":   "internal_error",
-        			"message": "Failed to update password",
-        		})
-        		return
-        	}
+        \t// Update password
+        \tif err := h.userRepo.UpdatePassword(user.ID, hashedPassword); err != nil {
+        \t\tc.JSON(http.StatusInternalServerError, gin.H{
+        \t\t\t"error":   "internal_error",
+        \t\t\t"message": "Failed to update password",
+        \t\t})
+        \t\treturn
+        \t}
 
-        	c.JSON(http.StatusOK, gin.H{
-        		"message": "Password changed successfully",
-        	})
+        \tc.JSON(http.StatusOK, gin.H{
+        \t\t"message": "Password changed successfully",
+        \t})
         }
         """;
     }
@@ -680,48 +686,48 @@ public class GoJwtAuthGenerator {
 
         // RegisterRequest represents a registration request.
         type RegisterRequest struct {
-        	Name     string `json:"name" binding:"required,min=2,max=100"`
-        	Email    string `json:"email" binding:"required,email"`
-        	Password string `json:"password" binding:"required,min=8"`
+        \tName     string `json:"name" binding:"required,min=2,max=100"`
+        \tEmail    string `json:"email" binding:"required,email"`
+        \tPassword string `json:"password" binding:"required,min=8"`
         }
 
         // LoginRequest represents a login request.
         type LoginRequest struct {
-        	Email    string `json:"email" binding:"required,email"`
-        	Password string `json:"password" binding:"required"`
+        \tEmail    string `json:"email" binding:"required,email"`
+        \tPassword string `json:"password" binding:"required"`
         }
 
         // RefreshRequest represents a token refresh request.
         type RefreshRequest struct {
-        	RefreshToken string `json:"refresh_token" binding:"required"`
+        \tRefreshToken string `json:"refresh_token" binding:"required"`
         }
 
         // ChangePasswordRequest represents a password change request.
         type ChangePasswordRequest struct {
-        	CurrentPassword string `json:"current_password" binding:"required"`
-        	NewPassword     string `json:"new_password" binding:"required,min=8"`
+        \tCurrentPassword string `json:"current_password" binding:"required"`
+        \tNewPassword     string `json:"new_password" binding:"required,min=8"`
         }
 
         // TokenPair represents access and refresh tokens.
         type TokenPair struct {
-        	AccessToken  string `json:"access_token"`
-        	RefreshToken string `json:"refresh_token"`
-        	TokenType    string `json:"token_type"`
-        	ExpiresIn    int64  `json:"expires_in"`
+        \tAccessToken  string `json:"access_token"`
+        \tRefreshToken string `json:"refresh_token"`
+        \tTokenType    string `json:"token_type"`
+        \tExpiresIn    int64  `json:"expires_in"`
         }
 
         // UserResponse represents a user in API responses.
         type UserResponse struct {
-        	ID    uuid.UUID `json:"id"`
-        	Name  string    `json:"name"`
-        	Email string    `json:"email"`
+        \tID    uuid.UUID `json:"id"`
+        \tName  string    `json:"name"`
+        \tEmail string    `json:"email"`
         }
 
         // AuthResponse represents an authentication response.
         type AuthResponse struct {
-        	Message string       `json:"message"`
-        	User    UserResponse `json:"user"`
-        	Tokens  TokenPair    `json:"tokens"`
+        \tMessage string       `json:"message"`
+        \tUser    UserResponse `json:"user"`
+        \tTokens  TokenPair    `json:"tokens"`
         }
         """;
     }
@@ -731,34 +737,34 @@ public class GoJwtAuthGenerator {
         package auth
 
         import (
-        	"time"
+        \t"time"
 
-        	"github.com/google/uuid"
-        	"gorm.io/gorm"
+        \t"github.com/google/uuid"
+        \t"gorm.io/gorm"
         )
 
         // User represents an authenticated user.
         type User struct {
-        	ID        uuid.UUID      `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
-        	Name      string         `gorm:"type:varchar(100);not null" json:"name"`
-        	Email     string         `gorm:"type:varchar(255);uniqueIndex;not null" json:"email"`
-        	Password  string         `gorm:"type:varchar(255);not null" json:"-"`
-        	CreatedAt time.Time      `gorm:"autoCreateTime" json:"created_at"`
-        	UpdatedAt time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
-        	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+        \tID        uuid.UUID      `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
+        \tName      string         `gorm:"type:varchar(100);not null" json:"name"`
+        \tEmail     string         `gorm:"type:varchar(255);uniqueIndex;not null" json:"email"`
+        \tPassword  string         `gorm:"type:varchar(255);not null" json:"-"`
+        \tCreatedAt time.Time      `gorm:"autoCreateTime" json:"created_at"`
+        \tUpdatedAt time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
+        \tDeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
         }
 
         // TableName returns the table name for the User model.
         func (User) TableName() string {
-        	return "users"
+        \treturn "users"
         }
 
         // BeforeCreate is called before creating a new user.
         func (u *User) BeforeCreate(tx *gorm.DB) error {
-        	if u.ID == uuid.Nil {
-        		u.ID = uuid.New()
-        	}
-        	return nil
+        \tif u.ID == uuid.Nil {
+        \t\tu.ID = uuid.New()
+        \t}
+        \treturn nil
         }
         """;
     }
@@ -768,53 +774,53 @@ public class GoJwtAuthGenerator {
         package auth
 
         import (
-        	"github.com/google/uuid"
-        	"gorm.io/gorm"
+        \t"github.com/google/uuid"
+        \t"gorm.io/gorm"
         )
 
         // UserRepository handles user database operations.
         type UserRepository struct {
-        	db *gorm.DB
+        \tdb *gorm.DB
         }
 
         // NewUserRepository creates a new user repository.
         func NewUserRepository(db *gorm.DB) *UserRepository {
-        	return &UserRepository{db: db}
+        \treturn &UserRepository{db: db}
         }
 
         // Create creates a new user.
         func (r *UserRepository) Create(user *User) error {
-        	return r.db.Create(user).Error
+        \treturn r.db.Create(user).Error
         }
 
         // FindByID finds a user by ID.
         func (r *UserRepository) FindByID(id uuid.UUID) (*User, error) {
-        	var user User
-        	err := r.db.Where("id = ?", id).First(&user).Error
-        	if err != nil {
-        		return nil, err
-        	}
-        	return &user, nil
+        \tvar user User
+        \terr := r.db.Where("id = ?", id).First(&user).Error
+        \tif err != nil {
+        \t\treturn nil, err
+        \t}
+        \treturn &user, nil
         }
 
         // FindByEmail finds a user by email.
         func (r *UserRepository) FindByEmail(email string) (*User, error) {
-        	var user User
-        	err := r.db.Where("email = ?", email).First(&user).Error
-        	if err != nil {
-        		return nil, err
-        	}
-        	return &user, nil
+        \tvar user User
+        \terr := r.db.Where("email = ?", email).First(&user).Error
+        \tif err != nil {
+        \t\treturn nil, err
+        \t}
+        \treturn &user, nil
         }
 
         // UpdatePassword updates a user's password.
         func (r *UserRepository) UpdatePassword(id uuid.UUID, hashedPassword string) error {
-        	return r.db.Model(&User{}).Where("id = ?", id).Update("password", hashedPassword).Error
+        \treturn r.db.Model(&User{}).Where("id = ?", id).Update("password", hashedPassword).Error
         }
 
         // Delete soft deletes a user.
         func (r *UserRepository) Delete(id uuid.UUID) error {
-        	return r.db.Delete(&User{}, "id = ?", id).Error
+        \treturn r.db.Delete(&User{}, "id = ?", id).Error
         }
         """;
     }
@@ -827,27 +833,27 @@ public class GoJwtAuthGenerator {
 
         // PasswordService handles password hashing and verification.
         type PasswordService struct {
-        	cost int
+        \tcost int
         }
 
         // NewPasswordService creates a new password service.
         func NewPasswordService() *PasswordService {
-        	return &PasswordService{cost: bcrypt.DefaultCost}
+        \treturn &PasswordService{cost: bcrypt.DefaultCost}
         }
 
         // Hash hashes a plain text password.
         func (s *PasswordService) Hash(password string) (string, error) {
-        	bytes, err := bcrypt.GenerateFromPassword([]byte(password), s.cost)
-        	if err != nil {
-        		return "", err
-        	}
-        	return string(bytes), nil
+        \tbytes, err := bcrypt.GenerateFromPassword([]byte(password), s.cost)
+        \tif err != nil {
+        \t\treturn "", err
+        \t}
+        \treturn string(bytes), nil
         }
 
         // Verify checks if a password matches the hash.
         func (s *PasswordService) Verify(password, hash string) bool {
-        	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-        	return err == nil
+        \terr := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+        \treturn err == nil
         }
         """;
     }
@@ -857,37 +863,37 @@ public class GoJwtAuthGenerator {
         package auth
 
         import (
-        	"github.com/gin-gonic/gin"
-        	"gorm.io/gorm"
+        \t"github.com/gin-gonic/gin"
+        \t"gorm.io/gorm"
         )
 
         // SetupAuthRoutes configures authentication routes.
         func SetupAuthRoutes(router *gin.RouterGroup, db *gorm.DB) {
-        	userRepo := NewUserRepository(db)
-        	jwtService := NewJWTService()
-        	handler := NewAuthHandler(userRepo, jwtService)
+        \tuserRepo := NewUserRepository(db)
+        \tjwtService := NewJWTService()
+        \thandler := NewAuthHandler(userRepo, jwtService)
 
-        	auth := router.Group("/auth")
-        	{
-        		// Public routes
-        		auth.POST("/register", handler.Register)
-        		auth.POST("/login", handler.Login)
-        		auth.POST("/refresh", handler.Refresh)
+        \tauth := router.Group("/auth")
+        \t{
+        \t\t// Public routes
+        \t\tauth.POST("/register", handler.Register)
+        \t\tauth.POST("/login", handler.Login)
+        \t\tauth.POST("/refresh", handler.Refresh)
 
-        		// Protected routes
-        		protected := auth.Group("")
-        		protected.Use(AuthMiddleware(jwtService))
-        		{
-        			protected.GET("/profile", handler.Profile)
-        			protected.PUT("/password", handler.ChangePassword)
-        		}
-        	}
+        \t\t// Protected routes
+        \t\tprotected := auth.Group("")
+        \t\tprotected.Use(AuthMiddleware(jwtService))
+        \t\t{
+        \t\t\tprotected.GET("/profile", handler.Profile)
+        \t\t\tprotected.PUT("/password", handler.ChangePassword)
+        \t\t}
+        \t}
         }
 
         // GetJWTService returns a new JWT service instance.
         // Use this to get the JWT service for middleware.
         func GetJWTService() *JWTService {
-        	return NewJWTService()
+        \treturn NewJWTService()
         }
         """;
     }

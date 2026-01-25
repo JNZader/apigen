@@ -25,6 +25,7 @@ import java.util.Map;
  * @author APiGen
  * @since 2.16.0
  */
+@SuppressWarnings("java:S1192") // Duplicate strings intentional for code generation templates
 public class TypeScriptTestGenerator {
 
     /**
@@ -340,20 +341,6 @@ public class TypeScriptTestGenerator {
                 entityName,
                 entityName,
                 entityName,
-                kebabName,
-                entityName,
-                entityName,
-                entityName,
-                entityName,
-                kebabName,
-                kebabName,
-                entityName,
-                entityName,
-                entityName,
-                entityName,
-                entityName,
-                entityName,
-                kebabName,
                 entityName,
                 entityName,
                 entityName,
@@ -361,7 +348,22 @@ public class TypeScriptTestGenerator {
                 entityName,
                 entityName,
                 entityName,
-                kebabName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
                 entityName,
                 entityName,
                 entityName);

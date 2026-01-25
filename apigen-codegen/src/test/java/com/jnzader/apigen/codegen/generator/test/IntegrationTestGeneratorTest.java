@@ -12,6 +12,10 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @DisplayName("IntegrationTestGenerator Tests")
+@SuppressWarnings({
+    "java:S1874",
+    "deprecation"
+}) // Tests deprecated generators for backward compatibility
 class IntegrationTestGeneratorTest {
 
     private IntegrationTestGenerator generator;

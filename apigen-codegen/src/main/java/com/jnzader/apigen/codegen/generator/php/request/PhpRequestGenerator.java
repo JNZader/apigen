@@ -17,6 +17,10 @@ import java.util.List;
  *   <li>UpdateRequest for PUT/PATCH/update validation
  * </ul>
  */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3776"
+}) // S1192: Template strings; S3776: complex request generation logic
 public class PhpRequestGenerator {
 
     private final PhpTypeMapper typeMapper;
@@ -189,6 +193,9 @@ public class PhpRequestGenerator {
             case "LocalDate" -> rules.add("'date'");
             case "LocalDateTime", "Instant", "ZonedDateTime" -> rules.add("'date'");
             case "UUID" -> rules.add("'uuid'");
+            default -> {
+                // Other types use default validation
+            }
         }
 
         // Unique constraint

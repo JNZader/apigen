@@ -5,6 +5,10 @@ import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlTable;
 
 /** Generates service structs and methods for business logic for Go/Gin. */
+@SuppressWarnings({
+    "java:S2479",
+    "java:S1192"
+}) // Literal tabs intentional for Go code; duplicate strings for templates
 public class GoServiceGenerator {
 
     private final GoTypeMapper typeMapper;

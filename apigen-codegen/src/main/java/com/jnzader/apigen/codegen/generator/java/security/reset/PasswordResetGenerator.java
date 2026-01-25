@@ -16,6 +16,10 @@ import java.util.Map;
  *   <li>Flyway migration for the token table
  * </ul>
  */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3400"
+}) // S1192: template strings; S3400: template methods return constants
 public class PasswordResetGenerator {
 
     private static final String PKG_SECURITY = "security";

@@ -27,6 +27,7 @@ import java.util.List;
  * @author APiGen
  * @since 2.12.0
  */
+@SuppressWarnings("java:S1192") // Template string literals intentional for readability
 public class RustHandlerGenerator {
 
     private final RustTypeMapper typeMapper;

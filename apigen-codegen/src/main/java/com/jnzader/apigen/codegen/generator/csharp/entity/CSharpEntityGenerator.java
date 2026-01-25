@@ -12,6 +12,11 @@ import java.util.List;
 import java.util.Set;
 
 /** Generates Entity Framework Core entity classes for C#/ASP.NET Core. */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3776",
+    "java:S6541"
+}) // S1192: Template strings; S3776/S6541: complex entity generation logic
 public class CSharpEntityGenerator {
 
     private final String baseNamespace;
@@ -94,15 +99,13 @@ public class CSharpEntityGenerator {
         sb.append("{\n");
 
         // Generate fields for columns (excluding id which is in BaseEntity)
+        // Skip: PK (in BaseEntity), audit fields (in BaseEntity), FK columns (generated with
+        // relationships)
         for (SqlColumn col : table.getColumns()) {
-            if (col.isPrimaryKey()) {
-                continue; // Skip PK, it's in BaseEntity
-            }
-            if (isAuditField(col.getName())) {
-                continue; // Skip audit fields, they're in BaseEntity
-            }
-            if (isForeignKeyColumn(col.getName(), relations)) {
-                continue; // Skip FK columns, they'll be generated with relationships
+            if (col.isPrimaryKey()
+                    || isAuditField(col.getName())
+                    || isForeignKeyColumn(col.getName(), relations)) {
+                continue;
             }
 
             generateColumnField(sb, col);
@@ -161,10 +164,7 @@ public class CSharpEntityGenerator {
         sb.append(colAttr);
 
         // Property declaration
-        if (col.isNullable() && !typeMapper.isValueType(csharpType)) {
-            sb.append("    public ").append(csharpType).append("? ").append(fieldName);
-            sb.append(" { get; set; }\n");
-        } else if (col.isNullable() && typeMapper.isValueType(csharpType)) {
+        if (col.isNullable()) {
             sb.append("    public ").append(csharpType).append("? ").append(fieldName);
             sb.append(" { get; set; }\n");
         } else {
@@ -180,22 +180,14 @@ public class CSharpEntityGenerator {
     }
 
     private void generateManyToOneRelation(StringBuilder sb, SqlSchema.TableRelationship rel) {
-        String targetEntityName = rel.getTargetTable().getEntityName();
-        String fkColumnName = rel.getForeignKey().getColumnName();
-        String propertyName = toPascalCase(toPropertyName(fkColumnName));
-
-        sb.append("\n");
-        sb.append("    [ForeignKey(nameof(").append(propertyName).append("))]\n");
-        sb.append("    public long? ").append(propertyName).append("Id { get; set; }\n");
-        sb.append("\n");
-        sb.append("    public virtual ")
-                .append(targetEntityName)
-                .append("? ")
-                .append(propertyName)
-                .append(" { get; set; }\n");
+        generateForeignKeyRelation(sb, rel);
     }
 
     private void generateOneToOneRelation(StringBuilder sb, SqlSchema.TableRelationship rel) {
+        generateForeignKeyRelation(sb, rel);
+    }
+
+    private void generateForeignKeyRelation(StringBuilder sb, SqlSchema.TableRelationship rel) {
         String targetEntityName = rel.getTargetTable().getEntityName();
         String fkColumnName = rel.getForeignKey().getColumnName();
         String propertyName = toPascalCase(toPropertyName(fkColumnName));

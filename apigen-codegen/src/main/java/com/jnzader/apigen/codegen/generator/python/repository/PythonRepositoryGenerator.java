@@ -33,14 +33,14 @@ public class PythonRepositoryGenerator {
 
 
         class BaseRepository(Generic[ModelType]):
-            \"\"\"Base repository with common CRUD operations.\"\"\"
+            \"""Base repository with common CRUD operations.\"""
 
             def __init__(self, model: Type[ModelType], db: AsyncSession):
                 self.model = model
                 self.db = db
 
             async def get_by_id(self, id: int) -> ModelType | None:
-                \"\"\"Get entity by ID.\"\"\"
+                \"""Get entity by ID.\"""
                 result = await self.db.execute(
                     select(self.model).where(
                         self.model.id == id,
@@ -55,7 +55,7 @@ public class PythonRepositoryGenerator {
                 limit: int = 10,
                 include_inactive: bool = False
             ) -> list[ModelType]:
-                \"\"\"Get all entities with pagination.\"\"\"
+                \"""Get all entities with pagination.\"""
                 query = select(self.model)
                 if not include_inactive:
                     query = query.where(self.model.activo == True)
@@ -64,7 +64,7 @@ public class PythonRepositoryGenerator {
                 return list(result.scalars().all())
 
             async def count(self, include_inactive: bool = False) -> int:
-                \"\"\"Count all entities.\"\"\"
+                \"""Count all entities.\"""
                 query = select(func.count(self.model.id))
                 if not include_inactive:
                     query = query.where(self.model.activo == True)
@@ -72,7 +72,7 @@ public class PythonRepositoryGenerator {
                 return result.scalar_one()
 
             async def create(self, obj_in: dict) -> ModelType:
-                \"\"\"Create a new entity.\"\"\"
+                \"""Create a new entity.\"""
                 db_obj = self.model(**obj_in)
                 self.db.add(db_obj)
                 await self.db.commit()
@@ -80,7 +80,7 @@ public class PythonRepositoryGenerator {
                 return db_obj
 
             async def update(self, db_obj: ModelType, obj_in: dict) -> ModelType:
-                \"\"\"Update an existing entity.\"\"\"
+                \"""Update an existing entity.\"""
                 for field, value in obj_in.items():
                     if value is not None:
                         setattr(db_obj, field, value)
@@ -89,12 +89,12 @@ public class PythonRepositoryGenerator {
                 return db_obj
 
             async def delete(self, db_obj: ModelType) -> None:
-                \"\"\"Hard delete an entity.\"\"\"
+                \"""Hard delete an entity.\"""
                 await self.db.delete(db_obj)
                 await self.db.commit()
 
             async def soft_delete(self, db_obj: ModelType) -> ModelType:
-                \"\"\"Soft delete an entity.\"\"\"
+                \"""Soft delete an entity.\"""
                 from datetime import datetime
                 db_obj.activo = False
                 db_obj.deleted_at = datetime.utcnow()
@@ -103,7 +103,7 @@ public class PythonRepositoryGenerator {
                 return db_obj
 
             async def restore(self, db_obj: ModelType) -> ModelType:
-                \"\"\"Restore a soft-deleted entity.\"\"\"
+                \"""Restore a soft-deleted entity.\"""
                 db_obj.activo = True
                 db_obj.deleted_at = None
                 db_obj.deleted_by = None
@@ -132,7 +132,7 @@ public class PythonRepositoryGenerator {
 
 
         class %sRepository(BaseRepository[%s]):
-            \"\"\"%s repository with custom queries.\"\"\"
+            \"""%s repository with custom queries.\"""
 
             def __init__(self, db: AsyncSession):
                 super().__init__(%s, db)

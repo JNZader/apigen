@@ -3,6 +3,7 @@ package com.jnzader.apigen.codegen.generator.csharp.controller;
 import com.jnzader.apigen.codegen.model.SqlTable;
 
 /** Generates REST API controllers for C#/ASP.NET Core. */
+@SuppressWarnings("java:S1192") // Duplicate strings intentional for code generation templates
 public class CSharpControllerGenerator {
 
     private final String baseNamespace;

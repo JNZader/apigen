@@ -16,6 +16,10 @@ import java.util.Set;
  *   <li>Go native types
  * </ul>
  */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3776"
+}) // S1192: Type mapping strings; S3776: complex type mapping logic
 public class GoTypeMapper implements LanguageTypeMapper {
 
     private static final Set<String> GO_KEYWORDS =
@@ -259,19 +263,19 @@ public class GoTypeMapper implements LanguageTypeMapper {
                         column.getLength() != null && column.getLength() > 0
                                 ? column.getLength()
                                 : 255;
-                if (tag.length() > 0) tag.append(",");
+                if (!tag.isEmpty()) tag.append(",");
                 tag.append("max=").append(maxLength);
 
                 // Email validation
                 if (column.getName().toLowerCase().contains("email")) {
-                    if (tag.length() > 0) tag.append(",");
+                    if (!tag.isEmpty()) tag.append(",");
                     tag.append("email");
                 }
 
                 // URL validation
                 if (column.getName().toLowerCase().contains("url")
                         || column.getName().toLowerCase().contains("website")) {
-                    if (tag.length() > 0) tag.append(",");
+                    if (!tag.isEmpty()) tag.append(",");
                     tag.append("url");
                 }
             }
@@ -279,14 +283,17 @@ public class GoTypeMapper implements LanguageTypeMapper {
                 // Numeric validation (optional)
             }
             case "UUID" -> {
-                if (tag.length() > 0) tag.append(",");
+                if (!tag.isEmpty()) tag.append(",");
                 tag.append("uuid");
+            }
+            default -> {
+                // Other types don't need specific validation tags
             }
         }
 
         // Omitempty for optional fields
         if (isUpdate || column.isNullable()) {
-            if (tag.length() > 0) {
+            if (!tag.isEmpty()) {
                 return "omitempty," + tag;
             }
             return "omitempty";

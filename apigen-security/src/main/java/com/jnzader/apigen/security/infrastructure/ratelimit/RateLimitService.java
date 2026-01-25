@@ -62,9 +62,15 @@ public class RateLimitService {
     // In-memory storage
     private final Map<String, Bucket> localBuckets = new ConcurrentHashMap<>();
 
-    // Redis storage (initialized lazily in @PostConstruct, volatile for thread visibility)
+    // Redis storage - initialized once in @PostConstruct, Spring ensures visibility before use.
+    // The volatile keyword provides safe publication in this write-once-read-many pattern.
+    @SuppressWarnings("java:S3077") // Write-once pattern: set in @PostConstruct, read thereafter
     private volatile ProxyManager<String> redisProxyManager;
+
+    @SuppressWarnings("java:S3077") // Write-once pattern: set in @PostConstruct, read thereafter
     private volatile RedisClient redisClient;
+
+    @SuppressWarnings("java:S3077") // Write-once pattern: set in @PostConstruct, read thereafter
     private volatile StatefulRedisConnection<String, byte[]> redisConnection;
 
     public RateLimitService(

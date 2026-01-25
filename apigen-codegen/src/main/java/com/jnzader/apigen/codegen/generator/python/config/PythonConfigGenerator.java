@@ -22,6 +22,13 @@ import java.util.Map;
  *   <li>.env.example - Environment variables template
  * </ul>
  */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3400",
+    "java:S3457",
+    "java:S6126"
+}) // S1192: template strings; S3400: template methods; S3457: Unix line endings; S6126:
+// concatenated
 public class PythonConfigGenerator {
 
     private static final String PYTHON_VERSION = "3.12";
@@ -335,7 +342,7 @@ public class PythonConfigGenerator {
 
 
         async def get_db() -> AsyncSession:
-            \"\"\"Dependency to get database session.\"\"\"
+            \"""Dependency to get database session.\"""
             async with async_session_maker() as session:
                 try:
                     yield session

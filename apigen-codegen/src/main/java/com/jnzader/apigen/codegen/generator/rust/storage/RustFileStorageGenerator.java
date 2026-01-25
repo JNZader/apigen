@@ -24,6 +24,10 @@ import java.util.Map;
  * @author APiGen
  * @since 2.13.0
  */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3400"
+}) // S1192: template strings; S3400: template methods return constants
 public class RustFileStorageGenerator {
 
     /**
@@ -497,7 +501,7 @@ public class RustFileStorageGenerator {
                 .header(header::CONTENT_TYPE, content_type)
                 .header(
                     header::CONTENT_DISPOSITION,
-                    format!("attachment; filename=\"{}\"", filename),
+                    format!("attachment; filename=\\"{}\\"", filename),
                 )
                 .body(body)
                 .unwrap())

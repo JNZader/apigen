@@ -16,6 +16,10 @@ import java.util.Set;
  *   <li>PHP native types
  * </ul>
  */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3776"
+}) // S1192: Type mapping strings; S3776: complex type mapping logic
 public class PhpTypeMapper implements LanguageTypeMapper {
 
     private static final Set<String> PHP_KEYWORDS =

@@ -9,6 +9,7 @@ import com.jnzader.apigen.codegen.model.SqlTable;
  *     instead. This class is maintained for backward compatibility.
  */
 @Deprecated(since = "2.6.0", forRemoval = false)
+@SuppressWarnings("java:S1133") // Kept for backward compatibility
 public class ServiceTestGenerator {
 
     private static final String APIGEN_CORE_PKG = "com.jnzader.apigen.core";

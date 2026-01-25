@@ -179,16 +179,10 @@ public class GoChiProjectGenerator implements ProjectGenerator {
             List<SqlSchema.TableRelationship> tableRelations =
                     relationshipsByTable.getOrDefault(table.getName(), Collections.emptyList());
 
-            List<SqlSchema.TableRelationship> inverseRelations =
-                    schema.getAllRelationships().stream()
-                            .filter(r -> r.getTargetTable().getName().equals(table.getName()))
-                            .filter(r -> !r.getSourceTable().isJunctionTable())
-                            .toList();
-
             // Model
             files.put(
                     "internal/model/" + snakeName + ".go",
-                    modelGenerator.generate(table, tableRelations, inverseRelations));
+                    modelGenerator.generate(table, tableRelations));
 
             // DTOs
             files.put(

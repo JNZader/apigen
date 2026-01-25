@@ -10,6 +10,11 @@ import java.util.Locale;
 import java.util.Set;
 
 /** Generates DTO structs for Go/Chi with validation tags. */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S2479",
+    "java:S3776"
+}) // S1192: template strings; S2479: tabs for Go; S3776: complex DTO generation
 public class GoChiDtoGenerator {
 
     private final GoChiTypeMapper typeMapper;
@@ -204,51 +209,51 @@ public class GoChiDtoGenerator {
 
         // PaginatedResponse is a generic paginated response.
         type PaginatedResponse[T any] struct {
-        	Items      []T   `json:"items"`
-        	Total      int64 `json:"total"`
-        	Page       int   `json:"page"`
-        	PageSize   int   `json:"page_size"`
-        	TotalPages int   `json:"total_pages"`
+        \tItems      []T   `json:"items"`
+        \tTotal      int64 `json:"total"`
+        \tPage       int   `json:"page"`
+        \tPageSize   int   `json:"page_size"`
+        \tTotalPages int   `json:"total_pages"`
         }
 
         // NewPaginatedResponse creates a new paginated response.
         func NewPaginatedResponse[T any](items []T, page, pageSize int, total int64) *PaginatedResponse[T] {
-        	totalPages := int(total) / pageSize
-        	if int(total)%pageSize > 0 {
-        		totalPages++
-        	}
-        	return &PaginatedResponse[T]{
-        		Items:      items,
-        		Total:      total,
-        		Page:       page,
-        		PageSize:   pageSize,
-        		TotalPages: totalPages,
-        	}
+        \ttotalPages := int(total) / pageSize
+        \tif int(total)%pageSize > 0 {
+        \t\ttotalPages++
+        \t}
+        \treturn &PaginatedResponse[T]{
+        \t\tItems:      items,
+        \t\tTotal:      total,
+        \t\tPage:       page,
+        \t\tPageSize:   pageSize,
+        \t\tTotalPages: totalPages,
+        \t}
         }
 
         // PaginationParams holds pagination parameters.
         type PaginationParams struct {
-        	Page     int `json:"page"`
-        	PageSize int `json:"page_size"`
+        \tPage     int `json:"page"`
+        \tPageSize int `json:"page_size"`
         }
 
         // NewPaginationParams creates pagination params with defaults.
         func NewPaginationParams(page, pageSize int) PaginationParams {
-        	if page < 0 {
-        		page = 0
-        	}
-        	if pageSize <= 0 {
-        		pageSize = 20
-        	}
-        	if pageSize > 100 {
-        		pageSize = 100
-        	}
-        	return PaginationParams{Page: page, PageSize: pageSize}
+        \tif page < 0 {
+        \t\tpage = 0
+        \t}
+        \tif pageSize <= 0 {
+        \t\tpageSize = 20
+        \t}
+        \tif pageSize > 100 {
+        \t\tpageSize = 100
+        \t}
+        \treturn PaginationParams{Page: page, PageSize: pageSize}
         }
 
         // Offset returns the SQL offset.
         func (p PaginationParams) Offset() int {
-        	return p.Page * p.PageSize
+        \treturn p.Page * p.PageSize
         }
         """;
     }
@@ -259,31 +264,31 @@ public class GoChiDtoGenerator {
 
         // ErrorResponse is the standard error response.
         type ErrorResponse struct {
-        	Status  int    `json:"status"`
-        	Message string `json:"message"`
-        	Details any    `json:"details,omitempty"`
+        \tStatus  int    `json:"status"`
+        \tMessage string `json:"message"`
+        \tDetails any    `json:"details,omitempty"`
         }
 
         // NewErrorResponse creates a new error response.
         func NewErrorResponse(status int, message string) *ErrorResponse {
-        	return &ErrorResponse{Status: status, Message: message}
+        \treturn &ErrorResponse{Status: status, Message: message}
         }
 
         // WithDetails adds details to the error response.
         func (e *ErrorResponse) WithDetails(details any) *ErrorResponse {
-        	e.Details = details
-        	return e
+        \te.Details = details
+        \treturn e
         }
 
         // SuccessResponse is a generic success response.
         type SuccessResponse struct {
-        	Message string `json:"message"`
-        	Data    any    `json:"data,omitempty"`
+        \tMessage string `json:"message"`
+        \tData    any    `json:"data,omitempty"`
         }
 
         // NewSuccessResponse creates a new success response.
         func NewSuccessResponse(message string, data any) *SuccessResponse {
-        	return &SuccessResponse{Message: message, Data: data}
+        \treturn &SuccessResponse{Message: message, Data: data}
         }
         """;
     }

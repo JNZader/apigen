@@ -36,7 +36,7 @@ public class PythonServiceGenerator {
 
 
         class BaseService(Generic[ModelType, CreateSchemaType, UpdateSchemaType, ResponseSchemaType]):
-            \"\"\"Base service with common CRUD operations.\"\"\"
+            \"""Base service with common CRUD operations.\"""
 
             def __init__(
                 self,
@@ -47,7 +47,7 @@ public class PythonServiceGenerator {
                 self.response_schema = response_schema
 
             async def get_by_id(self, id: int) -> ResponseSchemaType:
-                \"\"\"Get entity by ID.\"\"\"
+                \"""Get entity by ID.\"""
                 entity = await self.repository.get_by_id(id)
                 if not entity:
                     raise HTTPException(
@@ -61,7 +61,7 @@ public class PythonServiceGenerator {
                 page: int = 0,
                 size: int = 10
             ) -> dict:
-                \"\"\"Get all entities with pagination.\"\"\"
+                \"""Get all entities with pagination.\"""
                 skip = page * size
                 entities = await self.repository.get_all(skip=skip, limit=size)
                 total = await self.repository.count()
@@ -76,12 +76,12 @@ public class PythonServiceGenerator {
                 }
 
             async def create(self, obj_in: CreateSchemaType) -> ResponseSchemaType:
-                \"\"\"Create a new entity.\"\"\"
+                \"""Create a new entity.\"""
                 entity = await self.repository.create(obj_in.model_dump())
                 return self.response_schema.model_validate(entity)
 
             async def update(self, id: int, obj_in: UpdateSchemaType) -> ResponseSchemaType:
-                \"\"\"Update an existing entity.\"\"\"
+                \"""Update an existing entity.\"""
                 entity = await self.repository.get_by_id(id)
                 if not entity:
                     raise HTTPException(
@@ -95,7 +95,7 @@ public class PythonServiceGenerator {
                 return self.response_schema.model_validate(updated)
 
             async def delete(self, id: int) -> None:
-                \"\"\"Soft delete an entity.\"\"\"
+                \"""Soft delete an entity.\"""
                 entity = await self.repository.get_by_id(id)
                 if not entity:
                     raise HTTPException(
@@ -105,7 +105,7 @@ public class PythonServiceGenerator {
                 await self.repository.soft_delete(entity)
 
             async def hard_delete(self, id: int) -> None:
-                \"\"\"Permanently delete an entity.\"\"\"
+                \"""Permanently delete an entity.\"""
                 entity = await self.repository.get_by_id(id)
                 if not entity:
                     raise HTTPException(
@@ -115,7 +115,7 @@ public class PythonServiceGenerator {
                 await self.repository.delete(entity)
 
             async def restore(self, id: int) -> ResponseSchemaType:
-                \"\"\"Restore a soft-deleted entity.\"\"\"
+                \"""Restore a soft-deleted entity.\"""
                 # Include inactive to find soft-deleted
                 entities = await self.repository.get_all(include_inactive=True)
                 entity = next((e for e in entities if e.id == id), None)
@@ -149,7 +149,7 @@ public class PythonServiceGenerator {
 
 
         class %sService(BaseService[%s, %sCreate, %sUpdate, %sResponse]):
-            \"\"\"%s service with business logic.\"\"\"
+            \"""%s service with business logic.\"""
 
             def __init__(self, db: AsyncSession):
                 repository = %sRepository(db)
@@ -164,7 +164,7 @@ public class PythonServiceGenerator {
 
 
         def get_%s_service(db: AsyncSession) -> %sService:
-            \"\"\"Dependency injection for %sService.\"\"\"
+            \"""Dependency injection for %sService.\"""
             return %sService(db)
         """
                 .formatted(

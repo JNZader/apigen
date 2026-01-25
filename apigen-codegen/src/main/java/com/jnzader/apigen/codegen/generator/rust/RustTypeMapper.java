@@ -33,6 +33,10 @@ import java.util.regex.Pattern;
  * @author APiGen
  * @since 2.12.0
  */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3776"
+}) // S1192: Type mapping strings; S3776: complex type mapping logic
 public class RustTypeMapper implements LanguageTypeMapper {
 
     private static final Pattern ACRONYM_PATTERN = Pattern.compile("(Id|Url|Api|Uuid|Json|Http)");

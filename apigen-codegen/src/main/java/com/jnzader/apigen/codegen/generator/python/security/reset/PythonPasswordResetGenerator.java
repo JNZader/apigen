@@ -24,6 +24,7 @@ import java.util.Map;
  * @author APiGen
  * @since 2.13.0
  */
+@SuppressWarnings("java:S3400") // Template methods return constants for code generation
 public class PythonPasswordResetGenerator {
 
     /**
@@ -46,7 +47,7 @@ public class PythonPasswordResetGenerator {
 
     private String generateModel() {
         return """
-        \"\"\"Password reset token model.\"\"\"
+        \"""Password reset token model.\"""
 
         from datetime import datetime
         from uuid import uuid4
@@ -59,7 +60,7 @@ public class PythonPasswordResetGenerator {
 
 
         class PasswordResetToken(Base):
-            \"\"\"Model for storing password reset tokens.\"\"\"
+            \"""Model for storing password reset tokens.\"""
 
             __tablename__ = "password_reset_tokens"
 
@@ -74,37 +75,37 @@ public class PythonPasswordResetGenerator {
 
             @property
             def is_expired(self) -> bool:
-                \"\"\"Check if the token has expired.\"\"\"
+                \"""Check if the token has expired.\"""
                 return datetime.utcnow() > self.expires_at
 
             @property
             def is_valid(self) -> bool:
-                \"\"\"Check if the token is valid (not expired and not used).\"\"\"
+                \"""Check if the token is valid (not expired and not used).\"""
                 return not self.is_expired and not self.used
         """;
     }
 
     private String generateSchemas() {
         return """
-        \"\"\"Password reset schemas.\"\"\"
+        \"""Password reset schemas.\"""
 
         from pydantic import BaseModel, EmailStr, Field
 
 
         class ForgotPasswordRequest(BaseModel):
-            \"\"\"Request to initiate password reset.\"\"\"
+            \"""Request to initiate password reset.\"""
 
             email: EmailStr
 
 
         class ForgotPasswordResponse(BaseModel):
-            \"\"\"Response for forgot password request.\"\"\"
+            \"""Response for forgot password request.\"""
 
             message: str = "If the email exists, a password reset link has been sent."
 
 
         class ResetPasswordRequest(BaseModel):
-            \"\"\"Request to reset password with token.\"\"\"
+            \"""Request to reset password with token.\"""
 
             token: str
             new_password: str = Field(..., min_length=8, max_length=128)
@@ -112,20 +113,20 @@ public class PythonPasswordResetGenerator {
 
 
         class ResetPasswordResponse(BaseModel):
-            \"\"\"Response for password reset.\"\"\"
+            \"""Response for password reset.\"""
 
             success: bool
             message: str
 
 
         class ValidateTokenRequest(BaseModel):
-            \"\"\"Request to validate reset token.\"\"\"
+            \"""Request to validate reset token.\"""
 
             token: str
 
 
         class ValidateTokenResponse(BaseModel):
-            \"\"\"Response for token validation.\"\"\"
+            \"""Response for token validation.\"""
 
             valid: bool
             message: str | None = None
@@ -135,7 +136,7 @@ public class PythonPasswordResetGenerator {
     private String generateService(int tokenExpirationMinutes) {
         return String.format(
                 """
-                \"\"\"Password reset service.\"\"\"
+                \"""Password reset service.\"""
 
                 import secrets
                 from datetime import datetime, timedelta
@@ -151,7 +152,7 @@ public class PythonPasswordResetGenerator {
 
 
                 class PasswordResetService:
-                    \"\"\"Service for handling password reset operations.\"\"\"
+                    \"""Service for handling password reset operations.\"""
 
                     TOKEN_EXPIRATION_MINUTES = %d
 
@@ -160,11 +161,11 @@ public class PythonPasswordResetGenerator {
                         self.mail_service = get_mail_service()
 
                     async def request_password_reset(self, email: str, base_url: str) -> bool:
-                        \"\"\"
+                        \"""
                         Request a password reset for the given email.
 
                         Returns True if email was sent, False if user not found.
-                        \"\"\"
+                        \"""
                         # Find user by email
                         result = await self.db.execute(
                             select(User).where(User.email == email)
@@ -202,11 +203,11 @@ public class PythonPasswordResetGenerator {
                         return True
 
                     async def validate_token(self, token: str) -> tuple[bool, str | None]:
-                        \"\"\"
+                        \"""
                         Validate a password reset token.
 
                         Returns (is_valid, error_message).
-                        \"\"\"
+                        \"""
                         result = await self.db.execute(
                             select(PasswordResetToken).where(PasswordResetToken.token == token)
                         )
@@ -226,11 +227,11 @@ public class PythonPasswordResetGenerator {
                     async def reset_password(
                         self, token: str, new_password: str
                     ) -> tuple[bool, str]:
-                        \"\"\"
+                        \"""
                         Reset password using the provided token.
 
                         Returns (success, message).
-                        \"\"\"
+                        \"""
                         # Validate token
                         is_valid, error = await self.validate_token(token)
                         if not is_valid:
@@ -256,7 +257,7 @@ public class PythonPasswordResetGenerator {
                         return True, "Password has been reset successfully"
 
                     async def _invalidate_existing_tokens(self, user_id: UUID) -> None:
-                        \"\"\"Mark all existing tokens for user as used.\"\"\"
+                        \"""Mark all existing tokens for user as used.\"""
                         result = await self.db.execute(
                             select(PasswordResetToken).where(
                                 PasswordResetToken.user_id == user_id,
@@ -275,7 +276,7 @@ public class PythonPasswordResetGenerator {
 
     private String generateRouter() {
         return """
-        \"\"\"Password reset router.\"\"\"
+        \"""Password reset router.\"""
 
         from fastapi import APIRouter, Depends, HTTPException, Request, status
         from sqlalchemy.ext.asyncio import AsyncSession
@@ -300,7 +301,7 @@ public class PythonPasswordResetGenerator {
             data: ForgotPasswordRequest,
             db: AsyncSession = Depends(get_db),
         ) -> ForgotPasswordResponse:
-            \"\"\"Request a password reset email.\"\"\"
+            \"""Request a password reset email.\"""
             service = PasswordResetService(db)
             base_url = str(request.base_url).rstrip("/")
             await service.request_password_reset(data.email, base_url)
@@ -314,7 +315,7 @@ public class PythonPasswordResetGenerator {
             data: ValidateTokenRequest,
             db: AsyncSession = Depends(get_db),
         ) -> ValidateTokenResponse:
-            \"\"\"Validate a password reset token.\"\"\"
+            \"""Validate a password reset token.\"""
             service = PasswordResetService(db)
             is_valid, error = await service.validate_token(data.token)
 
@@ -326,7 +327,7 @@ public class PythonPasswordResetGenerator {
             data: ResetPasswordRequest,
             db: AsyncSession = Depends(get_db),
         ) -> ResetPasswordResponse:
-            \"\"\"Reset password using a valid token.\"\"\"
+            \"""Reset password using a valid token.\"""
             if data.new_password != data.confirm_password:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,

@@ -16,6 +16,7 @@ import java.util.Set;
  *   <li>TypeScript native types
  * </ul>
  */
+@SuppressWarnings("java:S1192") // Type mapping strings intentional for readability
 public class TypeScriptTypeMapper implements LanguageTypeMapper {
 
     private static final Set<String> TS_KEYWORDS =
@@ -255,6 +256,9 @@ public class TypeScriptTypeMapper implements LanguageTypeMapper {
             case "LocalDate", "LocalDateTime", "Instant", "ZonedDateTime" ->
                     decorators.append("  @IsDate()\n");
             case "UUID" -> decorators.append("  @IsUUID()\n");
+            default -> {
+                // Other types use default validation
+            }
         }
 
         // Not empty for required strings
@@ -351,7 +355,7 @@ public class TypeScriptTypeMapper implements LanguageTypeMapper {
         if (name == null || name.isEmpty()) {
             return name;
         }
-        return name.replaceAll("([a-z])([A-Z])", "$1-$2").replaceAll("_", "-").toLowerCase();
+        return name.replaceAll("([a-z])([A-Z])", "$1-$2").replace("_", "-").toLowerCase();
     }
 
     /**

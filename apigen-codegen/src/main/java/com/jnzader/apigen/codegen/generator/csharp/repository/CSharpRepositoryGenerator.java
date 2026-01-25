@@ -5,6 +5,7 @@ import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlTable;
 
 /** Generates Repository interface and implementation for C#/ASP.NET Core. */
+@SuppressWarnings("java:S1192") // Duplicate strings intentional for code generation templates
 public class CSharpRepositoryGenerator {
 
     private final String baseNamespace;

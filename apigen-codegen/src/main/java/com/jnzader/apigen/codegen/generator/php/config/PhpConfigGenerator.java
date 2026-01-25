@@ -21,6 +21,10 @@ import java.util.Map;
  *   <li>Dockerfile and docker-compose.yml
  * </ul>
  */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3400"
+}) // S1192: template strings; S3400: template methods return constants
 public class PhpConfigGenerator {
 
     private static final String PHP_VERSION = "8.4";

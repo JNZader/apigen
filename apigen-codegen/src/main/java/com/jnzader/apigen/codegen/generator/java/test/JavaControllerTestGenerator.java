@@ -6,6 +6,7 @@ import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlTable;
 
 /** Generates unit test classes for Controller implementations in Java/Spring Boot. */
+@SuppressWarnings("java:S1192") // Duplicate strings intentional for code generation templates
 public class JavaControllerTestGenerator {
 
     private static final String APIGEN_CORE_PKG = "com.jnzader.apigen.core";

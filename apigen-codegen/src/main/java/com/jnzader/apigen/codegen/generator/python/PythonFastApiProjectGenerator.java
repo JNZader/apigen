@@ -41,6 +41,7 @@ import java.util.Set;
  *   <li>Project configuration files (pyproject.toml, Dockerfile, etc.)
  * </ul>
  */
+@SuppressWarnings("java:S3400") // Template methods return constants for code generation
 public class PythonFastApiProjectGenerator implements ProjectGenerator {
 
     private static final String LANGUAGE = "python";
@@ -290,7 +291,7 @@ public class PythonFastApiProjectGenerator implements ProjectGenerator {
 
         @pytest.fixture(scope="session")
         def event_loop() -> Generator:
-            \"\"\"Create an event loop for the test session.\"\"\"
+            \"""Create an event loop for the test session.\"""
             loop = asyncio.get_event_loop_policy().new_event_loop()
             yield loop
             loop.close()
@@ -298,7 +299,7 @@ public class PythonFastApiProjectGenerator implements ProjectGenerator {
 
         @pytest_asyncio.fixture(scope="function")
         async def db_session() -> AsyncGenerator[AsyncSession, None]:
-            \"\"\"Create a database session for testing.\"\"\"
+            \"""Create a database session for testing.\"""
             engine = create_async_engine(TEST_DATABASE_URL, echo=False)
 
             async with engine.begin() as conn:
@@ -319,7 +320,7 @@ public class PythonFastApiProjectGenerator implements ProjectGenerator {
 
         @pytest_asyncio.fixture(scope="function")
         async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
-            \"\"\"Create a test client with database override.\"\"\"
+            \"""Create a test client with database override.\"""
 
             async def override_get_db() -> AsyncGenerator[AsyncSession, None]:
                 yield db_session

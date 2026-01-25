@@ -3,6 +3,7 @@ package com.jnzader.apigen.codegen.generator.csharp.service;
 import com.jnzader.apigen.codegen.model.SqlTable;
 
 /** Generates Service interface and implementation for C#/ASP.NET Core. */
+@SuppressWarnings("java:S1192") // Duplicate strings intentional for code generation templates
 public class CSharpServiceGenerator {
 
     private final String baseNamespace;

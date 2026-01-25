@@ -28,7 +28,11 @@ import java.util.List;
  * @author APiGen
  * @since 2.12.0
  */
-@SuppressWarnings("java:S1068") // typeMapper reserved for future type generation
+@SuppressWarnings({
+    "java:S1068",
+    "java:S1192",
+    "java:S3776"
+}) // S1068: typeMapper reserved; S1192: template strings; S3776: complex config generation
 public class RustConfigGenerator {
 
     private final RustTypeMapper typeMapper;
@@ -541,7 +545,7 @@ public class RustConfigGenerator {
     }
 
     /** Generates src/lib.rs module. */
-    public String generateLibRs(List<String> entityNames) {
+    public String generateLibRs() {
         StringBuilder sb = new StringBuilder();
         sb.append("//! ").append(crateName).append(" - Generated REST API\n\n");
 
@@ -578,7 +582,7 @@ public class RustConfigGenerator {
     }
 
     /** Generates src/main.rs entry point. */
-    public String generateMainRs(List<String> entityNames) {
+    public String generateMainRs() {
         StringBuilder sb = new StringBuilder();
         sb.append("//! ").append(crateName).append(" - Application entry point\n\n");
 

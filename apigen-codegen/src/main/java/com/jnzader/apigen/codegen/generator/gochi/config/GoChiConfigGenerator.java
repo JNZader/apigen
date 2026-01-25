@@ -11,6 +11,12 @@ import java.util.Locale;
 import java.util.Map;
 
 /** Generates configuration files for Go/Chi projects using Viper. */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S2479",
+    "java:S3400"
+}) // S1192: template strings; S2479: tabs for Go formatting; S3400: template methods return
+// constants
 public class GoChiConfigGenerator {
 
     private final String moduleName;
@@ -666,37 +672,37 @@ public class GoChiConfigGenerator {
         BINARY=%s
 
         run:
-        	go run main.go
+        \tgo run main.go
 
         build:
-        	CGO_ENABLED=0 go build -o bin/$(BINARY) main.go
+        \tCGO_ENABLED=0 go build -o bin/$(BINARY) main.go
 
         test:
-        	go test -v -race -coverprofile=coverage.out ./...
+        \tgo test -v -race -coverprofile=coverage.out ./...
 
         coverage: test
-        	go tool cover -html=coverage.out -o coverage.html
+        \tgo tool cover -html=coverage.out -o coverage.html
 
         lint:
-        	golangci-lint run ./...
+        \tgolangci-lint run ./...
 
         clean:
-        	rm -rf bin/ coverage.out coverage.html
+        \trm -rf bin/ coverage.out coverage.html
 
         tidy:
-        	go mod tidy
+        \tgo mod tidy
 
         migrate:
-        	go run cmd/migrate/main.go
+        \tgo run cmd/migrate/main.go
 
         docker-build:
-        	docker build -t $(BINARY) .
+        \tdocker build -t $(BINARY) .
 
         docker-up:
-        	docker-compose up -d
+        \tdocker-compose up -d
 
         docker-down:
-        	docker-compose down
+        \tdocker-compose down
         """
                 .formatted(binary);
     }
@@ -830,27 +836,27 @@ public class GoChiConfigGenerator {
         package cache
 
         import (
-        	"context"
-        	"fmt"
+        \t"context"
+        \t"fmt"
 
-        	"%s/internal/config"
-        	"github.com/redis/go-redis/v9"
+        \t"%s/internal/config"
+        \t"github.com/redis/go-redis/v9"
         )
 
         // NewRedis creates a new Redis client.
         func NewRedis(cfg *config.Config) (*redis.Client, error) {
-        	client := redis.NewClient(&redis.Options{
-        		Addr:     fmt.Sprintf("%%s:%%d", cfg.Redis.Host, cfg.Redis.Port),
-        		Password: cfg.Redis.Password,
-        		DB:       cfg.Redis.DB,
-        	})
+        \tclient := redis.NewClient(&redis.Options{
+        \t\tAddr:     fmt.Sprintf("%%s:%%d", cfg.Redis.Host, cfg.Redis.Port),
+        \t\tPassword: cfg.Redis.Password,
+        \t\tDB:       cfg.Redis.DB,
+        \t})
 
-        	ctx := context.Background()
-        	if err := client.Ping(ctx).Err(); err != nil {
-        		return nil, fmt.Errorf("failed to ping redis: %%w", err)
-        	}
+        \tctx := context.Background()
+        \tif err := client.Ping(ctx).Err(); err != nil {
+        \t\treturn nil, fmt.Errorf("failed to ping redis: %%w", err)
+        \t}
 
-        	return client, nil
+        \treturn client, nil
         }
         """
                 .formatted(moduleName);
@@ -861,19 +867,19 @@ public class GoChiConfigGenerator {
         package messaging
 
         import (
-        	"fmt"
+        \t"fmt"
 
-        	"%s/internal/config"
-        	"github.com/nats-io/nats.go"
+        \t"%s/internal/config"
+        \t"github.com/nats-io/nats.go"
         )
 
         // NewNats creates a new NATS connection.
         func NewNats(cfg *config.Config) (*nats.Conn, error) {
-        	nc, err := nats.Connect(cfg.Nats.URL)
-        	if err != nil {
-        		return nil, fmt.Errorf("failed to connect to nats: %%w", err)
-        	}
-        	return nc, nil
+        \tnc, err := nats.Connect(cfg.Nats.URL)
+        \tif err != nil {
+        \t\treturn nil, fmt.Errorf("failed to connect to nats: %%w", err)
+        \t}
+        \treturn nc, nil
         }
         """
                 .formatted(moduleName);
@@ -884,31 +890,31 @@ public class GoChiConfigGenerator {
         package messaging
 
         import (
-        	"fmt"
-        	"time"
+        \t"fmt"
+        \t"time"
 
-        	"%s/internal/config"
-        	mqtt "github.com/eclipse/paho.mqtt.golang"
+        \t"%s/internal/config"
+        \tmqtt "github.com/eclipse/paho.mqtt.golang"
         )
 
         // NewMqtt creates a new MQTT client.
         func NewMqtt(cfg *config.Config) (mqtt.Client, error) {
-        	opts := mqtt.NewClientOptions().
-        		AddBroker(cfg.Mqtt.Broker).
-        		SetClientID(cfg.Mqtt.ClientID).
-        		SetUsername(cfg.Mqtt.Username).
-        		SetPassword(cfg.Mqtt.Password).
-        		SetAutoReconnect(true).
-        		SetConnectRetry(true).
-        		SetConnectRetryInterval(5 * time.Second)
+        \topts := mqtt.NewClientOptions().
+        \t\tAddBroker(cfg.Mqtt.Broker).
+        \t\tSetClientID(cfg.Mqtt.ClientID).
+        \t\tSetUsername(cfg.Mqtt.Username).
+        \t\tSetPassword(cfg.Mqtt.Password).
+        \t\tSetAutoReconnect(true).
+        \t\tSetConnectRetry(true).
+        \t\tSetConnectRetryInterval(5 * time.Second)
 
-        	client := mqtt.NewClient(opts)
-        	token := client.Connect()
-        	if token.Wait() && token.Error() != nil {
-        		return nil, fmt.Errorf("failed to connect to mqtt: %%w", token.Error())
-        	}
+        \tclient := mqtt.NewClient(opts)
+        \ttoken := client.Connect()
+        \tif token.Wait() && token.Error() != nil {
+        \t\treturn nil, fmt.Errorf("failed to connect to mqtt: %%w", token.Error())
+        \t}
 
-        	return client, nil
+        \treturn client, nil
         }
         """
                 .formatted(moduleName);
@@ -919,55 +925,55 @@ public class GoChiConfigGenerator {
         package telemetry
 
         import (
-        	"context"
-        	"fmt"
+        \t"context"
+        \t"fmt"
 
-        	"%s/internal/config"
-        	"go.opentelemetry.io/otel"
-        	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
-        	"go.opentelemetry.io/otel/propagation"
-        	"go.opentelemetry.io/otel/sdk/resource"
-        	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-        	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
+        \t"%s/internal/config"
+        \t"go.opentelemetry.io/otel"
+        \t"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+        \t"go.opentelemetry.io/otel/propagation"
+        \t"go.opentelemetry.io/otel/sdk/resource"
+        \tsdktrace "go.opentelemetry.io/otel/sdk/trace"
+        \tsemconv "go.opentelemetry.io/otel/semconv/v1.24.0"
         )
 
         // InitTracer initializes OpenTelemetry tracing.
         func InitTracer(cfg *config.Config) (func(context.Context) error, error) {
-        	if !cfg.Telemetry.Enabled {
-        		return func(context.Context) error { return nil }, nil
-        	}
+        \tif !cfg.Telemetry.Enabled {
+        \t\treturn func(context.Context) error { return nil }, nil
+        \t}
 
-        	ctx := context.Background()
+        \tctx := context.Background()
 
-        	exporter, err := otlptracegrpc.New(ctx,
-        		otlptracegrpc.WithEndpoint(cfg.Telemetry.Endpoint),
-        		otlptracegrpc.WithInsecure(),
-        	)
-        	if err != nil {
-        		return nil, fmt.Errorf("failed to create exporter: %%w", err)
-        	}
+        \texporter, err := otlptracegrpc.New(ctx,
+        \t\totlptracegrpc.WithEndpoint(cfg.Telemetry.Endpoint),
+        \t\totlptracegrpc.WithInsecure(),
+        \t)
+        \tif err != nil {
+        \t\treturn nil, fmt.Errorf("failed to create exporter: %%w", err)
+        \t}
 
-        	res, err := resource.New(ctx,
-        		resource.WithAttributes(
-        			semconv.ServiceNameKey.String(cfg.Telemetry.ServiceName),
-        		),
-        	)
-        	if err != nil {
-        		return nil, fmt.Errorf("failed to create resource: %%w", err)
-        	}
+        \tres, err := resource.New(ctx,
+        \t\tresource.WithAttributes(
+        \t\t\tsemconv.ServiceNameKey.String(cfg.Telemetry.ServiceName),
+        \t\t),
+        \t)
+        \tif err != nil {
+        \t\treturn nil, fmt.Errorf("failed to create resource: %%w", err)
+        \t}
 
-        	tp := sdktrace.NewTracerProvider(
-        		sdktrace.WithBatcher(exporter),
-        		sdktrace.WithResource(res),
-        	)
+        \ttp := sdktrace.NewTracerProvider(
+        \t\tsdktrace.WithBatcher(exporter),
+        \t\tsdktrace.WithResource(res),
+        \t)
 
-        	otel.SetTracerProvider(tp)
-        	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
-        		propagation.TraceContext{},
-        		propagation.Baggage{},
-        	))
+        \totel.SetTracerProvider(tp)
+        \totel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
+        \t\tpropagation.TraceContext{},
+        \t\tpropagation.Baggage{},
+        \t))
 
-        	return tp.Shutdown, nil
+        \treturn tp.Shutdown, nil
         }
         """
                 .formatted(moduleName);
@@ -983,7 +989,7 @@ public class GoChiConfigGenerator {
 
     private String toSnakeCase(String name) {
         return name.replaceAll("([a-z])([A-Z])", "$1_$2")
-                .replaceAll("-", "_")
+                .replace("-", "_")
                 .toLowerCase(Locale.ROOT);
     }
 }

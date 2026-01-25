@@ -43,6 +43,7 @@ import java.util.Set;
  *   <li>Project configuration files (go.mod, Dockerfile, etc.)
  * </ul>
  */
+@SuppressWarnings("java:S1192") // Config strings intentional for code generation
 public class GoGinProjectGenerator implements ProjectGenerator {
 
     private static final String LANGUAGE = "go";

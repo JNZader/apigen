@@ -11,6 +11,7 @@ import java.util.TreeSet;
  *     class is maintained for backward compatibility.
  */
 @Deprecated(since = "2.6.0", forRemoval = false)
+@SuppressWarnings("java:S1133") // Kept for backward compatibility
 public class ImportManager {
 
     private final Set<String> imports = new TreeSet<>();

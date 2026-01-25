@@ -10,6 +10,7 @@ import java.util.Set;
  * <p>Maps SQL types to C# types with appropriate imports for Entity Framework entities, DTOs, and
  * other C# constructs. Handles nullable types using C# nullable reference types.
  */
+@SuppressWarnings("java:S1192") // Type mapping strings intentional for readability
 public class CSharpTypeMapper implements LanguageTypeMapper {
 
     @Override

@@ -10,6 +10,11 @@ import java.util.List;
 import java.util.Map;
 
 /** Generates Entity Framework Core DbContext for C#/ASP.NET Core. */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3400",
+    "java:S6126"
+}) // S1192: template strings; S3400: template methods; S6126: concatenated lines for readability
 public class CSharpDbContextGenerator {
 
     private final String baseNamespace;

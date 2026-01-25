@@ -14,6 +14,7 @@ import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.List;
 
 /** Generates JPA Entity classes from SQL table definitions for Java/Spring Boot. */
+@SuppressWarnings("java:S1192") // Duplicate strings intentional for code generation templates
 public class JavaEntityGenerator {
 
     private static final String APIGEN_CORE_PKG = "com.jnzader.apigen.core";

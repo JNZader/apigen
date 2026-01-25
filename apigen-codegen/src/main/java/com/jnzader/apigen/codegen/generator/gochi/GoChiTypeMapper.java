@@ -12,6 +12,7 @@ import java.util.Set;
  *
  * <p>Maps SQL types to Go types optimized for pgx (pgtype package for nullable types).
  */
+@SuppressWarnings("java:S1192") // Type mapping strings intentional for readability
 public class GoChiTypeMapper implements LanguageTypeMapper {
 
     private static final Map<String, String> JAVA_TO_GO =
@@ -167,7 +168,7 @@ public class GoChiTypeMapper implements LanguageTypeMapper {
             return name;
         }
         return name.replaceAll("([a-z])([A-Z])", "$1_$2")
-                .replaceAll("-", "_")
+                .replace("-", "_")
                 .replaceAll("\\s+", "_")
                 .toLowerCase(Locale.ROOT);
     }
@@ -246,11 +247,9 @@ public class GoChiTypeMapper implements LanguageTypeMapper {
      * @return the import path or null if built-in
      */
     public String getImportForType(String javaType, boolean nullable) {
-        if (nullable) {
-            // pgtype requires github.com/jackc/pgx/v5/pgtype
-            if (JAVA_TO_GO_NULLABLE.containsKey(javaType) && !javaType.equals("byte[]")) {
-                return "github.com/jackc/pgx/v5/pgtype";
-            }
+        // pgtype requires github.com/jackc/pgx/v5/pgtype
+        if (nullable && JAVA_TO_GO_NULLABLE.containsKey(javaType) && !javaType.equals("byte[]")) {
+            return "github.com/jackc/pgx/v5/pgtype";
         }
         return switch (javaType) {
             case "LocalDate", "LocalDateTime", "LocalTime", "Instant", "Date", "Timestamp" ->

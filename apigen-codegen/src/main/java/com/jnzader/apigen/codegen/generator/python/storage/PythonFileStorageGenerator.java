@@ -24,6 +24,10 @@ import java.util.Map;
  * @author APiGen
  * @since 2.13.0
  */
+@SuppressWarnings({
+    "java:S1192",
+    "java:S3400"
+}) // S1192: template strings; S3400: template methods return constants
 public class PythonFileStorageGenerator {
 
     /**
@@ -55,7 +59,7 @@ public class PythonFileStorageGenerator {
 
     private String generateModel() {
         return """
-        \"\"\"File metadata model.\"\"\"
+        \"""File metadata model.\"""
 
         from datetime import datetime
         from uuid import uuid4
@@ -68,7 +72,7 @@ public class PythonFileStorageGenerator {
 
 
         class FileMetadata(Base):
-            \"\"\"Model for storing file metadata.\"\"\"
+            \"""Model for storing file metadata.\"""
 
             __tablename__ = "file_metadata"
 
@@ -87,7 +91,7 @@ public class PythonFileStorageGenerator {
 
             @property
             def extension(self) -> str:
-                \"\"\"Get file extension.\"\"\"
+                \"""Get file extension.\"""
                 if "." in self.original_filename:
                     return self.original_filename.rsplit(".", 1)[1].lower()
                 return ""
@@ -96,7 +100,7 @@ public class PythonFileStorageGenerator {
 
     private String generateSchemas() {
         return """
-        \"\"\"File schemas.\"\"\"
+        \"""File schemas.\"""
 
         from datetime import datetime
         from uuid import UUID
@@ -105,7 +109,7 @@ public class PythonFileStorageGenerator {
 
 
         class FileUploadResponse(BaseModel):
-            \"\"\"Response after file upload.\"\"\"
+            \"""Response after file upload.\"""
 
             id: UUID
             filename: str
@@ -117,7 +121,7 @@ public class PythonFileStorageGenerator {
 
 
         class FileMetadataResponse(BaseModel):
-            \"\"\"File metadata response.\"\"\"
+            \"""File metadata response.\"""
 
             id: UUID
             original_filename: str
@@ -131,7 +135,7 @@ public class PythonFileStorageGenerator {
 
 
         class FileListResponse(BaseModel):
-            \"\"\"List of files response.\"\"\"
+            \"""List of files response.\"""
 
             files: list[FileMetadataResponse]
             total: int
@@ -140,7 +144,7 @@ public class PythonFileStorageGenerator {
 
 
         class FileDeleteResponse(BaseModel):
-            \"\"\"Response after file deletion.\"\"\"
+            \"""Response after file deletion.\"""
 
             success: bool
             message: str
@@ -161,7 +165,7 @@ public class PythonFileStorageGenerator {
 
         return String.format(
                 """
-                \"\"\"File storage service.\"\"\"
+                \"""File storage service.\"""
 
                 import mimetypes
                 from uuid import UUID, uuid4
@@ -175,7 +179,7 @@ public class PythonFileStorageGenerator {
 
 
                 class FileStorageService:
-                    \"\"\"Service for managing file uploads and storage.\"\"\"
+                    \"""Service for managing file uploads and storage.\"""
 
                     ALLOWED_EXTENSIONS = {
                         "jpg", "jpeg", "png", "gif", "webp",  # Images
@@ -192,7 +196,7 @@ public class PythonFileStorageGenerator {
                     async def upload_file(
                         self, file: UploadFile, user_id: UUID | None = None
                     ) -> FileMetadata:
-                        \"\"\"Upload a file and store its metadata.\"\"\"
+                        \"""Upload a file and store its metadata.\"""
                         # Validate file
                         self._validate_file(file)
 
@@ -225,7 +229,7 @@ public class PythonFileStorageGenerator {
                         return metadata
 
                     async def get_file(self, file_id: UUID) -> tuple[FileMetadata, bytes] | None:
-                        \"\"\"Get file metadata and content.\"\"\"
+                        \"""Get file metadata and content.\"""
                         result = await self.db.execute(
                             select(FileMetadata).where(FileMetadata.id == file_id)
                         )
@@ -241,14 +245,14 @@ public class PythonFileStorageGenerator {
                         return metadata, content
 
                     async def get_metadata(self, file_id: UUID) -> FileMetadata | None:
-                        \"\"\"Get file metadata only.\"\"\"
+                        \"""Get file metadata only.\"""
                         result = await self.db.execute(
                             select(FileMetadata).where(FileMetadata.id == file_id)
                         )
                         return result.scalar_one_or_none()
 
                     async def delete_file(self, file_id: UUID) -> bool:
-                        \"\"\"Delete a file from storage and database.\"\"\"
+                        \"""Delete a file from storage and database.\"""
                         result = await self.db.execute(
                             select(FileMetadata).where(FileMetadata.id == file_id)
                         )
@@ -269,7 +273,7 @@ public class PythonFileStorageGenerator {
                     async def list_files(
                         self, page: int = 1, page_size: int = 20, user_id: UUID | None = None
                     ) -> tuple[list[FileMetadata], int]:
-                        \"\"\"List files with pagination.\"\"\"
+                        \"""List files with pagination.\"""
                         query = select(FileMetadata)
 
                         if user_id:
@@ -289,11 +293,11 @@ public class PythonFileStorageGenerator {
                         return list(files), total
 
                     def get_download_url(self, metadata: FileMetadata) -> str:
-                        \"\"\"Get download URL for a file.\"\"\"
+                        \"""Get download URL for a file.\"""
                         return self.storage.get_url(metadata.storage_path)
 
                     def _validate_file(self, file: UploadFile) -> None:
-                        \"\"\"Validate file before upload.\"\"\"
+                        \"""Validate file before upload.\"""
                         if not file.filename:
                             raise ValueError("Filename is required")
 
@@ -302,7 +306,7 @@ public class PythonFileStorageGenerator {
                             raise ValueError(f"File type not allowed: {extension}")
 
                     def _get_extension(self, filename: str) -> str:
-                        \"\"\"Get file extension from filename.\"\"\"
+                        \"""Get file extension from filename.\"""
                         if "." in filename:
                             return filename.rsplit(".", 1)[1].lower()
                         return ""
@@ -312,7 +316,7 @@ public class PythonFileStorageGenerator {
 
     private String generateLocalStorage() {
         return """
-        \"\"\"Local file storage implementation.\"\"\"
+        \"""Local file storage implementation.\"""
 
         import os
         from pathlib import Path
@@ -321,7 +325,7 @@ public class PythonFileStorageGenerator {
 
 
         class LocalStorage:
-            \"\"\"Local filesystem storage.\"\"\"
+            \"""Local filesystem storage.\"""
 
             storage_type = "local"
 
@@ -330,14 +334,14 @@ public class PythonFileStorageGenerator {
                 self.base_path.mkdir(parents=True, exist_ok=True)
 
             async def upload(self, filename: str, content: bytes) -> str:
-                \"\"\"Upload file to local storage.\"\"\"
+                \"""Upload file to local storage.\"""
                 file_path = self.base_path / filename
                 async with aiofiles.open(file_path, "wb") as f:
                     await f.write(content)
                 return str(file_path)
 
             async def download(self, path: str) -> bytes | None:
-                \"\"\"Download file from local storage.\"\"\"
+                \"""Download file from local storage.\"""
                 try:
                     async with aiofiles.open(path, "rb") as f:
                         return await f.read()
@@ -345,7 +349,7 @@ public class PythonFileStorageGenerator {
                     return None
 
             async def delete(self, path: str) -> bool:
-                \"\"\"Delete file from local storage.\"\"\"
+                \"""Delete file from local storage.\"""
                 try:
                     os.remove(path)
                     return True
@@ -353,7 +357,7 @@ public class PythonFileStorageGenerator {
                     return False
 
             def get_url(self, path: str) -> str:
-                \"\"\"Get URL for local file (API endpoint).\"\"\"
+                \"""Get URL for local file (API endpoint).\"""
                 filename = Path(path).name
                 return f"/api/files/{filename}/download"
         """;
@@ -361,7 +365,7 @@ public class PythonFileStorageGenerator {
 
     private String generateS3Storage() {
         return """
-        \"\"\"AWS S3 storage implementation.\"\"\"
+        \"""AWS S3 storage implementation.\"""
 
         import os
         from typing import Any
@@ -371,7 +375,7 @@ public class PythonFileStorageGenerator {
 
 
         class S3Storage:
-            \"\"\"AWS S3 storage.\"\"\"
+            \"""AWS S3 storage.\"""
 
             storage_type = "s3"
 
@@ -381,7 +385,7 @@ public class PythonFileStorageGenerator {
                 self.session = aioboto3.Session()
 
             async def upload(self, filename: str, content: bytes) -> str:
-                \"\"\"Upload file to S3.\"\"\"
+                \"""Upload file to S3.\"""
                 async with self.session.client("s3", region_name=self.region) as s3:
                     await s3.put_object(
                         Bucket=self.bucket,
@@ -391,7 +395,7 @@ public class PythonFileStorageGenerator {
                 return f"s3://{self.bucket}/{filename}"
 
             async def download(self, path: str) -> bytes | None:
-                \"\"\"Download file from S3.\"\"\"
+                \"""Download file from S3.\"""
                 try:
                     key = self._extract_key(path)
                     async with self.session.client("s3", region_name=self.region) as s3:
@@ -401,7 +405,7 @@ public class PythonFileStorageGenerator {
                     return None
 
             async def delete(self, path: str) -> bool:
-                \"\"\"Delete file from S3.\"\"\"
+                \"""Delete file from S3.\"""
                 try:
                     key = self._extract_key(path)
                     async with self.session.client("s3", region_name=self.region) as s3:
@@ -411,12 +415,12 @@ public class PythonFileStorageGenerator {
                     return False
 
             def get_url(self, path: str) -> str:
-                \"\"\"Get presigned URL for S3 object.\"\"\"
+                \"""Get presigned URL for S3 object.\"""
                 key = self._extract_key(path)
                 return f"https://{self.bucket}.s3.{self.region}.amazonaws.com/{key}"
 
             def _extract_key(self, path: str) -> str:
-                \"\"\"Extract S3 key from path.\"\"\"
+                \"""Extract S3 key from path.\"""
                 if path.startswith("s3://"):
                     return path.split("/", 3)[3]
                 return path
@@ -425,7 +429,7 @@ public class PythonFileStorageGenerator {
 
     private String generateAzureStorage() {
         return """
-        \"\"\"Azure Blob Storage implementation.\"\"\"
+        \"""Azure Blob Storage implementation.\"""
 
         import os
 
@@ -433,7 +437,7 @@ public class PythonFileStorageGenerator {
 
 
         class AzureStorage:
-            \"\"\"Azure Blob Storage.\"\"\"
+            \"""Azure Blob Storage.\"""
 
             storage_type = "azure"
 
@@ -443,14 +447,14 @@ public class PythonFileStorageGenerator {
                 self.client = BlobServiceClient.from_connection_string(connection_string)
 
             async def upload(self, filename: str, content: bytes) -> str:
-                \"\"\"Upload file to Azure Blob Storage.\"\"\"
+                \"""Upload file to Azure Blob Storage.\"""
                 container_client = self.client.get_container_client(self.container_name)
                 blob_client = container_client.get_blob_client(filename)
                 await blob_client.upload_blob(content, overwrite=True)
                 return f"azure://{self.container_name}/{filename}"
 
             async def download(self, path: str) -> bytes | None:
-                \"\"\"Download file from Azure Blob Storage.\"\"\"
+                \"""Download file from Azure Blob Storage.\"""
                 try:
                     blob_name = self._extract_blob_name(path)
                     container_client = self.client.get_container_client(self.container_name)
@@ -461,7 +465,7 @@ public class PythonFileStorageGenerator {
                     return None
 
             async def delete(self, path: str) -> bool:
-                \"\"\"Delete file from Azure Blob Storage.\"\"\"
+                \"""Delete file from Azure Blob Storage.\"""
                 try:
                     blob_name = self._extract_blob_name(path)
                     container_client = self.client.get_container_client(self.container_name)
@@ -472,13 +476,13 @@ public class PythonFileStorageGenerator {
                     return False
 
             def get_url(self, path: str) -> str:
-                \"\"\"Get URL for Azure blob.\"\"\"
+                \"""Get URL for Azure blob.\"""
                 blob_name = self._extract_blob_name(path)
                 account_name = self.client.account_name
                 return f"https://{account_name}.blob.core.windows.net/{self.container_name}/{blob_name}"
 
             def _extract_blob_name(self, path: str) -> str:
-                \"\"\"Extract blob name from path.\"\"\"
+                \"""Extract blob name from path.\"""
                 if path.startswith("azure://"):
                     return path.split("/", 3)[3]
                 return path
@@ -502,7 +506,7 @@ public class PythonFileStorageGenerator {
 
         return String.format(
                 """
-                \"\"\"Storage module.\"\"\"
+                \"""Storage module.\"""
 
                 from .%s import %s
 
@@ -513,7 +517,7 @@ public class PythonFileStorageGenerator {
 
     private String generateRouter() {
         return """
-        \"\"\"File upload router.\"\"\"
+        \"""File upload router.\"""
 
         from uuid import UUID
 
@@ -538,7 +542,7 @@ public class PythonFileStorageGenerator {
             file: UploadFile = File(...),
             db: AsyncSession = Depends(get_db),
         ) -> FileUploadResponse:
-            \"\"\"Upload a file.\"\"\"
+            \"""Upload a file.\"""
             try:
                 service = FileStorageService(db)
                 metadata = await service.upload_file(file)
@@ -562,7 +566,7 @@ public class PythonFileStorageGenerator {
             file_id: UUID,
             db: AsyncSession = Depends(get_db),
         ) -> FileMetadataResponse:
-            \"\"\"Get file metadata.\"\"\"
+            \"""Get file metadata.\"""
             service = FileStorageService(db)
             metadata = await service.get_metadata(file_id)
 
@@ -588,7 +592,7 @@ public class PythonFileStorageGenerator {
             file_id: UUID,
             db: AsyncSession = Depends(get_db),
         ) -> Response:
-            \"\"\"Download a file.\"\"\"
+            \"""Download a file.\"""
             service = FileStorageService(db)
             result = await service.get_file(file_id)
 
@@ -614,7 +618,7 @@ public class PythonFileStorageGenerator {
             file_id: UUID,
             db: AsyncSession = Depends(get_db),
         ) -> FileDeleteResponse:
-            \"\"\"Delete a file.\"\"\"
+            \"""Delete a file.\"""
             service = FileStorageService(db)
             success = await service.delete_file(file_id)
 
@@ -633,7 +637,7 @@ public class PythonFileStorageGenerator {
             page_size: int = 20,
             db: AsyncSession = Depends(get_db),
         ) -> FileListResponse:
-            \"\"\"List uploaded files.\"\"\"
+            \"""List uploaded files.\"""
             service = FileStorageService(db)
             files, total = await service.list_files(page=page, page_size=page_size)
 

@@ -16,6 +16,7 @@ import java.util.List;
  *   <li>Database module for TypeORM configuration
  * </ul>
  */
+@SuppressWarnings("java:S1192") // Duplicate strings intentional for code generation templates
 public class TypeScriptModuleGenerator {
 
     private final TypeScriptTypeMapper typeMapper;
@@ -203,6 +204,6 @@ public class TypeScriptModuleGenerator {
         if (name == null || name.isEmpty()) {
             return name;
         }
-        return name.replaceAll("([a-z])([A-Z])", "$1_$2").replaceAll("-", "_").toLowerCase();
+        return name.replaceAll("([a-z])([A-Z])", "$1_$2").replace("-", "_").toLowerCase();
     }
 }
