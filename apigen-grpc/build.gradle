@@ -10,7 +10,7 @@ version = '1.0.0-SNAPSHOT'
 description = 'APiGen gRPC Module - Inter-service communication'
 
 ext {
-    grpcVersion = '1.72.0'
+    grpcVersion = '1.78.0'
     protobufVersion = '4.31.1'
     grpcSpringVersion = '3.1.0.RELEASE'
 }
