@@ -10,7 +10,7 @@ description = 'APiGen GraphQL - GraphQL API layer alternative to REST'
 
 ext {
     graphqlJavaVersion = '22.3'
-    dataLoaderVersion = '3.4.0'
+    dataLoaderVersion = '6.0.0'
 }
 
 java {
