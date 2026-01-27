@@ -286,7 +286,7 @@ public class GitHubController {
         return ResponseCookie.from(GITHUB_TOKEN_COOKIE, token)
                 .httpOnly(true)
                 .secure(true) // Only sent over HTTPS
-                .sameSite("Lax") // CSRF protection
+                .sameSite("None") // Required for cross-site requests (frontend on different domain)
                 .path("/api/github") // Only sent to GitHub API endpoints
                 .maxAge(COOKIE_MAX_AGE_SECONDS)
                 .build();
@@ -301,7 +301,7 @@ public class GitHubController {
         return ResponseCookie.from(GITHUB_TOKEN_COOKIE, "")
                 .httpOnly(true)
                 .secure(true)
-                .sameSite("Lax")
+                .sameSite("None") // Must match createSecureTokenCookie for cross-site requests
                 .path("/api/github")
                 .maxAge(0) // Expire immediately
                 .build();
