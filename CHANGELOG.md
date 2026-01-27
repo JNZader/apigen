@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.1](https://github.com/JNZader/apigen/compare/v2.24.0...v2.24.1) (2026-01-27)
+
+### Bug Fixes
+
+* **github:** use SameSite=None for cross-origin cookie support ([1a39bf0](https://github.com/JNZader/apigen/commit/1a39bf09102b75f780e44538c58da210eb1271d4))
+
 ## [2.24.0](https://github.com/JNZader/apigen/compare/v2.23.0...v2.24.0) (2026-01-27)
 
 ### Features
