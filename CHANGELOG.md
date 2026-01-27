@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.2](https://github.com/JNZader/apigen/compare/v2.24.1...v2.24.2) (2026-01-27)
+
+### Bug Fixes
+
+* **github:** allow null values for optional boolean fields in CreateRepoRequest ([86dbae3](https://github.com/JNZader/apigen/commit/86dbae38f7a9033b2b2e4ead2c11f0c0238e6506))
+
 ## [2.24.1](https://github.com/JNZader/apigen/compare/v2.24.0...v2.24.1) (2026-01-27)
 
 ### Bug Fixes
