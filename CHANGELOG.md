@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.21.0](https://github.com/JNZader/apigen/compare/v2.20.1...v2.21.0) (2026-01-27)
+
+### Features
+
+* **codegen:** add Postman collection for all languages ([39e4f1c](https://github.com/JNZader/apigen/commit/39e4f1cd576fbf2b0a439d7c5d8c60495dbd8ded))
+* **codegen:** use language-specific ports in Postman collection ([b271629](https://github.com/JNZader/apigen/commit/b271629cf1b2356371b9d5193bc7dbb828720eb7))
+
+### Bug Fixes
+
+* **codegen:** sync framework names and version defaults with frontend ([346fba6](https://github.com/JNZader/apigen/commit/346fba654ccdaa2b76519fadb1a57b0f7474bc15))
+* **codegen:** update tests to match new versions and framework names ([b6f426b](https://github.com/JNZader/apigen/commit/b6f426bf4e92bbe233265b530915b9fecdfb88d6))
+
 ## [2.20.1](https://github.com/JNZader/apigen/compare/v2.20.0...v2.20.1) (2026-01-27)
 
 ### Bug Fixes
