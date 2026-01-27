@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.18.1](https://github.com/JNZader/apigen/compare/v2.18.0...v2.18.1) (2026-01-27)
+
+### Documentation
+
+* update documentation to v2.18.0 and fix outdated references ([d48a1c7](https://github.com/JNZader/apigen/commit/d48a1c70c341436660f20a58fbb73b51544db41b))
+* update README with 9-language support and fix paths ([77b6045](https://github.com/JNZader/apigen/commit/77b604583f7c348513621bcd0c860b82d5b9851d))
+
+### Build System
+
+* **deps:** bump grpcVersion from 1.72.0 to 1.78.0 ([2b39632](https://github.com/JNZader/apigen/commit/2b39632a01455d362ce05bbbd1350ec6f51fc28e))
+* **deps:** bump org.springframework.boot:spring-boot-dependencies ([d6c7e9c](https://github.com/JNZader/apigen/commit/d6c7e9c8ef2e6ec845ffefc457069f522c03c22d))
+* **deps:** bump org.springframework.boot:spring-boot-gradle-plugin ([39e9846](https://github.com/JNZader/apigen/commit/39e9846606cfc79afb437fd58206b58b818adb15))
+
+### CI/CD
+
+* **deps:** bump actions/setup-python from 5 to 6 ([f02441a](https://github.com/JNZader/apigen/commit/f02441a3f315d9167bec345a4f48a5ddf829d1c1))
+* **deps:** bump actions/upload-pages-artifact from 3 to 4 ([68bba48](https://github.com/JNZader/apigen/commit/68bba4895fcc713f58f799a9e30a8283ff4ddf63))
+* **deps:** bump gradle/actions from 4 to 5 ([b1563aa](https://github.com/JNZader/apigen/commit/b1563aaedd2e70f83bf617c1bb2b2480f68b57f2))
+
 ## [2.18.0](https://github.com/JNZader/apigen/compare/v2.17.0...v2.18.0) (2026-01-25)
 
 ### Features
