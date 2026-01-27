@@ -51,7 +51,7 @@ class KotlinSpringBootProjectGeneratorTest {
         @Test
         @DisplayName("Should return default Kotlin version")
         void shouldReturnDefaultKotlinVersion() {
-            assertThat(generator.getDefaultLanguageVersion()).isEqualTo("2.1.0");
+            assertThat(generator.getDefaultLanguageVersion()).isEqualTo("2.3.0");
         }
 
         @Test
