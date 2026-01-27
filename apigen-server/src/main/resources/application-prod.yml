@@ -6,6 +6,18 @@ spring:
   application:
     name: apigen-server
 
+# Actuator - Health checks for Koyeb/container orchestration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+
 # CORS configuration - set via environment variable
 cors:
   allowed-origins: ${CORS_ORIGINS:*}
