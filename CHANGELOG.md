@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.19.0](https://github.com/JNZader/apigen/compare/v2.18.2...v2.19.0) (2026-01-27)
+
+### Features
+
+* **codegen:** add developer experience features for all 9 generators ([64793ca](https://github.com/JNZader/apigen/commit/64793caae167596d6e68d4c690895e0be270395b))
+
+### Bug Fixes
+
+* **graphql:** remove invalid .build() calls from DataLoaderOptions ([24ae5e3](https://github.com/JNZader/apigen/commit/24ae5e3b6863569aebc4bc74a958898a23a3167e))
+
 ## [2.18.2](https://github.com/JNZader/apigen/compare/v2.18.1...v2.18.2) (2026-01-27)
 
 ### Build System
