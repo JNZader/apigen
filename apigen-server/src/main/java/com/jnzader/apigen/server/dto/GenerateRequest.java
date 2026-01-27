@@ -152,6 +152,23 @@ public class GenerateRequest {
 
         /** Enable jte templates generation. */
         @Builder.Default private boolean jteTemplates = false;
+
+        // Developer Experience (DX) Features
+
+        /** Enable Mise task runner generation. */
+        @Builder.Default private boolean miseTasks = true;
+
+        /** Enable pre-commit hooks generation. */
+        @Builder.Default private boolean preCommit = true;
+
+        /** Enable setup scripts generation. */
+        @Builder.Default private boolean setupScript = true;
+
+        /** Enable GitHub templates generation. */
+        @Builder.Default private boolean githubTemplates = true;
+
+        /** Enable enhanced Docker Compose generation. */
+        @Builder.Default private boolean devCompose = true;
     }
 
     @Data

@@ -248,6 +248,13 @@ public class GeneratorService {
                 }
             }
             if (features.isJteTemplates()) enabledFeatures.add(Feature.JTE_TEMPLATES);
+
+            // Developer Experience (DX) Features
+            if (features.isMiseTasks()) enabledFeatures.add(Feature.MISE_TASKS);
+            if (features.isPreCommit()) enabledFeatures.add(Feature.PRE_COMMIT);
+            if (features.isSetupScript()) enabledFeatures.add(Feature.SETUP_SCRIPT);
+            if (features.isGithubTemplates()) enabledFeatures.add(Feature.GITHUB_TEMPLATES);
+            if (features.isDevCompose()) enabledFeatures.add(Feature.DEV_COMPOSE);
         }
 
         // Map database config
