@@ -60,7 +60,7 @@ public class DataLoaderRegistry {
                     return CompletableFuture.completedFuture(values);
                 };
 
-        DataLoaderOptions options = DataLoaderOptions.newOptions().setCachingEnabled(true);
+        DataLoaderOptions options = DataLoaderOptions.newOptions().setCachingEnabled(true).build();
 
         DataLoader<K, V> dataLoader = DataLoaderFactory.newDataLoader(batchLoader, options);
         loaders.put(name, dataLoader);
@@ -76,7 +76,7 @@ public class DataLoaderRegistry {
      * @param <V> the value type
      */
     public <K, V> void registerAsync(String name, BatchLoader<K, V> batchLoader) {
-        DataLoaderOptions options = DataLoaderOptions.newOptions().setCachingEnabled(true);
+        DataLoaderOptions options = DataLoaderOptions.newOptions().setCachingEnabled(true).build();
         DataLoader<K, V> dataLoader = DataLoaderFactory.newDataLoader(batchLoader, options);
         loaders.put(name, dataLoader);
         delegateRegistry.register(name, dataLoader);
@@ -120,7 +120,7 @@ public class DataLoaderRegistry {
      * <p>Call this after processing a GraphQL request to ensure all batched loads are executed.
      */
     public void dispatchAll() {
-        delegateRegistry.dispatchAll();
+        loaders.values().forEach(loader -> loader.dispatch().join());
     }
 
     /** Clears all cached values from all DataLoaders. */
