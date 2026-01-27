@@ -388,20 +388,13 @@ public class GeneratorService {
             Files.writeString(projectRoot.resolve("README.md"), readme);
         }
 
-        // HTTP test files (for Java and Kotlin only, not C#, Python, PHP, TypeScript, Go, or Rust)
-        if (!"csharp".equals(language)
-                && !"python".equals(language)
-                && !"php".equals(language)
-                && !"typescript".equals(language)
-                && !"go".equals(language)
-                && !"rust".equals(language)) {
-            String httpTests = apiTestingGenerator.generateHttpTestFile(schema);
-            Files.writeString(projectRoot.resolve("api-tests.http"), httpTests);
+        // HTTP test files and Postman collection (language-agnostic, for all generators)
+        String httpTests = apiTestingGenerator.generateHttpTestFile(schema);
+        Files.writeString(projectRoot.resolve("api-tests.http"), httpTests);
 
-            String postmanCollection =
-                    apiTestingGenerator.generatePostmanCollection(schema, config);
-            Files.writeString(projectRoot.resolve("postman-collection.json"), postmanCollection);
-        }
+        String postmanCollection =
+                apiTestingGenerator.generatePostmanCollection(schema, config);
+        Files.writeString(projectRoot.resolve("postman-collection.json"), postmanCollection);
 
         // Docker files (if enabled, for Java/Kotlin - C#/Python/PHP/TypeScript have their own)
         if (config.getFeatures() != null && config.getFeatures().isDocker()) {
