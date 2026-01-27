@@ -8,8 +8,6 @@ import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
 import com.jnzader.apigen.codegen.generator.api.ProjectGenerator;
 import com.jnzader.apigen.codegen.generator.common.ManyToManyRelation;
-import com.jnzader.apigen.codegen.generator.dx.DxFeaturesGenerator;
-import com.jnzader.apigen.codegen.generator.dx.DxLanguage;
 import com.jnzader.apigen.codegen.generator.csharp.config.CSharpConfigGenerator;
 import com.jnzader.apigen.codegen.generator.csharp.controller.CSharpControllerGenerator;
 import com.jnzader.apigen.codegen.generator.csharp.dbcontext.CSharpDbContextGenerator;
@@ -21,6 +19,8 @@ import com.jnzader.apigen.codegen.generator.csharp.security.reset.CSharpPassword
 import com.jnzader.apigen.codegen.generator.csharp.security.social.CSharpSocialLoginGenerator;
 import com.jnzader.apigen.codegen.generator.csharp.service.CSharpServiceGenerator;
 import com.jnzader.apigen.codegen.generator.csharp.storage.CSharpFileStorageGenerator;
+import com.jnzader.apigen.codegen.generator.dx.DxFeaturesGenerator;
+import com.jnzader.apigen.codegen.generator.dx.DxLanguage;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.ArrayList;

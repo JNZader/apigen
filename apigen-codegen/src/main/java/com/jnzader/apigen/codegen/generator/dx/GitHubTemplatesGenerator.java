@@ -32,151 +32,151 @@ public class GitHubTemplatesGenerator {
 
     private String generatePrTemplate() {
         return """
-                ## Summary
+        ## Summary
 
-                <!-- Brief description of changes (1-3 sentences) -->
+        <!-- Brief description of changes (1-3 sentences) -->
 
-                ## Type of Change
+        ## Type of Change
 
-                - [ ] Bug fix (non-breaking change fixing an issue)
-                - [ ] New feature (non-breaking change adding functionality)
-                - [ ] Breaking change (fix or feature causing existing functionality to break)
-                - [ ] Refactoring (no functional changes)
-                - [ ] Documentation update
-                - [ ] CI/CD changes
-                - [ ] Dependencies update
+        - [ ] Bug fix (non-breaking change fixing an issue)
+        - [ ] New feature (non-breaking change adding functionality)
+        - [ ] Breaking change (fix or feature causing existing functionality to break)
+        - [ ] Refactoring (no functional changes)
+        - [ ] Documentation update
+        - [ ] CI/CD changes
+        - [ ] Dependencies update
 
-                ## Related Issues
+        ## Related Issues
 
-                <!-- Link to related issues: Closes #123, Fixes #456 -->
+        <!-- Link to related issues: Closes #123, Fixes #456 -->
 
-                ## Changes Made
+        ## Changes Made
 
-                <!-- Bullet points describing what changed -->
+        <!-- Bullet points describing what changed -->
 
-                -\s
+        -\s
 
-                ## Checklist
+        ## Checklist
 
-                - [ ] My code follows the project's code style (`mise run lint` passes)
-                - [ ] I have added tests covering my changes
-                - [ ] All tests pass locally (`mise run test`)
-                - [ ] I have updated documentation as needed
-                - [ ] My commits follow [Conventional Commits](https://conventionalcommits.org/)
-                - [ ] I have reviewed my own code
+        - [ ] My code follows the project's code style (`mise run lint` passes)
+        - [ ] I have added tests covering my changes
+        - [ ] All tests pass locally (`mise run test`)
+        - [ ] I have updated documentation as needed
+        - [ ] My commits follow [Conventional Commits](https://conventionalcommits.org/)
+        - [ ] I have reviewed my own code
 
-                ## Screenshots (if applicable)
+        ## Screenshots (if applicable)
 
-                <!-- Add screenshots for UI changes -->
+        <!-- Add screenshots for UI changes -->
 
-                ## Additional Notes
+        ## Additional Notes
 
-                <!-- Any additional context or notes for reviewers -->
-                """;
+        <!-- Any additional context or notes for reviewers -->
+        """;
     }
 
     private String generateBugReportTemplate() {
         return """
-                ---
-                name: Bug Report
-                about: Report a bug or unexpected behavior
-                title: '[BUG] '
-                labels: bug, needs-triage
-                assignees: ''
-                ---
+        ---
+        name: Bug Report
+        about: Report a bug or unexpected behavior
+        title: '[BUG] '
+        labels: bug, needs-triage
+        assignees: ''
+        ---
 
-                ## Description
+        ## Description
 
-                <!-- Clear description of the bug -->
+        <!-- Clear description of the bug -->
 
-                ## Steps to Reproduce
+        ## Steps to Reproduce
 
-                1.
-                2.
-                3.
+        1.
+        2.
+        3.
 
-                ## Expected Behavior
+        ## Expected Behavior
 
-                <!-- What you expected to happen -->
+        <!-- What you expected to happen -->
 
-                ## Actual Behavior
+        ## Actual Behavior
 
-                <!-- What actually happened -->
+        <!-- What actually happened -->
 
-                ## Environment
+        ## Environment
 
-                - **OS:** [e.g., Windows 11, macOS 14, Ubuntu 24.04]
-                - **Runtime Version:** [e.g., Java 25, Python 3.12, Node 20]
-                - **Project Version:** [e.g., 1.0.0]
+        - **OS:** [e.g., Windows 11, macOS 14, Ubuntu 24.04]
+        - **Runtime Version:** [e.g., Java 25, Python 3.12, Node 20]
+        - **Project Version:** [e.g., 1.0.0]
 
-                ## Logs / Error Messages
+        ## Logs / Error Messages
 
-                ```
-                <!-- Paste relevant logs or error messages here -->
-                ```
+        ```
+        <!-- Paste relevant logs or error messages here -->
+        ```
 
-                ## Screenshots
+        ## Screenshots
 
-                <!-- If applicable, add screenshots -->
+        <!-- If applicable, add screenshots -->
 
-                ## Additional Context
+        ## Additional Context
 
-                <!-- Any other relevant information -->
-                """;
+        <!-- Any other relevant information -->
+        """;
     }
 
     private String generateFeatureRequestTemplate() {
         return """
-                ---
-                name: Feature Request
-                about: Suggest a new feature or enhancement
-                title: '[FEATURE] '
-                labels: enhancement, needs-triage
-                assignees: ''
-                ---
+        ---
+        name: Feature Request
+        about: Suggest a new feature or enhancement
+        title: '[FEATURE] '
+        labels: enhancement, needs-triage
+        assignees: ''
+        ---
 
-                ## Problem Statement
+        ## Problem Statement
 
-                <!-- What problem does this feature solve? Is it related to a frustration? -->
+        <!-- What problem does this feature solve? Is it related to a frustration? -->
 
-                ## Proposed Solution
+        ## Proposed Solution
 
-                <!-- How should this feature work? Be as specific as possible. -->
+        <!-- How should this feature work? Be as specific as possible. -->
 
-                ## Alternatives Considered
+        ## Alternatives Considered
 
-                <!-- What other approaches have you considered? Why is the proposed solution better? -->
+        <!-- What other approaches have you considered? Why is the proposed solution better? -->
 
-                ## Use Cases
+        ## Use Cases
 
-                <!-- Who would benefit from this feature and how? -->
+        <!-- Who would benefit from this feature and how? -->
 
-                1.
-                2.
+        1.
+        2.
 
-                ## Acceptance Criteria
+        ## Acceptance Criteria
 
-                <!-- How will we know this feature is complete? -->
+        <!-- How will we know this feature is complete? -->
 
-                - [ ]\s
-                - [ ]\s
+        - [ ]\s
+        - [ ]\s
 
-                ## Additional Context
+        ## Additional Context
 
-                <!-- Mockups, examples, links to similar implementations, or other relevant information -->
-                """;
+        <!-- Mockups, examples, links to similar implementations, or other relevant information -->
+        """;
     }
 
     private String generateIssueConfig() {
         return """
-                blank_issues_enabled: true
-                contact_links:
-                  - name: Documentation
-                    url: https://github.com/YOUR_ORG/YOUR_REPO#readme
-                    about: Check the documentation before opening an issue
-                  - name: Discussions
-                    url: https://github.com/YOUR_ORG/YOUR_REPO/discussions
-                    about: Ask questions and discuss ideas in GitHub Discussions
-                """;
+        blank_issues_enabled: true
+        contact_links:
+          - name: Documentation
+            url: https://github.com/YOUR_ORG/YOUR_REPO#readme
+            about: Check the documentation before opening an issue
+          - name: Discussions
+            url: https://github.com/YOUR_ORG/YOUR_REPO/discussions
+            about: Ask questions and discuss ideas in GitHub Discussions
+        """;
     }
 }

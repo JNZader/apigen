@@ -11,7 +11,8 @@ public enum DxLanguage {
     CSHARP_ASPNET("csharp", "aspnet-core", "8.0", "dotnet", "format --verify-no-changes", "format"),
     PYTHON_FASTAPI(
             "python", "fastapi", "3.12", "python", "ruff check . && mypy app", "ruff format ."),
-    TYPESCRIPT_NESTJS("typescript", "nestjs", "20", "npm", "npx biome check .", "npx biome check --write ."),
+    TYPESCRIPT_NESTJS(
+            "typescript", "nestjs", "20", "npm", "npx biome check .", "npx biome check --write ."),
     PHP_LARAVEL("php", "laravel", "8.4", "php", "vendor/bin/pint --test", "vendor/bin/pint"),
     GO_GIN("go", "gin", "1.23", "go", "golangci-lint run", "gofmt -w ."),
     GO_CHI("go", "chi", "1.23", "go", "golangci-lint run", "gofmt -w ."),

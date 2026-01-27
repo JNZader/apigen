@@ -54,14 +54,13 @@ public class DataLoaderRegistry {
      */
     public <K, V> void register(String name, Function<List<K>, Map<K, V>> batchLoadFunction) {
         BatchLoader<K, V> batchLoader =
-                keys ->
-                        CompletableFuture.supplyAsync(
-                                () -> {
-                                    Map<K, V> results = batchLoadFunction.apply(keys);
-                                    return keys.stream().map(results::get).toList();
-                                });
+                keys -> {
+                    Map<K, V> results = batchLoadFunction.apply(keys);
+                    List<V> values = keys.stream().map(results::get).toList();
+                    return CompletableFuture.completedFuture(values);
+                };
 
-        DataLoaderOptions options = DataLoaderOptions.newOptions().setCachingEnabled(true);
+        DataLoaderOptions options = DataLoaderOptions.newOptions().setCachingEnabled(true).build();
 
         DataLoader<K, V> dataLoader = DataLoaderFactory.newDataLoader(batchLoader, options);
         loaders.put(name, dataLoader);
@@ -77,7 +76,7 @@ public class DataLoaderRegistry {
      * @param <V> the value type
      */
     public <K, V> void registerAsync(String name, BatchLoader<K, V> batchLoader) {
-        DataLoaderOptions options = DataLoaderOptions.newOptions().setCachingEnabled(true);
+        DataLoaderOptions options = DataLoaderOptions.newOptions().setCachingEnabled(true).build();
         DataLoader<K, V> dataLoader = DataLoaderFactory.newDataLoader(batchLoader, options);
         loaders.put(name, dataLoader);
         delegateRegistry.register(name, dataLoader);
