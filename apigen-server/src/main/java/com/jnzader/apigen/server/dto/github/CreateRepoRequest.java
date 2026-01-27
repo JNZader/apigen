@@ -30,10 +30,20 @@ public class CreateRepoRequest {
     private String description;
 
     /** Whether the repository should be private. Default: false (public). */
-    @Builder.Default private boolean isPrivate = false;
+    private Boolean isPrivate;
 
     /** Whether to auto-initialize with README. Default: true. */
-    @Builder.Default private boolean autoInit = true;
+    private Boolean autoInit;
+
+    /** Returns whether the repo should be private, defaulting to false if not specified. */
+    public boolean isPrivate() {
+        return isPrivate != null && isPrivate;
+    }
+
+    /** Returns whether to auto-initialize, defaulting to true if not specified. */
+    public boolean isAutoInit() {
+        return autoInit == null || autoInit;
+    }
 
     /** Gitignore template to use (e.g., "Java", "Gradle"). */
     private String gitignoreTemplate;
