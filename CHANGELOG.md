@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.0](https://github.com/JNZader/apigen/compare/v2.23.0...v2.24.0) (2026-01-27)
+
+### Features
+
+* **github:** use public_repo scope by default for fewer permissions ([8e1160d](https://github.com/JNZader/apigen/commit/8e1160de4f30bc01094c9b03451e618efb673bfa))
+
 ## [2.23.0](https://github.com/JNZader/apigen/compare/v2.22.1...v2.23.0) (2026-01-27)
 
 ### Features
