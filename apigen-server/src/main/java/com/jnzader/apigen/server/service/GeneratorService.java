@@ -384,7 +384,7 @@ public class GeneratorService {
                 && !"typescript".equals(language)
                 && !"go".equals(language)
                 && !"rust".equals(language)) {
-            String readme = projectStructureGenerator.generateReadme(config);
+            String readme = projectStructureGenerator.generateReadme(config, schema);
             Files.writeString(projectRoot.resolve("README.md"), readme);
         }
 
