@@ -1,7 +1,5 @@
 package com.jnzader.apigen.server.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jnzader.apigen.server.config.GitHubConfig;
 import com.jnzader.apigen.server.dto.GenerateRequest;
 import com.jnzader.apigen.server.dto.github.CreateRepoRequest;
@@ -52,7 +50,6 @@ public class GitHubService {
     private final GitHubConfig gitHubConfig;
     private final WebClient gitHubWebClient;
     private final GeneratorService generatorService;
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * Builds the GitHub OAuth authorization URL.
@@ -76,12 +73,13 @@ public class GitHubService {
      * @param code Authorization code from GitHub callback
      * @return GitHubAuthResponse with access token and user info
      */
+    @SuppressWarnings("unchecked")
     public GitHubAuthResponse exchangeCodeForToken(String code) {
         log.info("Exchanging authorization code for access token");
 
         try {
             // Exchange code for access token
-            String tokenResponse =
+            Map<String, Object> tokenJson =
                     WebClient.create()
                             .post()
                             .uri(gitHubConfig.getTokenUrl())
@@ -94,10 +92,10 @@ public class GitHubService {
                                             .with("code", code)
                                             .with("redirect_uri", gitHubConfig.getRedirectUri()))
                             .retrieve()
-                            .bodyToMono(String.class)
+                            .bodyToMono(Map.class)
                             .block();
 
-            if (tokenResponse == null) {
+            if (tokenJson == null) {
                 log.error("GitHub OAuth: empty response when exchanging code for token");
                 return GitHubAuthResponse.builder()
                         .authenticated(false)
@@ -105,22 +103,22 @@ public class GitHubService {
                         .build();
             }
 
-            JsonNode tokenJson = objectMapper.readTree(tokenResponse);
-
-            if (tokenJson.has("error")) {
-                String error = tokenJson.get("error").asText();
+            if (tokenJson.containsKey("error")) {
+                String error = (String) tokenJson.get("error");
                 String errorDesc =
-                        tokenJson.has("error_description")
-                                ? tokenJson.get("error_description").asText()
+                        tokenJson.containsKey("error_description")
+                                ? (String) tokenJson.get("error_description")
                                 : "Unknown error";
                 log.error("GitHub OAuth error: {} - {}", error, errorDesc);
                 return GitHubAuthResponse.builder().authenticated(false).error(errorDesc).build();
             }
 
-            String accessToken = tokenJson.get("access_token").asText();
+            String accessToken = (String) tokenJson.get("access_token");
             String tokenType =
-                    tokenJson.has("token_type") ? tokenJson.get("token_type").asText() : "bearer";
-            String scope = tokenJson.has("scope") ? tokenJson.get("scope").asText() : "";
+                    tokenJson.containsKey("token_type")
+                            ? (String) tokenJson.get("token_type")
+                            : "bearer";
+            String scope = tokenJson.containsKey("scope") ? (String) tokenJson.get("scope") : "";
 
             // Fetch user info
             GitHubAuthResponse userInfo = fetchUserInfo(accessToken);
@@ -147,14 +145,15 @@ public class GitHubService {
      * @param accessToken OAuth access token
      * @return GitHubAuthResponse with user info
      */
-    private GitHubAuthResponse fetchUserInfo(String accessToken) {
-        JsonNode userJson =
+    @SuppressWarnings("unchecked")
+    public GitHubAuthResponse fetchUserInfo(String accessToken) {
+        Map<String, Object> userJson =
                 gitHubWebClient
                         .get()
                         .uri("/user")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
                         .retrieve()
-                        .bodyToMono(JsonNode.class)
+                        .bodyToMono(Map.class)
                         .block();
 
         if (userJson == null) {
@@ -162,10 +161,10 @@ public class GitHubService {
         }
 
         return GitHubAuthResponse.builder()
-                .login(userJson.has("login") ? userJson.get("login").asText() : null)
-                .name(userJson.has("name") ? userJson.get("name").asText() : null)
-                .email(userJson.has("email") ? userJson.get("email").asText() : null)
-                .avatarUrl(userJson.has("avatar_url") ? userJson.get("avatar_url").asText() : null)
+                .login((String) userJson.get("login"))
+                .name((String) userJson.get("name"))
+                .email((String) userJson.get("email"))
+                .avatarUrl((String) userJson.get("avatar_url"))
                 .build();
     }
 
@@ -176,6 +175,7 @@ public class GitHubService {
      * @param request Repository creation request
      * @return CreateRepoResponse with repository details
      */
+    @SuppressWarnings("unchecked")
     public CreateRepoResponse createRepository(String accessToken, CreateRepoRequest request) {
         log.info("Creating GitHub repository: {}", request.getName());
 
@@ -198,7 +198,7 @@ public class GitHubService {
                 body.put("homepage", request.getHomepage());
             }
 
-            JsonNode response =
+            Map<String, Object> response =
                     gitHubWebClient
                             .post()
                             .uri("/user/repos")
@@ -206,7 +206,7 @@ public class GitHubService {
                             .contentType(MediaType.APPLICATION_JSON)
                             .bodyValue(body)
                             .retrieve()
-                            .bodyToMono(JsonNode.class)
+                            .bodyToMono(Map.class)
                             .block();
 
             if (response == null) {
@@ -217,21 +217,17 @@ public class GitHubService {
             CreateRepoResponse repoResponse =
                     CreateRepoResponse.builder()
                             .success(true)
-                            .id(response.get("id").asLong())
-                            .name(response.get("name").asText())
-                            .fullName(response.get("full_name").asText())
-                            .description(
-                                    response.has("description")
-                                                    && !response.get("description").isNull()
-                                            ? response.get("description").asText()
-                                            : null)
-                            .isPrivate(response.get("private").asBoolean())
-                            .htmlUrl(response.get("html_url").asText())
-                            .cloneUrl(response.get("clone_url").asText())
-                            .sshUrl(response.get("ssh_url").asText())
+                            .id(((Number) response.get("id")).longValue())
+                            .name((String) response.get("name"))
+                            .fullName((String) response.get("full_name"))
+                            .description((String) response.get("description"))
+                            .isPrivate((Boolean) response.get("private"))
+                            .htmlUrl((String) response.get("html_url"))
+                            .cloneUrl((String) response.get("clone_url"))
+                            .sshUrl((String) response.get("ssh_url"))
                             .defaultBranch(
-                                    response.has("default_branch")
-                                            ? response.get("default_branch").asText()
+                                    response.containsKey("default_branch")
+                                            ? (String) response.get("default_branch")
                                             : "main")
                             .build();
 
@@ -373,10 +369,11 @@ public class GitHubService {
     }
 
     /** Gets the latest commit SHA for a branch. */
+    @SuppressWarnings("unchecked")
     private String getLatestCommitSha(
             String accessToken, String owner, String repo, String branch) {
         try {
-            JsonNode response =
+            Map<String, Object> response =
                     gitHubWebClient
                             .get()
                             .uri(
@@ -386,19 +383,19 @@ public class GitHubService {
                                     branch)
                             .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
                             .retrieve()
-                            .bodyToMono(JsonNode.class)
+                            .bodyToMono(Map.class)
                             .block();
 
-            if (response == null || !response.has("object")) {
+            if (response == null || !response.containsKey("object")) {
                 log.debug("Branch {} does not exist or empty response", branch);
                 return null;
             }
-            JsonNode objectNode = response.get("object");
-            if (objectNode == null || !objectNode.has("sha")) {
+            Map<String, Object> objectNode = (Map<String, Object>) response.get("object");
+            if (objectNode == null || !objectNode.containsKey("sha")) {
                 log.debug("No SHA found for branch {}", branch);
                 return null;
             }
-            return objectNode.get("sha").asText();
+            return (String) objectNode.get("sha");
         } catch (Exception _) {
             log.debug("Branch {} does not exist yet", branch);
             return null;
@@ -406,33 +403,35 @@ public class GitHubService {
     }
 
     /** Gets the tree SHA for a commit. */
+    @SuppressWarnings("unchecked")
     private String getTreeSha(String accessToken, String owner, String repo, String commitSha) {
-        JsonNode response =
+        Map<String, Object> response =
                 gitHubWebClient
                         .get()
                         .uri("/repos/{owner}/{repo}/git/commits/{sha}", owner, repo, commitSha)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
                         .retrieve()
-                        .bodyToMono(JsonNode.class)
+                        .bodyToMono(Map.class)
                         .block();
 
-        if (response == null || !response.has("tree")) {
+        if (response == null || !response.containsKey("tree")) {
             throw new GitHubException("Failed to get commit info from GitHub: missing tree data");
         }
-        JsonNode treeNode = response.get("tree");
-        if (treeNode == null || !treeNode.has("sha")) {
+        Map<String, Object> treeNode = (Map<String, Object>) response.get("tree");
+        if (treeNode == null || !treeNode.containsKey("sha")) {
             throw new GitHubException("Failed to get tree SHA from GitHub commit");
         }
-        return treeNode.get("sha").asText();
+        return (String) treeNode.get("sha");
     }
 
     /** Creates a blob for file content. */
+    @SuppressWarnings("unchecked")
     private String createBlob(String accessToken, String owner, String repo, byte[] content) {
         Map<String, String> body = new HashMap<>();
         body.put("content", Base64.getEncoder().encodeToString(content));
         body.put("encoding", "base64");
 
-        JsonNode response =
+        Map<String, Object> response =
                 gitHubWebClient
                         .post()
                         .uri("/repos/{owner}/{repo}/git/blobs", owner, repo)
@@ -440,16 +439,17 @@ public class GitHubService {
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(body)
                         .retrieve()
-                        .bodyToMono(JsonNode.class)
+                        .bodyToMono(Map.class)
                         .block();
 
-        if (response == null || !response.has("sha")) {
+        if (response == null || !response.containsKey("sha")) {
             throw new GitHubException("Failed to create blob on GitHub: missing SHA in response");
         }
-        return response.get("sha").asText();
+        return (String) response.get("sha");
     }
 
     /** Creates a tree from blobs. */
+    @SuppressWarnings("unchecked")
     private String createTree(
             String accessToken,
             String owner,
@@ -462,7 +462,7 @@ public class GitHubService {
             body.put("base_tree", baseTreeSha);
         }
 
-        JsonNode response =
+        Map<String, Object> response =
                 gitHubWebClient
                         .post()
                         .uri("/repos/{owner}/{repo}/git/trees", owner, repo)
@@ -470,16 +470,17 @@ public class GitHubService {
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(body)
                         .retrieve()
-                        .bodyToMono(JsonNode.class)
+                        .bodyToMono(Map.class)
                         .block();
 
-        if (response == null || !response.has("sha")) {
+        if (response == null || !response.containsKey("sha")) {
             throw new GitHubException("Failed to create tree on GitHub: missing SHA in response");
         }
-        return response.get("sha").asText();
+        return (String) response.get("sha");
     }
 
     /** Creates a commit. */
+    @SuppressWarnings("unchecked")
     private String createCommit(
             String accessToken,
             String owner,
@@ -496,7 +497,7 @@ public class GitHubService {
             body.put("parents", List.of());
         }
 
-        JsonNode response =
+        Map<String, Object> response =
                 gitHubWebClient
                         .post()
                         .uri("/repos/{owner}/{repo}/git/commits", owner, repo)
@@ -504,16 +505,17 @@ public class GitHubService {
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(body)
                         .retrieve()
-                        .bodyToMono(JsonNode.class)
+                        .bodyToMono(Map.class)
                         .block();
 
-        if (response == null || !response.has("sha")) {
+        if (response == null || !response.containsKey("sha")) {
             throw new GitHubException("Failed to create commit on GitHub: missing SHA in response");
         }
-        return response.get("sha").asText();
+        return (String) response.get("sha");
     }
 
     /** Updates or creates a branch reference. */
+    @SuppressWarnings("unchecked")
     private void updateRef(
             String accessToken,
             String owner,
@@ -534,7 +536,7 @@ public class GitHubService {
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(body)
                     .retrieve()
-                    .bodyToMono(JsonNode.class)
+                    .bodyToMono(Map.class)
                     .block();
         } else {
             gitHubWebClient
@@ -544,7 +546,7 @@ public class GitHubService {
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(body)
                     .retrieve()
-                    .bodyToMono(JsonNode.class)
+                    .bodyToMono(Map.class)
                     .block();
         }
     }
