@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.22.0](https://github.com/JNZader/apigen/compare/v2.21.0...v2.22.0) (2026-01-27)
+
+### Features
+
+* **server:** add Spring Boot Actuator for health checks ([2e7765f](https://github.com/JNZader/apigen/commit/2e7765ff2c37f8301daddf41d69226939fec0414))
+
 ## [2.21.0](https://github.com/JNZader/apigen/compare/v2.20.1...v2.21.0) (2026-01-27)
 
 ### Features
