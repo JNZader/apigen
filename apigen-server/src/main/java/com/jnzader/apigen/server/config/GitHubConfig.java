@@ -43,6 +43,9 @@ public class GitHubConfig {
     /** OAuth scopes for repository access. */
     private String scopes = "repo,user:email";
 
+    /** Frontend URL to redirect after OAuth callback. */
+    private String frontendUrl = "http://localhost:5173";
+
     /**
      * Creates a WebClient bean configured for GitHub API calls.
      *

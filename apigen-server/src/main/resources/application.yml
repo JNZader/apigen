@@ -30,8 +30,10 @@ spring.servlet.multipart:
 # Configure via environment variables for security:
 #   GITHUB_CLIENT_ID=your-client-id
 #   GITHUB_CLIENT_SECRET=your-client-secret
+#   GITHUB_FRONTEND_URL=https://your-frontend.com
 github:
   client-id: ${GITHUB_CLIENT_ID:}
   client-secret: ${GITHUB_CLIENT_SECRET:}
   redirect-uri: ${GITHUB_REDIRECT_URI:http://localhost:8081/api/github/callback}
   scopes: repo,user:email
+  frontend-url: ${GITHUB_FRONTEND_URL:http://localhost:5173}

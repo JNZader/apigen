@@ -1,5 +1,6 @@
 package com.jnzader.apigen.server.controller;
 
+import com.jnzader.apigen.server.config.GitHubConfig;
 import com.jnzader.apigen.server.dto.github.CreateRepoRequest;
 import com.jnzader.apigen.server.dto.github.CreateRepoResponse;
 import com.jnzader.apigen.server.dto.github.GitHubAuthResponse;
@@ -42,6 +43,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class GitHubController {
 
     private final GitHubService gitHubService;
+    private final GitHubConfig gitHubConfig;
 
     /**
      * Initiates GitHub OAuth authorization flow. Redirects the user to GitHub's authorization page.
@@ -77,39 +79,72 @@ public class GitHubController {
     }
 
     /**
-     * Handles the GitHub OAuth callback. Exchanges the authorization code for an access token.
+     * Gets the authenticated user's information.
+     *
+     * @param authorization Bearer token header with GitHub access token
+     * @return GitHubAuthResponse with user info
+     */
+    @GetMapping("/user")
+    public ResponseEntity<GitHubAuthResponse> getUser(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+
+        String accessToken = extractAccessToken(authorization);
+        if (accessToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(
+                            GitHubAuthResponse.builder()
+                                    .authenticated(false)
+                                    .error("Invalid or missing authorization token")
+                                    .build());
+        }
+
+        log.info("Fetching GitHub user info");
+
+        try {
+            GitHubAuthResponse response = gitHubService.fetchUserInfo(accessToken);
+            response.setAuthenticated(true);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Failed to fetch GitHub user info", e);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(
+                            GitHubAuthResponse.builder()
+                                    .authenticated(false)
+                                    .error("Failed to fetch user info: " + e.getMessage())
+                                    .build());
+        }
+    }
+
+    /**
+     * Handles the GitHub OAuth callback. Exchanges the authorization code for an access token and
+     * redirects to the frontend with the token in the URL hash.
      *
      * @param code Authorization code from GitHub
      * @param state State parameter for CSRF verification
      * @param error Error code if authorization failed
      * @param errorDescription Error description if authorization failed
-     * @return GitHubAuthResponse with access token and user info
+     * @return Redirect to frontend with token or error
      */
     @GetMapping("/callback")
-    public ResponseEntity<GitHubAuthResponse> callback(
+    public ResponseEntity<Void> callback(
             @RequestParam(required = false) String code,
             @RequestParam(required = false) String state,
             @RequestParam(required = false) String error,
             @RequestParam(name = "error_description", required = false) String errorDescription) {
 
+        String frontendUrl = gitHubConfig.getFrontendUrl();
+
         if (error != null) {
             log.error("GitHub OAuth error: {} - {}", error, errorDescription);
-            return ResponseEntity.badRequest()
-                    .body(
-                            GitHubAuthResponse.builder()
-                                    .authenticated(false)
-                                    .error(errorDescription != null ? errorDescription : error)
-                                    .build());
+            String errorMsg = errorDescription != null ? errorDescription : error;
+            String redirectUrl = frontendUrl + "?github_error=" + encodeParam(errorMsg);
+            return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(redirectUrl)).build();
         }
 
         if (code == null) {
             log.error("GitHub OAuth callback missing authorization code");
-            return ResponseEntity.badRequest()
-                    .body(
-                            GitHubAuthResponse.builder()
-                                    .authenticated(false)
-                                    .error("Missing authorization code")
-                                    .build());
+            String redirectUrl = frontendUrl + "?github_error=Missing+authorization+code";
+            return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(redirectUrl)).build();
         }
 
         log.info("Processing GitHub OAuth callback");
@@ -120,10 +155,28 @@ public class GitHubController {
         GitHubAuthResponse response = gitHubService.exchangeCodeForToken(code);
 
         if (response.isAuthenticated()) {
-            return ResponseEntity.ok(response);
+            // Redirect to frontend with token in hash (not sent to server)
+            String redirectUrl =
+                    frontendUrl
+                            + "#github_token="
+                            + response.getAccessToken()
+                            + "&github_user="
+                            + encodeParam(response.getLogin());
+            log.info("Redirecting authenticated user {} to frontend", response.getLogin());
+            return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(redirectUrl)).build();
         } else {
-            return ResponseEntity.badRequest().body(response);
+            String errorMsg = response.getError() != null ? response.getError() : "Authentication failed";
+            String redirectUrl = frontendUrl + "?github_error=" + encodeParam(errorMsg);
+            return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(redirectUrl)).build();
         }
+    }
+
+    /** URL-encodes a parameter value. */
+    private String encodeParam(String value) {
+        if (value == null) {
+            return "";
+        }
+        return java.net.URLEncoder.encode(value, java.nio.charset.StandardCharsets.UTF_8);
     }
 
     /**
