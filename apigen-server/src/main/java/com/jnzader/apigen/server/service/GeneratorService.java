@@ -388,12 +388,12 @@ public class GeneratorService {
             Files.writeString(projectRoot.resolve("README.md"), readme);
         }
 
-        // HTTP test files and Postman collection (language-agnostic, for all generators)
-        String httpTests = apiTestingGenerator.generateHttpTestFile(schema);
+        // HTTP test files and Postman collection (for all generators, with language-specific ports)
+        String httpTests = apiTestingGenerator.generateHttpTestFile(schema, language);
         Files.writeString(projectRoot.resolve("api-tests.http"), httpTests);
 
         String postmanCollection =
-                apiTestingGenerator.generatePostmanCollection(schema, config);
+                apiTestingGenerator.generatePostmanCollection(schema, config, language);
         Files.writeString(projectRoot.resolve("postman-collection.json"), postmanCollection);
 
         // Docker files (if enabled, for Java/Kotlin - C#/Python/PHP/TypeScript have their own)

@@ -20,6 +20,20 @@ import org.springframework.stereotype.Component;
 public class ApiTestingGenerator {
 
     private static final String DEFAULT_BASE_URL = "http://localhost:8080/api/v1";
+
+    /** Returns the default base URL for a given language. */
+    public static String getBaseUrlForLanguage(String language) {
+        if (language == null) {
+            return DEFAULT_BASE_URL;
+        }
+        return switch (language.toLowerCase(java.util.Locale.ROOT)) {
+            case "python" -> "http://localhost:8000/api/v1";
+            case "php" -> "http://localhost:8000/api/v1";
+            case "typescript" -> "http://localhost:3000/api/v1";
+            case "csharp" -> "http://localhost:5000/api/v1";
+            default -> DEFAULT_BASE_URL; // java, kotlin, go, rust
+        };
+    }
     private static final String POSTMAN_SCHEMA_URL =
             "https://schema.getpostman.com/json/collection/v2.1.0/collection.json";
     private static final String BASE_URL_VAR = "{{baseUrl}}/";
@@ -41,6 +55,18 @@ public class ApiTestingGenerator {
      * @return the HTTP test file content
      */
     public String generateHttpTestFile(SqlSchema schema) {
+        return generateHttpTestFile(schema, null);
+    }
+
+    /**
+     * Generates HTTP test file for all entities with all 12 CRUD endpoints.
+     *
+     * @param schema the SQL schema
+     * @param language the target language (for port selection)
+     * @return the HTTP test file content
+     */
+    public String generateHttpTestFile(SqlSchema schema, String language) {
+        String baseUrl = getBaseUrlForLanguage(language);
         StringBuilder sb = new StringBuilder();
 
         sb.append(
@@ -57,7 +83,7 @@ public class ApiTestingGenerator {
                         @baseUrl =\
                         """)
                 .append(" ")
-                .append(DEFAULT_BASE_URL)
+                .append(baseUrl)
                 .append(
                         """
 
@@ -162,6 +188,20 @@ public class ApiTestingGenerator {
      */
     public String generatePostmanCollection(
             SqlSchema schema, GenerateRequest.ProjectConfig config) {
+        return generatePostmanCollection(schema, config, null);
+    }
+
+    /**
+     * Generates a Postman Collection v2.1 JSON for testing all API endpoints.
+     *
+     * @param schema the SQL schema
+     * @param config the project configuration
+     * @param language the target language (for port selection)
+     * @return the Postman collection JSON
+     */
+    public String generatePostmanCollection(
+            SqlSchema schema, GenerateRequest.ProjectConfig config, String language) {
+        String baseUrl = getBaseUrlForLanguage(language);
         String projectName = config.getName() != null ? config.getName() : "my-api";
         String collectionName = capitalize(projectName) + " API Collection";
 
@@ -179,7 +219,7 @@ public class ApiTestingGenerator {
         sb.append("  \"variable\": [\n");
         sb.append("    {\n");
         sb.append("      \"key\": \"baseUrl\",\n");
-        sb.append("      \"value\": \"").append(DEFAULT_BASE_URL).append(JSON_FIELD_END);
+        sb.append("      \"value\": \"").append(baseUrl).append(JSON_FIELD_END);
         sb.append("      \"type\": \"string\"\n");
         sb.append("    }\n");
         sb.append("  ],\n");
