@@ -5,6 +5,8 @@ import com.jnzader.apigen.codegen.generator.api.LanguageTypeMapper;
 import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
 import com.jnzader.apigen.codegen.generator.api.ProjectGenerator;
 import com.jnzader.apigen.codegen.generator.common.ManyToManyRelation;
+import com.jnzader.apigen.codegen.generator.dx.DxFeaturesGenerator;
+import com.jnzader.apigen.codegen.generator.dx.DxLanguage;
 import com.jnzader.apigen.codegen.generator.java.controller.JavaControllerGenerator;
 import com.jnzader.apigen.codegen.generator.java.dto.JavaDTOGenerator;
 import com.jnzader.apigen.codegen.generator.java.entity.JavaEntityGenerator;
@@ -83,7 +85,13 @@ public class JavaSpringBootProjectGenerator implements ProjectGenerator {
                     Feature.FILE_UPLOAD,
                     Feature.S3_STORAGE,
                     Feature.AZURE_STORAGE,
-                    Feature.JTE_TEMPLATES);
+                    Feature.JTE_TEMPLATES,
+                    // Developer Experience Features
+                    Feature.MISE_TASKS,
+                    Feature.PRE_COMMIT,
+                    Feature.SETUP_SCRIPT,
+                    Feature.GITHUB_TEMPLATES,
+                    Feature.DEV_COMPOSE);
 
     // Package path constants
     private static final String PKG_DOMAIN_ENTITY = "domain/entity";
@@ -408,6 +416,22 @@ public class JavaSpringBootProjectGenerator implements ProjectGenerator {
                     jteGenerator.generate(
                             schema.getEntityTables(), true, true, true, true, "/admin"));
         }
+
+        // Developer Experience Features
+        if (DxFeaturesGenerator.hasAnyDxFeature(config)) {
+            String projectName = extractProjectName(basePackage);
+            DxFeaturesGenerator dxGenerator = new DxFeaturesGenerator(projectName);
+            files.putAll(dxGenerator.generate(config, DxLanguage.JAVA_SPRING));
+        }
+    }
+
+    /** Extracts project name from base package (last segment). */
+    private String extractProjectName(String basePackage) {
+        if (basePackage == null || basePackage.isBlank()) {
+            return "app";
+        }
+        String[] parts = basePackage.split("\\.");
+        return parts[parts.length - 1];
     }
 
     @Override

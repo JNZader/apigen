@@ -25,6 +25,8 @@ docs/GENERATOR-FEATURES-STATUS.md
 docs/FEATURE-PARITY-PLAN.md
 docs/FEATURE-PROPOSALS-2025.md
 docs/APIGEN-WEB-IMPLEMENTATION-PLAN.md
+docs/DX-FEATURES-IMPLEMENTATION.md
+docs/adr/
 
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
