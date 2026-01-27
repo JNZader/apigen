@@ -1,11 +1,13 @@
 package com.jnzader.apigen.server.config;
 
 import lombok.Data;
+import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
+import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.reactive.HttpComponentsClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.util.DefaultUriBuilderFactory;
 
 /**
  * Configuration for GitHub OAuth and API integration.
@@ -50,19 +52,23 @@ public class GitHubConfig {
     /**
      * Creates a WebClient bean configured for GitHub API calls.
      *
-     * <p>Uses DefaultUriBuilderFactory with TEMPLATE_AND_VALUES encoding mode to ensure proper URI
-     * encoding compatible with Netty 4.2.x's strict URI validation.
+     * <p>Uses Apache HttpClient 5 instead of Netty to avoid Netty 4.2.x's strict URI validation
+     * issues that cause "illegal characters" errors with standard GitHub API paths.
      *
      * @return Configured WebClient
      */
     @Bean
     public WebClient gitHubWebClient() {
-        // Configure UriBuilderFactory with proper encoding for Netty 4.2.x compatibility
-        DefaultUriBuilderFactory uriBuilderFactory = new DefaultUriBuilderFactory(apiUrl);
-        uriBuilderFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.TEMPLATE_AND_VALUES);
+        // Use Apache HttpClient 5 instead of Netty to avoid strict URI validation
+        CloseableHttpAsyncClient httpClient = HttpAsyncClients.createDefault();
+        httpClient.start();
+
+        HttpComponentsClientHttpConnector connector =
+                new HttpComponentsClientHttpConnector(httpClient);
 
         return WebClient.builder()
-                .uriBuilderFactory(uriBuilderFactory)
+                .clientConnector(connector)
+                .baseUrl(apiUrl)
                 .defaultHeader("Accept", "application/vnd.github+json")
                 .defaultHeader("X-GitHub-Api-Version", "2022-11-28")
                 .build();

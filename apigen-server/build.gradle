@@ -36,6 +36,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webflux' // For WebClient (GitHub API)
     implementation 'org.springframework.boot:spring-boot-starter-actuator' // Health checks
 
+    // Apache HttpClient 5 - Alternative to Netty for WebClient (avoids Netty 4.2.x strict URI validation)
+    implementation 'org.apache.httpcomponents.client5:httpclient5:5.5'
+
     // APiGen Codegen (local module)
     implementation project(':apigen-codegen')
 

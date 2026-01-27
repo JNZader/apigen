@@ -365,12 +365,17 @@ public class GitHubService {
 
             // Create a commit
             String commitSha =
-                    createCommit(accessToken, cleanOwner, cleanRepo, commitMessage, treeSha, baseSha);
+                    createCommit(
+                            accessToken, cleanOwner, cleanRepo, commitMessage, treeSha, baseSha);
 
             // Update the reference
             updateRef(accessToken, cleanOwner, cleanRepo, cleanBranch, commitSha, baseSha == null);
 
-            log.info("Successfully pushed {} files to {}/{}", fileNames.size(), cleanOwner, cleanRepo);
+            log.info(
+                    "Successfully pushed {} files to {}/{}",
+                    fileNames.size(),
+                    cleanOwner,
+                    cleanRepo);
 
             return PushProjectResponse.builder()
                     .success(true)
