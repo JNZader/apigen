@@ -28,13 +28,30 @@ public class PushProjectRequest {
     private String repo;
 
     /** Branch to push to. Default: "main". */
-    @Builder.Default private String branch = "main";
+    private String branch;
 
     /** Commit message. Default: "Initial commit from APiGen Studio". */
-    @Builder.Default private String commitMessage = "Initial commit from APiGen Studio";
+    private String commitMessage;
 
     /** Whether to force push (overwrite existing content). */
-    @Builder.Default private boolean forcePush = false;
+    private Boolean forcePush;
+
+    /** Returns the branch, defaulting to "main" if not specified. */
+    public String getBranch() {
+        return branch != null && !branch.isEmpty() ? branch : "main";
+    }
+
+    /** Returns the commit message, defaulting if not specified. */
+    public String getCommitMessage() {
+        return commitMessage != null && !commitMessage.isEmpty()
+                ? commitMessage
+                : "Initial commit from APiGen Studio";
+    }
+
+    /** Returns whether to force push, defaulting to false if not specified. */
+    public boolean isForcePush() {
+        return forcePush != null && forcePush;
+    }
 
     /** The generation request containing SQL and project configuration. */
     @NotNull(message = "Generation request is required")
