@@ -54,12 +54,11 @@ public class DataLoaderRegistry {
      */
     public <K, V> void register(String name, Function<List<K>, Map<K, V>> batchLoadFunction) {
         BatchLoader<K, V> batchLoader =
-                keys ->
-                        CompletableFuture.supplyAsync(
-                                () -> {
-                                    Map<K, V> results = batchLoadFunction.apply(keys);
-                                    return keys.stream().map(results::get).toList();
-                                });
+                keys -> {
+                    Map<K, V> results = batchLoadFunction.apply(keys);
+                    List<V> values = keys.stream().map(results::get).toList();
+                    return CompletableFuture.completedFuture(values);
+                };
 
         DataLoaderOptions options = DataLoaderOptions.newOptions().setCachingEnabled(true).build();
 
@@ -121,7 +120,7 @@ public class DataLoaderRegistry {
      * <p>Call this after processing a GraphQL request to ensure all batched loads are executed.
      */
     public void dispatchAll() {
-        delegateRegistry.dispatchAll();
+        loaders.values().forEach(loader -> loader.dispatch().join());
     }
 
     /** Clears all cached values from all DataLoaders. */
