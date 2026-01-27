@@ -156,19 +156,40 @@ public class GenerateRequest {
         // Developer Experience (DX) Features
 
         /** Enable Mise task runner generation. */
-        @Builder.Default private boolean miseTasks = true;
+        private Boolean miseTasks;
 
         /** Enable pre-commit hooks generation. */
-        @Builder.Default private boolean preCommit = true;
+        private Boolean preCommit;
 
         /** Enable setup scripts generation. */
-        @Builder.Default private boolean setupScript = true;
+        private Boolean setupScript;
 
         /** Enable GitHub templates generation. */
-        @Builder.Default private boolean githubTemplates = true;
+        private Boolean githubTemplates;
 
         /** Enable enhanced Docker Compose generation. */
-        @Builder.Default private boolean devCompose = true;
+        private Boolean devCompose;
+
+        // DX Features getters with defaults (true if null)
+        public boolean isMiseTasks() {
+            return miseTasks != null ? miseTasks : true;
+        }
+
+        public boolean isPreCommit() {
+            return preCommit != null ? preCommit : true;
+        }
+
+        public boolean isSetupScript() {
+            return setupScript != null ? setupScript : true;
+        }
+
+        public boolean isGithubTemplates() {
+            return githubTemplates != null ? githubTemplates : true;
+        }
+
+        public boolean isDevCompose() {
+            return devCompose != null ? devCompose : true;
+        }
     }
 
     @Data
