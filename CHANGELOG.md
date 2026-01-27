@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.19.1](https://github.com/JNZader/apigen/compare/v2.19.0...v2.19.1) (2026-01-27)
+
+### Bug Fixes
+
+* **graphql:** update DataLoader API for java-dataloader 6.0.0 ([abd688e](https://github.com/JNZader/apigen/commit/abd688e65f52c9d58ac9629f02514c82cb3a64b4))
+* **graphql:** update DataLoaderOptions API for java-dataloader 6.0.0 ([b1364c5](https://github.com/JNZader/apigen/commit/b1364c5b16281ca7237230b890d2b60aff66a678))
+
+### Build System
+
+* **deps:** bump com.graphql-java:java-dataloader from 3.4.0 to 6.0.0 ([7ffc3a0](https://github.com/JNZader/apigen/commit/7ffc3a07228e26a931ef612d05fc10e936e1821c))
+
 ## [2.19.0](https://github.com/JNZader/apigen/compare/v2.18.2...v2.19.0) (2026-01-27)
 
 ### Features
