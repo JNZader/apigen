@@ -48,7 +48,7 @@ import java.util.Set;
 public class CSharpAspNetCoreProjectGenerator implements ProjectGenerator {
 
     private static final String LANGUAGE = "csharp";
-    private static final String FRAMEWORK = "aspnetcore";
+    private static final String FRAMEWORK = "aspnet-core";
     private static final String DEFAULT_DOTNET_VERSION = "8.0";
     private static final String DEFAULT_FRAMEWORK_VERSION = "8.0.0";
 
