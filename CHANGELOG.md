@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.4](https://github.com/JNZader/apigen/compare/v2.24.3...v2.24.4) (2026-01-27)
+
+### Bug Fixes
+
+* **github:** resolve URI validation error with Netty 4.2.x ([b08b463](https://github.com/JNZader/apigen/commit/b08b463999ac3ae4340cf262cb5c746c91891478))
+* **github:** use Apache HttpClient 5 instead of Netty for WebClient ([fcce9fa](https://github.com/JNZader/apigen/commit/fcce9fac8fced1e78d22ddde867fcd84b9d2a366))
+
 ## [2.24.3](https://github.com/JNZader/apigen/compare/v2.24.2...v2.24.3) (2026-01-27)
 
 ### Bug Fixes
