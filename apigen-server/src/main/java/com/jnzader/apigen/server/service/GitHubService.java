@@ -11,6 +11,7 @@ import com.jnzader.apigen.server.exception.GitHubException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
@@ -307,7 +308,12 @@ public class GitHubService {
             String branch,
             String commitMessage,
             GenerateRequest generateRequest) {
-        log.info("Pushing generated project to {}/{}", owner, repo);
+        // Sanitize path segments to prevent URI validation issues with Netty 4.2.x
+        String cleanOwner = sanitizePathSegment(owner);
+        String cleanRepo = sanitizePathSegment(repo);
+        String cleanBranch = sanitizePathSegment(branch);
+
+        log.info("Pushing generated project to {}/{}", cleanOwner, cleanRepo);
 
         try {
             // Generate the project
@@ -318,12 +324,12 @@ public class GitHubService {
             log.info("Extracted {} files from generated project", files.size());
 
             // Get the current commit SHA for the branch (if exists)
-            String baseSha = getLatestCommitSha(accessToken, owner, repo, branch);
+            String baseSha = getLatestCommitSha(accessToken, cleanOwner, cleanRepo, cleanBranch);
 
             // Get the base tree SHA
             String baseTreeSha = null;
             if (baseSha != null) {
-                baseTreeSha = getTreeSha(accessToken, owner, repo, baseSha);
+                baseTreeSha = getTreeSha(accessToken, cleanOwner, cleanRepo, baseSha);
             }
 
             // Create blobs for each file
@@ -343,7 +349,7 @@ public class GitHubService {
                     continue;
                 }
 
-                String blobSha = createBlob(accessToken, owner, repo, content);
+                String blobSha = createBlob(accessToken, cleanOwner, cleanRepo, content);
 
                 Map<String, String> treeItem = new HashMap<>();
                 treeItem.put("path", cleanPath);
@@ -355,28 +361,28 @@ public class GitHubService {
             }
 
             // Create a tree
-            String treeSha = createTree(accessToken, owner, repo, treeItems, baseTreeSha);
+            String treeSha = createTree(accessToken, cleanOwner, cleanRepo, treeItems, baseTreeSha);
 
             // Create a commit
             String commitSha =
-                    createCommit(accessToken, owner, repo, commitMessage, treeSha, baseSha);
+                    createCommit(accessToken, cleanOwner, cleanRepo, commitMessage, treeSha, baseSha);
 
             // Update the reference
-            updateRef(accessToken, owner, repo, branch, commitSha, baseSha == null);
+            updateRef(accessToken, cleanOwner, cleanRepo, cleanBranch, commitSha, baseSha == null);
 
-            log.info("Successfully pushed {} files to {}/{}", fileNames.size(), owner, repo);
+            log.info("Successfully pushed {} files to {}/{}", fileNames.size(), cleanOwner, cleanRepo);
 
             return PushProjectResponse.builder()
                     .success(true)
                     .commitSha(commitSha)
-                    .repositoryUrl(String.format("https://github.com/%s/%s", owner, repo))
-                    .branch(branch)
+                    .repositoryUrl(String.format("https://github.com/%s/%s", cleanOwner, cleanRepo))
+                    .branch(cleanBranch)
                     .filesCount(fileNames.size())
                     .files(fileNames)
                     .build();
 
         } catch (Exception e) {
-            log.error("Failed to push project to {}/{}", owner, repo, e);
+            log.error("Failed to push project to {}/{}", cleanOwner, cleanRepo, e);
             return PushProjectResponse.builder()
                     .success(false)
                     .error("Failed to push project: " + e.getMessage())
@@ -558,6 +564,20 @@ public class GitHubService {
             throw new GitHubException("Failed to create commit on GitHub: missing SHA in response");
         }
         return (String) response.get("sha");
+    }
+
+    /**
+     * Sanitizes a path segment by removing any characters that could cause URI validation issues.
+     * This ensures compatibility with Netty 4.2.x's strict URI validation.
+     */
+    private String sanitizePathSegment(String segment) {
+        if (segment == null) {
+            return "";
+        }
+        // Convert to ASCII, trim whitespace, and remove any non-printable characters
+        return new String(segment.getBytes(StandardCharsets.US_ASCII), StandardCharsets.US_ASCII)
+                .trim()
+                .replaceAll("[\\p{Cntrl}\\s]", "");
     }
 
     /** Updates or creates a branch reference. */
