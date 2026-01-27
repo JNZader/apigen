@@ -126,32 +126,32 @@ public class GenerateRequest {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class FeaturesConfig {
-        @Builder.Default private boolean hateoas = true;
+        private Boolean hateoas;
 
-        @Builder.Default private boolean swagger = true;
+        private Boolean swagger;
 
-        @Builder.Default private boolean auditing = true;
+        private Boolean auditing;
 
-        @Builder.Default private boolean softDelete = true;
+        private Boolean softDelete;
 
-        @Builder.Default private boolean caching = true;
+        private Boolean caching;
 
-        @Builder.Default private boolean docker = true;
+        private Boolean docker;
 
         /** Enable social login generation. */
-        @Builder.Default private boolean socialLogin = false;
+        private Boolean socialLogin;
 
         /** Enable password reset flow generation. */
-        @Builder.Default private boolean passwordReset = false;
+        private Boolean passwordReset;
 
         /** Enable mail service generation. */
-        @Builder.Default private boolean mailService = false;
+        private Boolean mailService;
 
         /** Enable file upload generation. */
-        @Builder.Default private boolean fileUpload = false;
+        private Boolean fileUpload;
 
         /** Enable jte templates generation. */
-        @Builder.Default private boolean jteTemplates = false;
+        private Boolean jteTemplates;
 
         // Developer Experience (DX) Features
 
@@ -169,6 +169,52 @@ public class GenerateRequest {
 
         /** Enable enhanced Docker Compose generation. */
         private Boolean devCompose;
+
+        // Getters with defaults (true if null for enabled-by-default features)
+        public boolean isHateoas() {
+            return hateoas != null ? hateoas : true;
+        }
+
+        public boolean isSwagger() {
+            return swagger != null ? swagger : true;
+        }
+
+        public boolean isAuditing() {
+            return auditing != null ? auditing : true;
+        }
+
+        public boolean isSoftDelete() {
+            return softDelete != null ? softDelete : true;
+        }
+
+        public boolean isCaching() {
+            return caching != null ? caching : true;
+        }
+
+        public boolean isDocker() {
+            return docker != null ? docker : true;
+        }
+
+        // Getters with defaults (false if null for disabled-by-default features)
+        public boolean isSocialLogin() {
+            return socialLogin != null ? socialLogin : false;
+        }
+
+        public boolean isPasswordReset() {
+            return passwordReset != null ? passwordReset : false;
+        }
+
+        public boolean isMailService() {
+            return mailService != null ? mailService : false;
+        }
+
+        public boolean isFileUpload() {
+            return fileUpload != null ? fileUpload : false;
+        }
+
+        public boolean isJteTemplates() {
+            return jteTemplates != null ? jteTemplates : false;
+        }
 
         // DX Features getters with defaults (true if null)
         public boolean isMiseTasks() {
