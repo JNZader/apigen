@@ -13,7 +13,7 @@ javaPlatform {
 
 dependencies {
     // Spring Boot BOM
-    api platform('org.springframework.boot:spring-boot-dependencies:4.0.0')
+    api platform('org.springframework.boot:spring-boot-dependencies:4.0.2')
     api platform('org.springframework.cloud:spring-cloud-dependencies:2025.1.0')
 
     // APiGen modules constraints
