@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.24.5](https://github.com/JNZader/apigen/compare/v2.24.4...v2.24.5) (2026-01-27)
+
+### Bug Fixes
+
+* **github:** add httpcore5-reactive dependency for WebClient ([f44dcea](https://github.com/JNZader/apigen/commit/f44dceaa408ff1037e314af0adbeea79ecd5d6b5))
+
 ## [2.24.4](https://github.com/JNZader/apigen/compare/v2.24.3...v2.24.4) (2026-01-27)
 
 ### Bug Fixes
