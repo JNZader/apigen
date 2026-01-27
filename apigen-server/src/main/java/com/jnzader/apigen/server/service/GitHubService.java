@@ -5,6 +5,7 @@ import com.jnzader.apigen.server.dto.GenerateRequest;
 import com.jnzader.apigen.server.dto.github.CreateRepoRequest;
 import com.jnzader.apigen.server.dto.github.CreateRepoResponse;
 import com.jnzader.apigen.server.dto.github.GitHubAuthResponse;
+import com.jnzader.apigen.server.dto.github.GitHubRepoDto;
 import com.jnzader.apigen.server.dto.github.PushProjectResponse;
 import com.jnzader.apigen.server.exception.GitHubException;
 import java.io.ByteArrayInputStream;
@@ -166,6 +167,51 @@ public class GitHubService {
                 .email((String) userJson.get("email"))
                 .avatarUrl((String) userJson.get("avatar_url"))
                 .build();
+    }
+
+    /**
+     * Fetches the authenticated user's repositories.
+     *
+     * @param accessToken OAuth access token
+     * @return List of repositories
+     */
+    @SuppressWarnings("unchecked")
+    public List<GitHubRepoDto> fetchUserRepos(String accessToken) {
+        log.info("Fetching user repositories");
+
+        List<Map<String, Object>> reposJson =
+                gitHubWebClient
+                        .get()
+                        .uri(
+                                uriBuilder ->
+                                        uriBuilder
+                                                .path("/user/repos")
+                                                .queryParam("sort", "updated")
+                                                .queryParam("per_page", "100")
+                                                .queryParam("affiliation", "owner")
+                                                .build())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                        .retrieve()
+                        .bodyToMono(List.class)
+                        .block();
+
+        if (reposJson == null) {
+            throw new GitHubException(
+                    "Failed to fetch repositories: empty response from GitHub API");
+        }
+
+        return reposJson.stream()
+                .map(
+                        repo ->
+                                GitHubRepoDto.builder()
+                                        .name((String) repo.get("name"))
+                                        .fullName((String) repo.get("full_name"))
+                                        .isPrivate((Boolean) repo.get("private"))
+                                        .htmlUrl((String) repo.get("html_url"))
+                                        .description((String) repo.get("description"))
+                                        .defaultBranch((String) repo.get("default_branch"))
+                                        .build())
+                .toList();
     }
 
     /**

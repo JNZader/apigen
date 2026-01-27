@@ -16,8 +16,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PushProjectRequest {
 
-    /** GitHub OAuth access token. */
-    @NotBlank(message = "Access token is required")
+    /** GitHub OAuth access token. Optional when using HttpOnly cookie authentication. */
     private String accessToken;
 
     /** Repository owner (username or organization). */
