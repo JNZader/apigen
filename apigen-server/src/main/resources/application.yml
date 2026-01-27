@@ -35,5 +35,5 @@ github:
   client-id: ${GITHUB_CLIENT_ID:}
   client-secret: ${GITHUB_CLIENT_SECRET:}
   redirect-uri: ${GITHUB_REDIRECT_URI:http://localhost:8081/api/github/callback}
-  scopes: repo,user:email
+  scopes: ${GITHUB_SCOPES:public_repo,user:email}
   frontend-url: ${GITHUB_FRONTEND_URL:http://localhost:5173}
