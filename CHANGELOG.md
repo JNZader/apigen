@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.20.0](https://github.com/JNZader/apigen/compare/v2.19.1...v2.20.0) (2026-01-27)
+
+### Features
+
+* **server:** add DX features support to generation request ([96862ab](https://github.com/JNZader/apigen/commit/96862ab098b96d68c66f0c90a8e062bf31b22942))
+
+### Bug Fixes
+
+* **server:** use Boolean wrappers for DX features to handle null JSON values ([973127d](https://github.com/JNZader/apigen/commit/973127d7c1deaf95c79432a987fea2234d7e9da1))
+
 ## [2.19.1](https://github.com/JNZader/apigen/compare/v2.19.0...v2.19.1) (2026-01-27)
 
 ### Bug Fixes
