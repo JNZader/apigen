@@ -61,7 +61,7 @@ public class DataLoaderRegistry {
                                     return keys.stream().map(results::get).toList();
                                 });
 
-        DataLoaderOptions options = DataLoaderOptions.newOptions().setCachingEnabled(true);
+        DataLoaderOptions options = DataLoaderOptions.newOptions().setCachingEnabled(true).build();
 
         DataLoader<K, V> dataLoader = DataLoaderFactory.newDataLoader(batchLoader, options);
         loaders.put(name, dataLoader);
@@ -77,7 +77,7 @@ public class DataLoaderRegistry {
      * @param <V> the value type
      */
     public <K, V> void registerAsync(String name, BatchLoader<K, V> batchLoader) {
-        DataLoaderOptions options = DataLoaderOptions.newOptions().setCachingEnabled(true);
+        DataLoaderOptions options = DataLoaderOptions.newOptions().setCachingEnabled(true).build();
         DataLoader<K, V> dataLoader = DataLoaderFactory.newDataLoader(batchLoader, options);
         loaders.put(name, dataLoader);
         delegateRegistry.register(name, dataLoader);
