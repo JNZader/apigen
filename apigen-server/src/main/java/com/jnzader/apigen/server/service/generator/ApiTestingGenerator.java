@@ -34,6 +34,7 @@ public class ApiTestingGenerator {
             default -> DEFAULT_BASE_URL; // java, kotlin, go, rust
         };
     }
+
     private static final String POSTMAN_SCHEMA_URL =
             "https://schema.getpostman.com/json/collection/v2.1.0/collection.json";
     private static final String BASE_URL_VAR = "{{baseUrl}}/";

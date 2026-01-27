@@ -37,9 +37,9 @@ class CSharpAspNetCoreProjectGeneratorTest {
         }
 
         @Test
-        @DisplayName("Should return 'aspnetcore' as framework")
+        @DisplayName("Should return 'aspnet-core' as framework")
         void shouldReturnAspNetCoreAsFramework() {
-            assertThat(generator.getFramework()).isEqualTo("aspnetcore");
+            assertThat(generator.getFramework()).isEqualTo("aspnet-core");
         }
 
         @Test
