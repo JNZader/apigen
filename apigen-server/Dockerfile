@@ -28,6 +28,7 @@ COPY apigen-codegen apigen-codegen
 COPY apigen-graphql apigen-graphql
 COPY apigen-grpc apigen-grpc
 COPY apigen-gateway apigen-gateway
+COPY apigen-exceptions apigen-exceptions
 COPY apigen-server apigen-server
 
 # Make gradlew executable and build
