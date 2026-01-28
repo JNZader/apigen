@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.26.2](https://github.com/JNZader/apigen/compare/v2.26.1...v2.26.2) (2026-01-28)
+
+### Bug Fixes
+
+* **server:** exclude DataSource auto-config for stateless server ([14fb38b](https://github.com/JNZader/apigen/commit/14fb38b755a14ae11d399fb3540187a3ded2ca74))
+* **server:** use excludeName instead of exclude for auto-config ([867b03b](https://github.com/JNZader/apigen/commit/867b03bc589ebc8acadcba385cd1ce15a78d03dd))
+
 ## [2.26.1](https://github.com/JNZader/apigen/compare/v2.26.0...v2.26.1) (2026-01-28)
 
 ### Bug Fixes
