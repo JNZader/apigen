@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.4](https://github.com/JNZader/apigen/compare/v3.2.3...v3.2.4) (2026-01-28)
+
+### Bug Fixes
+
+* **codegen:** align C# and Java test generators with actual entity/service signatures ([cf48acb](https://github.com/JNZader/apigen/commit/cf48acb88dc412b40e08894b651009dbc030be24))
+
 ## [3.2.3](https://github.com/JNZader/apigen/compare/v3.2.2...v3.2.3) (2026-01-28)
 
 ### Bug Fixes
