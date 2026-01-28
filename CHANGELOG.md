@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0](https://github.com/JNZader/apigen/compare/v3.0.7...v3.1.0) (2026-01-28)
+
+### Features
+
+* **codegen:** add comprehensive test generators for 100% coverage ([815711a](https://github.com/JNZader/apigen/commit/815711abdfdb866d9110dd1997d3cd9d278fa1dc))
+
+### Bug Fixes
+
+* **server:** enable UNIT_TESTS and INTEGRATION_TESTS feature flags ([ba1fa3e](https://github.com/JNZader/apigen/commit/ba1fa3e785d517047907996500ee1164ccb2e485))
+
 ## [3.0.7](https://github.com/JNZader/apigen/compare/v3.0.6...v3.0.7) (2026-01-28)
 
 ### Bug Fixes
