@@ -229,6 +229,8 @@ public class GeneratorService {
             if (features.isCaching()) enabledFeatures.add(Feature.CACHING);
             if (features.isSwagger()) enabledFeatures.add(Feature.OPENAPI);
             if (features.isDocker()) enabledFeatures.add(Feature.DOCKER);
+            if (features.isUnitTests()) enabledFeatures.add(Feature.UNIT_TESTS);
+            if (features.isIntegrationTests()) enabledFeatures.add(Feature.INTEGRATION_TESTS);
 
             // Feature Pack 2025
             if (features.isSocialLogin()) enabledFeatures.add(Feature.SOCIAL_LOGIN);

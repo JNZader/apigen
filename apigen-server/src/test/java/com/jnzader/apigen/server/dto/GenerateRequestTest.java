@@ -161,6 +161,37 @@ class GenerateRequestTest {
             assertThat(features.isSoftDelete()).isTrue();
             assertThat(features.isCaching()).isTrue();
             assertThat(features.isDocker()).isTrue();
+            assertThat(features.isUnitTests()).isTrue();
+            assertThat(features.isIntegrationTests()).isTrue();
+        }
+
+        @Test
+        @DisplayName("Should enable unit tests by default")
+        void shouldEnableUnitTestsByDefault() {
+            GenerateRequest.FeaturesConfig features = new GenerateRequest.FeaturesConfig();
+
+            assertThat(features.isUnitTests()).isTrue();
+        }
+
+        @Test
+        @DisplayName("Should enable integration tests by default")
+        void shouldEnableIntegrationTestsByDefault() {
+            GenerateRequest.FeaturesConfig features = new GenerateRequest.FeaturesConfig();
+
+            assertThat(features.isIntegrationTests()).isTrue();
+        }
+
+        @Test
+        @DisplayName("Should respect explicit false value for tests")
+        void shouldRespectExplicitFalseForTests() {
+            GenerateRequest.FeaturesConfig features =
+                    GenerateRequest.FeaturesConfig.builder()
+                            .unitTests(false)
+                            .integrationTests(false)
+                            .build();
+
+            assertThat(features.isUnitTests()).isFalse();
+            assertThat(features.isIntegrationTests()).isFalse();
         }
     }
 
@@ -399,6 +430,53 @@ class GenerateRequestTest {
 
             Set<ConstraintViolation<GenerateRequest>> violations = validator.validate(request);
             assertThat(violations).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("RateLimitConfig")
+    class RateLimitConfigTests {
+
+        @Test
+        @DisplayName("Should use default rate limit values when fields are zero")
+        void shouldUseDefaultValuesWhenZero() {
+            GenerateRequest.RateLimitConfig rateLimit = new GenerateRequest.RateLimitConfig();
+
+            // Fields initialized to 0 by no-args constructor should return defaults
+            assertThat(rateLimit.getRequestsPerSecond()).isEqualTo(100);
+            assertThat(rateLimit.getBurstCapacity()).isEqualTo(150);
+            assertThat(rateLimit.getAuthRequestsPerMinute()).isEqualTo(10);
+            assertThat(rateLimit.getAuthBurstCapacity()).isEqualTo(15);
+            assertThat(rateLimit.getBlockDurationSeconds()).isEqualTo(60);
+        }
+
+        @Test
+        @DisplayName("Should return builder defaults when using builder")
+        void shouldReturnBuilderDefaults() {
+            GenerateRequest.RateLimitConfig rateLimit =
+                    GenerateRequest.RateLimitConfig.builder().build();
+
+            assertThat(rateLimit.getRequestsPerSecond()).isEqualTo(100);
+            assertThat(rateLimit.getBurstCapacity()).isEqualTo(150);
+        }
+
+        @Test
+        @DisplayName("Should respect explicit values")
+        void shouldRespectExplicitValues() {
+            GenerateRequest.RateLimitConfig rateLimit =
+                    GenerateRequest.RateLimitConfig.builder()
+                            .requestsPerSecond(50)
+                            .burstCapacity(75)
+                            .authRequestsPerMinute(5)
+                            .authBurstCapacity(8)
+                            .blockDurationSeconds(30)
+                            .build();
+
+            assertThat(rateLimit.getRequestsPerSecond()).isEqualTo(50);
+            assertThat(rateLimit.getBurstCapacity()).isEqualTo(75);
+            assertThat(rateLimit.getAuthRequestsPerMinute()).isEqualTo(5);
+            assertThat(rateLimit.getAuthBurstCapacity()).isEqualTo(8);
+            assertThat(rateLimit.getBlockDurationSeconds()).isEqualTo(30);
         }
     }
 }

@@ -139,6 +139,12 @@ public class GenerateRequest {
 
         private Boolean docker;
 
+        /** Enable unit tests generation. */
+        private Boolean unitTests;
+
+        /** Enable integration tests generation. */
+        private Boolean integrationTests;
+
         /** Enable social login generation. */
         private Boolean socialLogin;
 
@@ -194,6 +200,14 @@ public class GenerateRequest {
 
         public boolean isDocker() {
             return docker != null ? docker : true;
+        }
+
+        public boolean isUnitTests() {
+            return unitTests != null ? unitTests : true;
+        }
+
+        public boolean isIntegrationTests() {
+            return integrationTests != null ? integrationTests : true;
         }
 
         // Getters with defaults (false if null for disabled-by-default features)
