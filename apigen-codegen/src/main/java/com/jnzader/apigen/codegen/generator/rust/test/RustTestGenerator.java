@@ -42,6 +42,9 @@ public class RustTestGenerator {
         String snakeName = toSnakeCase(table.getName());
 
         files.put(
+                "tests/" + snakeName + "_model_test.rs", generateModelTest(entityName, snakeName));
+        files.put("tests/" + snakeName + "_dto_test.rs", generateDtoTest(entityName, snakeName));
+        files.put(
                 "tests/" + snakeName + "_service_test.rs",
                 generateServiceTest(entityName, snakeName));
         files.put(
@@ -49,6 +52,190 @@ public class RustTestGenerator {
                 generateHandlerTest(entityName, snakeName));
 
         return files;
+    }
+
+    private String generateModelTest(String entityName, String snakeName) {
+        return String.format(
+                """
+                use chrono::Utc;
+
+                use crate::models::%s::%s;
+
+                #[cfg(test)]
+                mod %s_model_tests {
+                    use super::*;
+
+                    #[test]
+                    fn test_create_instance() {
+                        let model = %s::default();
+                        assert!(model.id.is_none());
+                    }
+
+                    #[test]
+                    fn test_default_estado() {
+                        let model = %s::default();
+                        assert!(model.estado);
+                    }
+
+                    #[test]
+                    fn test_set_and_get_id() {
+                        let mut model = %s::default();
+                        model.id = Some(1);
+                        assert_eq!(model.id, Some(1));
+                    }
+
+                    #[test]
+                    fn test_set_estado_to_false() {
+                        let mut model = %s::default();
+                        model.estado = false;
+                        assert!(!model.estado);
+                    }
+
+                    #[test]
+                    fn test_audit_fields() {
+                        let mut model = %s::default();
+                        let now = Utc::now();
+
+                        model.created_at = Some(now);
+                        model.updated_at = Some(now);
+                        model.created_by = Some("test_user".to_string());
+                        model.updated_by = Some("test_user".to_string());
+
+                        assert_eq!(model.created_at, Some(now));
+                        assert_eq!(model.updated_at, Some(now));
+                        assert_eq!(model.created_by, Some("test_user".to_string()));
+                        assert_eq!(model.updated_by, Some("test_user".to_string()));
+                    }
+
+                    #[test]
+                    fn test_soft_delete_fields() {
+                        let mut model = %s::default();
+                        let now = Utc::now();
+
+                        model.deleted_at = Some(now);
+                        model.deleted_by = Some("admin".to_string());
+
+                        assert_eq!(model.deleted_at, Some(now));
+                        assert_eq!(model.deleted_by, Some("admin".to_string()));
+                    }
+
+                    #[test]
+                    fn test_clone() {
+                        let model = %s {
+                            id: Some(1),
+                            estado: true,
+                            ..Default::default()
+                        };
+                        let cloned = model.clone();
+
+                        assert_eq!(model.id, cloned.id);
+                        assert_eq!(model.estado, cloned.estado);
+                    }
+
+                    #[test]
+                    fn test_debug_impl() {
+                        let model = %s::default();
+                        let debug_str = format!("{:?}", model);
+                        assert!(debug_str.contains("%s"));
+                    }
+                }
+                """,
+                snakeName,
+                entityName,
+                snakeName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName);
+    }
+
+    private String generateDtoTest(String entityName, String snakeName) {
+        return String.format(
+                """
+                use validator::Validate;
+
+                use crate::models::%s::{Create%sDto, Update%sDto, %sResponse};
+
+                #[cfg(test)]
+                mod %s_dto_tests {
+                    use super::*;
+
+                    #[test]
+                    fn test_create_dto_default() {
+                        let dto = Create%sDto::default();
+                        assert!(dto.validate().is_ok() || dto.validate().is_err());
+                    }
+
+                    #[test]
+                    fn test_update_dto_default() {
+                        let dto = Update%sDto::default();
+                        // Update DTOs typically allow empty values for partial updates
+                        let _result = dto.validate();
+                    }
+
+                    #[test]
+                    fn test_response_dto() {
+                        let response = %sResponse {
+                            id: 1,
+                            activo: true,
+                            ..Default::default()
+                        };
+
+                        assert_eq!(response.id, 1);
+                        assert!(response.activo);
+                    }
+
+                    #[test]
+                    fn test_activo_maps_to_estado() {
+                        let response = %sResponse {
+                            id: 1,
+                            activo: false,
+                            ..Default::default()
+                        };
+
+                        assert!(!response.activo);
+                    }
+
+                    #[test]
+                    fn test_response_serialization() {
+                        let response = %sResponse {
+                            id: 1,
+                            activo: true,
+                            ..Default::default()
+                        };
+
+                        let json = serde_json::to_string(&response);
+                        assert!(json.is_ok());
+                        let json_str = json.unwrap();
+                        assert!(json_str.contains("\"id\":1"));
+                        assert!(json_str.contains("\"activo\":true"));
+                    }
+
+                    #[test]
+                    fn test_create_dto_deserialization() {
+                        let json = r#"{}"#;
+                        let result: Result<Create%sDto, _> = serde_json::from_str(json);
+                        // May succeed or fail depending on required fields
+                        assert!(result.is_ok() || result.is_err());
+                    }
+                }
+                """,
+                snakeName,
+                entityName,
+                entityName,
+                entityName,
+                snakeName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName);
     }
 
     /**

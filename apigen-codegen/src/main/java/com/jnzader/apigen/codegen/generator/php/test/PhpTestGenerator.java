@@ -40,12 +40,123 @@ public class PhpTestGenerator {
         Map<String, String> files = new LinkedHashMap<>();
         String entityName = table.getEntityName();
 
+        files.put("tests/Unit/" + entityName + "ModelTest.php", generateModelTest(entityName));
         files.put("tests/Unit/" + entityName + "ServiceTest.php", generateUnitTest(entityName));
         files.put(
                 "tests/Feature/" + entityName + "ControllerTest.php",
                 generateFeatureTest(table, entityName));
 
         return files;
+    }
+
+    private String generateModelTest(String entityName) {
+        return String.format(
+                """
+                <?php
+
+                namespace Tests\\Unit;
+
+                use App\\Models\\%s;
+                use Illuminate\\Foundation\\Testing\\RefreshDatabase;
+                use Tests\\TestCase;
+
+                class %sModelTest extends TestCase
+                {
+                    use RefreshDatabase;
+
+                    public function test_can_create_instance(): void
+                    {
+                        $model = new %s();
+                        $this->assertInstanceOf(%s::class, $model);
+                    }
+
+                    public function test_estado_defaults_to_true(): void
+                    {
+                        $model = %s::factory()->make();
+                        $this->assertTrue($model->estado);
+                    }
+
+                    public function test_fillable_fields(): void
+                    {
+                        $model = new %s();
+                        $fillable = $model->getFillable();
+
+                        $this->assertContains('estado', $fillable);
+                    }
+
+                    public function test_soft_deletes(): void
+                    {
+                        $model = %s::factory()->create();
+
+                        $model->delete();
+
+                        $this->assertSoftDeleted($model);
+                    }
+
+                    public function test_can_restore_soft_deleted(): void
+                    {
+                        $model = %s::factory()->create();
+                        $model->delete();
+
+                        $model->restore();
+
+                        $this->assertNotSoftDeleted($model);
+                    }
+
+                    public function test_casts_dates(): void
+                    {
+                        $model = new %s();
+                        $casts = $model->getCasts();
+
+                        $this->assertArrayHasKey('created_at', $casts);
+                        $this->assertArrayHasKey('updated_at', $casts);
+                    }
+
+                    public function test_can_set_and_get_attributes(): void
+                    {
+                        $model = new %s();
+
+                        $model->estado = false;
+                        $this->assertFalse($model->estado);
+
+                        $model->estado = true;
+                        $this->assertTrue($model->estado);
+                    }
+
+                    public function test_to_array(): void
+                    {
+                        $model = %s::factory()->create();
+
+                        $array = $model->toArray();
+
+                        $this->assertArrayHasKey('id', $array);
+                        $this->assertArrayHasKey('estado', $array);
+                    }
+
+                    public function test_find_by_id(): void
+                    {
+                        $model = %s::factory()->create();
+
+                        $found = %s::find($model->id);
+
+                        $this->assertNotNull($found);
+                        $this->assertEquals($model->id, $found->id);
+                    }
+                }
+                """,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName);
     }
 
     private String generateUnitTest(String entityName) {

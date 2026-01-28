@@ -315,6 +315,32 @@ public class KotlinSpringBootProjectGenerator implements ProjectGenerator {
 
             // 10. Generate Tests
             if (config.isFeatureEnabled(Feature.UNIT_TESTS)) {
+                // Entity Test
+                String entityTestCode = testGenerator.generateEntityTest(table);
+                files.put(
+                        testPath
+                                + "/"
+                                + moduleName
+                                + "/"
+                                + PKG_DOMAIN_ENTITY
+                                + "/"
+                                + entityName
+                                + "Test.kt",
+                        entityTestCode);
+
+                // Repository Test
+                String repositoryTestCode = testGenerator.generateRepositoryTest(table);
+                files.put(
+                        testPath
+                                + "/"
+                                + moduleName
+                                + "/"
+                                + PKG_INFRASTRUCTURE_REPOSITORY
+                                + "/"
+                                + entityName
+                                + "RepositoryTest.kt",
+                        repositoryTestCode);
+
                 // Service Test
                 String serviceTestCode = testGenerator.generateServiceTest(table);
                 files.put(
@@ -340,6 +366,19 @@ public class KotlinSpringBootProjectGenerator implements ProjectGenerator {
                                 + entityName
                                 + "DTOTest.kt",
                         dtoTestCode);
+
+                // Mapper Test
+                String mapperTestCode = testGenerator.generateMapperTest(table);
+                files.put(
+                        testPath
+                                + "/"
+                                + moduleName
+                                + "/"
+                                + PKG_APPLICATION_MAPPER
+                                + "/"
+                                + entityName
+                                + "MapperTest.kt",
+                        mapperTestCode);
 
                 // Controller Test
                 String controllerTestCode = testGenerator.generateControllerTest(table);

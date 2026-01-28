@@ -41,6 +41,11 @@ public class PythonTestGenerator {
         String snakeName = toSnakeCase(table.getName());
 
         files.put(
+                "tests/test_" + snakeName + "_model.py", generateModelTest(entityName, snakeName));
+        files.put(
+                "tests/test_" + snakeName + "_schema.py",
+                generateSchemaTest(entityName, snakeName));
+        files.put(
                 "tests/test_" + snakeName + "_service.py",
                 generateServiceTest(entityName, snakeName));
         files.put(
@@ -48,6 +53,144 @@ public class PythonTestGenerator {
                 generateRouterTest(entityName, snakeName));
 
         return files;
+    }
+
+    private String generateModelTest(String entityName, String snakeName) {
+        return String.format(
+                """
+                import pytest
+                from datetime import datetime
+
+                from app.models.%s import %s
+
+                pytestmark = pytest.mark.asyncio
+
+
+                class Test%sModel:
+                    \"""Unit tests for %s SQLAlchemy model.\"""
+
+                    def test_create_instance(self):
+                        \"""Test creating a model instance.\"""
+                        instance = %s()
+                        assert instance is not None
+
+                    def test_default_estado(self):
+                        \"""Test default value of estado field.\"""
+                        instance = %s()
+                        assert instance.estado is True
+
+                    def test_set_and_get_id(self):
+                        \"""Test setting and getting id.\"""
+                        instance = %s()
+                        instance.id = 1
+                        assert instance.id == 1
+
+                    def test_set_and_get_estado(self):
+                        \"""Test setting and getting estado.\"""
+                        instance = %s()
+                        instance.estado = False
+                        assert instance.estado is False
+
+                    def test_audit_fields(self):
+                        \"""Test setting audit fields.\"""
+                        instance = %s()
+                        now = datetime.utcnow()
+                        instance.created_at = now
+                        instance.updated_at = now
+                        instance.created_by = "test_user"
+                        instance.updated_by = "test_user"
+
+                        assert instance.created_at == now
+                        assert instance.updated_at == now
+                        assert instance.created_by == "test_user"
+                        assert instance.updated_by == "test_user"
+
+                    def test_soft_delete_fields(self):
+                        \"""Test soft delete fields.\"""
+                        instance = %s()
+                        now = datetime.utcnow()
+                        instance.deleted_at = now
+                        instance.deleted_by = "admin"
+
+                        assert instance.deleted_at == now
+                        assert instance.deleted_by == "admin"
+
+                    def test_repr(self):
+                        \"""Test string representation.\"""
+                        instance = %s()
+                        instance.id = 1
+                        repr_str = repr(instance)
+                        assert "%s" in repr_str
+                """,
+                snakeName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName);
+    }
+
+    private String generateSchemaTest(String entityName, String snakeName) {
+        return String.format(
+                """
+                import pytest
+                from pydantic import ValidationError
+
+                from app.schemas.%s import %sCreate, %sUpdate, %sResponse
+
+                pytestmark = pytest.mark.asyncio
+
+
+                class Test%sSchemas:
+                    \"""Unit tests for %s Pydantic schemas.\"""
+
+                    def test_create_schema_valid(self):
+                        \"""Test create schema with valid data.\"""
+                        # Add required fields
+                        data = {}
+                        schema = %sCreate(**data)
+                        assert schema is not None
+
+                    def test_update_schema_partial(self):
+                        \"""Test update schema allows partial data.\"""
+                        schema = %sUpdate()
+                        assert schema is not None
+
+                    def test_response_schema(self):
+                        \"""Test response schema with all fields.\"""
+                        data = {
+                            "id": 1,
+                            "activo": True,
+                        }
+                        schema = %sResponse(**data)
+                        assert schema.id == 1
+                        assert schema.activo is True
+
+                    def test_activo_maps_to_estado(self):
+                        \"""Test activo field maps to estado in entity.\"""
+                        data = {
+                            "id": 1,
+                            "activo": False,
+                        }
+                        schema = %sResponse(**data)
+                        assert schema.activo is False
+                """,
+                snakeName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName);
     }
 
     /**

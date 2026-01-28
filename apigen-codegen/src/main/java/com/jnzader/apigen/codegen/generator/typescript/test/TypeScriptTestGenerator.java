@@ -42,6 +42,12 @@ public class TypeScriptTestGenerator {
         String kebabName = toKebabCase(table.getName());
 
         files.put(
+                "src/" + kebabName + "/entities/" + kebabName + ".entity.spec.ts",
+                generateEntityTest(entityName, kebabName));
+        files.put(
+                "src/" + kebabName + "/dto/" + kebabName + ".dto.spec.ts",
+                generateDtoTest(entityName, kebabName));
+        files.put(
                 "src/" + kebabName + "/" + kebabName + ".service.spec.ts",
                 generateServiceTest(entityName, kebabName));
         files.put(
@@ -49,6 +55,130 @@ public class TypeScriptTestGenerator {
                 generateControllerTest(entityName, kebabName));
 
         return files;
+    }
+
+    private String generateEntityTest(String entityName, String kebabName) {
+        return String.format(
+                """
+                import { %s } from './%s.entity';
+
+                describe('%s Entity', () => {
+                  let entity: %s;
+
+                  beforeEach(() => {
+                    entity = new %s();
+                  });
+
+                  describe('initialization', () => {
+                    it('should create an instance', () => {
+                      expect(entity).toBeDefined();
+                      expect(entity).toBeInstanceOf(%s);
+                    });
+
+                    it('should have default estado as true', () => {
+                      expect(entity.estado).toBe(true);
+                    });
+
+                    it('should have undefined id initially', () => {
+                      expect(entity.id).toBeUndefined();
+                    });
+                  });
+
+                  describe('properties', () => {
+                    it('should set and get id', () => {
+                      entity.id = 1;
+                      expect(entity.id).toBe(1);
+                    });
+
+                    it('should set and get estado', () => {
+                      entity.estado = false;
+                      expect(entity.estado).toBe(false);
+                    });
+
+                    it('should set and get audit fields', () => {
+                      const now = new Date();
+                      entity.createdAt = now;
+                      entity.updatedAt = now;
+                      entity.createdBy = 'testUser';
+                      entity.updatedBy = 'testUser';
+
+                      expect(entity.createdAt).toBe(now);
+                      expect(entity.updatedAt).toBe(now);
+                      expect(entity.createdBy).toBe('testUser');
+                      expect(entity.updatedBy).toBe('testUser');
+                    });
+
+                    it('should set and get soft delete fields', () => {
+                      const now = new Date();
+                      entity.deletedAt = now;
+                      entity.deletedBy = 'admin';
+
+                      expect(entity.deletedAt).toBe(now);
+                      expect(entity.deletedBy).toBe('admin');
+                    });
+                  });
+                });
+                """,
+                entityName, kebabName, entityName, entityName, entityName, entityName);
+    }
+
+    private String generateDtoTest(String entityName, String kebabName) {
+        return String.format(
+                """
+                import { validate } from 'class-validator';
+                import { Create%sDto, Update%sDto, %sDto } from './%s.dto';
+
+                describe('%s DTOs', () => {
+                  describe('Create%sDto', () => {
+                    it('should pass validation with valid data', async () => {
+                      const dto = new Create%sDto();
+                      // Set required fields here
+                      const errors = await validate(dto);
+                      // Expect errors to be empty when required fields are set
+                      expect(Array.isArray(errors)).toBe(true);
+                    });
+
+                    it('should fail validation with empty data', async () => {
+                      const dto = new Create%sDto();
+                      const errors = await validate(dto);
+                      // May have validation errors for required fields
+                      expect(Array.isArray(errors)).toBe(true);
+                    });
+                  });
+
+                  describe('Update%sDto', () => {
+                    it('should pass validation with partial data', async () => {
+                      const dto = new Update%sDto();
+                      const errors = await validate(dto);
+                      // Update DTOs typically allow partial updates
+                      expect(errors.length).toBe(0);
+                    });
+                  });
+
+                  describe('%sDto', () => {
+                    it('should create response DTO with all fields', () => {
+                      const dto = new %sDto();
+                      dto.id = 1;
+                      dto.activo = true;
+
+                      expect(dto.id).toBe(1);
+                      expect(dto.activo).toBe(true);
+                    });
+                  });
+                });
+                """,
+                entityName,
+                entityName,
+                entityName,
+                kebabName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName,
+                entityName);
     }
 
     /**

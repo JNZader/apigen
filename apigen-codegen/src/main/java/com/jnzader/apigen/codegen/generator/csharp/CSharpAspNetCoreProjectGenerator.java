@@ -19,6 +19,7 @@ import com.jnzader.apigen.codegen.generator.csharp.security.reset.CSharpPassword
 import com.jnzader.apigen.codegen.generator.csharp.security.social.CSharpSocialLoginGenerator;
 import com.jnzader.apigen.codegen.generator.csharp.service.CSharpServiceGenerator;
 import com.jnzader.apigen.codegen.generator.csharp.storage.CSharpFileStorageGenerator;
+import com.jnzader.apigen.codegen.generator.csharp.test.CSharpTestGenerator;
 import com.jnzader.apigen.codegen.generator.dx.DxFeaturesGenerator;
 import com.jnzader.apigen.codegen.generator.dx.DxLanguage;
 import com.jnzader.apigen.codegen.model.SqlSchema;
@@ -140,6 +141,7 @@ public class CSharpAspNetCoreProjectGenerator implements ProjectGenerator {
                 new CSharpControllerGenerator(baseNamespace);
         CSharpDbContextGenerator dbContextGenerator = new CSharpDbContextGenerator(baseNamespace);
         CSharpConfigGenerator configGenerator = new CSharpConfigGenerator(baseNamespace);
+        CSharpTestGenerator testGenerator = new CSharpTestGenerator(baseNamespace);
 
         // Collect all relationships for bidirectional mapping
         Map<String, List<SqlSchema.TableRelationship>> relationshipsByTable =
@@ -199,6 +201,63 @@ public class CSharpAspNetCoreProjectGenerator implements ProjectGenerator {
             files.put(
                     moduleName + "/Api/Controllers/" + toPlural(entityName) + "Controller.cs",
                     controllerCode);
+
+            // 8. Generate Tests
+            if (config.isFeatureEnabled(Feature.UNIT_TESTS)) {
+                // Entity Test
+                String entityTestCode = testGenerator.generateEntityTest(table);
+                files.put(
+                        "Tests/" + moduleName + "/Domain/Entities/" + entityName + "Tests.cs",
+                        entityTestCode);
+
+                // Repository Test
+                String repositoryTestCode = testGenerator.generateRepositoryTest(table);
+                files.put(
+                        "Tests/"
+                                + moduleName
+                                + "/Infrastructure/Repositories/"
+                                + entityName
+                                + "RepositoryTests.cs",
+                        repositoryTestCode);
+
+                // Service Test
+                String serviceTestCode = testGenerator.generateServiceTest(table);
+                files.put(
+                        "Tests/"
+                                + moduleName
+                                + "/Application/Services/"
+                                + entityName
+                                + "ServiceTests.cs",
+                        serviceTestCode);
+
+                // DTO Test
+                String dtoTestCode = testGenerator.generateDTOTest(table);
+                files.put(
+                        "Tests/" + moduleName + "/Application/DTOs/" + entityName + "DtoTests.cs",
+                        dtoTestCode);
+
+                // Controller Test
+                String controllerTestCode = testGenerator.generateControllerTest(table);
+                files.put(
+                        "Tests/"
+                                + moduleName
+                                + "/Api/Controllers/"
+                                + toPlural(entityName)
+                                + "ControllerTests.cs",
+                        controllerTestCode);
+            }
+
+            // 9. Generate Integration Test
+            if (config.isFeatureEnabled(Feature.INTEGRATION_TESTS)) {
+                String integrationTestCode = testGenerator.generateIntegrationTest(table);
+                files.put(
+                        "Tests/"
+                                + moduleName
+                                + "/Integration/"
+                                + entityName
+                                + "IntegrationTests.cs",
+                        integrationTestCode);
+            }
         }
 
         // Generate DbContext

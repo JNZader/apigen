@@ -84,6 +84,33 @@ public final class TestValueProvider {
         };
     }
 
+    /**
+     * Gets a sample test value for a column in C# syntax.
+     *
+     * @param col the SQL column
+     * @return a sample value as a C# expression string
+     */
+    public static String getSampleTestValueCSharp(SqlColumn col) {
+        String javaType = col.getJavaType();
+        String fieldName = col.getJavaFieldName();
+        String displayValue = "Test " + fieldName;
+
+        return switch (javaType) {
+            case "String" -> "\"" + displayValue + "\"";
+            case "Integer", "int" -> "100";
+            case "Long", "long" -> "1000L";
+            case "Double", "double" -> "99.99";
+            case "Float", "float" -> "99.99f";
+            case "BigDecimal" -> "199.99m";
+            case "Boolean", "boolean" -> "true";
+            case "LocalDate" -> "DateOnly.FromDateTime(DateTime.UtcNow)";
+            case "LocalDateTime" -> "DateTime.UtcNow";
+            case "LocalTime" -> "TimeOnly.FromDateTime(DateTime.UtcNow)";
+            case "UUID" -> "Guid.NewGuid()";
+            default -> "null";
+        };
+    }
+
     private static String capitalize(String str) {
         if (str == null || str.isEmpty()) return str;
         return Character.toUpperCase(str.charAt(0)) + str.substring(1);
