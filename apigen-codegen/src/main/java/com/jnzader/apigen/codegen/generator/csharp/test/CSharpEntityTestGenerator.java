@@ -37,10 +37,10 @@ public class CSharpEntityTestGenerator {
                     .append(",");
 
             fieldAssertions
-                    .append("\n        Assert.Equal(")
-                    .append(sampleValue)
-                    .append(", entity.")
+                    .append("\n        entity.")
                     .append(fieldName)
+                    .append(".Should().Be(")
+                    .append(sampleValue)
                     .append(");");
         }
 
