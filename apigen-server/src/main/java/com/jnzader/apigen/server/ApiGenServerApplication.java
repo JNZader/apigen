@@ -16,9 +16,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
             "org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration",
             "org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration",
             "org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration",
-            "org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration",
-            "org.springframework.boot.hibernate.autoconfigure.HibernateJpaConfiguration",
-            "org.springframework.boot.jdbc.autoconfigure.DataSourceInitializationAutoConfiguration"
+            "org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration"
         })
 public class ApiGenServerApplication {
 
