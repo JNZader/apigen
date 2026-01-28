@@ -57,7 +57,6 @@ public class MiseGenerator {
         java = "%s"
 
         [env]
-        JAVA_HOME = "{{env.MISE_JAVA_HOME}}"
         GRADLE_OPTS = "-Xmx512m -Dorg.gradle.daemon=false"
 
         [tasks.dev]
