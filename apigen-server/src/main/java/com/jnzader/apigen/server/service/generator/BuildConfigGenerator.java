@@ -31,17 +31,21 @@ public class BuildConfigGenerator {
 
         StringBuilder deps = new StringBuilder();
 
-        // Core dependencies always included (via JitPack)
-        deps.append("    // APiGen Core (from GitHub via JitPack)\n");
+        // Core dependencies always included (via GitHub Packages)
+        deps.append("    // APiGen Core (from GitHub Packages)\n");
         deps.append(
-                "    implementation 'com.github.jnzader.apigen:apigen-core:%s'\n"
-                        .formatted(GeneratedProjectVersions.APIGEN_CORE_VERSION));
+                "    implementation '%s:apigen-core:%s'\n"
+                        .formatted(
+                                GeneratedProjectVersions.APIGEN_GROUP_ID,
+                                GeneratedProjectVersions.APIGEN_CORE_VERSION));
 
         if (config.getModules() != null && config.getModules().isSecurity()) {
-            deps.append("\n    // APiGen Security (from GitHub via JitPack)\n");
+            deps.append("\n    // APiGen Security (from GitHub Packages)\n");
             deps.append(
-                    "    implementation 'com.github.jnzader.apigen:apigen-security:%s'\n"
-                            .formatted(GeneratedProjectVersions.APIGEN_SECURITY_VERSION));
+                    "    implementation '%s:apigen-security:%s'\n"
+                            .formatted(
+                                    GeneratedProjectVersions.APIGEN_GROUP_ID,
+                                    GeneratedProjectVersions.APIGEN_SECURITY_VERSION));
         }
 
         // Feature Pack dependencies
@@ -68,7 +72,13 @@ java {
 
 repositories {
     mavenCentral()
-    maven { url 'https://jitpack.io' }
+    maven {
+        url '%s'
+        credentials {
+            username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+            password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
 }
 
 dependencies {
@@ -112,6 +122,7 @@ test {
                         groupId,
                         GeneratedProjectVersions.INITIAL_PROJECT_VERSION,
                         javaVersion,
+                        GeneratedProjectVersions.GITHUB_PACKAGES_URL,
                         deps,
                         GeneratedProjectVersions.SPRINGDOC_VERSION,
                         dbDeps,
@@ -158,17 +169,21 @@ test {
 
         StringBuilder deps = new StringBuilder();
 
-        // Core dependencies always included (via JitPack)
-        deps.append("    // APiGen Core (from GitHub via JitPack)\n");
+        // Core dependencies always included (via GitHub Packages)
+        deps.append("    // APiGen Core (from GitHub Packages)\n");
         deps.append(
-                "    implementation(\"com.github.jnzader.apigen:apigen-core:%s\")\n"
-                        .formatted(GeneratedProjectVersions.APIGEN_CORE_VERSION));
+                "    implementation(\"%s:apigen-core:%s\")\n"
+                        .formatted(
+                                GeneratedProjectVersions.APIGEN_GROUP_ID,
+                                GeneratedProjectVersions.APIGEN_CORE_VERSION));
 
         if (config.getModules() != null && config.getModules().isSecurity()) {
-            deps.append("\n    // APiGen Security (from GitHub via JitPack)\n");
+            deps.append("\n    // APiGen Security (from GitHub Packages)\n");
             deps.append(
-                    "    implementation(\"com.github.jnzader.apigen:apigen-security:%s\")\n"
-                            .formatted(GeneratedProjectVersions.APIGEN_SECURITY_VERSION));
+                    "    implementation(\"%s:apigen-security:%s\")\n"
+                            .formatted(
+                                    GeneratedProjectVersions.APIGEN_GROUP_ID,
+                                    GeneratedProjectVersions.APIGEN_SECURITY_VERSION));
         }
 
         // Feature Pack dependencies
@@ -207,7 +222,13 @@ kotlin {
 
 repositories {
     mavenCentral()
-    maven { url = uri("https://jitpack.io") }
+    maven {
+        url = uri("%s")
+        credentials {
+            username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+            password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
 }
 
 dependencies {
@@ -255,6 +276,7 @@ tasks.withType<Test> {
                         GeneratedProjectVersions.INITIAL_PROJECT_VERSION,
                         javaVersion,
                         kotlinJvmTarget,
+                        GeneratedProjectVersions.GITHUB_PACKAGES_URL,
                         deps,
                         GeneratedProjectVersions.SPRINGDOC_VERSION,
                         dbDeps,

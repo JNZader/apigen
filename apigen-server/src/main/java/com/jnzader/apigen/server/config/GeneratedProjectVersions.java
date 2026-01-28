@@ -18,17 +18,27 @@ public final class GeneratedProjectVersions {
     // APiGen Module Versions
     // ==========================================================================
 
-    /** APiGen Core version for generated projects (from JitPack). */
-    public static final String APIGEN_CORE_VERSION = "v2.27.0";
+    /** APiGen Core version for generated projects (from GitHub Packages). */
+    public static final String APIGEN_CORE_VERSION = "2.27.0";
 
-    /** APiGen Security version for generated projects (from JitPack). */
-    public static final String APIGEN_SECURITY_VERSION = "v2.27.0";
+    /** APiGen Security version for generated projects (from GitHub Packages). */
+    public static final String APIGEN_SECURITY_VERSION = "2.27.0";
 
     /**
-     * Fallback versions to try if the primary version is not available on JitPack. Used by
-     * integration tests to handle JitPack build delays or failures.
+     * Fallback versions to try if the primary version is not available. Used by integration tests
+     * to handle build delays or failures.
      */
-    public static final List<String> FALLBACK_VERSIONS = List.of("v2.6.0", "v2.5.10", "v2.5.9");
+    public static final List<String> FALLBACK_VERSIONS = List.of("2.6.0", "2.5.10", "2.5.9");
+
+    // ==========================================================================
+    // GitHub Packages Configuration
+    // ==========================================================================
+
+    /** GitHub Packages Maven repository URL. */
+    public static final String GITHUB_PACKAGES_URL = "https://maven.pkg.github.com/JNZader/apigen";
+
+    /** APiGen group ID for Maven coordinates. */
+    public static final String APIGEN_GROUP_ID = "com.jnzader";
 
     // ==========================================================================
     // Core Platform Versions

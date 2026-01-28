@@ -107,20 +107,24 @@ jobs:
           fi
 
   # ==========================================
-  # Publish to Maven Central (optional)
+  # Publish to GitHub Packages
   # ==========================================
   publish:
-    name: Publish to Maven Central
+    name: Publish to GitHub Packages
     runs-on: ubuntu-latest
     needs: release
     timeout-minutes: 20
     if: needs.release.result == 'success'
 
+    permissions:
+      contents: read
+      packages: write
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
-          ref: main  # Get the updated version
+          ref: main
           fetch-depth: 0
 
       - name: Set up JDK ${{ env.JAVA_VERSION }}
@@ -132,17 +136,8 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
 
-      - name: Publish to Maven Central
-        run: |
-          echo "Maven Central publishing placeholder"
-          echo "To enable, configure these secrets:"
-          echo "- OSSRH_USERNAME"
-          echo "- OSSRH_PASSWORD"
-          echo "- GPG_PRIVATE_KEY"
-          echo "- GPG_PASSPHRASE"
-          # ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository --no-daemon
+      - name: Publish to GitHub Packages
+        run: ./gradlew publish --no-daemon
         env:
-          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
-          SIGNING_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-          SIGNING_PASSWORD: ${{ secrets.GPG_PASSPHRASE }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
