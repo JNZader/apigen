@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.26.5](https://github.com/JNZader/apigen/compare/v2.26.4...v2.26.5) (2026-01-28)
+
+### Bug Fixes
+
+* **server:** exclude JPA from apigen-core to fix Koyeb deployment ([9cf8372](https://github.com/JNZader/apigen/commit/9cf837208e6662918b6d3a8b40e8760d70f3eaa2))
+
 ## [2.26.4](https://github.com/JNZader/apigen/compare/v2.26.3...v2.26.4) (2026-01-28)
 
 ### Bug Fixes
