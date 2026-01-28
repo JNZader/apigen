@@ -418,6 +418,28 @@ public class GenerateRequest {
         @Builder.Default private int blockDurationSeconds = 60;
         @Builder.Default private boolean enablePerUser = true;
         @Builder.Default private boolean enablePerEndpoint = true;
+
+        // Custom getters to handle 0 values from JSON deserialization (Lombok @Builder.Default
+        // only works with builder pattern, not @NoArgsConstructor)
+        public int getRequestsPerSecond() {
+            return requestsPerSecond > 0 ? requestsPerSecond : 100;
+        }
+
+        public int getBurstCapacity() {
+            return burstCapacity > 0 ? burstCapacity : 150;
+        }
+
+        public int getAuthRequestsPerMinute() {
+            return authRequestsPerMinute > 0 ? authRequestsPerMinute : 10;
+        }
+
+        public int getAuthBurstCapacity() {
+            return authBurstCapacity > 0 ? authBurstCapacity : 15;
+        }
+
+        public int getBlockDurationSeconds() {
+            return blockDurationSeconds > 0 ? blockDurationSeconds : 60;
+        }
     }
 
     /** Security configuration DTO. */
