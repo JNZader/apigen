@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.26.1](https://github.com/JNZader/apigen/compare/v2.26.0...v2.26.1) (2026-01-28)
+
+### Bug Fixes
+
+* **server:** rename GlobalExceptionHandler to avoid bean conflict ([ac3a9b0](https://github.com/JNZader/apigen/commit/ac3a9b009c275f431bd9832af259c2174de0fefc))
+
 ## [2.26.0](https://github.com/JNZader/apigen/compare/v2.25.0...v2.26.0) (2026-01-28)
 
 ### Features
