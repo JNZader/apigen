@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0](https://github.com/JNZader/apigen/compare/v2.27.0...v3.0.0) (2026-01-28)
+
+### ⚠ BREAKING CHANGES
+
+* **publishing:** Package coordinates changed from
+com.github.jnzader.apigen:apigen-* to com.jnzader:apigen-*
+Version format changed from v2.x.x to 2.x.x (no 'v' prefix)
+
+### Features
+
+* **publishing:** migrate from JitPack to GitHub Packages ([3b60b1b](https://github.com/JNZader/apigen/commit/3b60b1bebd382d1fd3d55433582db76c31185e8b))
+
 ## [2.27.0](https://github.com/JNZader/apigen/compare/v2.26.6...v2.27.0) (2026-01-28)
 
 ### Features
