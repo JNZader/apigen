@@ -97,12 +97,12 @@ public class %sServiceTests
         var dto = CreateTestDto();
 
         _mockRepository.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(entity);
+            .Returns(Task.FromResult(entity));
         _mockMapper.Setup(m => m.Map<%sDto>(entity))
             .Returns(dto);
 
         // Act
-        var result = await _service.GetByIdAsync(1);
+        var result = await _service.GetByIdAsync(1, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -114,10 +114,10 @@ public class %sServiceTests
     {
         // Arrange
         _mockRepository.Setup(r => r.GetByIdAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((%s?)null);
+            .Returns(Task.FromResult<%s?>(null));
 
         // Act & Assert
-        await Assert.ThrowsAsync<NotFoundException>(() => _service.GetByIdAsync(999999));
+        await Assert.ThrowsAsync<NotFoundException>(() => _service.GetByIdAsync(999999, CancellationToken.None));
     }
 
     [Fact]
@@ -128,14 +128,14 @@ public class %sServiceTests
         var dtos = new List<%sDto> { CreateTestDto() };
 
         _mockRepository.Setup(r => r.GetAllAsync(0, 10, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(entities);
+            .Returns(Task.FromResult<IEnumerable<%s>>(entities));
         _mockRepository.Setup(r => r.CountAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(1);
+            .Returns(Task.FromResult(1));
         _mockMapper.Setup(m => m.Map<IEnumerable<%sDto>>(entities))
             .Returns(dtos);
 
         // Act
-        var result = await _service.GetAllAsync(0, 10);
+        var result = await _service.GetAllAsync(0, 10, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -156,12 +156,12 @@ public class %sServiceTests
         _mockMapper.Setup(m => m.Map<%s>(createDto))
             .Returns(entity);
         _mockRepository.Setup(r => r.AddAsync(entity, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(entity);
+            .Returns(Task.FromResult(entity));
         _mockMapper.Setup(m => m.Map<%sDto>(entity))
             .Returns(resultDto);
 
         // Act
-        var result = await _service.CreateAsync(createDto);
+        var result = await _service.CreateAsync(createDto, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -179,15 +179,15 @@ public class %sServiceTests
         var updatedDto = CreateTestDto();
 
         _mockRepository.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(existingEntity);
+            .Returns(Task.FromResult(existingEntity));
         _mockMapper.Setup(m => m.Map(updateDto, existingEntity));
         _mockRepository.Setup(r => r.UpdateAsync(existingEntity, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(existingEntity);
+            .Returns(Task.FromResult(existingEntity));
         _mockMapper.Setup(m => m.Map<%sDto>(existingEntity))
             .Returns(updatedDto);
 
         // Act
-        var result = await _service.UpdateAsync(1, updateDto);
+        var result = await _service.UpdateAsync(1, updateDto, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -200,12 +200,12 @@ public class %sServiceTests
         var entity = CreateTestEntity();
 
         _mockRepository.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(entity);
+            .Returns(Task.FromResult(entity));
         _mockRepository.Setup(r => r.SoftDeleteAsync(entity, It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
         // Act
-        await _service.DeleteAsync(1);
+        await _service.DeleteAsync(1, CancellationToken.None);
 
         // Assert
         _mockRepository.Verify(r => r.SoftDeleteAsync(entity, It.IsAny<CancellationToken>()), Times.Once);
@@ -247,6 +247,7 @@ public class %sServiceTests
                         // GetAllAsync
                         entityName, // List<X>
                         entityName, // List<XDto>
+                        entityName, // IEnumerable<X>
                         entityName, // Map<IEnumerable<XDto>>
                         // CreateAsync
                         entityName, // CreateXDto

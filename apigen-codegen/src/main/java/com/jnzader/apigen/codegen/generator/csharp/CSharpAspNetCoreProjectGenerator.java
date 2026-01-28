@@ -414,13 +414,13 @@ namespace %s.Domain.Interfaces;
 /// </summary>
 public interface IRepository<TEntity, TId> where TEntity : class
 {
-    Task<TEntity?> GetByIdAsync(TId id, CancellationToken cancellationToken = default);
-    Task<IEnumerable<TEntity>> GetAllAsync(int page, int size, CancellationToken cancellationToken = default);
-    Task<int> CountAsync(CancellationToken cancellationToken = default);
-    Task<TEntity> AddAsync(TEntity entity, CancellationToken cancellationToken = default);
-    Task<TEntity> UpdateAsync(TEntity entity, CancellationToken cancellationToken = default);
-    Task DeleteAsync(TEntity entity, CancellationToken cancellationToken = default);
-    Task SoftDeleteAsync(TEntity entity, CancellationToken cancellationToken = default);
+    Task<TEntity?> GetByIdAsync(TId id, CancellationToken cancellationToken);
+    Task<IEnumerable<TEntity>> GetAllAsync(int page, int size, CancellationToken cancellationToken);
+    Task<int> CountAsync(CancellationToken cancellationToken);
+    Task<TEntity> AddAsync(TEntity entity, CancellationToken cancellationToken);
+    Task<TEntity> UpdateAsync(TEntity entity, CancellationToken cancellationToken);
+    Task DeleteAsync(TEntity entity, CancellationToken cancellationToken);
+    Task SoftDeleteAsync(TEntity entity, CancellationToken cancellationToken);
 }
 """
                 .formatted(baseNamespace);
@@ -451,12 +451,12 @@ public class Repository<TEntity, TId> : IRepository<TEntity, TId>
         DbSet = context.Set<TEntity>();
     }
 
-    public virtual async Task<TEntity?> GetByIdAsync(TId id, CancellationToken cancellationToken = default)
+    public virtual async Task<TEntity?> GetByIdAsync(TId id, CancellationToken cancellationToken)
     {
         return await DbSet.FindAsync(new object?[] { id }, cancellationToken);
     }
 
-    public virtual async Task<IEnumerable<TEntity>> GetAllAsync(int page, int size, CancellationToken cancellationToken = default)
+    public virtual async Task<IEnumerable<TEntity>> GetAllAsync(int page, int size, CancellationToken cancellationToken)
     {
         return await DbSet
             .Skip(page * size)
@@ -464,32 +464,32 @@ public class Repository<TEntity, TId> : IRepository<TEntity, TId>
             .ToListAsync(cancellationToken);
     }
 
-    public virtual async Task<int> CountAsync(CancellationToken cancellationToken = default)
+    public virtual async Task<int> CountAsync(CancellationToken cancellationToken)
     {
         return await DbSet.CountAsync(cancellationToken);
     }
 
-    public virtual async Task<TEntity> AddAsync(TEntity entity, CancellationToken cancellationToken = default)
+    public virtual async Task<TEntity> AddAsync(TEntity entity, CancellationToken cancellationToken)
     {
         await DbSet.AddAsync(entity, cancellationToken);
         await Context.SaveChangesAsync(cancellationToken);
         return entity;
     }
 
-    public virtual async Task<TEntity> UpdateAsync(TEntity entity, CancellationToken cancellationToken = default)
+    public virtual async Task<TEntity> UpdateAsync(TEntity entity, CancellationToken cancellationToken)
     {
         DbSet.Update(entity);
         await Context.SaveChangesAsync(cancellationToken);
         return entity;
     }
 
-    public virtual async Task DeleteAsync(TEntity entity, CancellationToken cancellationToken = default)
+    public virtual async Task DeleteAsync(TEntity entity, CancellationToken cancellationToken)
     {
         DbSet.Remove(entity);
         await Context.SaveChangesAsync(cancellationToken);
     }
 
-    public virtual async Task SoftDeleteAsync(TEntity entity, CancellationToken cancellationToken = default)
+    public virtual async Task SoftDeleteAsync(TEntity entity, CancellationToken cancellationToken)
     {
         entity.Estado = false;
         entity.DeletedAt = DateTime.UtcNow;
@@ -512,11 +512,11 @@ namespace %s.Application.Interfaces;
 /// </summary>
 public interface IService<TDto, TCreateDto, TUpdateDto, TId>
 {
-    Task<TDto> GetByIdAsync(TId id, CancellationToken cancellationToken = default);
-    Task<PagedResult<TDto>> GetAllAsync(int page, int size, CancellationToken cancellationToken = default);
-    Task<TDto> CreateAsync(TCreateDto dto, CancellationToken cancellationToken = default);
-    Task<TDto> UpdateAsync(TId id, TUpdateDto dto, CancellationToken cancellationToken = default);
-    Task DeleteAsync(TId id, CancellationToken cancellationToken = default);
+    Task<TDto> GetByIdAsync(TId id, CancellationToken cancellationToken);
+    Task<PagedResult<TDto>> GetAllAsync(int page, int size, CancellationToken cancellationToken);
+    Task<TDto> CreateAsync(TCreateDto dto, CancellationToken cancellationToken);
+    Task<TDto> UpdateAsync(TId id, TUpdateDto dto, CancellationToken cancellationToken);
+    Task DeleteAsync(TId id, CancellationToken cancellationToken);
 }
 """
                 .formatted(baseNamespace, baseNamespace);
@@ -549,7 +549,7 @@ public abstract class Service<TEntity, TDto, TCreateDto, TUpdateDto, TId> : ISer
         Mapper = mapper;
     }
 
-    public virtual async Task<TDto> GetByIdAsync(TId id, CancellationToken cancellationToken = default)
+    public virtual async Task<TDto> GetByIdAsync(TId id, CancellationToken cancellationToken)
     {
         var entity = await Repository.GetByIdAsync(id, cancellationToken);
         if (entity is null)
@@ -559,7 +559,7 @@ public abstract class Service<TEntity, TDto, TCreateDto, TUpdateDto, TId> : ISer
         return Mapper.Map<TDto>(entity);
     }
 
-    public virtual async Task<PagedResult<TDto>> GetAllAsync(int page, int size, CancellationToken cancellationToken = default)
+    public virtual async Task<PagedResult<TDto>> GetAllAsync(int page, int size, CancellationToken cancellationToken)
     {
         var entities = await Repository.GetAllAsync(page, size, cancellationToken);
         var totalCount = await Repository.CountAsync(cancellationToken);
@@ -574,14 +574,14 @@ public abstract class Service<TEntity, TDto, TCreateDto, TUpdateDto, TId> : ISer
         };
     }
 
-    public virtual async Task<TDto> CreateAsync(TCreateDto dto, CancellationToken cancellationToken = default)
+    public virtual async Task<TDto> CreateAsync(TCreateDto dto, CancellationToken cancellationToken)
     {
         var entity = Mapper.Map<TEntity>(dto);
         var created = await Repository.AddAsync(entity, cancellationToken);
         return Mapper.Map<TDto>(created);
     }
 
-    public virtual async Task<TDto> UpdateAsync(TId id, TUpdateDto dto, CancellationToken cancellationToken = default)
+    public virtual async Task<TDto> UpdateAsync(TId id, TUpdateDto dto, CancellationToken cancellationToken)
     {
         var entity = await Repository.GetByIdAsync(id, cancellationToken);
         if (entity is null)
@@ -594,7 +594,7 @@ public abstract class Service<TEntity, TDto, TCreateDto, TUpdateDto, TId> : ISer
         return Mapper.Map<TDto>(updated);
     }
 
-    public virtual async Task DeleteAsync(TId id, CancellationToken cancellationToken = default)
+    public virtual async Task DeleteAsync(TId id, CancellationToken cancellationToken)
     {
         var entity = await Repository.GetByIdAsync(id, cancellationToken);
         if (entity is null)

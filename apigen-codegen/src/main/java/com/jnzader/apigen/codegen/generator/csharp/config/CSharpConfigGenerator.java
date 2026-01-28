@@ -51,6 +51,7 @@ public class CSharpConfigGenerator {
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>%s</RootNamespace>
+    <NoWarn>CS7022</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

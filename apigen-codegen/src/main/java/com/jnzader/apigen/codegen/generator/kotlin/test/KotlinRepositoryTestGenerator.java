@@ -47,18 +47,18 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager
+import jakarta.persistence.EntityManager
+import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 import java.time.Instant
 
-@DataJpaTest
+@SpringBootTest
 @ActiveProfiles("test")
 @DisplayName("%sRepository Tests")
 class %sRepositoryTest {
 
     @Autowired
-    private lateinit var entityManager: TestEntityManager
+    private lateinit var entityManager: EntityManager
 
     @Autowired
     private lateinit var repository: %sRepository
@@ -72,6 +72,12 @@ class %sRepositoryTest {
                 .build()
     }
 
+    private fun persistAndFlush(entity: %s): %s {
+        entityManager.persist(entity)
+        entityManager.flush()
+        return entity
+    }
+
     @Nested
     @DisplayName("Standard CRUD Operations")
     inner class StandardCrudOperations {
@@ -79,7 +85,7 @@ class %sRepositoryTest {
         @Test
         @DisplayName("Should save and retrieve entity")
         fun shouldSaveAndRetrieve() {
-            val saved = entityManager.persistAndFlush(%s)
+            val saved = persistAndFlush(%s)
 
             val found = repository.findById(saved.id!!)
 
@@ -90,7 +96,7 @@ class %sRepositoryTest {
         @Test
         @DisplayName("Should find all entities")
         fun shouldFindAll() {
-            entityManager.persistAndFlush(%s)
+            persistAndFlush(%s)
 
             val all = repository.findAll()
 
@@ -100,7 +106,7 @@ class %sRepositoryTest {
         @Test
         @DisplayName("Should update entity")
         fun shouldUpdate() {
-            val saved = entityManager.persistAndFlush(%s)
+            val saved = persistAndFlush(%s)
             saved.estado = false
             repository.save(saved)
             entityManager.flush()
@@ -115,7 +121,7 @@ class %sRepositoryTest {
         @Test
         @DisplayName("Should delete entity")
         fun shouldDelete() {
-            val saved = entityManager.persistAndFlush(%s)
+            val saved = persistAndFlush(%s)
             val id = saved.id!!
 
             repository.deleteById(id)
@@ -129,7 +135,7 @@ class %sRepositoryTest {
         @Test
         @DisplayName("Should check if entity exists by ID")
         fun shouldCheckExistsById() {
-            val saved = entityManager.persistAndFlush(%s)
+            val saved = persistAndFlush(%s)
 
             val exists = repository.existsById(saved.id!!)
 
@@ -147,7 +153,7 @@ class %sRepositoryTest {
         @Test
         @DisplayName("Should count all entities")
         fun shouldCountAll() {
-            entityManager.persistAndFlush(%s)
+            persistAndFlush(%s)
 
             val count = repository.count()
 
@@ -162,7 +168,7 @@ class %sRepositoryTest {
         @Test
         @DisplayName("Should soft delete by ID")
         fun shouldSoftDeleteById() {
-            val saved = entityManager.persistAndFlush(%s)
+            val saved = persistAndFlush(%s)
 
             val deleted = repository.softDeleteAllByIds(
                     listOf(saved.id!!),
@@ -176,7 +182,7 @@ class %sRepositoryTest {
         @Test
         @DisplayName("Should hard delete by ID")
         fun shouldHardDeleteById() {
-            val saved = entityManager.persistAndFlush(%s)
+            val saved = persistAndFlush(%s)
             val id = saved.id!!
 
             val deleted = repository.hardDeleteById(id)
@@ -238,8 +244,8 @@ class %sRepositoryTest {
         @Test
         @DisplayName("Should soft delete multiple entities")
         fun shouldSoftDeleteMultiple() {
-            val entity1 = entityManager.persistAndFlush(%s.builder().estado(true)%s.build())
-            val entity2 = entityManager.persistAndFlush(%s.builder().estado(true)%s.build())
+            val entity1 = persistAndFlush(%s.builder().estado(true)%s.build())
+            val entity2 = persistAndFlush(%s.builder().estado(true)%s.build())
 
             val deleted = repository.softDeleteAllByIds(
                     listOf(entity1.id!!, entity2.id!!),
@@ -253,8 +259,8 @@ class %sRepositoryTest {
         @Test
         @DisplayName("Should restore multiple entities")
         fun shouldRestoreMultiple() {
-            val entity1 = entityManager.persistAndFlush(%s.builder().estado(true)%s.build())
-            val entity2 = entityManager.persistAndFlush(%s.builder().estado(true)%s.build())
+            val entity1 = persistAndFlush(%s.builder().estado(true)%s.build())
+            val entity2 = persistAndFlush(%s.builder().estado(true)%s.build())
 
             repository.softDeleteAllByIds(
                     listOf(entity1.id!!, entity2.id!!),
@@ -289,6 +295,9 @@ class %sRepositoryTest {
                         entityVarName,
                         entityName,
                         fieldAssignments.toString(),
+                        // persistAndFlush
+                        entityName,
+                        entityName,
                         // Standard CRUD - save/retrieve
                         entityVarName,
                         // findAll

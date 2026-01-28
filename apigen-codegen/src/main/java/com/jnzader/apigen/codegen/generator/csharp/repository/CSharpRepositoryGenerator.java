@@ -67,7 +67,7 @@ public class CSharpRepositoryGenerator {
                         .append(csharpType)
                         .append(" ")
                         .append(toCamelCase(col.getJavaFieldName()))
-                        .append(", CancellationToken cancellationToken = default);\n\n");
+                        .append(", CancellationToken cancellationToken);\n\n");
             }
         }
 
@@ -138,7 +138,7 @@ public class CSharpRepositoryGenerator {
                         .append(csharpType)
                         .append(" ")
                         .append(paramName)
-                        .append(", CancellationToken cancellationToken = default)\n");
+                        .append(", CancellationToken cancellationToken)\n");
                 sb.append("    {\n");
                 sb.append("        return await DbSet.FirstOrDefaultAsync(e => e.")
                         .append(fieldName)

@@ -46,8 +46,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import jakarta.persistence.EntityManager;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
@@ -56,13 +56,13 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
+@SpringBootTest
 @ActiveProfiles("test")
 @DisplayName("%sRepository Tests")
 class %sRepositoryTest {
 
     @Autowired
-    private TestEntityManager entityManager;
+    private EntityManager entityManager;
 
     @Autowired
     private %sRepository repository;
@@ -76,6 +76,12 @@ class %sRepositoryTest {
         %s.setEstado(true);
     }
 
+    private %s persistAndFlush(%s entity) {
+        entityManager.persist(entity);
+        entityManager.flush();
+        return entity;
+    }
+
     @Nested
     @DisplayName("Standard CRUD Operations")
     class StandardCrudOperations {
@@ -83,7 +89,7 @@ class %sRepositoryTest {
         @Test
         @DisplayName("Should save and retrieve entity")
         void shouldSaveAndRetrieve() {
-            %s saved = entityManager.persistAndFlush(%s);
+            %s saved = persistAndFlush(%s);
 
             Optional<%s> found = repository.findById(saved.getId());
 
@@ -94,7 +100,7 @@ class %sRepositoryTest {
         @Test
         @DisplayName("Should find all entities")
         void shouldFindAll() {
-            entityManager.persistAndFlush(%s);
+            persistAndFlush(%s);
 
             List<%s> all = repository.findAll();
 
@@ -104,7 +110,7 @@ class %sRepositoryTest {
         @Test
         @DisplayName("Should update entity")
         void shouldUpdate() {
-            %s saved = entityManager.persistAndFlush(%s);
+            %s saved = persistAndFlush(%s);
             saved.setEstado(false);
             repository.save(saved);
             entityManager.flush();
@@ -119,7 +125,7 @@ class %sRepositoryTest {
         @Test
         @DisplayName("Should delete entity")
         void shouldDelete() {
-            %s saved = entityManager.persistAndFlush(%s);
+            %s saved = persistAndFlush(%s);
             Long id = saved.getId();
 
             repository.deleteById(id);
@@ -133,7 +139,7 @@ class %sRepositoryTest {
         @Test
         @DisplayName("Should check if entity exists by ID")
         void shouldCheckExistsById() {
-            %s saved = entityManager.persistAndFlush(%s);
+            %s saved = persistAndFlush(%s);
 
             boolean exists = repository.existsById(saved.getId());
 
@@ -151,7 +157,7 @@ class %sRepositoryTest {
         @Test
         @DisplayName("Should count all entities")
         void shouldCountAll() {
-            entityManager.persistAndFlush(%s);
+            persistAndFlush(%s);
 
             long count = repository.count();
 
@@ -166,7 +172,7 @@ class %sRepositoryTest {
         @Test
         @DisplayName("Should soft delete by ID")
         void shouldSoftDeleteById() {
-            %s saved = entityManager.persistAndFlush(%s);
+            %s saved = persistAndFlush(%s);
 
             int deleted = repository.softDeleteAllByIds(
                     List.of(saved.getId()),
@@ -180,7 +186,7 @@ class %sRepositoryTest {
         @Test
         @DisplayName("Should hard delete by ID")
         void shouldHardDeleteById() {
-            %s saved = entityManager.persistAndFlush(%s);
+            %s saved = persistAndFlush(%s);
             Long id = saved.getId();
 
             int deleted = repository.hardDeleteById(id);
@@ -244,10 +250,10 @@ class %sRepositoryTest {
         void shouldSoftDeleteMultiple() {
             %s entity1 = %s.builder()%s.build();
             entity1.setEstado(true);
-            entity1 = entityManager.persistAndFlush(entity1);
+            entity1 = persistAndFlush(entity1);
             %s entity2 = %s.builder()%s.build();
             entity2.setEstado(true);
-            entity2 = entityManager.persistAndFlush(entity2);
+            entity2 = persistAndFlush(entity2);
 
             int deleted = repository.softDeleteAllByIds(
                     List.of(entity1.getId(), entity2.getId()),
@@ -263,10 +269,10 @@ class %sRepositoryTest {
         void shouldRestoreMultiple() {
             %s entity1 = %s.builder()%s.build();
             entity1.setEstado(true);
-            entity1 = entityManager.persistAndFlush(entity1);
+            entity1 = persistAndFlush(entity1);
             %s entity2 = %s.builder()%s.build();
             entity2.setEstado(true);
-            entity2 = entityManager.persistAndFlush(entity2);
+            entity2 = persistAndFlush(entity2);
 
             repository.softDeleteAllByIds(
                     List.of(entity1.getId(), entity2.getId()),
@@ -302,6 +308,9 @@ class %sRepositoryTest {
                         entityName,
                         fieldAssignments.toString(),
                         entityVarName,
+                        // persistAndFlush (2)
+                        entityName,
+                        entityName,
                         // Standard CRUD - save/retrieve (3)
                         entityName,
                         entityVarName,

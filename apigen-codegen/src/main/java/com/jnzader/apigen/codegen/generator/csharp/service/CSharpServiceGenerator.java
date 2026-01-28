@@ -125,9 +125,7 @@ public class CSharpServiceGenerator {
         sb.append("    /// <inheritdoc />\n");
         sb.append("    public override async Task<")
                 .append(entityName)
-                .append(
-                        "Dto> GetByIdAsync(long id, CancellationToken cancellationToken ="
-                                + " default)\n");
+                .append("Dto> GetByIdAsync(long id, CancellationToken cancellationToken)\n");
         sb.append("    {\n");
         sb.append("        var entity = await _repository.GetByIdAsync(id, cancellationToken);\n");
         sb.append("        if (entity is null)\n");

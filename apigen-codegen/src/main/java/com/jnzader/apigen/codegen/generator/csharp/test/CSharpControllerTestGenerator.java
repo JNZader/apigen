@@ -48,6 +48,7 @@ using %s.%s.Api.Controllers;
 using %s.%s.Application.DTOs;
 using %s.%s.Application.Interfaces;
 using %s.Application.Common;
+using %s.Application.Exceptions;
 
 namespace %s.Tests.%s.Api.Controllers;
 
@@ -76,8 +77,8 @@ public class %sControllerTests
     {
         // Arrange
         var dto = CreateTestDto();
-        _mockService.Setup(s => s.GetByIdAsync(1))
-            .ReturnsAsync(dto);
+        _mockService.Setup(s => s.GetByIdAsync(1, It.IsAny<CancellationToken>()))
+            .Returns(Task.FromResult(dto));
 
         // Act
         var result = await _controller.GetById(1);
@@ -88,17 +89,15 @@ public class %sControllerTests
     }
 
     [Fact]
-    public async Task GetById_ShouldReturnNotFound_WhenEntityNotExists()
+    public async Task GetById_ShouldThrowNotFound_WhenEntityNotExists()
     {
         // Arrange
-        _mockService.Setup(s => s.GetByIdAsync(It.IsAny<long>()))
-            .ReturnsAsync((%sDto?)null);
+        _mockService.Setup(s => s.GetByIdAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new NotFoundException(nameof(%s), 999999));
 
-        // Act
-        var result = await _controller.GetById(999999);
-
-        // Assert
-        result.Result.Should().BeOfType<NotFoundResult>();
+        // Act & Assert
+        await _controller.Invoking(c => c.GetById(999999))
+            .Should().ThrowAsync<NotFoundException>();
     }
 
     [Fact]
@@ -114,7 +113,7 @@ public class %sControllerTests
             TotalPages = 1
         };
         _mockService.Setup(s => s.GetAllAsync(0, 10, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(pagedResult);
+            .Returns(Task.FromResult(pagedResult));
 
         // Act
         var result = await _controller.GetAll(0, 10);
@@ -134,8 +133,8 @@ public class %sControllerTests
         };
         var createdDto = CreateTestDto();
 
-        _mockService.Setup(s => s.CreateAsync(createDto))
-            .ReturnsAsync(createdDto);
+        _mockService.Setup(s => s.CreateAsync(createDto, It.IsAny<CancellationToken>()))
+            .Returns(Task.FromResult(createdDto));
 
         // Act
         var result = await _controller.Create(createDto);
@@ -155,8 +154,8 @@ public class %sControllerTests
         };
         var updatedDto = CreateTestDto();
 
-        _mockService.Setup(s => s.UpdateAsync(1, updateDto))
-            .ReturnsAsync(updatedDto);
+        _mockService.Setup(s => s.UpdateAsync(1, updateDto, It.IsAny<CancellationToken>()))
+            .Returns(Task.FromResult(updatedDto));
 
         // Act
         var result = await _controller.Update(1, updateDto);
@@ -167,26 +166,24 @@ public class %sControllerTests
     }
 
     [Fact]
-    public async Task Update_ShouldReturnNotFound_WhenEntityNotExists()
+    public async Task Update_ShouldThrowNotFound_WhenEntityNotExists()
     {
         // Arrange
         var updateDto = new Update%sDto();
 
-        _mockService.Setup(s => s.UpdateAsync(999999, updateDto))
-            .ReturnsAsync((%sDto?)null);
+        _mockService.Setup(s => s.UpdateAsync(999999, updateDto, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new NotFoundException(nameof(%s), 999999));
 
-        // Act
-        var result = await _controller.Update(999999, updateDto);
-
-        // Assert
-        result.Result.Should().BeOfType<NotFoundResult>();
+        // Act & Assert
+        await _controller.Invoking(c => c.Update(999999, updateDto))
+            .Should().ThrowAsync<NotFoundException>();
     }
 
     [Fact]
     public async Task Delete_ShouldReturnNoContent()
     {
         // Arrange
-        _mockService.Setup(s => s.DeleteAsync(1))
+        _mockService.Setup(s => s.DeleteAsync(1, It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
         // Act

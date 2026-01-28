@@ -85,7 +85,7 @@ public class %sRepositoryTests : IDisposable
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _repository.GetByIdAsync(entity.Id);
+        var result = await _repository.GetByIdAsync(entity.Id, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -96,7 +96,7 @@ public class %sRepositoryTests : IDisposable
     public async Task GetByIdAsync_ShouldReturnNull_WhenNotExists()
     {
         // Act
-        var result = await _repository.GetByIdAsync(999999);
+        var result = await _repository.GetByIdAsync(999999, CancellationToken.None);
 
         // Assert
         result.Should().BeNull();
@@ -112,7 +112,7 @@ public class %sRepositoryTests : IDisposable
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _repository.GetAllAsync(0, 10);
+        var result = await _repository.GetAllAsync(0, 10, CancellationToken.None);
 
         // Assert
         result.Should().HaveCount(2);
@@ -125,7 +125,7 @@ public class %sRepositoryTests : IDisposable
         var entity = CreateTestEntity();
 
         // Act
-        var result = await _repository.AddAsync(entity);
+        var result = await _repository.AddAsync(entity, CancellationToken.None);
         await _context.SaveChangesAsync();
 
         // Assert
@@ -144,7 +144,7 @@ public class %sRepositoryTests : IDisposable
 
         // Act
         entity.Estado = false;
-        await _repository.UpdateAsync(entity);
+        await _repository.UpdateAsync(entity, CancellationToken.None);
         await _context.SaveChangesAsync();
 
         // Assert
@@ -162,7 +162,7 @@ public class %sRepositoryTests : IDisposable
         var id = entity.Id;
 
         // Act
-        await _repository.DeleteAsync(entity);
+        await _repository.DeleteAsync(entity, CancellationToken.None);
         await _context.SaveChangesAsync();
 
         // Assert
@@ -180,7 +180,7 @@ public class %sRepositoryTests : IDisposable
         await _context.SaveChangesAsync();
 
         // Act
-        var count = await _repository.CountAsync();
+        var count = await _repository.CountAsync(CancellationToken.None);
 
         // Assert
         count.Should().Be(2);
@@ -198,7 +198,7 @@ public class %sRepositoryTests : IDisposable
         entity.Estado = false;
         entity.DeletedAt = DateTime.UtcNow;
         entity.DeletedBy = "testUser";
-        await _repository.UpdateAsync(entity);
+        await _repository.UpdateAsync(entity, CancellationToken.None);
         await _context.SaveChangesAsync();
 
         // Assert
