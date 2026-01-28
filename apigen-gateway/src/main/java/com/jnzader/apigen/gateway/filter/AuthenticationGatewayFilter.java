@@ -1,5 +1,7 @@
 package com.jnzader.apigen.gateway.filter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jnzader.apigen.gateway.error.GatewayErrorWriter;
 import java.util.List;
 import java.util.function.Function;
 import org.slf4j.Logger;
@@ -8,7 +10,6 @@ import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.server.ServerWebExchange;
@@ -17,6 +18,8 @@ import reactor.core.publisher.Mono;
 /**
  * Global filter for JWT authentication at the gateway level. Validates tokens and extracts claims
  * before forwarding to downstream services.
+ *
+ * <p>Returns RFC 7807 compliant error responses for authentication failures.
  */
 public class AuthenticationGatewayFilter implements GlobalFilter, Ordered {
 
@@ -30,22 +33,27 @@ public class AuthenticationGatewayFilter implements GlobalFilter, Ordered {
     private final String headerName;
     private final String tokenPrefix;
     private final AntPathMatcher pathMatcher;
+    private final GatewayErrorWriter errorWriter;
 
     public AuthenticationGatewayFilter(
-            Function<String, AuthResult> tokenValidator, List<String> excludedPaths) {
-        this(tokenValidator, excludedPaths, "Authorization", "Bearer ");
+            Function<String, AuthResult> tokenValidator,
+            List<String> excludedPaths,
+            ObjectMapper objectMapper) {
+        this(tokenValidator, excludedPaths, "Authorization", "Bearer ", objectMapper);
     }
 
     public AuthenticationGatewayFilter(
             Function<String, AuthResult> tokenValidator,
             List<String> excludedPaths,
             String headerName,
-            String tokenPrefix) {
+            String tokenPrefix,
+            ObjectMapper objectMapper) {
         this.tokenValidator = tokenValidator;
         this.excludedPaths = excludedPaths;
         this.headerName = headerName;
         this.tokenPrefix = tokenPrefix;
         this.pathMatcher = new AntPathMatcher();
+        this.errorWriter = new GatewayErrorWriter(objectMapper);
     }
 
     @Override
@@ -63,7 +71,7 @@ public class AuthenticationGatewayFilter implements GlobalFilter, Ordered {
         String authHeader = request.getHeaders().getFirst(headerName);
         if (authHeader == null || !authHeader.startsWith(tokenPrefix)) {
             log.warn("Missing or invalid {} header for path {}", headerName, path);
-            return unauthorizedResponse(exchange);
+            return unauthorizedResponse(exchange, "Missing or invalid authorization header");
         }
 
         String token = authHeader.substring(tokenPrefix.length());
@@ -71,13 +79,11 @@ public class AuthenticationGatewayFilter implements GlobalFilter, Ordered {
         // Validate token
         AuthResult result = tokenValidator.apply(token);
         if (!result.isAuthenticated()) {
+            String errorMessage = result.getErrorMessage().orElse("Authentication failed");
             if (log.isWarnEnabled()) {
-                log.warn(
-                        "Authentication failed for path {}: {}",
-                        path,
-                        result.getErrorMessage().orElse("Unknown error"));
+                log.warn("Authentication failed for path {}: {}", path, errorMessage);
             }
-            return unauthorizedResponse(exchange);
+            return unauthorizedResponse(exchange, errorMessage, result.getErrorCode().orElse(null));
         }
 
         // Add user info to headers for downstream services
@@ -101,10 +107,18 @@ public class AuthenticationGatewayFilter implements GlobalFilter, Ordered {
         return excludedPaths.stream().anyMatch(pattern -> pathMatcher.match(pattern, path));
     }
 
-    private Mono<Void> unauthorizedResponse(ServerWebExchange exchange) {
-        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+    private Mono<Void> unauthorizedResponse(ServerWebExchange exchange, String detail) {
         exchange.getResponse().getHeaders().add(HttpHeaders.WWW_AUTHENTICATE, "Bearer");
-        return exchange.getResponse().setComplete();
+        return errorWriter.writeUnauthorized(exchange, detail);
+    }
+
+    private Mono<Void> unauthorizedResponse(
+            ServerWebExchange exchange, String detail, String errorCode) {
+        exchange.getResponse().getHeaders().add(HttpHeaders.WWW_AUTHENTICATE, "Bearer");
+        if (errorCode != null) {
+            return errorWriter.writeUnauthorized(exchange, detail, errorCode);
+        }
+        return errorWriter.writeUnauthorized(exchange, detail);
     }
 
     @Override
@@ -114,14 +128,22 @@ public class AuthenticationGatewayFilter implements GlobalFilter, Ordered {
 
     /** Result of token authentication. */
     public record AuthResult(
-            boolean authenticated, String userId, List<String> roles, String errorMessage) {
+            boolean authenticated,
+            String userId,
+            List<String> roles,
+            String errorMessage,
+            String errorCode) {
 
         public static AuthResult success(String userId, List<String> roles) {
-            return new AuthResult(true, userId, roles, null);
+            return new AuthResult(true, userId, roles, null, null);
         }
 
         public static AuthResult failure(String errorMessage) {
-            return new AuthResult(false, null, List.of(), errorMessage);
+            return new AuthResult(false, null, List.of(), errorMessage, null);
+        }
+
+        public static AuthResult failure(String errorMessage, String errorCode) {
+            return new AuthResult(false, null, List.of(), errorMessage, errorCode);
         }
 
         public boolean isAuthenticated() {
@@ -134,6 +156,10 @@ public class AuthenticationGatewayFilter implements GlobalFilter, Ordered {
 
         public java.util.Optional<String> getErrorMessage() {
             return java.util.Optional.ofNullable(errorMessage);
+        }
+
+        public java.util.Optional<String> getErrorCode() {
+            return java.util.Optional.ofNullable(errorCode);
         }
     }
 }

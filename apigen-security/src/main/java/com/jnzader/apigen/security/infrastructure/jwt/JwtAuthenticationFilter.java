@@ -1,5 +1,9 @@
 package com.jnzader.apigen.security.infrastructure.jwt;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.annotation.Nonnull;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -76,9 +80,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     log.debug("User authenticated: {}", username);
                 }
             }
+        } catch (ExpiredJwtException e) {
+            request.setAttribute("jwt.error", "TOKEN_EXPIRED");
+            request.setAttribute("jwt.error.detail", "Token has expired");
+            log.debug("JWT token expired: {}", e.getMessage());
+        } catch (MalformedJwtException e) {
+            request.setAttribute("jwt.error", "INVALID_TOKEN");
+            request.setAttribute("jwt.error.detail", "Token format is invalid");
+            log.debug("Malformed JWT token: {}", e.getMessage());
+        } catch (SignatureException e) {
+            request.setAttribute("jwt.error", "INVALID_TOKEN");
+            request.setAttribute("jwt.error.detail", "Token signature verification failed");
+            log.debug("Invalid JWT signature: {}", e.getMessage());
+        } catch (UnsupportedJwtException e) {
+            request.setAttribute("jwt.error", "INVALID_TOKEN");
+            request.setAttribute("jwt.error.detail", "Token type is not supported");
+            log.debug("Unsupported JWT token: {}", e.getMessage());
+        } catch (IllegalArgumentException e) {
+            request.setAttribute("jwt.error", "INVALID_TOKEN");
+            request.setAttribute("jwt.error.detail", "Token claims are empty");
+            log.debug("JWT claims string is empty: {}", e.getMessage());
         } catch (Exception e) {
+            request.setAttribute("jwt.error", "AUTHENTICATION_ERROR");
+            request.setAttribute("jwt.error.detail", "Error processing authentication token");
             log.debug("Error processing JWT token: {}", e.getMessage());
-            // Don't throw exception, simply continue without authentication
         }
 
         filterChain.doFilter(request, response);

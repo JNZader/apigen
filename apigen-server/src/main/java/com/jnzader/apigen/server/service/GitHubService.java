@@ -7,7 +7,7 @@ import com.jnzader.apigen.server.dto.github.CreateRepoResponse;
 import com.jnzader.apigen.server.dto.github.GitHubAuthResponse;
 import com.jnzader.apigen.server.dto.github.GitHubRepoDto;
 import com.jnzader.apigen.server.dto.github.PushProjectResponse;
-import com.jnzader.apigen.server.exception.GitHubException;
+import com.jnzader.apigen.server.exception.GitHubApiException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -159,7 +159,8 @@ public class GitHubService {
                         .block();
 
         if (userJson == null) {
-            throw new GitHubException("Failed to fetch user info: empty response from GitHub API");
+            throw new GitHubApiException(
+                    "Failed to fetch user info: empty response from GitHub API");
         }
 
         return GitHubAuthResponse.builder()
@@ -197,7 +198,7 @@ public class GitHubService {
                         .block();
 
         if (reposJson == null) {
-            throw new GitHubException(
+            throw new GitHubApiException(
                     "Failed to fetch repositories: empty response from GitHub API");
         }
 
@@ -257,7 +258,7 @@ public class GitHubService {
                             .block();
 
             if (response == null) {
-                throw new GitHubException(
+                throw new GitHubApiException(
                         "Failed to create repository: empty response from GitHub API");
             }
 
@@ -472,11 +473,12 @@ public class GitHubService {
                         .block();
 
         if (response == null || !response.containsKey("tree")) {
-            throw new GitHubException("Failed to get commit info from GitHub: missing tree data");
+            throw new GitHubApiException(
+                    "Failed to get commit info from GitHub: missing tree data");
         }
         Map<String, Object> treeNode = (Map<String, Object>) response.get("tree");
         if (treeNode == null || !treeNode.containsKey("sha")) {
-            throw new GitHubException("Failed to get tree SHA from GitHub commit");
+            throw new GitHubApiException("Failed to get tree SHA from GitHub commit");
         }
         return (String) treeNode.get("sha");
     }
@@ -500,7 +502,8 @@ public class GitHubService {
                         .block();
 
         if (response == null || !response.containsKey("sha")) {
-            throw new GitHubException("Failed to create blob on GitHub: missing SHA in response");
+            throw new GitHubApiException(
+                    "Failed to create blob on GitHub: missing SHA in response");
         }
         return (String) response.get("sha");
     }
@@ -531,7 +534,8 @@ public class GitHubService {
                         .block();
 
         if (response == null || !response.containsKey("sha")) {
-            throw new GitHubException("Failed to create tree on GitHub: missing SHA in response");
+            throw new GitHubApiException(
+                    "Failed to create tree on GitHub: missing SHA in response");
         }
         return (String) response.get("sha");
     }
@@ -566,7 +570,8 @@ public class GitHubService {
                         .block();
 
         if (response == null || !response.containsKey("sha")) {
-            throw new GitHubException("Failed to create commit on GitHub: missing SHA in response");
+            throw new GitHubApiException(
+                    "Failed to create commit on GitHub: missing SHA in response");
         }
         return (String) response.get("sha");
     }

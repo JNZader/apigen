@@ -10,6 +10,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.jnzader.apigen.security.infrastructure.config.SecurityProperties;
 import com.jnzader.apigen.security.infrastructure.config.SecurityProperties.RateLimitProperties;
 import com.jnzader.apigen.security.infrastructure.config.SecurityProperties.RateLimitProperties.StorageMode;
@@ -40,6 +42,9 @@ class ApiRateLimitFilterTest {
     @Mock private ClientIpResolver clientIpResolver;
     @Mock private FilterChain filterChain;
 
+    private final ObjectMapper objectMapper =
+            new ObjectMapper().registerModule(new JavaTimeModule());
+
     private SecurityProperties securityProperties;
     private ApiRateLimitFilter filter;
 
@@ -59,7 +64,7 @@ class ApiRateLimitFilterTest {
 
         filter =
                 new ApiRateLimitFilter(
-                        rateLimitService, securityProperties, clientIpResolver, null);
+                        rateLimitService, securityProperties, clientIpResolver, null, objectMapper);
     }
 
     private MockHttpServletRequest createRequest(String method, String uri) {
@@ -169,10 +174,9 @@ class ApiRateLimitFilterTest {
             // Then
             verify(filterChain, never()).doFilter(any(), any());
             assertThat(response.getStatus()).isEqualTo(429);
-            assertThat(response.getContentType()).isEqualTo("application/json");
+            assertThat(response.getContentType()).isEqualTo("application/problem+json");
             assertThat(response.getHeader("Retry-After")).isEqualTo("5");
             assertThat(response.getContentAsString()).contains("Too Many Requests");
-            assertThat(response.getContentAsString()).contains("API");
         }
 
         @Test
@@ -293,7 +297,11 @@ class ApiRateLimitFilterTest {
             lenient().when(rateLimitService.isTiersEnabled()).thenReturn(true);
             tierFilter =
                     new ApiRateLimitFilter(
-                            rateLimitService, securityProperties, clientIpResolver, tierResolver);
+                            rateLimitService,
+                            securityProperties,
+                            clientIpResolver,
+                            tierResolver,
+                            objectMapper);
         }
 
         @Test

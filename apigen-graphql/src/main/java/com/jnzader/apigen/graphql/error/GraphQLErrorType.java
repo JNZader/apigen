@@ -31,6 +31,9 @@ public enum GraphQLErrorType implements ErrorClassification {
     /** Rate limit exceeded (429) */
     RATE_LIMITED,
 
+    /** Too many requests (429) - alias for rate limiting */
+    TOO_MANY_REQUESTS,
+
     /** Internal server error (500) */
     INTERNAL_ERROR,
 

@@ -4,6 +4,7 @@ import com.jnzader.apigen.codegen.generator.api.Feature;
 import com.jnzader.apigen.codegen.generator.api.ProjectGenerator;
 import com.jnzader.apigen.server.dto.GenerateRequest;
 import com.jnzader.apigen.server.dto.GenerateResponse;
+import com.jnzader.apigen.server.exception.ProjectGenerationException;
 import com.jnzader.apigen.server.service.GeneratorService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -13,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -58,7 +58,11 @@ public class GeneratorController {
 
         } catch (Exception e) {
             log.error("Generation failed", e);
-            throw new GenerationException("Failed to generate project: " + e.getMessage(), e);
+            throw new ProjectGenerationException(
+                    "Failed to generate project: " + e.getMessage(),
+                    e,
+                    request.getProject().getArtifactId(),
+                    request.getTarget().getLanguage());
         }
     }
 
@@ -126,22 +130,4 @@ public class GeneratorController {
 
     /** Simple health response record. */
     public record HealthResponse(String status, String message) {}
-
-    /** Error response record. */
-    public record ErrorResponse(String error, String message) {}
-
-    /** Handles GenerationException and returns proper HTTP 500 response. */
-    @ExceptionHandler(GenerationException.class)
-    public ResponseEntity<ErrorResponse> handleGenerationException(GenerationException e) {
-        log.error("Generation error: {}", e.getMessage());
-        return ResponseEntity.internalServerError()
-                .body(new ErrorResponse("GENERATION_ERROR", e.getMessage()));
-    }
-
-    /** Exception for generation errors. */
-    public static class GenerationException extends RuntimeException {
-        public GenerationException(String message, Throwable cause) {
-            super(message, cause);
-        }
-    }
 }

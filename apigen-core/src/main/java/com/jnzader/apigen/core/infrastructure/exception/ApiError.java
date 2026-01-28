@@ -1,12 +1,17 @@
 package com.jnzader.apigen.core.infrastructure.exception;
 
+import com.jnzader.apigen.core.domain.exception.AccountLockedException;
+import com.jnzader.apigen.core.domain.exception.AuthenticationException;
 import com.jnzader.apigen.core.domain.exception.DuplicateResourceException;
+import com.jnzader.apigen.core.domain.exception.ExternalServiceException;
 import com.jnzader.apigen.core.domain.exception.IdMismatchException;
 import com.jnzader.apigen.core.domain.exception.OperationFailedException;
 import com.jnzader.apigen.core.domain.exception.PreconditionFailedException;
+import com.jnzader.apigen.core.domain.exception.RateLimitExceededException;
 import com.jnzader.apigen.core.domain.exception.ResourceNotFoundException;
 import com.jnzader.apigen.core.domain.exception.UnauthorizedActionException;
 import com.jnzader.apigen.core.domain.exception.ValidationException;
+import java.time.Instant;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 
@@ -148,6 +153,71 @@ public sealed interface ApiError {
         }
     }
 
+    /**
+     * Rate limit exceeded (HTTP 429).
+     *
+     * @param message Rate limit message
+     * @param retryAfterSeconds Seconds to wait before retrying
+     * @param tier User tier (if tier-based limiting)
+     * @param limit Request limit for the tier
+     */
+    record RateLimited(String message, long retryAfterSeconds, String tier, long limit)
+            implements ApiError {
+        public RateLimited(String message, long retryAfterSeconds) {
+            this(message, retryAfterSeconds, null, 0);
+        }
+    }
+
+    /**
+     * External service failure (HTTP 502/503).
+     *
+     * @param message Error message
+     * @param serviceName Name of the external service
+     * @param originalError Original error from the service (optional)
+     */
+    record ExternalServiceFailure(String message, String serviceName, String originalError)
+            implements ApiError {
+        public ExternalServiceFailure(String message, String serviceName) {
+            this(message, serviceName, null);
+        }
+    }
+
+    /**
+     * Account locked (HTTP 423).
+     *
+     * @param message Lock message
+     * @param unlockTime Time when the account will be unlocked
+     * @param remainingSeconds Seconds remaining until unlock
+     */
+    record AccountLocked(String message, Instant unlockTime, long remainingSeconds)
+            implements ApiError {
+        public AccountLocked(String message, Instant unlockTime) {
+            this(
+                    message,
+                    unlockTime,
+                    unlockTime != null
+                            ? Math.max(
+                                    0, unlockTime.getEpochSecond() - Instant.now().getEpochSecond())
+                            : 0);
+        }
+
+        public AccountLocked(String message, long remainingSeconds) {
+            this(message, Instant.now().plusSeconds(remainingSeconds), remainingSeconds);
+        }
+    }
+
+    /**
+     * Authentication error (HTTP 401).
+     *
+     * @param message Error message
+     * @param errorCode Specific error code (e.g., INVALID_TOKEN, TOKEN_EXPIRED)
+     */
+    record Unauthorized(String message, String errorCode) implements ApiError {
+        public Unauthorized(String message) {
+            this(message, "AUTHENTICATION_FAILED");
+        }
+    }
+
     // ==================== Factory Methods ====================
 
     /**
@@ -177,6 +247,23 @@ public sealed interface ApiError {
 
             case OperationFailedException ex -> new Internal(ex.getMessage(), ex.getCause());
 
+            case RateLimitExceededException ex ->
+                    new RateLimited(
+                            ex.getMessage(),
+                            ex.getRetryAfterSeconds(),
+                            ex.getTier(),
+                            ex.getLimit());
+
+            case ExternalServiceException ex ->
+                    new ExternalServiceFailure(
+                            ex.getMessage(), ex.getServiceName(), ex.getOriginalError());
+
+            case AccountLockedException ex ->
+                    new AccountLocked(
+                            ex.getMessage(), ex.getUnlockTime(), ex.getRemainingSeconds());
+
+            case AuthenticationException ex -> new Unauthorized(ex.getMessage(), ex.getErrorCode());
+
             case IllegalArgumentException ex -> new Validation(ex.getMessage());
 
             case null, default ->
@@ -200,6 +287,10 @@ public sealed interface ApiError {
             case PreconditionFailed _ -> HttpStatus.PRECONDITION_FAILED;
             case IdMismatch _ -> HttpStatus.BAD_REQUEST;
             case Internal _ -> HttpStatus.INTERNAL_SERVER_ERROR;
+            case RateLimited _ -> HttpStatus.TOO_MANY_REQUESTS;
+            case ExternalServiceFailure _ -> HttpStatus.BAD_GATEWAY;
+            case AccountLocked _ -> HttpStatus.LOCKED;
+            case Unauthorized _ -> HttpStatus.UNAUTHORIZED;
         };
     }
 
@@ -226,6 +317,10 @@ public sealed interface ApiError {
             case PreconditionFailed _ -> "Precondition failed";
             case IdMismatch _ -> "IDs do not match";
             case Internal _ -> "Internal server error";
+            case RateLimited _ -> "Too many requests";
+            case ExternalServiceFailure _ -> "External service error";
+            case AccountLocked _ -> "Account locked";
+            case Unauthorized _ -> "Unauthorized";
         };
     }
 
@@ -252,6 +347,10 @@ public sealed interface ApiError {
             case PreconditionFailed _ -> "urn:problem-type:precondition-failed";
             case IdMismatch _ -> "urn:problem-type:id-mismatch";
             case Internal _ -> "urn:problem-type:internal-error";
+            case RateLimited _ -> "urn:problem-type:rate-limit-exceeded";
+            case ExternalServiceFailure _ -> "urn:problem-type:external-service-error";
+            case AccountLocked _ -> "urn:problem-type:account-locked";
+            case Unauthorized _ -> "urn:problem-type:unauthorized";
         };
     }
 
@@ -286,6 +385,30 @@ public sealed interface ApiError {
             }
 
             case Conflict c -> builder.extension("conflictType", c.conflictType());
+
+            case RateLimited rl -> {
+                builder.extension("retryAfterSeconds", rl.retryAfterSeconds());
+                if (rl.tier() != null) {
+                    builder.extension("tier", rl.tier());
+                    builder.extension("limit", rl.limit());
+                }
+            }
+
+            case ExternalServiceFailure esf -> {
+                builder.extension("serviceName", esf.serviceName());
+                if (esf.originalError() != null) {
+                    builder.extension("originalError", esf.originalError());
+                }
+            }
+
+            case AccountLocked al -> {
+                if (al.unlockTime() != null) {
+                    builder.extension("unlockTime", al.unlockTime().toString());
+                }
+                builder.extension("remainingSeconds", al.remainingSeconds());
+            }
+
+            case Unauthorized u -> builder.extension("errorCode", u.errorCode());
 
             default -> {
                 /* No extensions needed */

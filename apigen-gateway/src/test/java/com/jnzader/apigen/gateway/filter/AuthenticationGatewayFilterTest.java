@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -32,6 +33,8 @@ class AuthenticationGatewayFilterTest {
 
     @Mock private GatewayFilterChain chain;
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     private Function<String, AuthenticationGatewayFilter.AuthResult> tokenValidator;
     private AuthenticationGatewayFilter filter;
 
@@ -48,7 +51,9 @@ class AuthenticationGatewayFilterTest {
 
         filter =
                 new AuthenticationGatewayFilter(
-                        tokenValidator, List.of("/public/**", "/health", "/actuator/**"));
+                        tokenValidator,
+                        List.of("/public/**", "/health", "/actuator/**"),
+                        objectMapper);
     }
 
     @Nested
