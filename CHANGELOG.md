@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.26.0](https://github.com/JNZader/apigen/compare/v2.25.0...v2.26.0) (2026-01-28)
+
+### Features
+
+* standardize error handling (RFC 7807) and improve README generator ([f44d02a](https://github.com/JNZader/apigen/commit/f44d02a33fd421576709889da5bb03482930102d))
+
+### Bug Fixes
+
+* **gateway:** escape generics in javadoc comments ([b0747f3](https://github.com/JNZader/apigen/commit/b0747f32a862811fc90849c4a78830f0ca93d4d9))
+
 ## [2.25.0](https://github.com/JNZader/apigen/compare/v2.24.5...v2.25.0) (2026-01-27)
 
 ### Features
