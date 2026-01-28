@@ -57,6 +57,8 @@ public class BuildConfigGenerator {
 """
 plugins {
     id 'java'
+    id 'jacoco'
+    id 'info.solidsoft.pitest' version '%s'
     id 'org.springframework.boot' version '%s'
     id 'io.spring.dependency-management' version '%s'
 }
@@ -117,9 +119,50 @@ dependencies {
 
 test {
     useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+// ==========================================================================
+// Code Coverage (JaCoCo)
+// ==========================================================================
+jacoco {
+    toolVersion = '%s'
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.80 // 80%% minimum coverage
+            }
+        }
+    }
+}
+
+// ==========================================================================
+// Mutation Testing (PIT)
+// ==========================================================================
+pitest {
+    junit5PluginVersion = '%s'
+    targetClasses = ['%s.**']
+    targetTests = ['%s.**']
+    threads = 4
+    outputFormats = ['HTML', 'XML']
+    timestampedReports = false
+    mutationThreshold = 60 // 60%% minimum mutation score
+    coverageThreshold = 80 // 80%% minimum coverage
 }
 """
                 .formatted(
+                        GeneratedProjectVersions.PITEST_PLUGIN_VERSION,
                         springBootVersion,
                         GeneratedProjectVersions.SPRING_DEPENDENCY_MANAGEMENT_VERSION,
                         groupId,
@@ -130,7 +173,11 @@ test {
                         dbDeps,
                         GeneratedProjectVersions.MAPSTRUCT_VERSION,
                         GeneratedProjectVersions.MAPSTRUCT_VERSION,
-                        GeneratedProjectVersions.LOMBOK_MAPSTRUCT_BINDING_VERSION);
+                        GeneratedProjectVersions.LOMBOK_MAPSTRUCT_BINDING_VERSION,
+                        GeneratedProjectVersions.JACOCO_VERSION,
+                        GeneratedProjectVersions.PITEST_JUNIT5_VERSION,
+                        groupId,
+                        groupId);
     }
 
     /**
@@ -202,6 +249,8 @@ plugins {
     kotlin("plugin.spring") version "%s"
     kotlin("plugin.jpa") version "%s"
     kotlin("kapt") version "%s"
+    jacoco
+    id("info.solidsoft.pitest") version "%s"
     id("org.springframework.boot") version "%s"
     id("io.spring.dependency-management") version "%s"
 }
@@ -260,6 +309,46 @@ dependencies {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+// ==========================================================================
+// Code Coverage (JaCoCo)
+// ==========================================================================
+jacoco {
+    toolVersion = "%s"
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+}
+
+tasks.jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = "0.80".toBigDecimal() // 80%% minimum coverage
+            }
+        }
+    }
+}
+
+// ==========================================================================
+// Mutation Testing (PIT)
+// ==========================================================================
+pitest {
+    junit5PluginVersion.set("%s")
+    targetClasses.set(listOf("%s.**"))
+    targetTests.set(listOf("%s.**"))
+    threads.set(4)
+    outputFormats.set(listOf("HTML", "XML"))
+    timestampedReports.set(false)
+    mutationThreshold.set(60) // 60%% minimum mutation score
+    coverageThreshold.set(80) // 80%% minimum coverage
 }
 """
                 .formatted(
@@ -267,6 +356,7 @@ tasks.withType<Test> {
                         kotlinVersion,
                         kotlinVersion,
                         kotlinVersion,
+                        GeneratedProjectVersions.PITEST_PLUGIN_VERSION,
                         springBootVersion,
                         GeneratedProjectVersions.SPRING_DEPENDENCY_MANAGEMENT_VERSION,
                         groupId,
@@ -277,7 +367,11 @@ tasks.withType<Test> {
                         GeneratedProjectVersions.SPRINGDOC_VERSION,
                         dbDeps,
                         GeneratedProjectVersions.MAPSTRUCT_VERSION,
-                        GeneratedProjectVersions.MAPSTRUCT_VERSION);
+                        GeneratedProjectVersions.MAPSTRUCT_VERSION,
+                        GeneratedProjectVersions.JACOCO_VERSION,
+                        GeneratedProjectVersions.PITEST_JUNIT5_VERSION,
+                        groupId,
+                        groupId);
     }
 
     /**

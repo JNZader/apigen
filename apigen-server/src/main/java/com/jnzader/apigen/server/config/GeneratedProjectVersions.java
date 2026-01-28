@@ -99,6 +99,19 @@ public final class GeneratedProjectVersions {
     public static final String SWAGGER_PARSER_VERSION = "2.1.30";
 
     // ==========================================================================
+    // Testing Library Versions
+    // ==========================================================================
+
+    /** PIT Mutation Testing plugin version. */
+    public static final String PITEST_PLUGIN_VERSION = "1.17.1";
+
+    /** PIT JUnit 5 plugin version (must match pitest-junit5-plugin). */
+    public static final String PITEST_JUNIT5_VERSION = "1.2.1";
+
+    /** JaCoCo plugin version for code coverage. */
+    public static final String JACOCO_VERSION = "0.8.13";
+
+    // ==========================================================================
     // Database Driver Versions (optional, for reference)
     // ==========================================================================
 
