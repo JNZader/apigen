@@ -2,6 +2,7 @@ package com.jnzader.apigen.server.service.generator;
 
 import com.jnzader.apigen.server.config.GeneratedProjectVersions;
 import com.jnzader.apigen.server.dto.GenerateRequest;
+import java.util.Locale;
 import org.springframework.stereotype.Component;
 
 /** Generates build configuration files (build.gradle, settings.gradle). */
@@ -288,7 +289,7 @@ tasks.withType<Test> {
                         ? config.getDatabase()
                         : new GenerateRequest.DatabaseConfig();
 
-        String dbType = db.getType().toLowerCase();
+        String dbType = db.getType().toLowerCase(Locale.ROOT);
 
         StringBuilder deps = new StringBuilder();
         deps.append("    runtimeOnly(\"com.h2database:h2\") // For local development/testing\n");
@@ -326,7 +327,7 @@ tasks.withType<Test> {
                         ? config.getDatabase()
                         : new GenerateRequest.DatabaseConfig();
 
-        String dbType = db.getType().toLowerCase();
+        String dbType = db.getType().toLowerCase(Locale.ROOT);
 
         StringBuilder deps = new StringBuilder();
         deps.append("    runtimeOnly 'com.h2database:h2' // For local development/testing\n");
@@ -378,7 +379,9 @@ tasks.withType<Test> {
         if (features.isFileUpload()) {
             GenerateRequest.StorageConfig storageConfig = config.getStorageConfig();
             String storageType =
-                    storageConfig != null ? storageConfig.getType().toLowerCase() : "local";
+                    storageConfig != null
+                            ? storageConfig.getType().toLowerCase(Locale.ROOT)
+                            : "local";
 
             if ("s3".equals(storageType)) {
                 deps.append("\n    // AWS S3 Storage\n");
@@ -440,7 +443,9 @@ tasks.withType<Test> {
         if (features.isFileUpload()) {
             GenerateRequest.StorageConfig storageConfig = config.getStorageConfig();
             String storageType =
-                    storageConfig != null ? storageConfig.getType().toLowerCase() : "local";
+                    storageConfig != null
+                            ? storageConfig.getType().toLowerCase(Locale.ROOT)
+                            : "local";
 
             if ("s3".equals(storageType)) {
                 deps.append("\n    // AWS S3 Storage\n");

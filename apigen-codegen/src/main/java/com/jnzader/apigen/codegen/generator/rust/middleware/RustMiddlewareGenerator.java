@@ -16,7 +16,6 @@
 package com.jnzader.apigen.codegen.generator.rust.middleware;
 
 import com.jnzader.apigen.codegen.generator.rust.RustAxumOptions;
-import com.jnzader.apigen.codegen.generator.rust.RustTypeMapper;
 
 /**
  * Generates Rust middleware implementations including JWT authentication.
@@ -24,14 +23,12 @@ import com.jnzader.apigen.codegen.generator.rust.RustTypeMapper;
  * @author APiGen
  * @since 2.12.0
  */
-@SuppressWarnings({"java:S1068", "java:S1192"}) // S1068: reserved; S1192: template strings
+@SuppressWarnings("java:S1192") // S1192: template strings
 public class RustMiddlewareGenerator {
 
-    private final RustTypeMapper typeMapper;
     private final RustAxumOptions options;
 
-    public RustMiddlewareGenerator(RustTypeMapper typeMapper, RustAxumOptions options) {
-        this.typeMapper = typeMapper;
+    public RustMiddlewareGenerator(RustAxumOptions options) {
         this.options = options;
     }
 

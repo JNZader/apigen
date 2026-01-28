@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import java.util.Locale;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -292,7 +293,7 @@ public class GenerateRequest {
 
         /** Returns the Docker image for this database type. */
         public String getDockerImage() {
-            return switch (getType().toLowerCase()) {
+            return switch (getType().toLowerCase(Locale.ROOT)) {
                 case DB_MYSQL -> GeneratedProjectVersions.MYSQL_DOCKER_IMAGE;
                 case DB_MARIADB -> GeneratedProjectVersions.MARIADB_DOCKER_IMAGE;
                 case DB_SQLSERVER -> GeneratedProjectVersions.SQLSERVER_DOCKER_IMAGE;
@@ -304,7 +305,7 @@ public class GenerateRequest {
 
         /** Returns the JDBC driver class name. */
         public String getDriverClassName() {
-            return switch (getType().toLowerCase()) {
+            return switch (getType().toLowerCase(Locale.ROOT)) {
                 case DB_MYSQL -> "com.mysql.cj.jdbc.Driver";
                 case DB_MARIADB -> "org.mariadb.jdbc.Driver";
                 case DB_SQLSERVER -> "com.microsoft.sqlserver.jdbc.SQLServerDriver";
@@ -316,7 +317,7 @@ public class GenerateRequest {
 
         /** Returns the default port for this database type. */
         public int getDefaultPort() {
-            return switch (getType().toLowerCase()) {
+            return switch (getType().toLowerCase(Locale.ROOT)) {
                 case DB_MYSQL, DB_MARIADB -> 3306;
                 case DB_SQLSERVER -> 1433;
                 case DB_ORACLE -> 1521;
@@ -327,7 +328,7 @@ public class GenerateRequest {
 
         /** Returns the JDBC URL for Docker environment. */
         public String getJdbcUrl() {
-            return switch (getType().toLowerCase()) {
+            return switch (getType().toLowerCase(Locale.ROOT)) {
                 case DB_MYSQL ->
                         "jdbc:mysql://db:"
                                 + getDefaultPort()
@@ -349,7 +350,7 @@ public class GenerateRequest {
 
         /** Returns the Hibernate dialect for this database type. */
         public String getHibernateDialect() {
-            return switch (getType().toLowerCase()) {
+            return switch (getType().toLowerCase(Locale.ROOT)) {
                 case DB_MYSQL -> "org.hibernate.dialect.MySQLDialect";
                 case DB_MARIADB -> "org.hibernate.dialect.MariaDBDialect";
                 case DB_SQLSERVER -> "org.hibernate.dialect.SQLServerDialect";

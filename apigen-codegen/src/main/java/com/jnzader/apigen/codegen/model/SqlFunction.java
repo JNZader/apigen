@@ -3,6 +3,7 @@ package com.jnzader.apigen.codegen.model;
 import static com.jnzader.apigen.codegen.generator.util.NamingUtils.toCamelCase;
 
 import java.util.List;
+import java.util.Locale;
 import lombok.Builder;
 import lombok.Data;
 
@@ -89,7 +90,7 @@ public class SqlFunction {
 
     private String mapSqlTypeToJava(String sqlType) {
         if (sqlType == null) return "Object";
-        return switch (sqlType.toLowerCase().split("\\(")[0].split(" ")[0]) {
+        return switch (sqlType.toLowerCase(Locale.ROOT).split("\\(")[0].split(" ")[0]) {
             case "integer", "int", "int4" -> "Integer";
             case "bigint", "int8" -> "Long";
             case "smallint", "int2" -> "Short";

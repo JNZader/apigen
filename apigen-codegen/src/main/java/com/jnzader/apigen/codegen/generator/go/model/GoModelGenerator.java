@@ -6,24 +6,22 @@ import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 /** Generates GORM model structs from SQL table definitions for Go/Gin. */
 @SuppressWarnings({
-    "java:S1068",
     "java:S1192",
     "java:S2479",
     "java:S3776"
-}) // S1068: moduleName reserved; S1192: template strings; S2479: tabs for Go; S3776: complex model
+}) // S1192: template strings; S2479: tabs for Go; S3776: complex model
 // gen
 public class GoModelGenerator {
 
     private final GoTypeMapper typeMapper;
-    private final String moduleName;
 
-    public GoModelGenerator(GoTypeMapper typeMapper, String moduleName) {
+    public GoModelGenerator(GoTypeMapper typeMapper) {
         this.typeMapper = typeMapper;
-        this.moduleName = moduleName;
     }
 
     /**
@@ -230,7 +228,7 @@ public class GoModelGenerator {
     }
 
     private boolean isBaseField(String columnName) {
-        String lower = columnName.toLowerCase();
+        String lower = columnName.toLowerCase(Locale.ROOT);
         return lower.equals("id")
                 || lower.equals("created_at")
                 || lower.equals("updated_at")
@@ -251,7 +249,7 @@ public class GoModelGenerator {
             return defaultValue.substring(1, defaultValue.length() - 1);
         }
         if (defaultValue.equalsIgnoreCase("true") || defaultValue.equalsIgnoreCase("false")) {
-            return defaultValue.toLowerCase();
+            return defaultValue.toLowerCase(Locale.ROOT);
         }
         return defaultValue;
     }

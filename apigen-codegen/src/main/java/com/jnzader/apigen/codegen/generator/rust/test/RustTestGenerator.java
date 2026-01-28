@@ -385,7 +385,6 @@ public class RustTestGenerator {
                 entityName,
                 entityName,
                 entityName,
-                entityName,
                 entityName);
     }
 

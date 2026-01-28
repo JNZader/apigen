@@ -1,5 +1,7 @@
 package com.jnzader.apigen.server.service.generator.util;
 
+import java.util.Locale;
+
 /** Utility methods for string transformations. */
 public final class StringTransformationUtil {
 
@@ -28,7 +30,9 @@ public final class StringTransformationUtil {
         StringBuilder result = new StringBuilder();
         boolean capitalizeNext = false;
         boolean firstChar = true;
-        for (char c : snake.toLowerCase().toCharArray()) {
+        String lowerSnake = snake.toLowerCase(Locale.ROOT);
+        for (int i = 0; i < lowerSnake.length(); i++) {
+            char c = lowerSnake.charAt(i);
             if (c == '_') {
                 capitalizeNext = !firstChar; // Only capitalize after underscore if not at start
             } else {
@@ -50,7 +54,8 @@ public final class StringTransformationUtil {
         StringBuilder result = new StringBuilder();
         boolean capitalizeNext = true;
 
-        for (char c : kebab.toCharArray()) {
+        for (int i = 0; i < kebab.length(); i++) {
+            char c = kebab.charAt(i);
             if (c == '-') {
                 capitalizeNext = true;
             } else if (capitalizeNext) {

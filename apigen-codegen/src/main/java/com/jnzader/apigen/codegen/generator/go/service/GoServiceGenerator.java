@@ -3,6 +3,7 @@ package com.jnzader.apigen.codegen.generator.go.service;
 import com.jnzader.apigen.codegen.generator.go.GoTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlTable;
+import java.util.Locale;
 
 /** Generates service structs and methods for business logic for Go/Gin. */
 @SuppressWarnings({
@@ -300,7 +301,7 @@ public class GoServiceGenerator {
     }
 
     private boolean isBaseField(String columnName) {
-        String lower = columnName.toLowerCase();
+        String lower = columnName.toLowerCase(Locale.ROOT);
         return lower.equals("id")
                 || lower.equals("created_at")
                 || lower.equals("updated_at")

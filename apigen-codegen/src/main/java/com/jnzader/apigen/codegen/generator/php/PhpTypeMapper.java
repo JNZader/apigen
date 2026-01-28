@@ -3,6 +3,7 @@ package com.jnzader.apigen.codegen.generator.php;
 import com.jnzader.apigen.codegen.generator.api.AbstractLanguageTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -285,7 +286,7 @@ public class PhpTypeMapper extends AbstractLanguageTypeMapper {
      * @return true if it's a PHP keyword
      */
     public boolean isPhpKeyword(String name) {
-        return PHP_KEYWORDS.contains(name.toLowerCase());
+        return PHP_KEYWORDS.contains(name.toLowerCase(Locale.ROOT));
     }
 
     /**
@@ -311,7 +312,7 @@ public class PhpTypeMapper extends AbstractLanguageTypeMapper {
         if (name == null || name.isEmpty()) {
             return name;
         }
-        return name.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase();
+        return name.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.ROOT);
     }
 
     /**
@@ -326,7 +327,8 @@ public class PhpTypeMapper extends AbstractLanguageTypeMapper {
         }
         StringBuilder result = new StringBuilder();
         boolean capitalizeNext = true;
-        for (char c : name.toCharArray()) {
+        for (int i = 0; i < name.length(); i++) {
+            char c = name.charAt(i);
             if (c == '_' || c == '-') {
                 capitalizeNext = true;
             } else if (capitalizeNext) {

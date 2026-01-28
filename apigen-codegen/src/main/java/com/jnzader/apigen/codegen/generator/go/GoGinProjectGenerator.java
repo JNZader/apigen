@@ -127,7 +127,7 @@ public class GoGinProjectGenerator implements ProjectGenerator {
         String moduleName = getModuleName(config);
 
         // Initialize specialized generators
-        GoModelGenerator modelGenerator = new GoModelGenerator(typeMapper, moduleName);
+        GoModelGenerator modelGenerator = new GoModelGenerator(typeMapper);
         GoDtoGenerator dtoGenerator = new GoDtoGenerator(typeMapper);
         GoRepositoryGenerator repositoryGenerator =
                 new GoRepositoryGenerator(typeMapper, moduleName);

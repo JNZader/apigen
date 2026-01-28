@@ -5,8 +5,10 @@ import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Generates Laravel migration files for database schema.
@@ -123,13 +125,13 @@ public class PhpMigrationGenerator {
      * @return the migration filename
      */
     public String getMigrationFileName(String tableName) {
-        LocalDateTime now = LocalDateTime.now().plusSeconds(migrationIndex++);
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("UTC")).plusSeconds(migrationIndex++);
         String timestamp = now.format(DateTimeFormatter.ofPattern("yyyy_MM_dd_HHmmss"));
         return timestamp + "_create_" + tableName + "_table.php";
     }
 
     private boolean isBaseField(String columnName) {
-        String lower = columnName.toLowerCase();
+        String lower = columnName.toLowerCase(Locale.ROOT);
         return lower.equals("id")
                 || lower.equals("activo")
                 || lower.equals("created_at")

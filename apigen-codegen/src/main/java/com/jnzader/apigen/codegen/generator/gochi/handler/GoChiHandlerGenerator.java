@@ -1,27 +1,19 @@
 package com.jnzader.apigen.codegen.generator.gochi.handler;
 
-import com.jnzader.apigen.codegen.generator.gochi.GoChiOptions;
 import com.jnzader.apigen.codegen.generator.gochi.GoChiTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.Locale;
 
 /** Generates HTTP handlers for Go/Chi router. */
-@SuppressWarnings({
-    "java:S1068",
-    "java:S1192",
-    "java:S2479"
-}) // S1068: options; S1192: strings; S2479: tabs
+@SuppressWarnings({"java:S1192", "java:S2479"}) // S1192: strings; S2479: tabs
 public class GoChiHandlerGenerator {
 
     private final GoChiTypeMapper typeMapper;
     private final String moduleName;
-    private final GoChiOptions options;
 
-    public GoChiHandlerGenerator(
-            GoChiTypeMapper typeMapper, String moduleName, GoChiOptions options) {
+    public GoChiHandlerGenerator(GoChiTypeMapper typeMapper, String moduleName) {
         this.typeMapper = typeMapper;
         this.moduleName = moduleName;
-        this.options = options;
     }
 
     public String generate(SqlTable table) {

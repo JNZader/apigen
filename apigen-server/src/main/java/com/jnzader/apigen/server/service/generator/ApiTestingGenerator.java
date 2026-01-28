@@ -12,6 +12,7 @@ import com.jnzader.apigen.server.dto.GenerateRequest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
@@ -26,7 +27,7 @@ public class ApiTestingGenerator {
         if (language == null) {
             return DEFAULT_BASE_URL;
         }
-        return switch (language.toLowerCase(java.util.Locale.ROOT)) {
+        return switch (language.toLowerCase(Locale.ROOT)) {
             case "python" -> "http://localhost:8000/api/v1";
             case "php" -> "http://localhost:8000/api/v1";
             case "typescript" -> "http://localhost:3000/api/v1";
@@ -101,7 +102,7 @@ public class ApiTestingGenerator {
                     # =============================================================================
                     """);
             sb.append("# ")
-                    .append(entityName.toUpperCase())
+                    .append(entityName.toUpperCase(Locale.ROOT))
                     .append(" ENDPOINTS (")
                     .append(moduleName)
                     .append(")\n");
@@ -133,43 +134,55 @@ public class ApiTestingGenerator {
             sb.append("HEAD ").append(endpoint).append("\n\n");
 
             // 5. GET /{id} - Get by ID
-            sb.append("### 5. Get ").append(entityName.toLowerCase()).append(" by ID\n");
+            sb.append("### 5. Get ").append(entityName.toLowerCase(Locale.ROOT)).append(" by ID\n");
             sb.append("GET ").append(endpoint).append(ID_PATH_DOUBLE_NEWLINE);
 
             // 6. HEAD /{id} - Exists check
-            sb.append("### 6. Check if ").append(entityName.toLowerCase()).append(" exists\n");
+            sb.append("### 6. Check if ")
+                    .append(entityName.toLowerCase(Locale.ROOT))
+                    .append(" exists\n");
             sb.append("HEAD ").append(endpoint).append(ID_PATH_DOUBLE_NEWLINE);
 
             // 7. POST / - Create
-            sb.append("### 7. Create new ").append(entityName.toLowerCase()).append("\n");
+            sb.append("### 7. Create new ")
+                    .append(entityName.toLowerCase(Locale.ROOT))
+                    .append("\n");
             sb.append("POST ").append(endpoint).append("\n");
             sb.append(CONTENT_TYPE_JSON);
             sb.append(generateSampleJson(table, false)).append("\n\n");
 
             // 8. PUT /{id} - Full update
-            sb.append("### 8. Update ").append(entityName.toLowerCase()).append(" (full)\n");
+            sb.append("### 8. Update ")
+                    .append(entityName.toLowerCase(Locale.ROOT))
+                    .append(" (full)\n");
             sb.append("PUT ").append(endpoint).append(ID_PATH_NEWLINE);
             sb.append(CONTENT_TYPE_JSON);
             sb.append(generateSampleJson(table, true)).append("\n\n");
 
             // 9. PATCH /{id} - Partial update
-            sb.append("### 9. Update ").append(entityName.toLowerCase()).append(" (partial)\n");
+            sb.append("### 9. Update ")
+                    .append(entityName.toLowerCase(Locale.ROOT))
+                    .append(" (partial)\n");
             sb.append("PATCH ").append(endpoint).append(ID_PATH_NEWLINE);
             sb.append(CONTENT_TYPE_JSON);
             sb.append(generatePartialUpdateJson(table)).append("\n\n");
 
             // 10. DELETE /{id} - Soft delete
-            sb.append("### 10. Soft delete ").append(entityName.toLowerCase()).append("\n");
+            sb.append("### 10. Soft delete ")
+                    .append(entityName.toLowerCase(Locale.ROOT))
+                    .append("\n");
             sb.append("DELETE ").append(endpoint).append(ID_PATH_DOUBLE_NEWLINE);
 
             // 11. POST /{id}/restore - Restore
             sb.append("### 11. Restore soft-deleted ")
-                    .append(entityName.toLowerCase())
+                    .append(entityName.toLowerCase(Locale.ROOT))
                     .append("\n");
             sb.append("POST ").append(endpoint).append(ID_PATH).append("/restore\n\n");
 
             // 12. DELETE /{id}?permanent=true - Permanent delete
-            sb.append("### 12. Permanently delete ").append(entityName.toLowerCase()).append("\n");
+            sb.append("### 12. Permanently delete ")
+                    .append(entityName.toLowerCase(Locale.ROOT))
+                    .append("\n");
             sb.append("DELETE ").append(endpoint).append(ID_PATH).append("?permanent=true\n\n");
 
             // Bonus: Cursor pagination
@@ -253,16 +266,16 @@ public class ApiTestingGenerator {
             // 2. GET /{id} - Get by ID
             requests.add(
                     generatePostmanRequest(
-                            "Get " + entityName.toLowerCase() + " by ID",
+                            "Get " + entityName.toLowerCase(Locale.ROOT) + " by ID",
                             "GET",
                             BASE_URL_VAR + moduleName + ID_PATH,
                             null,
-                            "Returns a single " + entityName.toLowerCase() + " by ID"));
+                            "Returns a single " + entityName.toLowerCase(Locale.ROOT) + " by ID"));
 
             // 3. HEAD /{id} - Check exists
             requests.add(
                     generatePostmanRequest(
-                            "Check if " + entityName.toLowerCase() + " exists",
+                            "Check if " + entityName.toLowerCase(Locale.ROOT) + " exists",
                             "HEAD",
                             BASE_URL_VAR + moduleName + ID_PATH,
                             null,
@@ -280,25 +293,25 @@ public class ApiTestingGenerator {
             // 5. POST / - Create
             requests.add(
                     generatePostmanRequest(
-                            "Create new " + entityName.toLowerCase(),
+                            "Create new " + entityName.toLowerCase(Locale.ROOT),
                             "POST",
                             BASE_URL_VAR + moduleName,
                             generateSampleJsonCompact(table, false),
-                            "Creates a new " + entityName.toLowerCase()));
+                            "Creates a new " + entityName.toLowerCase(Locale.ROOT)));
 
             // 6. PUT /{id} - Full update
             requests.add(
                     generatePostmanRequest(
-                            "Update " + entityName.toLowerCase() + " (full)",
+                            "Update " + entityName.toLowerCase(Locale.ROOT) + " (full)",
                             "PUT",
                             BASE_URL_VAR + moduleName + ID_PATH,
                             generateSampleJsonCompact(table, true),
-                            "Replaces all fields of the " + entityName.toLowerCase()));
+                            "Replaces all fields of the " + entityName.toLowerCase(Locale.ROOT)));
 
             // 7. PATCH /{id} - Partial update
             requests.add(
                     generatePostmanRequest(
-                            "Update " + entityName.toLowerCase() + " (partial)",
+                            "Update " + entityName.toLowerCase(Locale.ROOT) + " (partial)",
                             "PATCH",
                             BASE_URL_VAR + moduleName + ID_PATH,
                             generatePartialUpdateJsonCompact(table),
@@ -307,7 +320,7 @@ public class ApiTestingGenerator {
             // 8. DELETE /{id} - Soft delete
             requests.add(
                     generatePostmanRequest(
-                            "Soft delete " + entityName.toLowerCase(),
+                            "Soft delete " + entityName.toLowerCase(Locale.ROOT),
                             "DELETE",
                             BASE_URL_VAR + moduleName + ID_PATH,
                             null,
@@ -316,7 +329,7 @@ public class ApiTestingGenerator {
             // 9. POST /{id}/restore - Restore
             requests.add(
                     generatePostmanRequest(
-                            "Restore " + entityName.toLowerCase(),
+                            "Restore " + entityName.toLowerCase(Locale.ROOT),
                             "POST",
                             BASE_URL_VAR + moduleName + ID_PATH + "/restore",
                             null,
@@ -325,7 +338,7 @@ public class ApiTestingGenerator {
             // 10. DELETE /{id}?permanent=true - Hard delete
             requests.add(
                     generatePostmanRequest(
-                            "Permanently delete " + entityName.toLowerCase(),
+                            "Permanently delete " + entityName.toLowerCase(Locale.ROOT),
                             "DELETE",
                             BASE_URL_VAR + moduleName + ID_PATH + "?permanent=true",
                             null,

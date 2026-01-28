@@ -15,9 +15,6 @@
  */
 package com.jnzader.apigen.codegen.generator.rust.edge;
 
-import com.jnzader.apigen.codegen.generator.rust.RustAxumOptions;
-import com.jnzader.apigen.codegen.generator.rust.RustTypeMapper;
-
 /**
  * Generates serial port communication code using serialport-rs.
  *
@@ -25,19 +22,14 @@ import com.jnzader.apigen.codegen.generator.rust.RustTypeMapper;
  * @since 2.12.0
  */
 @SuppressWarnings({
-    "java:S1068",
     "java:S1192",
     "java:S3400",
     "java:S6126"
-}) // S1068: reserved fields; S1192: template strings; S3400: template methods; S6126: concatenated
+}) // S1192: template strings; S3400: template methods; S6126: concatenated
 public class RustSerialGenerator {
 
-    private final RustTypeMapper typeMapper;
-    private final RustAxumOptions options;
-
-    public RustSerialGenerator(RustTypeMapper typeMapper, RustAxumOptions options) {
-        this.typeMapper = typeMapper;
-        this.options = options;
+    public RustSerialGenerator() {
+        // No dependencies needed
     }
 
     /**

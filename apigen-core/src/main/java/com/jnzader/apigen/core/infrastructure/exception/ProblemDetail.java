@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import java.net.URI;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import org.slf4j.MDC;
 
@@ -173,7 +174,7 @@ public record ProblemDetail(
 
         public ProblemDetail build() {
             if (type == null && title != null) {
-                type = URI.create(BASE_TYPE_URI + title.toLowerCase().replace(" ", "-"));
+                type = URI.create(BASE_TYPE_URI + title.toLowerCase(Locale.ROOT).replace(" ", "-"));
             }
 
             return new ProblemDetail(

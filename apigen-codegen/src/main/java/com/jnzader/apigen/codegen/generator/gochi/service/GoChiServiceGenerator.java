@@ -1,6 +1,5 @@
 package com.jnzader.apigen.codegen.generator.gochi.service;
 
-import com.jnzader.apigen.codegen.generator.gochi.GoChiOptions;
 import com.jnzader.apigen.codegen.generator.gochi.GoChiTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlTable;
@@ -8,21 +7,17 @@ import java.util.Locale;
 
 /** Generates service layer for Go/Chi. */
 @SuppressWarnings({
-    "java:S1068",
     "java:S1192",
     "java:S2479"
-}) // S1068: options reserved; S1192: template strings; S2479: tabs for Go formatting
+}) // S1192: template strings; S2479: tabs for Go formatting
 public class GoChiServiceGenerator {
 
     private final GoChiTypeMapper typeMapper;
     private final String moduleName;
-    private final GoChiOptions options;
 
-    public GoChiServiceGenerator(
-            GoChiTypeMapper typeMapper, String moduleName, GoChiOptions options) {
+    public GoChiServiceGenerator(GoChiTypeMapper typeMapper, String moduleName) {
         this.typeMapper = typeMapper;
         this.moduleName = moduleName;
-        this.options = options;
     }
 
     public String generate(SqlTable table) {

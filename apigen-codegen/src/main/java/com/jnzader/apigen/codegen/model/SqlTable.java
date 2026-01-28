@@ -2,6 +2,7 @@ package com.jnzader.apigen.codegen.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import lombok.Builder;
 import lombok.Data;
 
@@ -84,7 +85,7 @@ public class SqlTable {
     private String snakeToPascalCase(String input) {
         StringBuilder result = new StringBuilder();
         boolean capitalizeNext = true;
-        for (char c : input.toLowerCase().toCharArray()) {
+        for (char c : input.toLowerCase(Locale.ROOT).toCharArray()) {
             if (c == '_') {
                 capitalizeNext = true;
             } else {
@@ -98,7 +99,7 @@ public class SqlTable {
     /** Gets the module name (lowercase, plural) from table name. */
     public String getModuleName() {
         if (name == null) return null;
-        return name.toLowerCase().replace("_", "");
+        return name.toLowerCase(Locale.ROOT).replace("_", "");
     }
 
     /** Gets a column by name. */
@@ -137,12 +138,13 @@ public class SqlTable {
                         "created_by",
                         "updated_by",
                         "deleted_by")
-                .contains(columnName.toLowerCase());
+                .contains(columnName.toLowerCase(Locale.ROOT));
     }
 
     /** Checks if this table extends Base entity (has standard audit columns). */
     public boolean extendsBase() {
-        List<String> columnNames = columns.stream().map(c -> c.getName().toLowerCase()).toList();
+        List<String> columnNames =
+                columns.stream().map(c -> c.getName().toLowerCase(Locale.ROOT)).toList();
 
         // Check for common audit columns
         return columnNames.contains("estado") || columnNames.contains("created_at");

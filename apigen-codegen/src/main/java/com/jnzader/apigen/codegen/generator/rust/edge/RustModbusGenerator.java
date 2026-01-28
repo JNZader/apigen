@@ -15,24 +15,17 @@
  */
 package com.jnzader.apigen.codegen.generator.rust.edge;
 
-import com.jnzader.apigen.codegen.generator.rust.RustAxumOptions;
-import com.jnzader.apigen.codegen.generator.rust.RustTypeMapper;
-
 /**
  * Generates Modbus TCP/RTU client code using tokio-modbus.
  *
  * @author APiGen
  * @since 2.12.0
  */
-@SuppressWarnings({"java:S1068", "java:S1192"}) // S1068: reserved fields; S1192: template strings
+@SuppressWarnings("java:S1192") // S1192: template strings
 public class RustModbusGenerator {
 
-    private final RustTypeMapper typeMapper;
-    private final RustAxumOptions options;
-
-    public RustModbusGenerator(RustTypeMapper typeMapper, RustAxumOptions options) {
-        this.typeMapper = typeMapper;
-        this.options = options;
+    public RustModbusGenerator() {
+        // No dependencies needed
     }
 
     /**

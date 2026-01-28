@@ -8,6 +8,7 @@ import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -238,10 +239,10 @@ public class TypeScriptDTOGenerator {
                     if (!isUpdate && !column.isNullable()) {
                         validators.add("IsNotEmpty");
                     }
-                    if (column.getName().toLowerCase().contains("email")) {
+                    if (column.getName().toLowerCase(Locale.ROOT).contains("email")) {
                         validators.add("IsEmail");
                     }
-                    if (column.getName().toLowerCase().contains("url")) {
+                    if (column.getName().toLowerCase(Locale.ROOT).contains("url")) {
                         validators.add("IsUrl");
                     }
                 }
@@ -319,10 +320,10 @@ public class TypeScriptDTOGenerator {
                                     : 255;
                     sb.append("  @MaxLength(").append(maxLength).append(")\n");
 
-                    if (column.getName().toLowerCase().contains("email")) {
+                    if (column.getName().toLowerCase(Locale.ROOT).contains("email")) {
                         sb.append("  @IsEmail()\n");
                     }
-                    if (column.getName().toLowerCase().contains("url")) {
+                    if (column.getName().toLowerCase(Locale.ROOT).contains("url")) {
                         sb.append("  @IsUrl()\n");
                     }
                     if (!isUpdate && !column.isNullable()) {

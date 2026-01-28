@@ -3,6 +3,7 @@ package com.jnzader.apigen.codegen.generator.csharp.controller;
 import static com.jnzader.apigen.codegen.generator.util.NamingUtils.*;
 
 import com.jnzader.apigen.codegen.model.SqlTable;
+import java.util.Locale;
 
 /** Generates REST API controllers for C#/ASP.NET Core. */
 @SuppressWarnings("java:S1192") // Duplicate strings intentional for code generation templates
@@ -68,7 +69,7 @@ public class CSharpControllerGenerator {
         // GET all with pagination
         sb.append("    /// <summary>\n");
         sb.append("    /// Gets all ")
-                .append(toPlural(entityName).toLowerCase())
+                .append(toPlural(entityName).toLowerCase(Locale.ROOT))
                 .append(" with pagination.\n");
         sb.append("    /// </summary>\n");
         sb.append("    [HttpGet]\n");
@@ -90,7 +91,9 @@ public class CSharpControllerGenerator {
 
         // GET by ID
         sb.append("    /// <summary>\n");
-        sb.append("    /// Gets a ").append(entityName.toLowerCase()).append(" by ID.\n");
+        sb.append("    /// Gets a ")
+                .append(entityName.toLowerCase(Locale.ROOT))
+                .append(" by ID.\n");
         sb.append("    /// </summary>\n");
         sb.append("    [HttpGet(\"{id}\")]\n");
         sb.append("    [ProducesResponseType(typeof(")
@@ -109,7 +112,9 @@ public class CSharpControllerGenerator {
 
         // POST create
         sb.append("    /// <summary>\n");
-        sb.append("    /// Creates a new ").append(entityName.toLowerCase()).append(".\n");
+        sb.append("    /// Creates a new ")
+                .append(entityName.toLowerCase(Locale.ROOT))
+                .append(".\n");
         sb.append("    /// </summary>\n");
         sb.append("    [HttpPost]\n");
         sb.append("    [ProducesResponseType(typeof(")
@@ -130,7 +135,9 @@ public class CSharpControllerGenerator {
 
         // PUT update
         sb.append("    /// <summary>\n");
-        sb.append("    /// Updates an existing ").append(entityName.toLowerCase()).append(".\n");
+        sb.append("    /// Updates an existing ")
+                .append(entityName.toLowerCase(Locale.ROOT))
+                .append(".\n");
         sb.append("    /// </summary>\n");
         sb.append("    [HttpPut(\"{id}\")]\n");
         sb.append("    [ProducesResponseType(typeof(")
@@ -151,7 +158,9 @@ public class CSharpControllerGenerator {
 
         // DELETE (soft delete)
         sb.append("    /// <summary>\n");
-        sb.append("    /// Soft deletes a ").append(entityName.toLowerCase()).append(".\n");
+        sb.append("    /// Soft deletes a ")
+                .append(entityName.toLowerCase(Locale.ROOT))
+                .append(".\n");
         sb.append("    /// </summary>\n");
         sb.append("    [HttpDelete(\"{id}\")]\n");
         sb.append("    [ProducesResponseType(StatusCodes.Status204NoContent)]\n");

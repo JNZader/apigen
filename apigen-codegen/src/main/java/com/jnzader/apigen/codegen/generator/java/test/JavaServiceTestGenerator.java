@@ -318,6 +318,7 @@ class %sServiceImplTest {
                         entityName,
                         entityVarName,
                         entityVarName,
+                        entityVarName,
                         // Find Operations
                         entityName,
                         entityName,

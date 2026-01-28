@@ -6,6 +6,7 @@ import com.jnzader.apigen.codegen.generator.api.ProjectConfig;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /** Generates configuration files for C#/ASP.NET Core projects. */
@@ -220,6 +221,6 @@ public class CSharpConfigGenerator {
      * underscores and lowercases the result.
      */
     private String toSnakeCaseForDb(String name) {
-        return name.replace('.', '_').toLowerCase();
+        return name.replace('.', '_').toLowerCase(Locale.ROOT);
     }
 }

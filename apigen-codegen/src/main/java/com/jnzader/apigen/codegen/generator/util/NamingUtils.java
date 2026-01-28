@@ -2,6 +2,7 @@ package com.jnzader.apigen.codegen.generator.util;
 
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -51,7 +52,8 @@ public final class NamingUtils {
         }
         StringBuilder result = new StringBuilder();
         boolean capitalizeNext = true;
-        for (char c : name.toCharArray()) {
+        for (int i = 0; i < name.length(); i++) {
+            char c = name.charAt(i);
             if (c == '_' || c == '-') {
                 capitalizeNext = true;
             } else if (capitalizeNext) {
@@ -149,7 +151,9 @@ public final class NamingUtils {
         StringBuilder result = new StringBuilder();
         boolean capitalizeNext = false;
         boolean firstChar = true;
-        for (char c : snake.toLowerCase().toCharArray()) {
+        String lowerSnake = snake.toLowerCase(Locale.ROOT);
+        for (int i = 0; i < lowerSnake.length(); i++) {
+            char c = lowerSnake.charAt(i);
             if (c == '_') {
                 capitalizeNext = !firstChar;
             } else {
@@ -235,7 +239,7 @@ public final class NamingUtils {
         if (fkColumnName == null || fkColumnName.isEmpty()) {
             return fkColumnName;
         }
-        if (fkColumnName.toLowerCase().endsWith("_id")) {
+        if (fkColumnName.toLowerCase(Locale.ROOT).endsWith("_id")) {
             return fkColumnName.substring(0, fkColumnName.length() - 3);
         }
         return fkColumnName;
@@ -256,7 +260,7 @@ public final class NamingUtils {
         if (columnName == null) {
             return false;
         }
-        return AUDIT_FIELDS.contains(columnName.toLowerCase());
+        return AUDIT_FIELDS.contains(columnName.toLowerCase(Locale.ROOT));
     }
 
     /**

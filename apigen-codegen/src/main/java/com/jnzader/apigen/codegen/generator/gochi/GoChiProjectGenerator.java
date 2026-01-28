@@ -135,11 +135,9 @@ public class GoChiProjectGenerator implements ProjectGenerator {
         GoChiModelGenerator modelGenerator = new GoChiModelGenerator(typeMapper);
         GoChiDtoGenerator dtoGenerator = new GoChiDtoGenerator(typeMapper);
         GoChiRepositoryGenerator repositoryGenerator =
-                new GoChiRepositoryGenerator(typeMapper, moduleName, options);
-        GoChiServiceGenerator serviceGenerator =
-                new GoChiServiceGenerator(typeMapper, moduleName, options);
-        GoChiHandlerGenerator handlerGenerator =
-                new GoChiHandlerGenerator(typeMapper, moduleName, options);
+                new GoChiRepositoryGenerator(typeMapper, moduleName);
+        GoChiServiceGenerator serviceGenerator = new GoChiServiceGenerator(typeMapper, moduleName);
+        GoChiHandlerGenerator handlerGenerator = new GoChiHandlerGenerator(typeMapper, moduleName);
         GoChiRouterGenerator routerGenerator =
                 new GoChiRouterGenerator(typeMapper, moduleName, options);
         GoChiMiddlewareGenerator middlewareGenerator =

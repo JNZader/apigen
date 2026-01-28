@@ -366,6 +366,8 @@ public class TypeScriptTestGenerator {
                 entityName,
                 entityName,
                 entityName,
+                entityName,
+                entityName,
                 entityName);
     }
 

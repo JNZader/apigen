@@ -6,6 +6,7 @@ import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 /** Generates DTO structs (request/response) from SQL table definitions for Go/Gin. */
@@ -369,7 +370,7 @@ public class GoDtoGenerator {
     }
 
     private boolean isBaseField(String columnName) {
-        String lower = columnName.toLowerCase();
+        String lower = columnName.toLowerCase(Locale.ROOT);
         return lower.equals("id")
                 || lower.equals("created_at")
                 || lower.equals("updated_at")

@@ -3,6 +3,7 @@ package com.jnzader.apigen.codegen.generator.python;
 import com.jnzader.apigen.codegen.generator.api.AbstractLanguageTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -190,7 +191,8 @@ public class PythonTypeMapper extends AbstractLanguageTypeMapper {
 
         // Add special Pydantic types for validation
         String javaType = column.getJavaType();
-        if ("String".equals(javaType) && column.getName().toLowerCase().contains("email")) {
+        if ("String".equals(javaType)
+                && column.getName().toLowerCase(Locale.ROOT).contains("email")) {
             return nullable ? "EmailStr | None" : "EmailStr";
         }
 
@@ -247,7 +249,7 @@ public class PythonTypeMapper extends AbstractLanguageTypeMapper {
         if (name == null || name.isEmpty()) {
             return name;
         }
-        return name.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase();
+        return name.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.ROOT);
     }
 
     /**
@@ -262,7 +264,8 @@ public class PythonTypeMapper extends AbstractLanguageTypeMapper {
         }
         StringBuilder result = new StringBuilder();
         boolean capitalizeNext = true;
-        for (char c : name.toCharArray()) {
+        for (int i = 0; i < name.length(); i++) {
+            char c = name.charAt(i);
             if (c == '_' || c == '-') {
                 capitalizeNext = true;
             } else if (capitalizeNext) {

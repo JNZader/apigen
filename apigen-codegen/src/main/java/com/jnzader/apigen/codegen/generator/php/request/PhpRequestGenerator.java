@@ -6,6 +6,7 @@ import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Generates Laravel Form Request classes for validation.
@@ -177,13 +178,13 @@ public class PhpRequestGenerator {
                 rules.add("'max:" + maxLength + "'");
 
                 // Email validation for email fields
-                if (column.getName().toLowerCase().contains("email")) {
+                if (column.getName().toLowerCase(Locale.ROOT).contains("email")) {
                     rules.add("'email'");
                 }
 
                 // URL validation for url fields
-                if (column.getName().toLowerCase().contains("url")
-                        || column.getName().toLowerCase().contains("website")) {
+                if (column.getName().toLowerCase(Locale.ROOT).contains("url")
+                        || column.getName().toLowerCase(Locale.ROOT).contains("website")) {
                     rules.add("'url'");
                 }
             }
@@ -217,7 +218,7 @@ public class PhpRequestGenerator {
     }
 
     private boolean isBaseField(String columnName) {
-        String lower = columnName.toLowerCase();
+        String lower = columnName.toLowerCase(Locale.ROOT);
         return lower.equals("id")
                 || lower.equals("activo")
                 || lower.equals("created_at")

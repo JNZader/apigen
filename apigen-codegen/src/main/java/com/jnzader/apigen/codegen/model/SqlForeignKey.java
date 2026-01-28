@@ -1,5 +1,6 @@
 package com.jnzader.apigen.codegen.model;
 
+import java.util.Locale;
 import lombok.Builder;
 import lombok.Data;
 
@@ -92,7 +93,7 @@ public class SqlForeignKey {
     private String snakeToPascalCase(String input) {
         StringBuilder result = new StringBuilder();
         boolean capitalizeNext = true;
-        for (char c : input.toLowerCase().toCharArray()) {
+        for (char c : input.toLowerCase(Locale.ROOT).toCharArray()) {
             if (c == '_') {
                 capitalizeNext = true;
             } else {
@@ -114,7 +115,7 @@ public class SqlForeignKey {
         // Convert to camelCase
         StringBuilder result = new StringBuilder();
         boolean capitalizeNext = false;
-        for (char c : fieldName.toLowerCase().toCharArray()) {
+        for (char c : fieldName.toLowerCase(Locale.ROOT).toCharArray()) {
             if (c == '_') {
                 capitalizeNext = true;
             } else {

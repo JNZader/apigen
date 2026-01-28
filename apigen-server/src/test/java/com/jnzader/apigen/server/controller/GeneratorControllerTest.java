@@ -11,6 +11,7 @@ import com.jnzader.apigen.server.dto.GenerateResponse;
 import com.jnzader.apigen.server.exception.ProjectGenerationException;
 import com.jnzader.apigen.server.service.GeneratorService;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -47,7 +48,7 @@ class GeneratorControllerTest {
         @DisplayName("Should generate project and return ZIP file")
         void shouldGenerateProjectAndReturnZipFile() throws Exception {
             GenerateRequest request = createValidRequest();
-            byte[] zipBytes = "mock-zip-content".getBytes();
+            byte[] zipBytes = "mock-zip-content".getBytes(StandardCharsets.UTF_8);
 
             when(generatorService.generateProject(any(GenerateRequest.class))).thenReturn(zipBytes);
 
@@ -75,7 +76,7 @@ class GeneratorControllerTest {
         void shouldReturnCorrectFilenameBasedOnArtifactId() throws Exception {
             GenerateRequest request = createValidRequest();
             request.getProject().setArtifactId("my-awesome-api");
-            byte[] zipBytes = "mock-zip".getBytes();
+            byte[] zipBytes = "mock-zip".getBytes(StandardCharsets.UTF_8);
 
             when(generatorService.generateProject(any(GenerateRequest.class))).thenReturn(zipBytes);
 
@@ -95,7 +96,7 @@ class GeneratorControllerTest {
         @DisplayName("Should return Content-Length header")
         void shouldReturnContentLengthHeader() throws Exception {
             GenerateRequest request = createValidRequest();
-            byte[] zipBytes = "mock-zip-content-with-known-length".getBytes();
+            byte[] zipBytes = "mock-zip-content-with-known-length".getBytes(StandardCharsets.UTF_8);
 
             when(generatorService.generateProject(any(GenerateRequest.class))).thenReturn(zipBytes);
 

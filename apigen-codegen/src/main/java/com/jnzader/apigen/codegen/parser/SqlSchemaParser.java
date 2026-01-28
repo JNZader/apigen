@@ -522,7 +522,8 @@ public class SqlSchemaParser {
         // Split by comma, handling nested parentheses
         int depth = 0;
         StringBuilder current = new StringBuilder();
-        for (char c : params.toCharArray()) {
+        for (int i = 0; i < params.length(); i++) {
+            char c = params.charAt(i);
             if (c == '(') depth++;
             else if (c == ')') depth--;
             else if (c == ',' && depth == 0) {

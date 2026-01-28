@@ -7,17 +7,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * Main entry point for the APiGen Server. Provides REST API for generating Spring Boot projects
  * from SQL schemas.
  *
- * <p>All database-related auto-configurations are excluded since this server doesn't use a
- * database. Using excludeName instead of exclude to avoid compilation errors when classes are not
- * on classpath.
+ * <p>This server doesn't use a database - JPA/Hibernate dependencies are excluded at the Gradle
+ * dependency level to prevent DataSource auto-configuration.
  */
-@SpringBootApplication(
-        excludeName = {
-            "org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration",
-            "org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration",
-            "org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration",
-            "org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration"
-        })
+@SpringBootApplication
 public class ApiGenServerApplication {
 
     public static void main(String[] args) {

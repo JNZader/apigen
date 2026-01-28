@@ -3,6 +3,7 @@ package com.jnzader.apigen.codegen.generator.typescript;
 import com.jnzader.apigen.codegen.generator.api.AbstractLanguageTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -224,13 +225,13 @@ public class TypeScriptTypeMapper extends AbstractLanguageTypeMapper {
                 decorators.append("  @MaxLength(").append(maxLength).append(")\n");
 
                 // Email validation
-                if (column.getName().toLowerCase().contains("email")) {
+                if (column.getName().toLowerCase(Locale.ROOT).contains("email")) {
                     decorators.append("  @IsEmail()\n");
                 }
 
                 // URL validation
-                if (column.getName().toLowerCase().contains("url")
-                        || column.getName().toLowerCase().contains("website")) {
+                if (column.getName().toLowerCase(Locale.ROOT).contains("url")
+                        || column.getName().toLowerCase(Locale.ROOT).contains("website")) {
                     decorators.append("  @IsUrl()\n");
                 }
             }
@@ -261,7 +262,7 @@ public class TypeScriptTypeMapper extends AbstractLanguageTypeMapper {
      * @return true if it's a TypeScript keyword
      */
     public boolean isTypeScriptKeyword(String name) {
-        return TS_KEYWORDS.contains(name.toLowerCase());
+        return TS_KEYWORDS.contains(name.toLowerCase(Locale.ROOT));
     }
 
     /**
@@ -317,7 +318,8 @@ public class TypeScriptTypeMapper extends AbstractLanguageTypeMapper {
         }
         StringBuilder result = new StringBuilder();
         boolean capitalizeNext = true;
-        for (char c : name.toCharArray()) {
+        for (int i = 0; i < name.length(); i++) {
+            char c = name.charAt(i);
             if (c == '_' || c == '-') {
                 capitalizeNext = true;
             } else if (capitalizeNext) {
@@ -340,7 +342,9 @@ public class TypeScriptTypeMapper extends AbstractLanguageTypeMapper {
         if (name == null || name.isEmpty()) {
             return name;
         }
-        return name.replaceAll("([a-z])([A-Z])", "$1-$2").replace("_", "-").toLowerCase();
+        return name.replaceAll("([a-z])([A-Z])", "$1-$2")
+                .replace("_", "-")
+                .toLowerCase(Locale.ROOT);
     }
 
     /**
@@ -353,7 +357,7 @@ public class TypeScriptTypeMapper extends AbstractLanguageTypeMapper {
         if (name == null || name.isEmpty()) {
             return name;
         }
-        return name.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase();
+        return name.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.ROOT);
     }
 
     /**

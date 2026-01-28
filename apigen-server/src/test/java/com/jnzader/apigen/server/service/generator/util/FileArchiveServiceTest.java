@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
@@ -102,7 +103,7 @@ class FileArchiveServiceTest {
             try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zipBytes))) {
                 ZipEntry entry = zis.getNextEntry();
                 assertThat(entry).isNotNull();
-                String extractedContent = new String(zis.readAllBytes());
+                String extractedContent = new String(zis.readAllBytes(), StandardCharsets.UTF_8);
                 assertThat(extractedContent).isEqualTo(content);
             }
         }

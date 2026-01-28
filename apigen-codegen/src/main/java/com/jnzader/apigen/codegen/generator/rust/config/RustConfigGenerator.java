@@ -28,17 +28,15 @@ import java.util.List;
  * @author APiGen
  * @since 2.12.0
  */
-@SuppressWarnings({"java:S1068", "java:S1192", "java:S2068", "java:S3776"})
+@SuppressWarnings({"java:S1192", "java:S2068", "java:S3776"})
 public class RustConfigGenerator {
 
-    private final RustTypeMapper typeMapper;
     private final RustAxumOptions options;
     private final ProjectConfig config;
     private final String crateName;
 
     public RustConfigGenerator(
             RustTypeMapper typeMapper, RustAxumOptions options, ProjectConfig config) {
-        this.typeMapper = typeMapper;
         this.options = options;
         this.config = config;
         this.crateName = typeMapper.toSnakeCase(config.getProjectName());

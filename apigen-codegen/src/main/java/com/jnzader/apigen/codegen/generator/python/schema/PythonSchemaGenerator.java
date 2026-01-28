@@ -6,6 +6,7 @@ import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -53,7 +54,7 @@ public class PythonSchemaGenerator {
             if (typeImport != null) {
                 imports.add(typeImport);
             }
-            if (column.getName().toLowerCase().contains("email")) {
+            if (column.getName().toLowerCase(Locale.ROOT).contains("email")) {
                 hasEmail = true;
             }
         }
@@ -215,7 +216,7 @@ public class PythonSchemaGenerator {
     }
 
     private boolean isBaseField(String columnName) {
-        String lower = columnName.toLowerCase();
+        String lower = columnName.toLowerCase(Locale.ROOT);
         return lower.equals("id")
                 || lower.equals("activo")
                 || lower.equals("created_at")

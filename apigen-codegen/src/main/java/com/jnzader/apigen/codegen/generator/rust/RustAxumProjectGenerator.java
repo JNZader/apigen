@@ -166,19 +166,17 @@ public class RustAxumProjectGenerator implements ProjectGenerator {
         RustConfigGenerator configGenerator = new RustConfigGenerator(typeMapper, options, config);
         RustModelGenerator modelGenerator = new RustModelGenerator(typeMapper, options);
         RustDtoGenerator dtoGenerator = new RustDtoGenerator(typeMapper);
-        RustRepositoryGenerator repositoryGenerator =
-                new RustRepositoryGenerator(typeMapper, options);
+        RustRepositoryGenerator repositoryGenerator = new RustRepositoryGenerator(typeMapper);
         RustServiceGenerator serviceGenerator = new RustServiceGenerator(typeMapper, options);
         RustHandlerGenerator handlerGenerator = new RustHandlerGenerator(typeMapper, options);
         RustRouterGenerator routerGenerator = new RustRouterGenerator(typeMapper, options);
-        RustMiddlewareGenerator middlewareGenerator =
-                new RustMiddlewareGenerator(typeMapper, options);
+        RustMiddlewareGenerator middlewareGenerator = new RustMiddlewareGenerator(options);
 
         // Edge generators
-        RustMqttGenerator mqttGenerator = new RustMqttGenerator(typeMapper, options);
-        RustModbusGenerator modbusGenerator = new RustModbusGenerator(typeMapper, options);
-        RustSerialGenerator serialGenerator = new RustSerialGenerator(typeMapper, options);
-        RustOnnxGenerator onnxGenerator = new RustOnnxGenerator(typeMapper, options);
+        RustMqttGenerator mqttGenerator = new RustMqttGenerator();
+        RustModbusGenerator modbusGenerator = new RustModbusGenerator();
+        RustSerialGenerator serialGenerator = new RustSerialGenerator();
+        RustOnnxGenerator onnxGenerator = new RustOnnxGenerator(options);
 
         // Get entity tables
         List<SqlTable> tables = schema.getEntityTables();

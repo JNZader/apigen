@@ -3,6 +3,7 @@ package com.jnzader.apigen.codegen.generator.go;
 import com.jnzader.apigen.codegen.generator.api.AbstractLanguageTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -267,14 +268,14 @@ public class GoTypeMapper extends AbstractLanguageTypeMapper {
                 tag.append("max=").append(maxLength);
 
                 // Email validation
-                if (column.getName().toLowerCase().contains("email")) {
+                if (column.getName().toLowerCase(Locale.ROOT).contains("email")) {
                     if (!tag.isEmpty()) tag.append(",");
                     tag.append("email");
                 }
 
                 // URL validation
-                if (column.getName().toLowerCase().contains("url")
-                        || column.getName().toLowerCase().contains("website")) {
+                if (column.getName().toLowerCase(Locale.ROOT).contains("url")
+                        || column.getName().toLowerCase(Locale.ROOT).contains("website")) {
                     if (!tag.isEmpty()) tag.append(",");
                     tag.append("url");
                 }
@@ -309,7 +310,7 @@ public class GoTypeMapper extends AbstractLanguageTypeMapper {
      * @return true if it's a Go keyword or predeclared identifier
      */
     public boolean isGoKeyword(String name) {
-        String lower = name.toLowerCase();
+        String lower = name.toLowerCase(Locale.ROOT);
         return GO_KEYWORDS.contains(lower) || GO_PREDECLARED.contains(lower);
     }
 
@@ -338,7 +339,8 @@ public class GoTypeMapper extends AbstractLanguageTypeMapper {
         }
         StringBuilder result = new StringBuilder();
         boolean capitalizeNext = true;
-        for (char c : name.toCharArray()) {
+        for (int i = 0; i < name.length(); i++) {
+            char c = name.charAt(i);
             if (c == '_' || c == '-') {
                 capitalizeNext = true;
             } else if (capitalizeNext) {
@@ -378,7 +380,7 @@ public class GoTypeMapper extends AbstractLanguageTypeMapper {
         // Replace spaces and hyphens with underscores, then convert camelCase to snake_case
         return name.replaceAll("[\\s-]+", "_")
                 .replaceAll("([a-z])([A-Z])", "$1_$2")
-                .toLowerCase()
+                .toLowerCase(Locale.ROOT)
                 .replaceAll("_+", "_"); // Normalize multiple underscores
     }
 
@@ -392,7 +394,7 @@ public class GoTypeMapper extends AbstractLanguageTypeMapper {
         if (name == null || name.isEmpty()) {
             return name;
         }
-        String lower = name.toLowerCase();
+        String lower = name.toLowerCase(Locale.ROOT);
         if (lower.endsWith("y")
                 && !lower.endsWith("ay")
                 && !lower.endsWith("ey")

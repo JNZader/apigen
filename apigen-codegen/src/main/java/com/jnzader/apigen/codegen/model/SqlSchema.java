@@ -2,6 +2,7 @@ package com.jnzader.apigen.codegen.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.Builder;
@@ -47,7 +48,7 @@ public class SqlSchema {
 
     /** Checks if a table is an audit table (ends with _aud or _audit). */
     private boolean isAuditTable(String tableName) {
-        String lower = tableName.toLowerCase();
+        String lower = tableName.toLowerCase(Locale.ROOT);
         return lower.endsWith("_aud") || lower.endsWith("_audit") || lower.equals("revision_info");
     }
 
@@ -94,13 +95,13 @@ public class SqlSchema {
         // create_product -> products
         // update_category -> categories
         for (SqlTable table : tables) {
-            String tableName = table.getName().toLowerCase();
+            String tableName = table.getName().toLowerCase(Locale.ROOT);
             String singular =
                     tableName.endsWith("s")
                             ? tableName.substring(0, tableName.length() - 1)
                             : tableName;
 
-            if (functionName.toLowerCase().contains(singular)) {
+            if (functionName.toLowerCase(Locale.ROOT).contains(singular)) {
                 return tableName;
             }
         }

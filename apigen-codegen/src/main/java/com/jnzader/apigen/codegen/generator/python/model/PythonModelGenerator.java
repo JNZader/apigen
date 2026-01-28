@@ -6,6 +6,7 @@ import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -173,8 +174,8 @@ public class PythonModelGenerator {
         if (!column.isNullable()) {
             sb.append(", nullable=False");
         }
-        if (column.getName().toLowerCase().contains("email")
-                || column.getName().toLowerCase().endsWith("_id")) {
+        if (column.getName().toLowerCase(Locale.ROOT).contains("email")
+                || column.getName().toLowerCase(Locale.ROOT).endsWith("_id")) {
             sb.append(", index=True");
         }
 
@@ -219,7 +220,7 @@ public class PythonModelGenerator {
     }
 
     private boolean isBaseField(String columnName) {
-        String lower = columnName.toLowerCase();
+        String lower = columnName.toLowerCase(Locale.ROOT);
         return lower.equals("id")
                 || lower.equals("activo")
                 || lower.equals("created_at")

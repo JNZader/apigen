@@ -2,6 +2,7 @@ package com.jnzader.apigen.codegen.generator.php.controller;
 
 import com.jnzader.apigen.codegen.generator.php.PhpTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlTable;
+import java.util.Locale;
 
 /**
  * Generates Laravel Controller classes for REST API endpoints.
@@ -90,7 +91,9 @@ public class PhpControllerGenerator {
         sb.append("     * Display a paginated listing of ").append(pluralName).append(".\n");
         sb.append("     */\n");
         sb.append("    #[OA\\Get(\n");
-        sb.append("        path: '/api/v1/").append(pluralName.toLowerCase()).append("',\n");
+        sb.append("        path: '/api/v1/")
+                .append(pluralName.toLowerCase(Locale.ROOT))
+                .append("',\n");
         sb.append("        summary: 'Get all ").append(pluralName).append("',\n");
         sb.append("        tags: ['").append(className).append("s'],\n");
         sb.append("        parameters: [\n");
@@ -124,7 +127,7 @@ public class PhpControllerGenerator {
         sb.append("     */\n");
         sb.append("    #[OA\\Get(\n");
         sb.append("        path: '/api/v1/")
-                .append(typeMapper.pluralize(varName).toLowerCase())
+                .append(typeMapper.pluralize(varName).toLowerCase(Locale.ROOT))
                 .append("/{id}',\n");
         sb.append("        summary: 'Get ").append(varName).append(" by ID',\n");
         sb.append("        tags: ['").append(className).append("s'],\n");
@@ -159,7 +162,7 @@ public class PhpControllerGenerator {
         sb.append("     */\n");
         sb.append("    #[OA\\Post(\n");
         sb.append("        path: '/api/v1/")
-                .append(typeMapper.pluralize(varName).toLowerCase())
+                .append(typeMapper.pluralize(varName).toLowerCase(Locale.ROOT))
                 .append("',\n");
         sb.append("        summary: 'Create a new ").append(varName).append("',\n");
         sb.append("        tags: ['").append(className).append("s'],\n");
@@ -195,7 +198,7 @@ public class PhpControllerGenerator {
         sb.append("     */\n");
         sb.append("    #[OA\\Put(\n");
         sb.append("        path: '/api/v1/")
-                .append(typeMapper.pluralize(varName).toLowerCase())
+                .append(typeMapper.pluralize(varName).toLowerCase(Locale.ROOT))
                 .append("/{id}',\n");
         sb.append("        summary: 'Update ").append(varName).append("',\n");
         sb.append("        tags: ['").append(className).append("s'],\n");
@@ -237,7 +240,7 @@ public class PhpControllerGenerator {
         sb.append("     */\n");
         sb.append("    #[OA\\Delete(\n");
         sb.append("        path: '/api/v1/")
-                .append(typeMapper.pluralize(varName).toLowerCase())
+                .append(typeMapper.pluralize(varName).toLowerCase(Locale.ROOT))
                 .append("/{id}',\n");
         sb.append("        summary: 'Delete ").append(varName).append("',\n");
         sb.append("        tags: ['").append(className).append("s'],\n");
@@ -266,7 +269,7 @@ public class PhpControllerGenerator {
         sb.append("     */\n");
         sb.append("    #[OA\\Post(\n");
         sb.append("        path: '/api/v1/")
-                .append(typeMapper.pluralize(varName).toLowerCase())
+                .append(typeMapper.pluralize(varName).toLowerCase(Locale.ROOT))
                 .append("/{id}/restore',\n");
         sb.append("        summary: 'Restore deleted ").append(varName).append("',\n");
         sb.append("        tags: ['").append(className).append("s'],\n");

@@ -42,7 +42,16 @@ dependencies {
 
     // APiGen modules (local)
     implementation project(':apigen-codegen')
-    implementation project(':apigen-core')
+    // Only use apigen-core for exception classes (ProblemDetail, ValidationException, etc.)
+    // Exclude JPA/Hibernate to avoid DataSource auto-configuration
+    implementation(project(':apigen-core')) {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-data-jpa'
+        exclude group: 'org.hibernate.orm', module: 'hibernate-envers'
+        exclude group: 'org.hibernate.orm', module: 'hibernate-core'
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-cache'
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-hateoas'
+        exclude group: 'org.springframework.data', module: 'spring-data-jpa'
+    }
 
     // Lombok
     compileOnly 'org.projectlombok:lombok'

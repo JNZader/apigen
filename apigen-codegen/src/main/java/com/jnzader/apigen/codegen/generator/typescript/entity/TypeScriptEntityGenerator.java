@@ -156,9 +156,8 @@ public class TypeScriptEntityGenerator {
                                 : 255;
                 if (length <= 255) {
                     sb.append("    length: ").append(length).append(",\n");
-                } else if (length <= 65535) {
-                    sb.append("    type: 'text',\n");
                 } else {
+                    // Both medium text (length <= 65535) and long text use 'text' type
                     sb.append("    type: 'text',\n");
                 }
             }

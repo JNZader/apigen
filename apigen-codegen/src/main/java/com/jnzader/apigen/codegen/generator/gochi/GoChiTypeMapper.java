@@ -240,7 +240,8 @@ public class GoChiTypeMapper extends AbstractLanguageTypeMapper {
         }
         StringBuilder result = new StringBuilder();
         boolean capitalizeNext = true;
-        for (char c : name.toCharArray()) {
+        for (int i = 0; i < name.length(); i++) {
+            char c = name.charAt(i);
             if (c == '_' || c == '-' || c == ' ') {
                 capitalizeNext = true;
             } else if (capitalizeNext) {

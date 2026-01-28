@@ -1,6 +1,5 @@
 package com.jnzader.apigen.codegen.generator.gochi.repository;
 
-import com.jnzader.apigen.codegen.generator.gochi.GoChiOptions;
 import com.jnzader.apigen.codegen.generator.gochi.GoChiTypeMapper;
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlSchema;
@@ -11,21 +10,17 @@ import java.util.Locale;
 
 /** Generates repository layer using pgx (raw SQL, no ORM). */
 @SuppressWarnings({
-    "java:S1068",
     "java:S1192",
     "java:S2479"
-}) // S1068: Options reserved; S1192: template strings; S2479: tabs for Go formatting
+}) // S1192: template strings; S2479: tabs for Go formatting
 public class GoChiRepositoryGenerator {
 
     private final GoChiTypeMapper typeMapper;
     private final String moduleName;
-    private final GoChiOptions options;
 
-    public GoChiRepositoryGenerator(
-            GoChiTypeMapper typeMapper, String moduleName, GoChiOptions options) {
+    public GoChiRepositoryGenerator(GoChiTypeMapper typeMapper, String moduleName) {
         this.typeMapper = typeMapper;
         this.moduleName = moduleName;
-        this.options = options;
     }
 
     public String generate(SqlTable table) {

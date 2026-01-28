@@ -2,6 +2,7 @@ package com.jnzader.apigen.server.service.generator;
 
 import com.jnzader.apigen.server.config.GeneratedProjectVersions;
 import com.jnzader.apigen.server.dto.GenerateRequest;
+import java.util.Locale;
 import org.springframework.stereotype.Component;
 
 /**
@@ -106,7 +107,7 @@ ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
                         ? config.getDatabase()
                         : new GenerateRequest.DatabaseConfig();
 
-        String dbType = db.getType().toLowerCase();
+        String dbType = db.getType().toLowerCase(Locale.ROOT);
         String dbImage = db.getDockerImage();
         int dbPort = db.getDefaultPort();
 
@@ -575,7 +576,7 @@ docker-compose restart
                         artifactId,
                         db.getUsername(),
                         db.getPassword(),
-                        db.getType().toUpperCase(),
+                        db.getType().toUpperCase(Locale.ROOT),
                         db.getDefaultPort(),
                         db.getName(),
                         db.getUsername(),

@@ -1,6 +1,7 @@
 package com.jnzader.apigen.codegen.model;
 
 import java.util.List;
+import java.util.Locale;
 import lombok.Builder;
 import lombok.Data;
 
@@ -28,7 +29,7 @@ public class SqlColumn {
         if (name == null) return null;
         StringBuilder result = new StringBuilder();
         boolean capitalizeNext = false;
-        for (char c : name.toLowerCase().toCharArray()) {
+        for (char c : name.toLowerCase(Locale.ROOT).toCharArray()) {
             if (c == '_') {
                 capitalizeNext = true;
             } else {

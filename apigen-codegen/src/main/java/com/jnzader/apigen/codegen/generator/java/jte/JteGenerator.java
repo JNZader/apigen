@@ -3,6 +3,7 @@ package com.jnzader.apigen.codegen.generator.java.jte;
 import com.jnzader.apigen.codegen.model.SqlTable;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -85,7 +86,7 @@ public class JteGenerator {
         if (generateCrudViews) {
             for (SqlTable table : tables) {
                 String entityName = table.getEntityName();
-                String entityLower = entityName.toLowerCase();
+                String entityLower = entityName.toLowerCase(Locale.ROOT);
 
                 // Generate CRUD templates
                 files.put(
@@ -183,7 +184,7 @@ public class JteGenerator {
         StringBuilder links = new StringBuilder();
         for (SqlTable table : tables) {
             String entityName = table.getEntityName();
-            String entityLower = entityName.toLowerCase();
+            String entityLower = entityName.toLowerCase(Locale.ROOT);
             links.append(
                     """
                         <a href="%s/%s"
@@ -350,8 +351,8 @@ public class JteGenerator {
                     """
                             .formatted(
                                     entityName + "s",
-                                    entityName.toLowerCase(),
-                                    entityName.toLowerCase()));
+                                    entityName.toLowerCase(Locale.ROOT),
+                                    entityName.toLowerCase(Locale.ROOT)));
         }
 
         return """
@@ -387,7 +388,7 @@ public class JteGenerator {
                                 .map(
                                         t ->
                                                 "@param long "
-                                                        + t.getEntityName().toLowerCase()
+                                                        + t.getEntityName().toLowerCase(Locale.ROOT)
                                                         + "Count = 0")
                                 .reduce("", (a, b) -> a + "\n" + b),
                         stats);
@@ -421,7 +422,7 @@ public class JteGenerator {
 
     private String generateListTemplate(SqlTable table) {
         String entityName = table.getEntityName();
-        String entityLower = entityName.toLowerCase();
+        String entityLower = entityName.toLowerCase(Locale.ROOT);
         String entityVar = table.getEntityVariableName();
 
         StringBuilder columns = new StringBuilder();
@@ -517,7 +518,7 @@ public class JteGenerator {
 
     private String generateFormTemplate(SqlTable table) {
         String entityName = table.getEntityName();
-        String entityLower = entityName.toLowerCase();
+        String entityLower = entityName.toLowerCase(Locale.ROOT);
 
         StringBuilder fields = new StringBuilder();
         for (var col : table.getBusinessColumns()) {
@@ -593,7 +594,7 @@ public class JteGenerator {
 
     private String generateViewTemplate(SqlTable table) {
         String entityName = table.getEntityName();
-        String entityLower = entityName.toLowerCase();
+        String entityLower = entityName.toLowerCase(Locale.ROOT);
 
         StringBuilder fields = new StringBuilder();
         fields.append(
@@ -646,7 +647,7 @@ public class JteGenerator {
 
     private String generateEntityViewController(SqlTable table, String adminPath) {
         String entityName = table.getEntityName();
-        String entityLower = entityName.toLowerCase();
+        String entityLower = entityName.toLowerCase(Locale.ROOT);
 
         return """
         package %s.web;
