@@ -198,7 +198,7 @@ class %sRepositoryTest {
         @Test
         @DisplayName("Should restore soft-deleted entity")
         void shouldRestoreSoftDeleted() {
-            %s saved = entityManager.persistAndFlush(%s);
+            %s saved = persistAndFlush(%s);
             repository.softDeleteAllByIds(
                     List.of(saved.getId()),
                     LocalDateTime.now(),

@@ -204,6 +204,7 @@ public class %sControllerTests
                         moduleName,
                         baseNamespace,
                         baseNamespace,
+                        baseNamespace,
                         moduleName,
                         pluralName,
                         entityName,
