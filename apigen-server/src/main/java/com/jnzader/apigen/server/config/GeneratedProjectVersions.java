@@ -19,10 +19,10 @@ public final class GeneratedProjectVersions {
     // ==========================================================================
 
     /** APiGen Core version for generated projects (JitPack uses git tags with 'v' prefix). */
-    public static final String APIGEN_CORE_VERSION = "v3.2.4";
+    public static final String APIGEN_CORE_VERSION = "v3.2.5";
 
     /** APiGen Security version for generated projects (JitPack uses git tags with 'v' prefix). */
-    public static final String APIGEN_SECURITY_VERSION = "v3.2.4";
+    public static final String APIGEN_SECURITY_VERSION = "v3.2.5";
 
     /**
      * Fallback versions to try if the primary version is not available. Used by integration tests
