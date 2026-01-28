@@ -205,7 +205,7 @@ public class %s {
 
     private void appendHeader(StringBuilder readme, GenerateRequest.ProjectConfig config) {
         readme.append("# ").append(config.getName()).append("\n\n");
-        readme.append("REST API generated with [APiGen Studio](https://apigen-studio.vercel.app)");
+        readme.append("REST API generated with [APiGen Studio](https://apigen-web.vercel.app)");
         readme.append(" | [GitHub](https://github.com/jnzader/apigen)\n\n");
     }
 
@@ -925,7 +925,7 @@ public class %s {
         readme.append("## License\n\n");
         readme.append(
                 "This project was generated with [APiGen"
-                        + " Studio](https://apigen-studio.vercel.app).\n\n");
+                        + " Studio](https://apigen-web.vercel.app).\n\n");
         readme.append("---\n\n");
         readme.append(
                 "Generated with APiGen | [Documentation](https://github.com/jnzader/apigen) |"

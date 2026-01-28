@@ -106,7 +106,7 @@ spring:
     name: apigen-server
 
 cors:
-  allowed-origins: ${CORS_ORIGINS:https://apigen-studio.vercel.app}
+  allowed-origins: ${CORS_ORIGINS:https://apigen-web.vercel.app}
 
 logging:
   level:
@@ -241,7 +241,7 @@ vercel
 # - Set up and deploy? Yes
 # - Which scope? Tu cuenta
 # - Link to existing project? No
-# - Project name? apigen-studio
+# - Project name? apigen-web
 # - Directory? ./
 # - Override settings? No
 ```
@@ -289,7 +289,7 @@ En Vercel Dashboard:
 Una vez tengas la URL de Vercel, actualiza las variables en Koyeb:
 
 ```
-CORS_ORIGINS=https://apigen-studio.vercel.app,https://apigen.tudominio.com
+CORS_ORIGINS=https://apigen-web.vercel.app,https://apigen.tudominio.com
 ```
 
 ### 3.2 Verificar Conexión End-to-End
@@ -389,7 +389,7 @@ vercel --prod
 
 | Servicio | URL Local | URL Producción |
 |----------|-----------|----------------|
-| Frontend | http://localhost:5173 | https://apigen-studio.vercel.app |
+| Frontend | http://localhost:5173 | https://apigen-web.vercel.app |
 | Backend | http://localhost:8081 | https://apigen-server.koyeb.app |
 | Health | /api/health | /api/health |
 | Generate | POST /api/generate | POST /api/generate |
