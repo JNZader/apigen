@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.27.0](https://github.com/JNZader/apigen/compare/v2.26.6...v2.27.0) (2026-01-28)
+
+### Features
+
+* **exceptions:** add apigen-exceptions module for lightweight exception handling ([67f668e](https://github.com/JNZader/apigen/commit/67f668e03d270c34017c1d3259920af2f1d99d70))
+
 ## [2.26.6](https://github.com/JNZader/apigen/compare/v2.26.5...v2.26.6) (2026-01-28)
 
 ### Bug Fixes
