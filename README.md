@@ -1,6 +1,7 @@
 # APiGen - Multi-Language API Generator & Spring Boot Library
 
 [![CI](https://github.com/jnzader/apigen/actions/workflows/ci.yml/badge.svg)](https://github.com/jnzader/apigen/actions/workflows/ci.yml)
+[![JitPack](https://jitpack.io/v/JNZader/apigen.svg)](https://jitpack.io/#JNZader/apigen)
 [![Java 25](https://img.shields.io/badge/Java-25-blue.svg)](https://openjdk.org/projects/jdk/25/)
 [![Spring Boot 4.0](https://img.shields.io/badge/Spring%20Boot-4.0-green.svg)](https://spring.io/projects/spring-boot)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
