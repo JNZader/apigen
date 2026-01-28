@@ -76,13 +76,13 @@ class BuildConfigGeneratorTest {
         }
 
         @Test
-        @DisplayName("Should include GitHub Packages repository")
-        void shouldIncludeGitHubPackagesRepository() {
+        @DisplayName("Should include JitPack repository")
+        void shouldIncludeJitPackRepository() {
             GenerateRequest.ProjectConfig config = createDefaultConfig();
 
             String result = buildConfigGenerator.generateBuildGradle(config);
 
-            assertThat(result).contains(GeneratedProjectVersions.GITHUB_PACKAGES_URL);
+            assertThat(result).contains("https://jitpack.io");
         }
 
         @Test
@@ -95,7 +95,7 @@ class BuildConfigGeneratorTest {
             assertThat(result)
                     .contains(
                             "implementation '"
-                                    + GeneratedProjectVersions.APIGEN_GROUP_ID
+                                    + GeneratedProjectVersions.JITPACK_GROUP_ID
                                     + ":apigen-core:"
                                     + GeneratedProjectVersions.APIGEN_CORE_VERSION
                                     + "'");
@@ -112,7 +112,7 @@ class BuildConfigGeneratorTest {
             assertThat(result)
                     .contains(
                             "implementation '"
-                                    + GeneratedProjectVersions.APIGEN_GROUP_ID
+                                    + GeneratedProjectVersions.JITPACK_GROUP_ID
                                     + ":apigen-security:"
                                     + GeneratedProjectVersions.APIGEN_SECURITY_VERSION
                                     + "'");

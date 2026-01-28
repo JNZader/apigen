@@ -72,49 +72,35 @@ apigen/
 
 ### Option 1: Use as Library
 
-**Gradle (with GitHub Packages):**
+**Gradle (with JitPack - no authentication required):**
 ```groovy
 repositories {
     mavenCentral()
-    maven {
-        url = uri("https://maven.pkg.github.com/JNZader/apigen")
-        credentials {
-            username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
-            password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
-        }
-    }
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
-    implementation platform('com.jnzader:apigen-bom:2.26.6')
-    implementation 'com.jnzader:apigen-core'
-    implementation 'com.jnzader:apigen-security'  // Optional
+    implementation platform('com.github.jnzader.apigen:apigen-bom:v3.0.3')
+    implementation 'com.github.jnzader.apigen:apigen-core'
+    implementation 'com.github.jnzader.apigen:apigen-security'  // Optional
 }
 ```
-
-**Configure credentials in `~/.gradle/gradle.properties`:**
-```properties
-gpr.user=YOUR_GITHUB_USERNAME
-gpr.key=YOUR_GITHUB_TOKEN
-```
-
-> **Note:** GitHub Packages requires authentication. Create a [Personal Access Token](https://github.com/settings/tokens) with `read:packages` scope.
 
 **Maven:**
 ```xml
 <repositories>
     <repository>
-        <id>github</id>
-        <url>https://maven.pkg.github.com/JNZader/apigen</url>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
     </repository>
 </repositories>
 
 <dependencyManagement>
     <dependencies>
         <dependency>
-            <groupId>com.jnzader</groupId>
+            <groupId>com.github.jnzader.apigen</groupId>
             <artifactId>apigen-bom</artifactId>
-            <version>2.26.6</version>
+            <version>v3.0.3</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -123,21 +109,10 @@ gpr.key=YOUR_GITHUB_TOKEN
 
 <dependencies>
     <dependency>
-        <groupId>com.jnzader</groupId>
+        <groupId>com.github.jnzader.apigen</groupId>
         <artifactId>apigen-core</artifactId>
     </dependency>
 </dependencies>
-```
-
-**Configure Maven authentication in `~/.m2/settings.xml`:**
-```xml
-<servers>
-    <server>
-        <id>github</id>
-        <username>YOUR_GITHUB_USERNAME</username>
-        <password>YOUR_GITHUB_TOKEN</password>
-    </server>
-</servers>
 ```
 
 ### Option 2: Generate a Project

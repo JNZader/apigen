@@ -15,29 +15,32 @@ public final class GeneratedProjectVersions {
     }
 
     // ==========================================================================
-    // APiGen Module Versions
+    // APiGen Module Versions (auto-updated by semantic-release)
     // ==========================================================================
 
-    /** APiGen Core version for generated projects (from GitHub Packages). */
-    public static final String APIGEN_CORE_VERSION = "2.27.0";
+    /** APiGen Core version for generated projects (JitPack uses git tags with 'v' prefix). */
+    public static final String APIGEN_CORE_VERSION = "v3.0.3";
 
-    /** APiGen Security version for generated projects (from GitHub Packages). */
-    public static final String APIGEN_SECURITY_VERSION = "2.27.0";
+    /** APiGen Security version for generated projects (JitPack uses git tags with 'v' prefix). */
+    public static final String APIGEN_SECURITY_VERSION = "v3.0.3";
 
     /**
      * Fallback versions to try if the primary version is not available. Used by integration tests
-     * to handle build delays or failures.
+     * to handle JitPack build delays.
      */
-    public static final List<String> FALLBACK_VERSIONS = List.of("2.6.0", "2.5.10", "2.5.9");
+    public static final List<String> FALLBACK_VERSIONS = List.of("v3.0.2", "v3.0.1", "v3.0.0");
 
     // ==========================================================================
-    // GitHub Packages Configuration
+    // Repository Configuration
     // ==========================================================================
 
-    /** GitHub Packages Maven repository URL. */
+    /** JitPack group ID for Maven coordinates (no auth required). */
+    public static final String JITPACK_GROUP_ID = "com.github.jnzader.apigen";
+
+    /** GitHub Packages Maven repository URL (requires authentication). */
     public static final String GITHUB_PACKAGES_URL = "https://maven.pkg.github.com/JNZader/apigen";
 
-    /** APiGen group ID for Maven coordinates. */
+    /** APiGen group ID for GitHub Packages. */
     public static final String APIGEN_GROUP_ID = "com.jnzader";
 
     // ==========================================================================
