@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.26.3](https://github.com/JNZader/apigen/compare/v2.26.2...v2.26.3) (2026-01-28)
+
+### Bug Fixes
+
+* **server:** add comprehensive database auto-config exclusions ([832c288](https://github.com/JNZader/apigen/commit/832c288e2322a5fd54da45a23ed61c964e932507))
+
 ## [2.26.2](https://github.com/JNZader/apigen/compare/v2.26.1...v2.26.2) (2026-01-28)
 
 ### Bug Fixes
