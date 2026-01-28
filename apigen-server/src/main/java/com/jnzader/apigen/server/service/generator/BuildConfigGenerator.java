@@ -187,7 +187,39 @@ pitest {
      * @return the settings.gradle content
      */
     public String generateSettingsGradle(String artifactId) {
-        return "rootProject.name = '%s'%n".formatted(artifactId);
+        return
+"""
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+rootProject.name = '%s'
+"""
+                .formatted(artifactId);
+    }
+
+    /**
+     * Generates the settings.gradle.kts file content for Kotlin projects.
+     *
+     * @param artifactId the project artifact ID
+     * @return the settings.gradle.kts content
+     */
+    public String generateKotlinSettingsGradle(String artifactId) {
+        return
+"""
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+rootProject.name = "%s"
+"""
+                .formatted(artifactId);
     }
 
     /**

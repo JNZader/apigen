@@ -493,7 +493,8 @@ public class GeneratorService {
         Files.writeString(projectRoot.resolve("build.gradle.kts"), buildGradleKts);
 
         // settings.gradle.kts
-        String settingsGradleKts = "rootProject.name = \"%s\"%n".formatted(config.getArtifactId());
+        String settingsGradleKts =
+                buildConfigGenerator.generateKotlinSettingsGradle(config.getArtifactId());
         Files.writeString(projectRoot.resolve("settings.gradle.kts"), settingsGradleKts);
 
         // Gradle wrapper

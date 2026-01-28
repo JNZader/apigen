@@ -28,8 +28,6 @@ public class KotlinEntityTestGenerator {
 
         for (SqlColumn col : table.getBusinessColumns()) {
             String fieldName = col.getJavaFieldName();
-            String capitalField =
-                    Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
             String sampleValue = getSampleTestValue(col);
 
             fieldSetters

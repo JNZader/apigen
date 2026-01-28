@@ -81,7 +81,7 @@ public class GoGinTestGenerator {
                 \t"github.com/stretchr/testify/assert"
                 \t"github.com/stretchr/testify/suite"
                 \t"%s/internal/handler"
-                \t"%s/internal/model"
+                \t"%s/internal/models"
                 )
 
                 type %sIntegrationSuite struct {
@@ -101,7 +101,7 @@ public class GoGinTestGenerator {
                 }
 
                 func (s *%sIntegrationSuite) TestCreate%s() {
-                \tcreate := model.Create%sDTO{
+                \tcreate := models.Create%sDTO{
                 \t\t// Add required fields
                 \t}
                 \tbody, _ := json.Marshal(create)
@@ -113,7 +113,7 @@ public class GoGinTestGenerator {
 
                 \tassert.Equal(s.T(), http.StatusCreated, w.Code)
 
-                \tvar response model.%s
+                \tvar response models.%s
                 \tjson.Unmarshal(w.Body.Bytes(), &response)
                 \ts.createdID = response.ID
                 \tassert.NotZero(s.T(), response.ID)
@@ -127,7 +127,7 @@ public class GoGinTestGenerator {
                 \tassert.Equal(s.T(), http.StatusOK, w.Code)
 
                 \tvar response struct {
-                \t\tItems []model.%s `json:"items"`
+                \t\tItems []models.%s `json:"items"`
                 \t\tTotal int64     `json:"total"`
                 \t}
                 \tjson.Unmarshal(w.Body.Bytes(), &response)
@@ -151,7 +151,7 @@ public class GoGinTestGenerator {
                 }
 
                 func (s *%sIntegrationSuite) TestUpdate%s() {
-                \tupdate := model.Update%sDTO{
+                \tupdate := models.Update%sDTO{
                 \t\t// Add fields to update
                 \t}
                 \tbody, _ := json.Marshal(update)

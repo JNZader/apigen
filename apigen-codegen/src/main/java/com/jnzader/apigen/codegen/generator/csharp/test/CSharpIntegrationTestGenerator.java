@@ -1,6 +1,5 @@
 package com.jnzader.apigen.codegen.generator.csharp.test;
 
-import static com.jnzader.apigen.codegen.generator.util.NamingUtils.toCamelCase;
 import static com.jnzader.apigen.codegen.generator.util.NamingUtils.toKebabCase;
 import static com.jnzader.apigen.codegen.generator.util.NamingUtils.toPascalCase;
 import static com.jnzader.apigen.codegen.generator.util.NamingUtils.toPlural;
@@ -22,31 +21,21 @@ public class CSharpIntegrationTestGenerator {
     /** Generates the Integration test class code in C#. */
     public String generate(SqlTable table) {
         String entityName = table.getEntityName();
-        String pluralName = toPlural(entityName);
         String kebabPlural = toKebabCase(toPlural(table.getName()));
         String moduleName = toPascalCase(table.getModuleName());
 
-        // Generate sample JSON payload
-        StringBuilder jsonPayload = new StringBuilder();
-        boolean first = true;
+        // Generate C# object initializer properties
+        StringBuilder objectInitializer = new StringBuilder();
         for (SqlColumn col : table.getBusinessColumns()) {
-            String fieldName = toCamelCase(col.getJavaFieldName());
+            String fieldName = toPascalCase(col.getJavaFieldName());
             String sampleValue = getSampleTestValueCSharp(col);
 
-            if (!first) {
-                jsonPayload.append(",");
-            }
-            first = false;
-
-            jsonPayload.append("\n            \"").append(fieldName).append("\": ");
-            if (sampleValue.startsWith("\"")
-                    || sampleValue.equals("true")
-                    || sampleValue.equals("false")
-                    || sampleValue.matches("-?\\d+(\\.\\d+)?")) {
-                jsonPayload.append(sampleValue);
-            } else {
-                jsonPayload.append("\"").append(sampleValue.replace("\"", "")).append("\"");
-            }
+            objectInitializer
+                    .append("\n            ")
+                    .append(fieldName)
+                    .append(" = ")
+                    .append(sampleValue)
+                    .append(",");
         }
 
         return
@@ -254,12 +243,12 @@ public class %sIntegrationTests : IClassFixture<WebApplicationFactory<%s.Program
                         entityName,
                         // Create
                         entityName,
-                        jsonPayload.toString(),
+                        objectInitializer.toString(),
                         kebabPlural,
                         entityName,
                         // GetById exists
                         entityName,
-                        jsonPayload.toString(),
+                        objectInitializer.toString(),
                         kebabPlural,
                         entityName,
                         kebabPlural,
@@ -268,22 +257,22 @@ public class %sIntegrationTests : IClassFixture<WebApplicationFactory<%s.Program
                         kebabPlural,
                         // Update
                         entityName,
-                        jsonPayload.toString(),
+                        objectInitializer.toString(),
                         kebabPlural,
                         entityName,
                         entityName,
-                        jsonPayload.toString(),
+                        objectInitializer.toString(),
                         kebabPlural,
                         // Delete
                         entityName,
-                        jsonPayload.toString(),
+                        objectInitializer.toString(),
                         kebabPlural,
                         entityName,
                         kebabPlural,
                         kebabPlural,
                         // Pagination
                         entityName,
-                        jsonPayload.toString(),
+                        objectInitializer.toString(),
                         kebabPlural,
                         kebabPlural,
                         entityName,
