@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.0](https://github.com/JNZader/apigen/compare/v3.1.0...v3.2.0) (2026-01-28)
+
+### Features
+
+* **codegen:** complete test generation for all 9 supported languages ([0f026bf](https://github.com/JNZader/apigen/commit/0f026bf5db62d1af1763830a3aa6c2b5e5f1eb51))
+
 ## [3.1.0](https://github.com/JNZader/apigen/compare/v3.0.7...v3.1.0) (2026-01-28)
 
 ### Features
