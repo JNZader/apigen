@@ -21,13 +21,15 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 /**
- * Global exception handler for the APiGen Server.
+ * Server-specific exception handler for the APiGen Server.
  *
  * <p>Handles all exceptions and returns RFC 7807 compliant Problem Details responses.
+ *
+ * <p>Named differently from apigen-core's GlobalExceptionHandler to avoid bean naming conflicts.
  */
 @RestControllerAdvice
 @Slf4j
-public class GlobalExceptionHandler {
+public class ServerExceptionHandler {
 
     private static final MediaType APPLICATION_PROBLEM_JSON =
             MediaType.valueOf("application/problem+json");
