@@ -103,7 +103,7 @@ public final class GeneratedProjectVersions {
     // ==========================================================================
 
     /** PIT Mutation Testing plugin version. */
-    public static final String PITEST_PLUGIN_VERSION = "1.17.1";
+    public static final String PITEST_PLUGIN_VERSION = "1.15.0";
 
     /** PIT JUnit 5 plugin version (must match pitest-junit5-plugin). */
     public static final String PITEST_JUNIT5_VERSION = "1.2.1";

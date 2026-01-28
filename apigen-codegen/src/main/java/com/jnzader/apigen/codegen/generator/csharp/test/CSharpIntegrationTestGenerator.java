@@ -52,14 +52,14 @@ using %s.Infrastructure.Persistence;
 
 namespace %s.Tests.%s.Integration;
 
-public class %sIntegrationTests : IClassFixture<WebApplicationFactory<%s.Program>>, IDisposable
+public class %sIntegrationTests : IClassFixture<WebApplicationFactory<Program>>, IDisposable
 {
-    private readonly WebApplicationFactory<%s.Program> _factory;
+    private readonly WebApplicationFactory<Program> _factory;
     private readonly HttpClient _client;
     private readonly IServiceScope _scope;
     private readonly ApplicationDbContext _context;
 
-    public %sIntegrationTests(WebApplicationFactory<%s.Program> factory)
+    public %sIntegrationTests(WebApplicationFactory<Program> factory)
     {
         _factory = factory.WithWebHostBuilder(builder =>
         {
@@ -234,10 +234,7 @@ public class %sIntegrationTests : IClassFixture<WebApplicationFactory<%s.Program
                         baseNamespace,
                         moduleName,
                         entityName,
-                        baseNamespace,
-                        baseNamespace,
                         entityName,
-                        baseNamespace,
                         // GetAll empty
                         kebabPlural,
                         entityName,

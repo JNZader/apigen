@@ -75,6 +75,22 @@ public class CSharpConfigGenerator {
 
     <!-- Logging -->
     <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
+
+    <!-- Testing -->
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Moq" Version="4.20.72" />
+    <PackageReference Include="FluentAssertions" Version="6.12.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.11" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.11" />
+    <PackageReference Include="coverlet.collector" Version="6.0.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
 </Project>
@@ -176,7 +192,9 @@ public class CSharpConfigGenerator {
         sb.append("app.UseAuthorization();\n");
         sb.append("app.MapControllers();\n\n");
 
-        sb.append("app.Run();\n");
+        sb.append("app.Run();\n\n");
+        sb.append("// Make Program accessible for integration tests\n");
+        sb.append("public partial class Program { }\n");
 
         return sb.toString();
     }
