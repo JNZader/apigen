@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.4](https://github.com/JNZader/apigen/compare/v3.0.3...v3.0.4) (2026-01-28)
+
+### Bug Fixes
+
+* **codegen:** remove MISE_JAVA_HOME env var that fails on Windows ([3e6b055](https://github.com/JNZader/apigen/commit/3e6b0550435a021e30c7c5ca8f02af8086fb1df2))
+* **codegen:** use gradlew without ./ prefix for Windows compatibility ([16dbe25](https://github.com/JNZader/apigen/commit/16dbe252ce358e55e30eb636c28e049887b99dfe))
+
 ## [3.0.3](https://github.com/JNZader/apigen/compare/v3.0.2...v3.0.3) (2026-01-28)
 
 ### Bug Fixes
