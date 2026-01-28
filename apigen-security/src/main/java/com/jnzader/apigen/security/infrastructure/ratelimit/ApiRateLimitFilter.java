@@ -1,5 +1,7 @@
 package com.jnzader.apigen.security.infrastructure.ratelimit;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jnzader.apigen.core.infrastructure.exception.ProblemDetail;
 import com.jnzader.apigen.security.infrastructure.config.SecurityProperties;
 import com.jnzader.apigen.security.infrastructure.config.SecurityProperties.RateLimitProperties.TierConfig;
 import com.jnzader.apigen.security.infrastructure.network.ClientIpResolver;
@@ -10,6 +12,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.URI;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,21 +58,26 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(ApiRateLimitFilter.class);
     private static final String TIER_HEADER = "X-RateLimit-Tier";
+    private static final MediaType APPLICATION_PROBLEM_JSON =
+            MediaType.valueOf("application/problem+json");
 
     private final RateLimitService rateLimitService;
     private final SecurityProperties securityProperties;
     private final ClientIpResolver clientIpResolver;
     private final RateLimitTierResolver tierResolver;
+    private final ObjectMapper objectMapper;
 
     public ApiRateLimitFilter(
             RateLimitService rateLimitService,
             SecurityProperties securityProperties,
             ClientIpResolver clientIpResolver,
-            @Nullable RateLimitTierResolver tierResolver) {
+            @Nullable RateLimitTierResolver tierResolver,
+            ObjectMapper objectMapper) {
         this.rateLimitService = rateLimitService;
         this.securityProperties = securityProperties;
         this.clientIpResolver = clientIpResolver;
         this.tierResolver = tierResolver;
+        this.objectMapper = objectMapper;
 
         String mode = rateLimitService.isTiersEnabled() ? "tier-based" : "ip-based";
         log.info(
@@ -219,53 +227,53 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
             throws IOException {
 
         response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setContentType(APPLICATION_PROBLEM_JSON.toString());
         response.setHeader("Retry-After", String.valueOf(waitSeconds));
 
         String endpointType = isAuthEndpoint ? "authentication" : "API";
-        String jsonResponse =
-                String.format(
-                        """
-                        {
-                            "type": "about:blank",
-                            "title": "Too Many Requests",
-                            "status": 429,
-                            "detail": "Request limit exceeded for %s. Please try again in %d seconds.",
-                            "instance": "%s"
-                        }
-                        """,
-                        endpointType, waitSeconds, isAuthEndpoint ? "/auth" : "/api");
+        ProblemDetail problem =
+                ProblemDetail.builder()
+                        .type(URI.create("urn:apigen:problem:rate-limit-exceeded"))
+                        .title("Too Many Requests")
+                        .status(HttpStatus.TOO_MANY_REQUESTS.value())
+                        .detail(
+                                String.format(
+                                        "Request limit exceeded for %s. Please try again in %d"
+                                                + " seconds.",
+                                        endpointType, waitSeconds))
+                        .instance(isAuthEndpoint ? "/auth" : "/api")
+                        .extension("retryAfterSeconds", waitSeconds)
+                        .extension("endpointType", endpointType)
+                        .build();
 
-        response.getWriter().write(jsonResponse);
+        response.getWriter().write(objectMapper.writeValueAsString(problem));
     }
 
     private void sendTierRateLimitResponse(
             HttpServletResponse response, long waitSeconds, RateLimitTier tier) throws IOException {
 
         response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setContentType(APPLICATION_PROBLEM_JSON.toString());
         response.setHeader("Retry-After", String.valueOf(waitSeconds));
         response.setHeader(TIER_HEADER, tier.getName());
 
         TierConfig tierConfig = rateLimitService.getTierConfig(tier);
-        String jsonResponse =
-                String.format(
-                        """
-                        {
-                            "type": "urn:apigen:problem:rate-limit-exceeded",
-                            "title": "Too Many Requests",
-                            "status": 429,
-                            "detail": "Rate limit exceeded for tier '%s'. Retry in %d seconds.",
-                            "tier": "%s",
-                            "limit": %d,
-                            "upgradeUrl": "/api/plans"
-                        }
-                        """,
-                        tier.getName(),
-                        waitSeconds,
-                        tier.getName(),
-                        tierConfig.getRequestsPerSecond());
+        ProblemDetail problem =
+                ProblemDetail.builder()
+                        .type(URI.create("urn:apigen:problem:rate-limit-exceeded"))
+                        .title("Too Many Requests")
+                        .status(HttpStatus.TOO_MANY_REQUESTS.value())
+                        .detail(
+                                String.format(
+                                        "Rate limit exceeded for tier '%s'. Retry in %d seconds.",
+                                        tier.getName(), waitSeconds))
+                        .instance("/api")
+                        .extension("retryAfterSeconds", waitSeconds)
+                        .extension("tier", tier.getName())
+                        .extension("limit", tierConfig.getRequestsPerSecond())
+                        .extension("upgradeUrl", "/api/plans")
+                        .build();
 
-        response.getWriter().write(jsonResponse);
+        response.getWriter().write(objectMapper.writeValueAsString(problem));
     }
 }

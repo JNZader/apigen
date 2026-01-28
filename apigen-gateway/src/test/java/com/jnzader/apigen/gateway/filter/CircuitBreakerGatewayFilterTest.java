@@ -3,6 +3,7 @@ package com.jnzader.apigen.gateway.filter;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -23,6 +24,8 @@ class CircuitBreakerGatewayFilterTest {
 
     @Mock private GatewayFilterChain chain;
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     @Nested
     @DisplayName("Normal Operation")
     class NormalOperationTests {
@@ -31,7 +34,8 @@ class CircuitBreakerGatewayFilterTest {
         @DisplayName("should pass through when downstream succeeds")
         void shouldPassThroughWhenDownstreamSucceeds() {
             CircuitBreakerGatewayFilter filter =
-                    new CircuitBreakerGatewayFilter("test-cb", Duration.ofSeconds(10));
+                    new CircuitBreakerGatewayFilter(
+                            "test-cb", Duration.ofSeconds(10), objectMapper);
 
             MockServerHttpRequest request = MockServerHttpRequest.get("/api/test").build();
             MockServerWebExchange exchange = MockServerWebExchange.from(request);
@@ -52,7 +56,8 @@ class CircuitBreakerGatewayFilterTest {
         @DisplayName("should return 503 on general error with default fallback")
         void shouldReturn503OnGeneralErrorWithDefaultFallback() {
             CircuitBreakerGatewayFilter filter =
-                    new CircuitBreakerGatewayFilter("test-cb", Duration.ofSeconds(10));
+                    new CircuitBreakerGatewayFilter(
+                            "test-cb", Duration.ofSeconds(10), objectMapper);
 
             MockServerHttpRequest request = MockServerHttpRequest.get("/api/test").build();
             MockServerWebExchange exchange = MockServerWebExchange.from(request);
@@ -70,7 +75,8 @@ class CircuitBreakerGatewayFilterTest {
         @DisplayName("should return 504 on timeout with default fallback")
         void shouldReturn504OnTimeoutWithDefaultFallback() {
             CircuitBreakerGatewayFilter filter =
-                    new CircuitBreakerGatewayFilter("test-cb", Duration.ofSeconds(10));
+                    new CircuitBreakerGatewayFilter(
+                            "test-cb", Duration.ofSeconds(10), objectMapper);
 
             MockServerHttpRequest request = MockServerHttpRequest.get("/api/test").build();
             MockServerWebExchange exchange = MockServerWebExchange.from(request);
@@ -94,7 +100,8 @@ class CircuitBreakerGatewayFilterTest {
                             ex -> {
                                 ex.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
                                 return ex.getResponse().setComplete();
-                            });
+                            },
+                            objectMapper);
 
             MockServerHttpRequest request = MockServerHttpRequest.get("/api/test").build();
             MockServerWebExchange exchange = MockServerWebExchange.from(request);
@@ -116,7 +123,7 @@ class CircuitBreakerGatewayFilterTest {
         @DisplayName("should build with default timeout")
         void shouldBuildWithDefaultTimeout() {
             CircuitBreakerGatewayFilter filter =
-                    CircuitBreakerGatewayFilter.builder("my-cb").build();
+                    CircuitBreakerGatewayFilter.builder("my-cb", objectMapper).build();
 
             assertThat(filter.getCircuitBreakerId()).isEqualTo("my-cb");
             assertThat(filter.getTimeout()).isEqualTo(Duration.ofSeconds(10));
@@ -126,7 +133,7 @@ class CircuitBreakerGatewayFilterTest {
         @DisplayName("should build with custom timeout")
         void shouldBuildWithCustomTimeout() {
             CircuitBreakerGatewayFilter filter =
-                    CircuitBreakerGatewayFilter.builder("my-cb")
+                    CircuitBreakerGatewayFilter.builder("my-cb", objectMapper)
                             .timeout(Duration.ofSeconds(30))
                             .build();
 
@@ -137,7 +144,7 @@ class CircuitBreakerGatewayFilterTest {
         @DisplayName("should build with fallback")
         void shouldBuildWithFallback() {
             CircuitBreakerGatewayFilter filter =
-                    CircuitBreakerGatewayFilter.builder("my-cb")
+                    CircuitBreakerGatewayFilter.builder("my-cb", objectMapper)
                             .fallback(ex -> Mono.empty())
                             .build();
 
@@ -153,7 +160,7 @@ class CircuitBreakerGatewayFilterTest {
         @DisplayName("should provide circuit breaker id")
         void shouldProvideCircuitBreakerId() {
             CircuitBreakerGatewayFilter filter =
-                    new CircuitBreakerGatewayFilter("cb-id", Duration.ofSeconds(5));
+                    new CircuitBreakerGatewayFilter("cb-id", Duration.ofSeconds(5), objectMapper);
 
             assertThat(filter.getCircuitBreakerId()).isEqualTo("cb-id");
         }
@@ -162,7 +169,7 @@ class CircuitBreakerGatewayFilterTest {
         @DisplayName("should provide timeout")
         void shouldProvideTimeout() {
             CircuitBreakerGatewayFilter filter =
-                    new CircuitBreakerGatewayFilter("cb-id", Duration.ofSeconds(5));
+                    new CircuitBreakerGatewayFilter("cb-id", Duration.ofSeconds(5), objectMapper);
 
             assertThat(filter.getTimeout()).isEqualTo(Duration.ofSeconds(5));
         }

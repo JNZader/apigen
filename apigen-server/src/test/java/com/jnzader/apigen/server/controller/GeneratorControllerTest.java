@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jnzader.apigen.server.dto.GenerateRequest;
 import com.jnzader.apigen.server.dto.GenerateResponse;
+import com.jnzader.apigen.server.exception.ProjectGenerationException;
 import com.jnzader.apigen.server.service.GeneratorService;
 import java.io.IOException;
 import org.junit.jupiter.api.BeforeEach;
@@ -239,15 +240,15 @@ class GeneratorControllerTest {
     }
 
     @Nested
-    @DisplayName("GenerationException")
-    class GenerationExceptionTests {
+    @DisplayName("ProjectGenerationException")
+    class ProjectGenerationExceptionTests {
 
         @Test
         @DisplayName("Should create exception with message and cause")
         void shouldCreateExceptionWithMessageAndCause() {
             Throwable cause = new IOException("Original error");
-            GeneratorController.GenerationException exception =
-                    new GeneratorController.GenerationException("Generation failed", cause);
+            ProjectGenerationException exception =
+                    new ProjectGenerationException("Generation failed", cause);
 
             org.assertj.core.api.Assertions.assertThat(exception.getMessage())
                     .isEqualTo("Generation failed");
@@ -257,8 +258,8 @@ class GeneratorControllerTest {
         @Test
         @DisplayName("Should be a RuntimeException")
         void shouldBeARuntimeException() {
-            GeneratorController.GenerationException exception =
-                    new GeneratorController.GenerationException("test", new Exception());
+            ProjectGenerationException exception =
+                    new ProjectGenerationException("test", new Exception());
 
             org.assertj.core.api.Assertions.assertThat(exception)
                     .isInstanceOf(RuntimeException.class);

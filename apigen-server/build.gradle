@@ -40,8 +40,9 @@ dependencies {
     implementation 'org.apache.httpcomponents.client5:httpclient5:5.5'
     implementation 'org.apache.httpcomponents.core5:httpcore5-reactive:5.3.4'
 
-    // APiGen Codegen (local module)
+    // APiGen modules (local)
     implementation project(':apigen-codegen')
+    implementation project(':apigen-core')
 
     // Lombok
     compileOnly 'org.projectlombok:lombok'

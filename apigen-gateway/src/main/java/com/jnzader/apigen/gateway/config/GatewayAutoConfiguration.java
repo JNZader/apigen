@@ -1,5 +1,6 @@
 package com.jnzader.apigen.gateway.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jnzader.apigen.gateway.filter.AuthenticationGatewayFilter;
 import com.jnzader.apigen.gateway.filter.LoggingGatewayFilter;
 import com.jnzader.apigen.gateway.filter.RateLimitKeyResolver;
@@ -107,13 +108,15 @@ public class GatewayAutoConfiguration {
             matchIfMissing = true)
     public AuthenticationGatewayFilter authenticationGatewayFilter(
             GatewayProperties properties,
+            ObjectMapper objectMapper,
             @org.springframework.beans.factory.annotation.Autowired(required = false)
                     Function<String, AuthenticationGatewayFilter.AuthResult> tokenValidator) {
 
         if (tokenValidator == null) {
             log.warn(
                     "No token validator provided, authentication filter will reject all requests."
-                        + " Provide a Function<String, AuthResult> bean to enable authentication.");
+                            + " Provide a Function<String, AuthResult> bean to enable"
+                            + " authentication.");
             tokenValidator =
                     token ->
                             AuthenticationGatewayFilter.AuthResult.failure(
@@ -125,6 +128,7 @@ public class GatewayAutoConfiguration {
                 tokenValidator,
                 properties.getAuth().getExcludedPaths(),
                 properties.getAuth().getHeaderName(),
-                properties.getAuth().getTokenPrefix());
+                properties.getAuth().getTokenPrefix(),
+                objectMapper);
     }
 }
