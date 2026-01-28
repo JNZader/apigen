@@ -61,43 +61,43 @@ public class MiseGenerator {
 
         [tasks.dev]
         description = "Start development server with hot reload"
-        run = "./gradlew bootRun"
+        run = "gradlew bootRun"
 
         [tasks.test]
         description = "Run all tests"
-        run = "./gradlew test"
+        run = "gradlew test"
 
         [tasks.test-unit]
         description = "Run unit tests only"
-        run = "./gradlew test --tests '*Test' -x integrationTest"
+        run = "gradlew test --tests '*Test' -x integrationTest"
 
         [tasks.test-it]
         description = "Run integration tests only"
-        run = "./gradlew integrationTest"
+        run = "gradlew integrationTest"
 
         [tasks.lint]
         description = "Check code formatting"
-        run = "./gradlew spotlessCheck"
+        run = "gradlew spotlessCheck"
 
         [tasks.fmt]
         description = "Format all code"
-        run = "./gradlew spotlessApply"
+        run = "gradlew spotlessApply"
 
         [tasks.build]
         description = "Build production JAR"
-        run = "./gradlew build -x test"
+        run = "gradlew build -x test"
 
         [tasks.clean]
         description = "Clean build artifacts"
-        run = "./gradlew clean"
+        run = "gradlew clean"
 
         [tasks.deps]
         description = "Check for dependency updates"
-        run = "./gradlew dependencyUpdates"
+        run = "gradlew dependencyUpdates"
 
         [tasks.coverage]
         description = "Generate test coverage report"
-        run = "./gradlew jacocoTestReport && echo 'Report: build/reports/jacoco/test/html/index.html'"
+        run = "gradlew jacocoTestReport && echo 'Report: build/reports/jacoco/test/html/index.html'"
 
         [tasks.docker]
         description = "Build Docker image"
@@ -121,11 +121,11 @@ public class MiseGenerator {
 
         [tasks.migrate]
         description = "Run Flyway migrations"
-        run = "./gradlew flywayMigrate"
+        run = "gradlew flywayMigrate"
 
         [tasks.migrate-info]
         description = "Show migration status"
-        run = "./gradlew flywayInfo"
+        run = "gradlew flywayInfo"
         """
                 .formatted(
                         langName,
