@@ -40,7 +40,7 @@ public class GatewayErrorWriter {
      * @param type problem type URI
      * @param title short human-readable summary
      * @param detail human-readable explanation
-     * @return Mono<Void> that completes when the response is written
+     * @return a Mono that completes when the response is written
      */
     public Mono<Void> writeError(
             ServerWebExchange exchange,
@@ -60,7 +60,7 @@ public class GatewayErrorWriter {
      * @param title short human-readable summary
      * @param detail human-readable explanation
      * @param extensions additional problem-specific fields
-     * @return Mono<Void> that completes when the response is written
+     * @return a Mono that completes when the response is written
      */
     public Mono<Void> writeError(
             ServerWebExchange exchange,
@@ -101,7 +101,7 @@ public class GatewayErrorWriter {
      *
      * @param exchange the server web exchange
      * @param detail error detail message
-     * @return Mono<Void> that completes when the response is written
+     * @return a Mono that completes when the response is written
      */
     public Mono<Void> writeUnauthorized(ServerWebExchange exchange, String detail) {
         return writeError(
@@ -118,7 +118,7 @@ public class GatewayErrorWriter {
      * @param exchange the server web exchange
      * @param detail error detail message
      * @param errorCode specific error code
-     * @return Mono<Void> that completes when the response is written
+     * @return a Mono that completes when the response is written
      */
     public Mono<Void> writeUnauthorized(
             ServerWebExchange exchange, String detail, String errorCode) {
@@ -138,7 +138,7 @@ public class GatewayErrorWriter {
      *
      * @param exchange the server web exchange
      * @param detail error detail message
-     * @return Mono<Void> that completes when the response is written
+     * @return a Mono that completes when the response is written
      */
     public Mono<Void> writeForbidden(ServerWebExchange exchange, String detail) {
         return writeError(
@@ -154,7 +154,7 @@ public class GatewayErrorWriter {
      *
      * @param exchange the server web exchange
      * @param detail error detail message
-     * @return Mono<Void> that completes when the response is written
+     * @return a Mono that completes when the response is written
      */
     public Mono<Void> writeGatewayTimeout(ServerWebExchange exchange, String detail) {
         return writeError(
@@ -170,7 +170,7 @@ public class GatewayErrorWriter {
      *
      * @param exchange the server web exchange
      * @param circuitBreakerId the circuit breaker identifier
-     * @return Mono<Void> that completes when the response is written
+     * @return a Mono that completes when the response is written
      */
     public Mono<Void> writeGatewayTimeout(
             ServerWebExchange exchange, String detail, String circuitBreakerId) {
@@ -190,7 +190,7 @@ public class GatewayErrorWriter {
      *
      * @param exchange the server web exchange
      * @param detail error detail message
-     * @return Mono<Void> that completes when the response is written
+     * @return a Mono that completes when the response is written
      */
     public Mono<Void> writeServiceUnavailable(ServerWebExchange exchange, String detail) {
         return writeError(
@@ -207,7 +207,7 @@ public class GatewayErrorWriter {
      * @param exchange the server web exchange
      * @param detail error detail message
      * @param circuitBreakerId the circuit breaker identifier
-     * @return Mono<Void> that completes when the response is written
+     * @return a Mono that completes when the response is written
      */
     public Mono<Void> writeServiceUnavailable(
             ServerWebExchange exchange, String detail, String circuitBreakerId) {
@@ -227,7 +227,7 @@ public class GatewayErrorWriter {
      *
      * @param exchange the server web exchange
      * @param retryAfterSeconds seconds to wait before retrying
-     * @return Mono<Void> that completes when the response is written
+     * @return a Mono that completes when the response is written
      */
     public Mono<Void> writeRateLimitExceeded(ServerWebExchange exchange, long retryAfterSeconds) {
         Map<String, Object> extensions = new HashMap<>();
@@ -250,7 +250,7 @@ public class GatewayErrorWriter {
      *
      * @param exchange the server web exchange
      * @param detail error detail message
-     * @return Mono<Void> that completes when the response is written
+     * @return a Mono that completes when the response is written
      */
     public Mono<Void> writeBadGateway(ServerWebExchange exchange, String detail) {
         return writeError(
