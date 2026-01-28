@@ -1,6 +1,6 @@
 package com.jnzader.apigen.server.exception;
 
-import com.jnzader.apigen.core.domain.exception.ExternalServiceException;
+import com.jnzader.apigen.exceptions.domain.ExternalServiceException;
 import java.time.Instant;
 
 /**

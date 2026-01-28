@@ -1,6 +1,6 @@
 package com.jnzader.apigen.server.exception;
 
-import com.jnzader.apigen.core.domain.exception.OperationFailedException;
+import com.jnzader.apigen.exceptions.domain.OperationFailedException;
 
 /**
  * Exception thrown when project generation fails.

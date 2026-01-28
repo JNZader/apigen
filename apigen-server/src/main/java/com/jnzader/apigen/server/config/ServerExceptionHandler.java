@@ -1,9 +1,9 @@
 package com.jnzader.apigen.server.config;
 
-import com.jnzader.apigen.core.domain.exception.ExternalServiceException;
-import com.jnzader.apigen.core.domain.exception.OperationFailedException;
-import com.jnzader.apigen.core.domain.exception.ValidationException;
-import com.jnzader.apigen.core.infrastructure.exception.ProblemDetail;
+import com.jnzader.apigen.exceptions.domain.ExternalServiceException;
+import com.jnzader.apigen.exceptions.domain.OperationFailedException;
+import com.jnzader.apigen.exceptions.domain.ValidationException;
+import com.jnzader.apigen.exceptions.infrastructure.ProblemDetail;
 import com.jnzader.apigen.server.exception.GitHubApiException;
 import com.jnzader.apigen.server.exception.ProjectGenerationException;
 import com.jnzader.apigen.server.exception.SchemaValidationException;

@@ -1,6 +1,6 @@
 package com.jnzader.apigen.server.exception;
 
-import com.jnzader.apigen.core.domain.exception.ValidationException;
+import com.jnzader.apigen.exceptions.domain.ValidationException;
 import java.util.List;
 
 /**

@@ -2,6 +2,7 @@ rootProject.name = 'apigen'
 
 // Multi-module project structure
 include 'apigen-bom'
+include 'apigen-exceptions'
 include 'apigen-core'
 include 'apigen-security'
 include 'apigen-codegen'
