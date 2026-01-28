@@ -50,6 +50,7 @@ using AutoMapper;
 using FluentAssertions;
 using Moq;
 using Xunit;
+using %s.Application.Exceptions;
 using %s.%s.Application.DTOs;
 using %s.%s.Application.Services;
 using %s.%s.Domain.Entities;
@@ -84,7 +85,7 @@ public class %sServiceTests
         return new %sDto
         {
             Id = 1,%s
-            Activo = true
+            Estado = true
         };
     }
 
@@ -109,17 +110,14 @@ public class %sServiceTests
     }
 
     [Fact]
-    public async Task GetByIdAsync_ShouldReturnNull_WhenEntityNotExists()
+    public async Task GetByIdAsync_ShouldThrowNotFoundException_WhenEntityNotExists()
     {
         // Arrange
-        _mockRepository.Setup(r => r.GetByIdAsync(It.IsAny<long>()))
+        _mockRepository.Setup(r => r.GetByIdAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((%s?)null);
 
-        // Act
-        var result = await _service.GetByIdAsync(999999);
-
-        // Assert
-        result.Should().BeNull();
+        // Act & Assert
+        await Assert.ThrowsAsync<NotFoundException>(() => _service.GetByIdAsync(999999));
     }
 
     [Fact]
@@ -201,73 +199,63 @@ public class %sServiceTests
         // Arrange
         var entity = CreateTestEntity();
 
-        _mockRepository.Setup(r => r.GetByIdAsync(1))
+        _mockRepository.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(entity);
-        _mockRepository.Setup(r => r.DeleteAsync(entity))
+        _mockRepository.Setup(r => r.DeleteAsync(entity, It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
         // Act
         await _service.DeleteAsync(1);
 
         // Assert
-        _mockRepository.Verify(r => r.DeleteAsync(entity), Times.Once);
-    }
-
-    [Fact]
-    public async Task SoftDeleteAsync_ShouldSetEstadoToFalse()
-    {
-        // Arrange
-        var entity = CreateTestEntity();
-
-        _mockRepository.Setup(r => r.GetByIdAsync(1))
-            .ReturnsAsync(entity);
-        _mockRepository.Setup(r => r.UpdateAsync(It.IsAny<%s>()))
-            .Returns(Task.CompletedTask);
-
-        // Act
-        await _service.SoftDeleteAsync(1);
-
-        // Assert
-        _mockRepository.Verify(r => r.UpdateAsync(It.Is<%s>(e => e.Estado == false)), Times.Once);
+        _mockRepository.Verify(r => r.DeleteAsync(entity, It.IsAny<CancellationToken>()), Times.Once);
     }
 }
 """
                 .formatted(
+                        // Using statements
+                        baseNamespace, // .Application.Exceptions
                         baseNamespace,
-                        moduleName,
+                        moduleName, // .Application.DTOs
                         baseNamespace,
-                        moduleName,
+                        moduleName, // .Application.Services
                         baseNamespace,
-                        moduleName,
+                        moduleName, // .Domain.Entities
                         baseNamespace,
-                        moduleName,
+                        moduleName, // .Domain.Interfaces
+                        // Namespace
                         baseNamespace,
-                        moduleName,
-                        entityName,
-                        entityName,
-                        entityName,
-                        entityName,
-                        entityName,
-                        entityName,
-                        entityName,
-                        entityName,
+                        moduleName, // .Tests.X.Application.Services
+                        // Class and constructor
+                        entityName, // ServiceTests class
+                        entityName, // Mock<IXRepository>
+                        entityName, // XService _service
+                        entityName, // XServiceTests()
+                        entityName, // Mock<IXRepository>()
+                        entityName, // new XService()
+                        // Helper methods
+                        entityName, // CreateTestEntity return type
+                        entityName, // new X
                         entityFieldAssignments.toString(),
-                        entityName,
-                        entityName,
+                        entityName, // CreateTestDto return type
+                        entityName, // new XDto
                         dtoFieldAssignments.toString(),
-                        entityName,
-                        entityName,
-                        entityName,
-                        entityName,
-                        entityName,
-                        entityName,
+                        // GetByIdAsync_ShouldReturnDto
+                        entityName, // Map<XDto>
+                        // GetByIdAsync_ShouldThrowNotFoundException
+                        entityName, // (X?)null
+                        // GetAllAsync
+                        entityName, // List<X>
+                        entityName, // List<XDto>
+                        entityName, // Map<IEnumerable<XDto>>
+                        // CreateAsync
+                        entityName, // CreateXDto
                         dtoFieldAssignments.toString(),
-                        entityName,
-                        entityName,
-                        entityName,
+                        entityName, // Map<X>
+                        entityName, // Map<XDto>
+                        // UpdateAsync
+                        entityName, // UpdateXDto
                         dtoFieldAssignments.toString(),
-                        entityName,
-                        entityName,
-                        entityName);
+                        entityName); // Map<XDto>
     }
 }

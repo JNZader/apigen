@@ -8,10 +8,9 @@ import com.jnzader.apigen.codegen.model.RelationType;
 import com.jnzader.apigen.codegen.model.SqlColumn;
 import com.jnzader.apigen.codegen.model.SqlSchema;
 import com.jnzader.apigen.codegen.model.SqlTable;
-import java.util.ArrayList;
 import java.util.List;
 
-/** Generates DTO record classes for C#/ASP.NET Core. */
+/** Generates DTO classes with init properties for C#/ASP.NET Core. */
 @SuppressWarnings("java:S1192") // Duplicate strings intentional for code generation templates
 public class CSharpDTOGenerator {
 
@@ -65,12 +64,11 @@ public class CSharpDTOGenerator {
         sb.append("/// <summary>\n");
         sb.append("/// Response DTO for ").append(entityName).append(" entity.\n");
         sb.append("/// </summary>\n");
-        sb.append("public record ").append(entityName).append("Dto(\n");
-
-        List<String> properties = new ArrayList<>();
+        sb.append("public class ").append(entityName).append("Dto\n");
+        sb.append("{\n");
 
         // Id from base
-        properties.add("    long Id");
+        sb.append("    public long Id { get; init; }\n");
 
         // Regular columns
         for (SqlColumn col : table.getColumns()) {
@@ -84,9 +82,17 @@ public class CSharpDTOGenerator {
             String csharpType = typeMapper.mapColumnType(col);
 
             if (col.isNullable()) {
-                properties.add("    " + csharpType + "? " + fieldName);
+                sb.append("    public ")
+                        .append(csharpType)
+                        .append("? ")
+                        .append(fieldName)
+                        .append(" { get; init; }\n");
             } else {
-                properties.add("    " + csharpType + " " + fieldName);
+                sb.append("    public ")
+                        .append(csharpType)
+                        .append(" ")
+                        .append(fieldName)
+                        .append(" { get; init; } = default!;\n");
             }
         }
 
@@ -96,7 +102,7 @@ public class CSharpDTOGenerator {
                     || rel.getRelationType() == RelationType.ONE_TO_ONE) {
                 String fkColumnName = rel.getForeignKey().getColumnName();
                 String propertyName = toPascalCase(toPropertyName(fkColumnName));
-                properties.add("    long? " + propertyName + "Id");
+                sb.append("    public long? ").append(propertyName).append("Id { get; init; }\n");
             }
         }
 
@@ -104,18 +110,19 @@ public class CSharpDTOGenerator {
         for (ManyToManyRelation rel : manyToManyRelations) {
             String targetEntityName = rel.targetTable().getEntityName();
             String collectionName = toPlural(targetEntityName) + "Ids";
-            properties.add("    IEnumerable<long>? " + collectionName);
+            sb.append("    public IEnumerable<long>? ")
+                    .append(collectionName)
+                    .append(" { get; init; }\n");
         }
 
         // Audit fields from base
-        properties.add("    bool Estado");
-        properties.add("    DateTime CreatedAt");
-        properties.add("    DateTime? UpdatedAt");
-        properties.add("    string? CreatedBy");
-        properties.add("    string? UpdatedBy");
+        sb.append("    public bool Estado { get; init; }\n");
+        sb.append("    public DateTime CreatedAt { get; init; }\n");
+        sb.append("    public DateTime? UpdatedAt { get; init; }\n");
+        sb.append("    public string? CreatedBy { get; init; }\n");
+        sb.append("    public string? UpdatedBy { get; init; }\n");
 
-        sb.append(String.join(",\n", properties));
-        sb.append("\n);\n");
+        sb.append("}\n");
     }
 
     private void generateCreateDto(
@@ -127,9 +134,8 @@ public class CSharpDTOGenerator {
         sb.append("/// <summary>\n");
         sb.append("/// DTO for creating a new ").append(entityName).append(".\n");
         sb.append("/// </summary>\n");
-        sb.append("public record Create").append(entityName).append("Dto(\n");
-
-        List<String> properties = new ArrayList<>();
+        sb.append("public class Create").append(entityName).append("Dto\n");
+        sb.append("{\n");
 
         // Regular columns (excluding PK and audit fields)
         for (SqlColumn col : table.getColumns()) {
@@ -142,17 +148,21 @@ public class CSharpDTOGenerator {
             String fieldName = toPascalCase(col.getJavaFieldName());
             String csharpType = typeMapper.mapColumnType(col);
 
-            StringBuilder prop = new StringBuilder();
-
             // Add Required attribute for non-nullable fields
             if (!col.isNullable()) {
-                prop.append("    [Required] ");
-                prop.append(csharpType).append(" ").append(fieldName);
+                sb.append("    [Required]\n");
+                sb.append("    public ")
+                        .append(csharpType)
+                        .append(" ")
+                        .append(fieldName)
+                        .append(" { get; init; } = default!;\n\n");
             } else {
-                prop.append("    ").append(csharpType).append("? ").append(fieldName);
+                sb.append("    public ")
+                        .append(csharpType)
+                        .append("? ")
+                        .append(fieldName)
+                        .append(" { get; init; }\n\n");
             }
-
-            properties.add(prop.toString());
         }
 
         // FK IDs from relations
@@ -161,12 +171,11 @@ public class CSharpDTOGenerator {
                     || rel.getRelationType() == RelationType.ONE_TO_ONE) {
                 String fkColumnName = rel.getForeignKey().getColumnName();
                 String propertyName = toPascalCase(toPropertyName(fkColumnName));
-                properties.add("    long? " + propertyName + "Id");
+                sb.append("    public long? ").append(propertyName).append("Id { get; init; }\n\n");
             }
         }
 
-        sb.append(String.join(",\n", properties));
-        sb.append("\n);\n");
+        sb.append("}\n");
     }
 
     private void generateUpdateDto(
@@ -178,9 +187,8 @@ public class CSharpDTOGenerator {
         sb.append("/// <summary>\n");
         sb.append("/// DTO for updating an existing ").append(entityName).append(".\n");
         sb.append("/// </summary>\n");
-        sb.append("public record Update").append(entityName).append("Dto(\n");
-
-        List<String> properties = new ArrayList<>();
+        sb.append("public class Update").append(entityName).append("Dto\n");
+        sb.append("{\n");
 
         // All fields are optional for partial updates
         for (SqlColumn col : table.getColumns()) {
@@ -194,7 +202,11 @@ public class CSharpDTOGenerator {
             String csharpType = typeMapper.mapColumnType(col);
 
             // All fields nullable for partial updates
-            properties.add("    " + csharpType + "? " + fieldName);
+            sb.append("    public ")
+                    .append(csharpType)
+                    .append("? ")
+                    .append(fieldName)
+                    .append(" { get; init; }\n\n");
         }
 
         // FK IDs from relations
@@ -203,11 +215,10 @@ public class CSharpDTOGenerator {
                     || rel.getRelationType() == RelationType.ONE_TO_ONE) {
                 String fkColumnName = rel.getForeignKey().getColumnName();
                 String propertyName = toPascalCase(toPropertyName(fkColumnName));
-                properties.add("    long? " + propertyName + "Id");
+                sb.append("    public long? ").append(propertyName).append("Id { get; init; }\n\n");
             }
         }
 
-        sb.append(String.join(",\n", properties));
-        sb.append("\n);\n");
+        sb.append("}\n");
     }
 }

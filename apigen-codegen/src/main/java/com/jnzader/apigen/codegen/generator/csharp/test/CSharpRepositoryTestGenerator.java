@@ -171,31 +171,6 @@ public class %sRepositoryTests : IDisposable
     }
 
     [Fact]
-    public async Task ExistsAsync_ShouldReturnTrue_WhenEntityExists()
-    {
-        // Arrange
-        var entity = CreateTestEntity();
-        await _context.Set<%s>().AddAsync(entity);
-        await _context.SaveChangesAsync();
-
-        // Act
-        var exists = await _repository.ExistsAsync(entity.Id);
-
-        // Assert
-        exists.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task ExistsAsync_ShouldReturnFalse_WhenEntityNotExists()
-    {
-        // Act
-        var exists = await _repository.ExistsAsync(999999);
-
-        // Assert
-        exists.Should().BeFalse();
-    }
-
-    [Fact]
     public async Task CountAsync_ShouldReturnCorrectCount()
     {
         // Arrange
@@ -235,30 +210,34 @@ public class %sRepositoryTests : IDisposable
 }
 """
                 .formatted(
+                        // Using statements
                         baseNamespace,
-                        moduleName,
+                        moduleName, // .Domain.Entities
                         baseNamespace,
-                        moduleName,
+                        moduleName, // .Infrastructure.Repositories
+                        baseNamespace, // .Infrastructure.Persistence
+                        // Namespace
                         baseNamespace,
-                        baseNamespace,
-                        moduleName,
-                        entityName,
-                        entityName,
-                        entityName,
-                        entityName,
-                        entityName,
-                        entityName,
+                        moduleName, // .Tests.X.Infrastructure.Repositories
+                        // Class and constructor
+                        entityName, // RepositoryTests class
+                        entityName, // XRepository _repository
+                        entityName, // XRepositoryTests()
+                        entityName, // new XRepository()
+                        // Helper method
+                        entityName, // CreateTestEntity return type
+                        entityName, // new X
                         fieldAssignments.toString(),
-                        entityName,
-                        entityName,
-                        entityName,
-                        entityName,
-                        entityName,
-                        entityName,
-                        entityName,
-                        entityName,
-                        entityName,
-                        entityName,
-                        entityName);
+                        // Test methods
+                        entityName, // Set<X>() GetByIdAsync
+                        entityName, // Set<X>() GetAllAsync
+                        entityName, // Set<X>() AddAsync
+                        entityName, // Set<X>() UpdateAsync add
+                        entityName, // Set<X>() UpdateAsync find
+                        entityName, // Set<X>() DeleteAsync add
+                        entityName, // Set<X>() DeleteAsync find
+                        entityName, // Set<X>() CountAsync
+                        entityName, // Set<X>() SoftDeleteAsync add
+                        entityName); // Set<X>() SoftDeleteAsync find
     }
 }

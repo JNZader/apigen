@@ -102,8 +102,8 @@ public final class GeneratedProjectVersions {
     // Testing Library Versions
     // ==========================================================================
 
-    /** PIT Mutation Testing plugin version. */
-    public static final String PITEST_PLUGIN_VERSION = "1.15.0";
+    /** PIT Mutation Testing plugin version (1.19.0-rc.3 for Gradle 9.x compatibility). */
+    public static final String PITEST_PLUGIN_VERSION = "1.19.0-rc.3";
 
     /** PIT JUnit 5 plugin version (must match pitest-junit5-plugin). */
     public static final String PITEST_JUNIT5_VERSION = "1.2.1";

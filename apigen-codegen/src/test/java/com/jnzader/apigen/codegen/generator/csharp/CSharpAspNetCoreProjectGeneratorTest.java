@@ -215,8 +215,8 @@ class CSharpAspNetCoreProjectGeneratorTest {
         }
 
         @Test
-        @DisplayName("Should generate C# record syntax in DTO files")
-        void shouldGenerateCSharpRecordSyntaxInDtoFiles() {
+        @DisplayName("Should generate C# class with init properties in DTO files")
+        void shouldGenerateCSharpClassSyntaxInDtoFiles() {
             SqlSchema schema = createSimpleSchema("products");
             ProjectConfig config = createConfig("MyApi");
 
@@ -224,7 +224,8 @@ class CSharpAspNetCoreProjectGeneratorTest {
 
             String dtoContent = files.get("Products/Application/DTOs/ProductDto.cs");
             assertThat(dtoContent)
-                    .contains("public record ProductDto")
+                    .contains("public class ProductDto")
+                    .contains("{ get; init; }")
                     .contains("namespace MyApi.Products.Application.DTOs;");
         }
 
