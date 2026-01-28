@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.26.6](https://github.com/JNZader/apigen/compare/v2.26.5...v2.26.6) (2026-01-28)
+
+### Bug Fixes
+
+* **server:** keep cache/hateoas deps, only exclude JPA/Hibernate ([e9b81e7](https://github.com/JNZader/apigen/commit/e9b81e7ec0cc35ca158f0ffed717943f53ee9433))
+
 ## [2.26.5](https://github.com/JNZader/apigen/compare/v2.26.4...v2.26.5) (2026-01-28)
 
 ### Bug Fixes
