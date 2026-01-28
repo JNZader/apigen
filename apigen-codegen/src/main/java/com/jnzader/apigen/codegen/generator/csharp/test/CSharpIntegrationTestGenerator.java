@@ -103,7 +103,7 @@ public class %sIntegrationTests : IClassFixture<WebApplicationFactory<Program>>,
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var result = await response.Content.ReadFromJsonAsync<PagedResponse<%sDto>>();
         result.Should().NotBeNull();
-        result!.Items.Should().BeEmpty();
+        result!.Content.Should().BeEmpty();
     }
 
     [Fact]
@@ -215,15 +215,16 @@ public class %sIntegrationTests : IClassFixture<WebApplicationFactory<Program>>,
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var result = await response.Content.ReadFromJsonAsync<PagedResponse<%sDto>>();
         result.Should().NotBeNull();
-        result!.Items.Should().HaveCount(10);
-        result.TotalCount.Should().Be(15);
+        result!.Content.Should().HaveCount(10);
+        result.TotalElements.Should().Be(15);
     }
 
     private record PagedResponse<%sDto>(
-        IEnumerable<%sDto> Items,
-        int TotalCount,
+        IEnumerable<%sDto> Content,
+        long TotalElements,
         int Page,
-        int PageSize
+        int Size,
+        int TotalPages
     );
 }
 """

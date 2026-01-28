@@ -96,7 +96,7 @@ public class %sServiceTests
         var entity = CreateTestEntity();
         var dto = CreateTestDto();
 
-        _mockRepository.Setup(r => r.GetByIdAsync(1))
+        _mockRepository.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(entity);
         _mockMapper.Setup(m => m.Map<%sDto>(entity))
             .Returns(dto);
@@ -127,9 +127,9 @@ public class %sServiceTests
         var entities = new List<%s> { CreateTestEntity() };
         var dtos = new List<%sDto> { CreateTestDto() };
 
-        _mockRepository.Setup(r => r.GetAllAsync())
+        _mockRepository.Setup(r => r.GetAllAsync(0, 10, It.IsAny<CancellationToken>()))
             .ReturnsAsync(entities);
-        _mockRepository.Setup(r => r.CountAsync())
+        _mockRepository.Setup(r => r.CountAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
         _mockMapper.Setup(m => m.Map<IEnumerable<%sDto>>(entities))
             .Returns(dtos);
@@ -139,8 +139,8 @@ public class %sServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Items.Should().HaveCount(1);
-        result.TotalCount.Should().Be(1);
+        result.Content.Should().HaveCount(1);
+        result.TotalElements.Should().Be(1);
     }
 
     [Fact]
@@ -155,7 +155,7 @@ public class %sServiceTests
 
         _mockMapper.Setup(m => m.Map<%s>(createDto))
             .Returns(entity);
-        _mockRepository.Setup(r => r.AddAsync(entity))
+        _mockRepository.Setup(r => r.AddAsync(entity, It.IsAny<CancellationToken>()))
             .ReturnsAsync(entity);
         _mockMapper.Setup(m => m.Map<%sDto>(entity))
             .Returns(resultDto);
@@ -178,11 +178,11 @@ public class %sServiceTests
         var existingEntity = CreateTestEntity();
         var updatedDto = CreateTestDto();
 
-        _mockRepository.Setup(r => r.GetByIdAsync(1))
+        _mockRepository.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingEntity);
         _mockMapper.Setup(m => m.Map(updateDto, existingEntity));
-        _mockRepository.Setup(r => r.UpdateAsync(existingEntity))
-            .Returns(Task.CompletedTask);
+        _mockRepository.Setup(r => r.UpdateAsync(existingEntity, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(existingEntity);
         _mockMapper.Setup(m => m.Map<%sDto>(existingEntity))
             .Returns(updatedDto);
 
@@ -201,14 +201,14 @@ public class %sServiceTests
 
         _mockRepository.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(entity);
-        _mockRepository.Setup(r => r.DeleteAsync(entity, It.IsAny<CancellationToken>()))
+        _mockRepository.Setup(r => r.SoftDeleteAsync(entity, It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
         // Act
         await _service.DeleteAsync(1);
 
         // Assert
-        _mockRepository.Verify(r => r.DeleteAsync(entity, It.IsAny<CancellationToken>()), Times.Once);
+        _mockRepository.Verify(r => r.SoftDeleteAsync(entity, It.IsAny<CancellationToken>()), Times.Once);
     }
 }
 """

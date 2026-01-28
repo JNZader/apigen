@@ -70,12 +70,12 @@ public class %sDtoTests
         var dto = new %sDto
         {
             Id = 1,%s
-            Activo = true
+            Estado = true
         };
 
         // Assert
         dto.Id.Should().Be(1);
-        dto.Activo.Should().BeTrue();%s
+        dto.Estado.Should().BeTrue();%s
     }
 
     [Fact]
@@ -86,7 +86,7 @@ public class %sDtoTests
 
         // Assert
         dto.Id.Should().Be(0);
-        dto.Activo.Should().BeFalse();
+        dto.Estado.Should().BeFalse();
     }
 
     [Fact]
@@ -133,13 +133,13 @@ public class %sDtoTests
     }
 
     [Fact]
-    public void Dto_ActivoProperty_ShouldMapToEntityEstado()
+    public void Dto_EstadoProperty_ShouldBeSetCorrectly()
     {
         // Arrange
-        var dto = new %sDto { Activo = true };
+        var dto = new %sDto { Estado = true };
 
-        // Assert - Activo in DTO maps to Estado in entity
-        dto.Activo.Should().BeTrue();
+        // Assert
+        dto.Estado.Should().BeTrue();
     }
 
     private static List<ValidationResult> ValidateModel<T>(T model) where T : class

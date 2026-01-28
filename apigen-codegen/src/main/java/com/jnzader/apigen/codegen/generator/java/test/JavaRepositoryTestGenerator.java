@@ -50,7 +50,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -71,9 +71,9 @@ class %sRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        %s = %s.builder()
-                .estado(true)%s
+        %s = %s.builder()%s
                 .build();
+        %s.setEstado(true);
     }
 
     @Nested
@@ -170,7 +170,7 @@ class %sRepositoryTest {
 
             int deleted = repository.softDeleteAllByIds(
                     List.of(saved.getId()),
-                    Instant.now(),
+                    LocalDateTime.now(),
                     "testUser"
             );
 
@@ -195,7 +195,7 @@ class %sRepositoryTest {
             %s saved = entityManager.persistAndFlush(%s);
             repository.softDeleteAllByIds(
                     List.of(saved.getId()),
-                    Instant.now(),
+                    LocalDateTime.now(),
                     "testUser"
             );
             entityManager.flush();
@@ -211,7 +211,7 @@ class %sRepositoryTest {
         void shouldReturnZeroForNonExistentSoftDelete() {
             int deleted = repository.softDeleteAllByIds(
                     List.of(999999L),
-                    Instant.now(),
+                    LocalDateTime.now(),
                     "testUser"
             );
 
@@ -242,12 +242,16 @@ class %sRepositoryTest {
         @Test
         @DisplayName("Should soft delete multiple entities")
         void shouldSoftDeleteMultiple() {
-            %s entity1 = entityManager.persistAndFlush(%s.builder().estado(true)%s.build());
-            %s entity2 = entityManager.persistAndFlush(%s.builder().estado(true)%s.build());
+            %s entity1 = %s.builder()%s.build();
+            entity1.setEstado(true);
+            entity1 = entityManager.persistAndFlush(entity1);
+            %s entity2 = %s.builder()%s.build();
+            entity2.setEstado(true);
+            entity2 = entityManager.persistAndFlush(entity2);
 
             int deleted = repository.softDeleteAllByIds(
                     List.of(entity1.getId(), entity2.getId()),
-                    Instant.now(),
+                    LocalDateTime.now(),
                     "testUser"
             );
 
@@ -257,12 +261,16 @@ class %sRepositoryTest {
         @Test
         @DisplayName("Should restore multiple entities")
         void shouldRestoreMultiple() {
-            %s entity1 = entityManager.persistAndFlush(%s.builder().estado(true)%s.build());
-            %s entity2 = entityManager.persistAndFlush(%s.builder().estado(true)%s.build());
+            %s entity1 = %s.builder()%s.build();
+            entity1.setEstado(true);
+            entity1 = entityManager.persistAndFlush(entity1);
+            %s entity2 = %s.builder()%s.build();
+            entity2.setEstado(true);
+            entity2 = entityManager.persistAndFlush(entity2);
 
             repository.softDeleteAllByIds(
                     List.of(entity1.getId(), entity2.getId()),
-                    Instant.now(),
+                    LocalDateTime.now(),
                     "testUser"
             );
             entityManager.flush();
@@ -289,10 +297,11 @@ class %sRepositoryTest {
                         // Fields (2)
                         entityName,
                         entityVarName,
-                        // setUp (3)
+                        // setUp (4)
                         entityVarName,
                         entityName,
                         fieldAssignments.toString(),
+                        entityVarName,
                         // Standard CRUD - save/retrieve (3)
                         entityName,
                         entityVarName,

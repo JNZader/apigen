@@ -67,7 +67,7 @@ public class %sControllerTests
         return new %sDto
         {
             Id = 1,%s
-            Activo = true
+            Estado = true
         };
     }
 
@@ -107,12 +107,13 @@ public class %sControllerTests
         // Arrange
         var pagedResult = new PagedResult<%sDto>
         {
-            Items = new List<%sDto> { CreateTestDto() },
-            TotalCount = 1,
+            Content = new List<%sDto> { CreateTestDto() },
+            TotalElements = 1,
             Page = 0,
-            PageSize = 10
+            Size = 10,
+            TotalPages = 1
         };
-        _mockService.Setup(s => s.GetAllAsync(0, 10))
+        _mockService.Setup(s => s.GetAllAsync(0, 10, It.IsAny<CancellationToken>()))
             .ReturnsAsync(pagedResult);
 
         // Act
@@ -121,7 +122,7 @@ public class %sControllerTests
         // Assert
         var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
         var returnedResult = okResult.Value.Should().BeOfType<PagedResult<%sDto>>().Subject;
-        returnedResult.Items.Should().HaveCount(1);
+        returnedResult.Content.Should().HaveCount(1);
     }
 
     [Fact]
@@ -195,19 +196,6 @@ public class %sControllerTests
         result.Should().BeOfType<NoContentResult>();
     }
 
-    [Fact]
-    public async Task SoftDelete_ShouldReturnNoContent()
-    {
-        // Arrange
-        _mockService.Setup(s => s.SoftDeleteAsync(1))
-            .Returns(Task.CompletedTask);
-
-        // Act
-        var result = await _controller.SoftDelete(1);
-
-        // Assert
-        result.Should().BeOfType<NoContentResult>();
-    }
 }
 """
                 .formatted(

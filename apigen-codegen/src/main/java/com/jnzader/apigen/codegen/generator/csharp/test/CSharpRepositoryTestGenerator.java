@@ -103,7 +103,7 @@ public class %sRepositoryTests : IDisposable
     }
 
     [Fact]
-    public async Task GetAllAsync_ShouldReturnAllEntities()
+    public async Task GetAllAsync_ShouldReturnPagedEntities()
     {
         // Arrange
         var entity1 = CreateTestEntity();
@@ -112,7 +112,7 @@ public class %sRepositoryTests : IDisposable
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _repository.GetAllAsync();
+        var result = await _repository.GetAllAsync(0, 10);
 
         // Assert
         result.Should().HaveCount(2);

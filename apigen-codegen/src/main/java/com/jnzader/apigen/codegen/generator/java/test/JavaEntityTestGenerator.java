@@ -104,11 +104,10 @@ class %sTest {
         }
 
         @Test
-        @DisplayName("getEstado() should default to true from builder")
+        @DisplayName("getEstado() should default to true")
         void getEstadoShouldDefaultToTrue() {
-            %s built = %s.builder().build();
-
-            assertThat(built.getEstado()).isTrue();
+            // Default value from field initialization
+            assertThat(%s.getEstado()).isTrue();
         }
 
         @Test
@@ -137,24 +136,25 @@ class %sTest {
     class BuilderTests {
 
         @Test
-        @DisplayName("Should build entity with all fields")
-        void shouldBuildEntityWithAllFields() {
-            %s built = %s.builder()
-                    .id(1L)
-                    .estado(true)%s
+        @DisplayName("Should build entity with business fields")
+        void shouldBuildEntityWithBusinessFields() {
+            %s built = %s.builder()%s
                     .build();
+            // Set inherited fields via setters
+            built.setId(1L);
+            built.setEstado(true);
 
             assertThat(built.getId()).isEqualTo(1L);
             assertThat(built.getEstado()).isTrue();%s
         }
 
         @Test
-        @DisplayName("Should build empty entity with defaults")
-        void shouldBuildEmptyEntityWithDefaults() {
+        @DisplayName("Should build entity and have default estado")
+        void shouldBuildEntityWithDefaultEstado() {
             %s built = %s.builder().build();
 
             assertThat(built.getId()).isNull();
-            assertThat(built.getEstado()).isTrue();
+            assertThat(built.getEstado()).isTrue(); // Default from Base class
         }
     }
 
@@ -165,8 +165,10 @@ class %sTest {
         @Test
         @DisplayName("Entities with same ID should be equal")
         void entitiesWithSameIdShouldBeEqual() {
-            %s entity1 = %s.builder().id(1L).build();
-            %s entity2 = %s.builder().id(1L).build();
+            %s entity1 = new %s();
+            entity1.setId(1L);
+            %s entity2 = new %s();
+            entity2.setId(1L);
 
             assertThat(entity1).isEqualTo(entity2);
             assertThat(entity1.hashCode()).isEqualTo(entity2.hashCode());
@@ -175,8 +177,10 @@ class %sTest {
         @Test
         @DisplayName("Entities with different IDs should not be equal")
         void entitiesWithDifferentIdsShouldNotBeEqual() {
-            %s entity1 = %s.builder().id(1L).build();
-            %s entity2 = %s.builder().id(2L).build();
+            %s entity1 = new %s();
+            entity1.setId(1L);
+            %s entity2 = new %s();
+            entity2.setId(2L);
 
             assertThat(entity1).isNotEqualTo(entity2);
         }
@@ -228,54 +232,54 @@ class %sTest {
     class AuditFields {
 
         @Test
-        @DisplayName("Should set and get createdAt")
-        void shouldSetAndGetCreatedAt() {
-            java.time.Instant now = java.time.Instant.now();
-            %s.setCreatedAt(now);
+        @DisplayName("Should set and get fechaCreacion")
+        void shouldSetAndGetFechaCreacion() {
+            java.time.LocalDateTime now = java.time.LocalDateTime.now();
+            %s.setFechaCreacion(now);
 
-            assertThat(%s.getCreatedAt()).isEqualTo(now);
+            assertThat(%s.getFechaCreacion()).isEqualTo(now);
         }
 
         @Test
-        @DisplayName("Should set and get updatedAt")
-        void shouldSetAndGetUpdatedAt() {
-            java.time.Instant now = java.time.Instant.now();
-            %s.setUpdatedAt(now);
+        @DisplayName("Should set and get fechaActualizacion")
+        void shouldSetAndGetFechaActualizacion() {
+            java.time.LocalDateTime now = java.time.LocalDateTime.now();
+            %s.setFechaActualizacion(now);
 
-            assertThat(%s.getUpdatedAt()).isEqualTo(now);
+            assertThat(%s.getFechaActualizacion()).isEqualTo(now);
         }
 
         @Test
-        @DisplayName("Should set and get createdBy")
-        void shouldSetAndGetCreatedBy() {
-            %s.setCreatedBy("testUser");
+        @DisplayName("Should set and get creadoPor")
+        void shouldSetAndGetCreadoPor() {
+            %s.setCreadoPor("testUser");
 
-            assertThat(%s.getCreatedBy()).isEqualTo("testUser");
+            assertThat(%s.getCreadoPor()).isEqualTo("testUser");
         }
 
         @Test
-        @DisplayName("Should set and get updatedBy")
-        void shouldSetAndGetUpdatedBy() {
-            %s.setUpdatedBy("testUser");
+        @DisplayName("Should set and get modificadoPor")
+        void shouldSetAndGetModificadoPor() {
+            %s.setModificadoPor("testUser");
 
-            assertThat(%s.getUpdatedBy()).isEqualTo("testUser");
+            assertThat(%s.getModificadoPor()).isEqualTo("testUser");
         }
 
         @Test
-        @DisplayName("Should set and get deletedAt")
-        void shouldSetAndGetDeletedAt() {
-            java.time.Instant now = java.time.Instant.now();
-            %s.setDeletedAt(now);
+        @DisplayName("Should set and get fechaEliminacion")
+        void shouldSetAndGetFechaEliminacion() {
+            java.time.LocalDateTime now = java.time.LocalDateTime.now();
+            %s.setFechaEliminacion(now);
 
-            assertThat(%s.getDeletedAt()).isEqualTo(now);
+            assertThat(%s.getFechaEliminacion()).isEqualTo(now);
         }
 
         @Test
-        @DisplayName("Should set and get deletedBy")
-        void shouldSetAndGetDeletedBy() {
-            %s.setDeletedBy("testUser");
+        @DisplayName("Should set and get eliminadoPor")
+        void shouldSetAndGetEliminadoPor() {
+            %s.setEliminadoPor("testUser");
 
-            assertThat(%s.getDeletedBy()).isEqualTo("testUser");
+            assertThat(%s.getEliminadoPor()).isEqualTo("testUser");
         }
     }
 }
@@ -295,8 +299,7 @@ class %sTest {
                         entityVarName,
                         entityVarName,
                         entityVarName,
-                        entityName,
-                        entityName,
+                        entityVarName,
                         entityVarName,
                         entityVarName,
                         // Business Fields
